@@ -1,14 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "../../../../src/db";
 import { users } from "../../../../src/db/schema";
 
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: Props
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid profile ID" },

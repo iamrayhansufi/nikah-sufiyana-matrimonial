@@ -28,9 +28,9 @@ import { playfair } from "../lib/fonts"
 export default function PremiumPage() {
   const features = [
     {
-      icon: UserCheck,
-      title: "Verified Profiles Only",
-      description: "Connect with 100% manually verified profiles to ensure safety and authenticity",
+      title: "Premium Profiles",
+      description: "Connect with premium members to ensure quality matches",
+      icon: Star,
     },
     {
       icon: Eye,
@@ -57,6 +57,19 @@ export default function PremiumPage() {
       title: "Success Guarantee",
       description: "If you don't find a match within 6 months, get 3 months free membership",
     },
+  ]
+
+  const premiumFeatures = [
+    "Unlimited profile views",
+    "Direct messaging",
+    "View contact details",
+    "Priority support",
+    "Advanced search filters",
+    "Profile highlighting",
+    "See who viewed your profile",
+    "Premium badge display",
+    "Photo privacy controls",
+    "Extended profile visibility",
   ]
 
   const premiumPlans = [

@@ -28,7 +28,6 @@ interface Profile {
   housing: string
   image: string
   match: number
-  verified: boolean
   premium: boolean
 }
 
@@ -47,7 +46,6 @@ const profiles: Profile[] = [
     housing: "own",
     image: "/placeholder.svg?height=300&width=300",
     match: 95,
-    verified: true,
     premium: false,
   },
   {
@@ -63,7 +61,6 @@ const profiles: Profile[] = [
     housing: "own",
     image: "/placeholder.svg?height=300&width=300",
     match: 88,
-    verified: true,
     premium: true,
   },
   {
@@ -79,7 +76,6 @@ const profiles: Profile[] = [
     housing: "own",
     image: "/placeholder.svg?height=300&width=300",
     match: 82,
-    verified: true,
     premium: false,
   },
   {
@@ -95,7 +91,6 @@ const profiles: Profile[] = [
     housing: "own",
     image: "/placeholder.svg?height=300&width=300",
     match: 90,
-    verified: true,
     premium: true,
   },
   {
@@ -111,7 +106,6 @@ const profiles: Profile[] = [
     housing: "own",
     image: "/placeholder.svg?height=300&width=300",
     match: 85,
-    verified: true,
     premium: false,
   },
   {
@@ -127,7 +121,6 @@ const profiles: Profile[] = [
     housing: "own",
     image: "/placeholder.svg?height=300&width=300",
     match: 92,
-    verified: true,
     premium: true,
   },
 ]
@@ -497,8 +490,7 @@ export default function BrowseProfilesPage() {
                       </div>
                     )}
                     <div className="absolute top-2 left-2 flex gap-2">
-                      {profile.verified && <Badge className="bg-green-500 text-white">✓ Verified</Badge>}
-                      {profile.premium && <Badge className="bg-yellow-500 text-white">⭐ Premium</Badge>}
+                      <Badge className="bg-yellow-500 text-white">⭐ Premium</Badge>
                     </div>
                     <div className="absolute top-2 right-2">
                       <Badge variant="secondary" className="bg-primary text-white">

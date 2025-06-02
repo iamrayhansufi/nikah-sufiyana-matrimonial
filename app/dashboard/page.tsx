@@ -126,6 +126,19 @@ export default function DashboardPage() {
     }
   }
 
+  function getProfileStatus(status: string) {
+    switch (status) {
+      case "approved":
+        return "Active"
+      case "pending":
+        return "Under Review"
+      case "rejected":
+        return "Rejected"
+      default:
+        return "Under Review"
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />

@@ -26,7 +26,7 @@ export default function HomePage() {
   const slides = [
     {
       title: "Join India's most trusted Islamic matrimonial platform",      
-      description: "Connect with verified profiles seeking halal relationships based on Islamic values and mutual respect.",
+      description: "Connect with profiles seeking halal relationships based on Islamic values and mutual respect.",
       image: "/placeholder.svg",
       badge: "✨ Trusted by 50,000+ Muslims"
     },
@@ -64,7 +64,7 @@ export default function HomePage() {
     {
       icon: Shield,
       title: "Safe & Secure Matching",
-      description: "Every profile undergoes thorough verification by our dedicated team, providing you a safe and trusted environment to find your perfect match.",
+      description: "Our dedicated team ensures a safe and trusted environment to find your perfect match.",
     },
     {
       icon: UserCheck,
@@ -353,7 +353,6 @@ export default function HomePage() {
                     className="w-full h-64 object-cover"
                   />
                   <div className="absolute top-2 left-2 flex gap-2">
-                    {profile.verified && <Badge className="bg-green-500 text-white">✓ Verified</Badge>}
                     <Badge className="bg-yellow-500 text-white">⭐ Premium</Badge>
                   </div>
                   <div className="absolute top-2 right-2">

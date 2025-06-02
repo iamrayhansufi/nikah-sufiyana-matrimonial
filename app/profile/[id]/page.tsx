@@ -41,7 +41,6 @@ const profileData = {
   education: "Master's in Computer Science",
   company: "Tech Solutions Pvt Ltd",
   profilePhoto: "/placeholder.svg?height=400&width=400",
-  verified: true,
   premium: true,
   lastSeen: "2 hours ago",
   joinedDate: "January 2024",
@@ -179,12 +178,6 @@ export default function ProfilePage() {
 
                     {/* Badges */}
                     <div className="absolute top-2 left-2 flex flex-col gap-2">
-                      {profile.verified && (
-                        <Badge className="bg-green-500 text-white">
-                          <Shield className="h-3 w-3 mr-1" />
-                          Verified
-                        </Badge>
-                      )}
                       {profile.premium && <Badge className="bg-yellow-500 text-white">⭐ Premium</Badge>}
                     </div>
 

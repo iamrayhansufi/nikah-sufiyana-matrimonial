@@ -42,22 +42,26 @@ export async function POST(req: Request) {
 
     // Create user
     const [newUser] = await db.insert(users).values({
-      ...userData,
+      fullName: userData.fullName,
+      email: userData.email,
+      phone: userData.phone,
       password: hashedPassword,
+      gender: userData.gender,
+      age: userData.age,
+      location: userData.location,
+      education: userData.education,
+      profession: userData.profession,
+      sect: userData.sect,
       profileStatus: "pending",
       subscription: "free",
-      verified: false,
       lastActive: new Date(),
     }).returning();
 
     return NextResponse.json({
-      message: "Registration successful",
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        fullName: newUser.fullName,
-        profileStatus: newUser.profileStatus,
-      },
+      id: newUser.id,
+      email: newUser.email,
+      fullName: newUser.fullName,
+      profileStatus: newUser.profileStatus,
     });
   } catch (error) {
     console.error("Registration error:", error);

@@ -16,7 +16,6 @@ export const users = pgTable('users', {
   subscription: varchar('subscription', { length: 20 }).notNull().default('free'),
   subscriptionExpiry: timestamp('subscription_expiry'),
   profilePhoto: text('profile_photo'),
-  verified: boolean('verified').notNull().default(false),
   lastActive: timestamp('last_active').notNull().defaultNow(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -41,6 +40,7 @@ export const users = pgTable('users', {
   rejectedBy: varchar('rejected_by', { length: 255 }),
   suspendedAt: timestamp('suspended_at'),
   suspendedBy: varchar('suspended_by', { length: 255 }),
+  premium: boolean('premium').notNull().default(false),
 });
 
 export const paymentOrders = pgTable('payment_orders', {
@@ -93,18 +93,6 @@ export const subscriptionHistory = pgTable('subscription_history', {
   paymentId: varchar('payment_id', { length: 255 }),
   status: varchar('status', { length: 20 }).notNull().default('active'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-});
-
-export const verificationRequests = pgTable('verification_requests', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull(),
-  documentType: varchar('document_type', { length: 50 }).notNull(), // passport, id_card, etc.
-  documentUrl: text('document_url').notNull(),
-  status: varchar('status', { length: 20 }).notNull().default('pending'),
-  reviewedBy: integer('reviewed_by'),
-  reviewedAt: timestamp('reviewed_at'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  notes: text('notes'),
 });
 
 export const userReports = pgTable('user_reports', {
