@@ -13,8 +13,12 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { Heart, Eye, EyeOff, Mail, Phone } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function LoginPage() {
+  const router = useRouter()
+  const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email")
   const [formData, setFormData] = useState({
@@ -24,10 +28,55 @@ export default function LoginPage() {
     rememberMe: false,
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle login logic here
-    console.log("Login attempt:", formData)
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: loginMethod === "email" ? formData.email : undefined,
+          phone: loginMethod === "phone" ? formData.phone : undefined,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast({
+          title: "Login Failed",
+          description: data.error || "Invalid credentials. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Store the token
+      if (formData.rememberMe) {
+        localStorage.setItem('auth-token', data.token);
+      } else {
+        sessionStorage.setItem('auth-token', data.token);
+      }
+
+      // Show success message
+      toast({
+        title: "Login Successful",
+        description: "Welcome back to Nikah Sufiyana!",
+      });
+
+      // Redirect to dashboard
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Login Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   return (

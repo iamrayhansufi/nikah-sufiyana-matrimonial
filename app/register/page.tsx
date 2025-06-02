@@ -24,6 +24,7 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { playfair } from "../lib/fonts"
+import { useRouter } from "next/navigation"
 
 interface ExtractedData {
   fullName?: string;
@@ -106,6 +107,7 @@ export default function RegisterPage() {
   })
 
   const totalSteps = 4
+  const router = useRouter()
 
   // Load data from localStorage on page load
   useEffect(() => {
@@ -142,10 +144,58 @@ export default function RegisterPage() {
     if (step > 1) setStep(step - 1)
   }
 
-  const handleSubmit = () => {
-    // Handle form submission
-    console.log("Form submitted:", formData)
-  }
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+          gender: formData.gender,
+          age: parseInt(formData.age),
+          location: `${formData.city}, ${formData.country}`,
+          education: formData.education,
+          profession: formData.profession,
+          sect: formData.sect,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast({
+          title: "Registration Failed",
+          description: data.error || "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Clear form data from localStorage
+      localStorage.removeItem("heroRegistrationData");
+
+      // Show success message
+      toast({
+        title: "Registration Successful",
+        description: "Your profile has been created successfully.",
+      });
+
+      // Redirect to success page
+      router.push('/success');
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast({
+        title: "Registration Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const API_BASE_URL = '';  // Empty string for same-origin requests
 
