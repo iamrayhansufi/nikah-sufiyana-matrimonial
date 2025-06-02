@@ -34,6 +34,14 @@ export interface User {
   preferredAgeMax?: number
   preferredEducation?: string
   preferredLocation?: string
+
+  // Admin action fields
+  approvedAt?: Date
+  approvedBy?: string
+  rejectedAt?: Date
+  rejectedBy?: string
+  suspendedAt?: Date
+  suspendedBy?: string
 }
 
 export interface PaymentOrder {
@@ -86,7 +94,7 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<Us
 }
 
 // Admin operations
-export async function getUsers(filters: any, page: number, limit: number) {
+export async function getUsers(filters: Record<string, any>, page: number, limit: number): Promise<User[]> {
   // Get users with filters and pagination
   return []
 }
@@ -99,4 +107,16 @@ export async function getUserStats() {
     approved: 0,
     premium: 0,
   }
+}
+
+export async function updateUserProfile(id: string, updates: Partial<User>): Promise<User | null> {
+  // Update user profile
+  console.log("Updating user profile:", id, updates)
+  return null
+}
+
+export async function deleteUser(id: string): Promise<boolean> {
+  // Delete user
+  console.log("Deleting user:", id)
+  return false
 }

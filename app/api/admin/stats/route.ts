@@ -1,4 +1,45 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { verifyAdminAuth } from "@/lib/auth"
+
+interface RecentRegistration {
+  id: string
+  name: string
+  email: string
+  date: string
+}
+
+interface TopActiveUser {
+  id: string
+  name: string
+  profileViews: number
+  interests: number
+  lastActive: string
+}
+
+interface MonthlyRevenue {
+  month: string
+  revenue: number
+  subscriptions: number
+}
+
+interface SubscriptionBreakdown {
+  free: number
+  premium: number
+  vip: number
+}
+
+interface AdminStats {
+  totalRegistrations: number
+  activeSubscriptions: number
+  pendingApprovals: number
+  totalRevenue: number
+  monthlyGrowth: number
+  successfulMatches: number
+  recentRegistrations: RecentRegistration[]
+  topActiveUsers: TopActiveUser[]
+  subscriptionBreakdown: SubscriptionBreakdown
+  revenueByMonth: MonthlyRevenue[]
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,7 +50,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get various statistics
-    const stats = {
+    const stats: AdminStats = {
       totalRegistrations: await getTotalUsers(),
       activeSubscriptions: await getActiveSubscriptions(),
       pendingApprovals: await getPendingApprovals(),
@@ -25,48 +66,46 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(stats)
   } catch (error) {
     console.error("Admin stats error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : "Internal server error" 
+    }, { status: 500 })
   }
 }
 
 // Helper functions for statistics
-async function verifyAdminAuth(request: NextRequest) {
-  return true // Placeholder
-}
-
-async function getTotalUsers() {
+async function getTotalUsers(): Promise<number> {
   return 15420 // Placeholder
 }
 
-async function getActiveSubscriptions() {
+async function getActiveSubscriptions(): Promise<number> {
   return 3240 // Placeholder
 }
 
-async function getPendingApprovals() {
+async function getPendingApprovals(): Promise<number> {
   return 156 // Placeholder
 }
 
-async function getTotalRevenue() {
+async function getTotalRevenue(): Promise<number> {
   return 2450000 // Placeholder
 }
 
-async function getMonthlyGrowth() {
+async function getMonthlyGrowth(): Promise<number> {
   return 12.5 // Placeholder
 }
 
-async function getSuccessfulMatches() {
+async function getSuccessfulMatches(): Promise<number> {
   return 1250 // Placeholder
 }
 
-async function getRecentRegistrations() {
+async function getRecentRegistrations(): Promise<RecentRegistration[]> {
   return [] // Placeholder
 }
 
-async function getTopActiveUsers() {
+async function getTopActiveUsers(): Promise<TopActiveUser[]> {
   return [] // Placeholder
 }
 
-async function getSubscriptionBreakdown() {
+async function getSubscriptionBreakdown(): Promise<SubscriptionBreakdown> {
   return {
     free: 12180,
     premium: 2640,
@@ -74,6 +113,6 @@ async function getSubscriptionBreakdown() {
   }
 }
 
-async function getRevenueByMonth() {
+async function getRevenueByMonth(): Promise<MonthlyRevenue[]> {
   return [] // Placeholder
 }

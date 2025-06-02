@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
+import { NextRequest } from "next/server"
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"
 
@@ -26,4 +27,13 @@ export function verifyJWT(token: string): { userId: string; role: string } | nul
 
 export async function generateOTP(): Promise<string> {
   return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
+export async function verifyAdminAuth(request: NextRequest){
+  const token = request.headers.get("Authorization")?.split(" ")[1]
+  if (!token) {
+    return false
+  }
+  const decoded = verifyJWT(token)
+  return decoded?.role === "admin"
 }

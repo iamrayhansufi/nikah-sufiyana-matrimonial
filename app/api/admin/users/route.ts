@@ -1,4 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { verifyAdminAuth } from "@/lib/auth"
+import { getUsers, getUserStats, updateUserProfile, type User } from "@/lib/database"
+import { sendUserNotification } from "@/lib/notifications"
+
+type AdminUserFilters = {
+  profileStatus?: "pending" | "approved" | "rejected" | "suspended"
+  subscription?: "free" | "premium" | "vip"
+}
+
+type AdminAction = "approve" | "reject" | "suspend"
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,23 +21,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "20")
-    const status = searchParams.get("status") // pending, approved, rejected
-    const subscription = searchParams.get("subscription") // free, premium, vip
+    const status = searchParams.get("status") as AdminUserFilters["profileStatus"]
+    const subscription = searchParams.get("subscription") as AdminUserFilters["subscription"]
 
-    const filters: any = {}
+    const filters: AdminUserFilters = {}
     if (status) filters.profileStatus = status
     if (subscription) filters.subscription = subscription
 
-    const users = await getUsersFromDatabase(filters, page, limit)
-    const totalCount = await getUsersCount(filters)
+    const users = await getUsers(filters, page, limit)
+    const stats = await getUserStats()
 
     return NextResponse.json({
       users,
       pagination: {
         page,
         limit,
-        total: totalCount,
-        pages: Math.ceil(totalCount / limit),
+        total: stats.total,
+        pages: Math.ceil(stats.total / limit),
       },
     })
   } catch (error) {
@@ -45,13 +55,13 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { userId, action } = body // action: approve, reject, suspend
+    const { userId, action } = body as { userId: string; action: AdminAction }
 
     if (!userId || !action) {
       return NextResponse.json({ error: "User ID and action are required" }, { status: 400 })
     }
 
-    let newStatus
+    let newStatus: User['profileStatus']
     switch (action) {
       case "approve":
         newStatus = "approved"
@@ -66,10 +76,10 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: "Invalid action" }, { status: 400 })
     }
 
-    await updateUserStatus(userId, newStatus)
+    await updateUserProfile(userId, { profileStatus: newStatus })
 
     // Send notification to user
-    await sendUserNotification(userId, action)
+    await sendUserNotification(userId, `Your profile has been ${action}ed`)
 
     return NextResponse.json({
       message: `User ${action}ed successfully`,
@@ -78,30 +88,4 @@ export async function PUT(request: NextRequest) {
     console.error("Admin update user error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-}
-
-// Helper functions
-async function verifyAdminAuth(request: NextRequest) {
-  // Verify admin JWT token
-  return true // Placeholder
-}
-
-async function getUsersFromDatabase(filters: any, page: number, limit: number) {
-  // Query database for users
-  return [] // Placeholder
-}
-
-async function getUsersCount(filters: any) {
-  // Get total user count
-  return 0 // Placeholder
-}
-
-async function updateUserStatus(userId: string, status: string) {
-  // Update user status in database
-  console.log(`Updating user ${userId} status to ${status}`)
-}
-
-async function sendUserNotification(userId: string, action: string) {
-  // Send email/SMS notification to user
-  console.log(`Sending ${action} notification to user ${userId}`)
 }

@@ -70,7 +70,9 @@
   },
   "devDependencies": {
     "@types/formidable": "^3.4.5",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22",
+    "@types/nodemailer": "^6.4.17",
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",

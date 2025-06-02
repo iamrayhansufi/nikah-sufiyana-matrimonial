@@ -1,4 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { getUsers, getUserStats } from "@/lib/database"
+
+type ProfileFilters = {
+  profileStatus: "approved" | "pending" | "rejected"
+  gender?: "male" | "female"
+  age?: {
+    $gte: number
+    $lte: number
+  }
+  location?: {
+    $regex: string
+    $options: string
+  }
+  education?: {
+    $regex: string
+    $options: string
+  }
+  sect?: string
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,11 +32,11 @@ export async function GET(request: NextRequest) {
     const sect = searchParams.get("sect")
 
     // Build filter object
-    const filters: any = {
+    const filters: ProfileFilters = {
       profileStatus: "approved",
     }
 
-    if (gender) filters.gender = gender
+    if (gender) filters.gender = gender as "male" | "female"
     if (ageMin && ageMax) {
       filters.age = { $gte: Number.parseInt(ageMin), $lte: Number.parseInt(ageMax) }
     }
@@ -26,8 +45,8 @@ export async function GET(request: NextRequest) {
     if (sect) filters.sect = sect
 
     // Get profiles from database
-    const profiles = await getProfilesFromDatabase(filters, page, limit)
-    const totalCount = await getProfilesCount(filters)
+    const profiles = await getUsers(filters, page, limit)
+    const stats = await getUserStats()
 
     return NextResponse.json({
       profiles: profiles.map((profile) => ({
@@ -46,8 +65,8 @@ export async function GET(request: NextRequest) {
       pagination: {
         page,
         limit,
-        total: totalCount,
-        pages: Math.ceil(totalCount / limit),
+        total: stats.total,
+        pages: Math.ceil(stats.total / limit),
       },
     })
   } catch (error) {

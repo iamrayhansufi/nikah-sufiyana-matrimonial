@@ -51,3 +51,22 @@ export async function sendPaymentConfirmation(email: string, planType: string, a
     <p>Your premium features are now active!</p>
   `
 }
+
+export async function sendUserNotification(userId: string, message: string) {
+  // Get user email from database
+  // This is a placeholder - you'll need to implement the actual database lookup
+  const userEmail = "user@example.com"
+  const userName = "User"
+
+  console.log(`Sending notification to user ${userId}: ${message}`)
+
+  const emailContent = `
+    <h2>Nikah Sufiyana Update</h2>
+    <p>Dear ${userName},</p>
+    <p>${message}</p>
+    <p>If you have any questions, please contact our support team.</p>
+  `
+
+  // Implementation with email service
+  // You should implement the actual email sending logic here
+}

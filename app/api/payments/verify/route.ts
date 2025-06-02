@@ -1,4 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { type PaymentOrder } from "@/lib/database"
+
+interface PaymentVerificationData {
+  orderId: string
+  paymentId: string
+  signature: string
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,22 +54,30 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper functions
-async function verifyPaymentSignature(data: any) {
+async function verifyPaymentSignature(data: PaymentVerificationData): Promise<boolean> {
   // Verify with Razorpay/Stripe
   return true // Placeholder
 }
 
-async function getPaymentOrder(orderId: string) {
+async function getPaymentOrder(orderId: string): Promise<PaymentOrder | null> {
   // Get from database
-  return null // Placeholder
+  return {
+    id: "test",
+    orderId,
+    userId: "test",
+    planType: "premium",
+    amount: 9999,
+    status: "created",
+    createdAt: new Date(),
+  } // Placeholder
 }
 
-async function updatePaymentStatus(orderId: string, status: string, paymentId: string) {
+async function updatePaymentStatus(orderId: string, status: PaymentOrder["status"], paymentId: string): Promise<void> {
   // Update in database
   console.log(`Updating payment ${orderId} to ${status}`)
 }
 
-async function updateUserSubscription(userId: string, planType: string) {
+async function updateUserSubscription(userId: string, planType: string): Promise<void> {
   // Update user subscription in database
   const expiryDate = new Date()
   if (planType === "premium") {
@@ -74,7 +89,7 @@ async function updateUserSubscription(userId: string, planType: string) {
   console.log(`Updating user ${userId} subscription to ${planType}`)
 }
 
-async function sendPaymentConfirmationEmail(userId: string, paymentOrder: any) {
+async function sendPaymentConfirmationEmail(userId: string, paymentOrder: PaymentOrder): Promise<void> {
   // Send confirmation email
   console.log(`Sending payment confirmation to user ${userId}`)
 }

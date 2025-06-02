@@ -1,4 +1,4 @@
-import { connectToDatabase, User } from "./database"
+import { connectToDatabase, type User, getUserStats, getUsers as getDatabaseUsers, getUserById, updateUserProfile } from "./database"
 
 export async function getDashboardStats() {
   await connectToDatabase()
@@ -9,30 +9,31 @@ export async function getDashboardStats() {
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
 
-  // Calculate statistics
-  const totalUsers = await User.countDocuments()
-  const pendingApprovals = await User.countDocuments({ profileStatus: "pending" })
-  const activeSubscriptions = await User.countDocuments({
-    subscription: { $in: ["premium", "vip"] },
-    subscriptionExpiry: { $gt: now },
-  })
+  const stats = await getUserStats()
+  
+  // Get users for this month and last month
+  const thisMonthUsers = await getDatabaseUsers(
+    { createdAt: { $gte: startOfMonth } },
+    1,
+    1000
+  )
 
-  const thisMonthUsers = await User.countDocuments({
-    createdAt: { $gte: startOfMonth },
-  })
+  const lastMonthUsers = await getDatabaseUsers(
+    { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } },
+    1,
+    1000
+  )
 
-  const lastMonthUsers = await User.countDocuments({
-    createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth },
-  })
-
-  const monthlyGrowth = lastMonthUsers > 0 ? ((thisMonthUsers - lastMonthUsers) / lastMonthUsers) * 100 : 0
+  const monthlyGrowth = lastMonthUsers.length > 0 
+    ? ((thisMonthUsers.length - lastMonthUsers.length) / lastMonthUsers.length) * 100 
+    : 0
 
   return {
-    totalRegistrations: totalUsers,
-    activeSubscriptions,
-    pendingApprovals,
+    totalRegistrations: stats.total,
+    activeSubscriptions: stats.premium,
+    pendingApprovals: stats.pending,
     monthlyGrowth: Math.round(monthlyGrowth * 100) / 100,
-    thisMonthRegistrations: thisMonthUsers,
+    thisMonthRegistrations: thisMonthUsers.length,
     successfulMatches: await getSuccessfulMatches(),
     averageResponseTime: await getAverageResponseTime(),
     topLocations: await getTopLocations(),
@@ -41,23 +42,19 @@ export async function getDashboardStats() {
 
 export async function getRecentActivity() {
   await connectToDatabase()
-
-  const recentUsers = await User.find()
-    .sort({ createdAt: -1 })
-    .limit(10)
-    .select("fullName email profileStatus subscription createdAt location")
-
-  return recentUsers
+  return await getDatabaseUsers({}, 1, 10)
 }
 
-export async function bulkUpdateUsers(userIds: string[], updateData: any) {
+export async function bulkUpdateUsers(userIds: string[], updateData: Partial<User>) {
   await connectToDatabase()
 
   try {
-    const result = await User.updateMany({ _id: { $in: userIds } }, { $set: updateData })
+    const updatedUsers = await Promise.all(
+      userIds.map(id => updateUserProfile(id, updateData))
+    )
 
     return {
-      affected: result.modifiedCount,
+      affected: updatedUsers.filter(Boolean).length,
       success: true,
     }
   } catch (error) {
@@ -65,22 +62,48 @@ export async function bulkUpdateUsers(userIds: string[], updateData: any) {
     return {
       affected: 0,
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
     }
   }
 }
 
-export async function sendBulkNotifications(userIds: string[], notificationData: any) {
+type NotificationType = "email" | "sms"
+
+interface NotificationData {
+  type: NotificationType
+  subject?: string
+  message: string
+}
+
+interface BulkNotificationResult {
+  affected: number
+  failed: number
+  success: boolean
+  errors?: Array<{
+    userId: string
+    error: string
+  }>
+}
+
+export async function sendBulkNotifications(
+  userIds: string[],
+  notificationData: NotificationData
+): Promise<BulkNotificationResult> {
   await connectToDatabase()
 
-  const users = await User.find({ _id: { $in: userIds } }).select("email phone fullName")
+  const users = await Promise.all(userIds.map(id => getUserById(id)))
+  const validUsers = users.filter((user): user is User => user !== null)
 
   let successCount = 0
   let failedCount = 0
+  const errors: Array<{ userId: string; error: string }> = []
 
-  for (const user of users) {
+  for (const user of validUsers) {
     try {
       if (notificationData.type === "email") {
+        if (!notificationData.subject) {
+          throw new Error("Email subject is required")
+        }
         await sendEmail({
           to: user.email,
           subject: notificationData.subject,
@@ -98,48 +121,53 @@ export async function sendBulkNotifications(userIds: string[], notificationData:
     } catch (error) {
       console.error(`Failed to send notification to ${user.email}:`, error)
       failedCount++
+      errors.push({
+        userId: user.id,
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+      })
     }
   }
 
   return {
     affected: successCount,
     failed: failedCount,
-    success: true,
+    success: failedCount === 0,
+    errors: errors.length > 0 ? errors : undefined,
   }
 }
 
-async function getSuccessfulMatches() {
-  // This would track successful matches/marriages
-  // For now, return a placeholder
-  return 1250
+// Helper functions (implement these based on your requirements)
+async function getSuccessfulMatches(): Promise<number> {
+  return 0 // Implement based on your matching system
 }
 
-async function getAverageResponseTime() {
-  // Calculate average admin response time for approvals
-  return "2.5 hours"
+async function getAverageResponseTime(): Promise<number> {
+  return 0 // Implement based on your messaging system
 }
 
-async function getTopLocations() {
-  await connectToDatabase()
-
-  const locations = await User.aggregate([
-    { $group: { _id: "$location", count: { $sum: 1 } } },
-    { $sort: { count: -1 } },
-    { $limit: 5 },
-  ])
-
-  return locations.map((loc) => ({
-    location: loc._id,
-    count: loc.count,
-  }))
+async function getTopLocations(): Promise<Array<{ location: string, count: number }>> {
+  return [] // Implement based on your user data
 }
 
-async function sendEmail(emailData: any) {
-  // Email sending logic using nodemailer or similar
-  console.log("Sending email:", emailData)
+interface EmailParams {
+  to: string
+  subject: string
+  message: string
+  userName: string
 }
 
-async function sendSMS(smsData: any) {
-  // SMS sending logic using Twilio or similar
-  console.log("Sending SMS:", smsData)
+interface SMSParams {
+  to: string
+  message: string
+  userName: string
+}
+
+async function sendEmail(params: EmailParams): Promise<void> {
+  // Implement email sending logic
+  console.log('Sending email:', params)
+}
+
+async function sendSMS(params: SMSParams): Promise<void> {
+  // Implement SMS sending logic
+  console.log('Sending SMS:', params)
 }

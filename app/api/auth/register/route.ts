@@ -1,49 +1,69 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { createUser, getUserByEmail } from "@/lib/database"
+import { hashPassword } from "@/lib/auth"
+import { sendVerificationEmail, sendVerificationSMS } from "@/lib/notifications"
+
+type UserRegistration = {
+  fullName: string
+  email: string
+  phone: string
+  password: string
+  gender: "male" | "female"
+  age: number
+  [key: string]: any // For additional profile fields
+}
+
+function generateOTP(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
     // Validate required fields
-    const { fullName, email, phone, password, gender, age } = body
+    const { fullName, email, phone, password, gender, age } = body as UserRegistration
 
     if (!fullName || !email || !phone || !password || !gender || !age) {
       return NextResponse.json({ error: "All required fields must be provided" }, { status: 400 })
     }
 
     // Check if user already exists
-    // In a real app, you would check against your database
-    const existingUser = await checkUserExists(email, phone)
+    const existingUser = await getUserByEmail(email)
 
     if (existingUser) {
-      return NextResponse.json({ error: "User already exists with this email or phone" }, { status: 409 })
+      return NextResponse.json({ error: "User already exists with this email" }, { status: 409 })
     }
 
     // Hash password
     const hashedPassword = await hashPassword(password)
 
+    // Generate OTPs for email and SMS verification
+    const emailOTP = generateOTP()
+    const smsOTP = generateOTP()
+
     // Create user profile
-    const newUser = {
-      id: generateUserId(),
+    const newUser = await createUser({
       fullName,
       email,
       phone,
       password: hashedPassword,
       gender,
-      age: Number.parseInt(age),
-      profileStatus: "pending", // pending, approved, rejected
-      subscription: "free", // free, premium, vip
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      age: Number.parseInt(age.toString()),
+      profileStatus: "pending",
+      subscription: "free",
+      verified: false,
+      lastActive: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      emailOTP, // Store OTPs for verification
+      smsOTP,
       ...body, // Include other profile fields
-    }
-
-    // Save to database
-    await saveUserToDatabase(newUser)
+    })
 
     // Send verification email/SMS
-    await sendVerificationEmail(email)
-    await sendVerificationSMS(phone)
+    await sendVerificationEmail(email, emailOTP)
+    await sendVerificationSMS(phone, smsOTP)
 
     return NextResponse.json(
       {
@@ -56,34 +76,4 @@ export async function POST(request: NextRequest) {
     console.error("Registration error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-}
-
-// Helper functions (implement with your database)
-async function checkUserExists(email: string, phone: string) {
-  // Check database for existing user
-  return false // Placeholder
-}
-
-async function hashPassword(password: string) {
-  // Use bcrypt or similar to hash password
-  return password // Placeholder
-}
-
-function generateUserId() {
-  return Math.random().toString(36).substr(2, 9)
-}
-
-async function saveUserToDatabase(user: any) {
-  // Save to MongoDB/PostgreSQL/etc
-  console.log("Saving user:", user)
-}
-
-async function sendVerificationEmail(email: string) {
-  // Send verification email
-  console.log("Sending verification email to:", email)
-}
-
-async function sendVerificationSMS(phone: string) {
-  // Send verification SMS
-  console.log("Sending verification SMS to:", phone)
 }

@@ -1,5 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { getUserByEmail, updateUser } from "@/lib/database"
+import { generateJWT } from "@/lib/auth"
+import bcrypt from "bcryptjs"
+
+type ProfileStatus = "pending" | "approved" | "rejected"
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by email or phone
-    const user = await findUserByEmailOrPhone(email || phone)
+    const user = await getUserByEmail(email || phone)
 
     if (!user) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
@@ -30,10 +35,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate JWT token
-    const token = generateJWTToken(user.id)
+    const token = generateJWT(user.id)
+
+    // Create response with cookie
+    const response = NextResponse.json({
+      message: "Login successful",
+      user: {
+        id: user.id,
+        name: user.fullName,
+        email: user.email,
+        subscription: user.subscription,
+        profileStatus: user.profileStatus as ProfileStatus,
+      },
+    })
 
     // Set HTTP-only cookie
-    cookies().set("auth-token", token, {
+    response.cookies.set("auth-token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -41,41 +58,15 @@ export async function POST(request: NextRequest) {
     })
 
     // Update last login
-    await updateLastLogin(user.id)
+    await updateUser(user.id, { lastActive: new Date() })
 
-    return NextResponse.json({
-      message: "Login successful",
-      user: {
-        id: user.id,
-        name: user.fullName,
-        email: user.email,
-        subscription: user.subscription,
-        profileStatus: user.profileStatus,
-      },
-    })
+    return response
   } catch (error) {
     console.error("Login error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
-// Helper functions
-async function findUserByEmailOrPhone(identifier: string) {
-  // Query database for user
-  return null // Placeholder
-}
-
-async function verifyPassword(password: string, hashedPassword: string) {
-  // Use bcrypt to verify password
-  return true // Placeholder
-}
-
-function generateJWTToken(userId: string) {
-  // Generate JWT token
-  return "jwt-token" // Placeholder
-}
-
-async function updateLastLogin(userId: string) {
-  // Update user's last login timestamp
-  console.log("Updating last login for user:", userId)
+async function verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+  return await bcrypt.compare(plainPassword, hashedPassword)
 }
