@@ -198,7 +198,7 @@ export default function HomePage() {
             >
               {/* Background Image */}
               <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transition-transform duration-[10000ms]"
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transition-transform duration-[10s]"
                 style={{
                   backgroundImage: `url('${slide.image}')`,
                 }}

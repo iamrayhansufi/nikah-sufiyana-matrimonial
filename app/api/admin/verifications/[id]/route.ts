@@ -11,11 +11,10 @@ const reviewSchema = z.object({
 });
 
 export async function PUT(
-  req: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const request = req as NextRequest;
     // Verify admin authentication (TODO: Add admin check)
     const adminId = await verifyAuth(request);
     if (!adminId) {
