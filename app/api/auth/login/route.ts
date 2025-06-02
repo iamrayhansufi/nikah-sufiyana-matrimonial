@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import { db } from "../../../../src/db";
+import { users } from "../../../../src/db/schema";
 import { z } from "zod";
 
 const loginSchema = z.object({

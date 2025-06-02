@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "../../../../../src/db";
 import { verificationRequests, users } from "../../../../../src/db/schema";
@@ -11,12 +11,12 @@ const reviewSchema = z.object({
 });
 
 export async function PUT(
-  req: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     // Verify admin authentication (TODO: Add admin check)
-    const adminId = await verifyAuth(req);
+    const adminId = await verifyAuth(request);
     if (!adminId) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -32,24 +32,24 @@ export async function PUT(
       );
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const { status, notes } = reviewSchema.parse(body);
 
     // Get verification request
-    const request = await db
+    const verificationRequest = await db
       .select()
       .from(verificationRequests)
       .where(eq(verificationRequests.id, id))
       .limit(1);
 
-    if (!request || request.length === 0) {
+    if (!verificationRequest || verificationRequest.length === 0) {
       return NextResponse.json(
         { error: "Verification request not found" },
         { status: 404 }
       );
     }
 
-    if (request[0].status !== "pending") {
+    if (verificationRequest[0].status !== "pending") {
       return NextResponse.json(
         { error: "This request has already been reviewed" },
         { status: 400 }
@@ -73,7 +73,7 @@ export async function PUT(
       await db
         .update(users)
         .set({ verified: true })
-        .where(eq(users.id, request[0].userId));
+        .where(eq(users.id, verificationRequest[0].userId));
     }
 
     return NextResponse.json({
