@@ -10,19 +10,13 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center space-x-2">
-            {!imageError ? (
-              <Image 
-                src="http://suficreations.com/wp-content/uploads/2021/03/Nikah-Sufiyana-Logo-01.png"
-                alt="Nikah Sufiyana" 
-                width={130} 
-                height={40}
-                priority
-                onError={() => setImageError(true)}
-                className="h-auto"
-              />
-            ) : (
-              <span className="text-xl font-bold text-primary">Nikah Sufiyana</span>
-            )}
+            <Image
+              alt="Logo"
+              height="48"
+              width="215"
+              src="/logo.png"
+              className="h-12 w-auto"
+            />
           </Link>
         </div>
 

@@ -35,12 +35,12 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-2 space-y-4">
             <Link href="/" className="flex items-center space-x-2">
-              <Image 
-                src="http://suficreations.com/wp-content/uploads/2021/03/Nikah-Sufiyana-Logo-01.png"
-                alt="Nikah Sufiyana" 
-                width={130} 
-                height={30}
-                className="h-auto"
+              <Image
+                alt="Logo"
+                height="48"
+                width="215"
+                src="/logo.png"
+                className="h-12 w-auto"
               />
             </Link>
             <p className="text-sm text-muted-foreground max-w-s">

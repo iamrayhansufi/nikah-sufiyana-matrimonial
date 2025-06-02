@@ -27,7 +27,7 @@ export default function HomePage() {
     {
       title: "Join India's most trusted Islamic matrimonial platform",      
       description: "Connect with verified profiles seeking halal relationships based on Islamic values and mutual respect.",
-      image: "http://suficreations.com/wp-content/uploads/2025/05/Hero-BG-01.jpg",
+      image: "/placeholder.svg",
       badge: "✨ Trusted by 50,000+ Muslims"
     },
     {
