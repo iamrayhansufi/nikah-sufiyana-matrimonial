@@ -10,15 +10,9 @@ const reviewSchema = z.object({
   notes: z.string().optional(),
 });
 
-type VerificationContext = {
-  params: {
-    id: string;
-  };
-};
-
 export async function PUT(
   request: NextRequest,
-  { params }: VerificationContext
+  { params }: { params: { id: string } }
 ) {
   try {
     // Verify admin authentication (TODO: Add admin check)
