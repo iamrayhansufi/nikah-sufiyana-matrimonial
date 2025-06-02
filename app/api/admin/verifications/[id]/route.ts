@@ -10,9 +10,15 @@ const reviewSchema = z.object({
   notes: z.string().optional(),
 });
 
+type VerificationContext = {
+  params: {
+    id: string;
+  };
+};
+
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: VerificationContext
 ) {
   try {
     // Verify admin authentication (TODO: Add admin check)
@@ -24,7 +30,7 @@ export async function PUT(
       );
     }
 
-    const id = parseInt(context.params.id);
+    const id = parseInt(params.id);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid verification request ID" },
