@@ -1,72 +1,68 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { getUserByEmail, updateUser } from "@/lib/database"
-import { generateJWT } from "@/lib/auth"
-import bcrypt from "bcryptjs"
+import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { z } from "zod";
 
-type ProfileStatus = "pending" | "approved" | "rejected"
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body = await request.json()
-    const { email, phone, password } = body
+    const body = await req.json();
+    const { email, password } = loginSchema.parse(body);
 
-    if ((!email && !phone) || !password) {
-      return NextResponse.json({ error: "Email/phone and password are required" }, { status: 400 })
-    }
-
-    // Find user by email or phone
-    const user = await getUserByEmail(email || phone)
-
-    if (!user) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+    // Find user by email
+    const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    
+    if (!user || user.length === 0) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
     }
 
     // Verify password
-    const isValidPassword = await verifyPassword(password, user.password)
-
+    const isValidPassword = await bcrypt.compare(password, user[0].password);
     if (!isValidPassword) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
     }
 
-    // Check if profile is approved
-    if (user.profileStatus !== "approved") {
-      return NextResponse.json({ error: "Profile is pending approval" }, { status: 403 })
-    }
+    // Create JWT token
+    const token = jwt.sign(
+      { userId: user[0].id, email: user[0].email },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "24h" }
+    );
 
-    // Generate JWT token
-    const token = generateJWT(user.id)
+    // Update last active
+    await db
+      .update(users)
+      .set({ lastActive: new Date() })
+      .where(eq(users.id, user[0].id));
 
-    // Create response with cookie
-    const response = NextResponse.json({
-      message: "Login successful",
+    return NextResponse.json({
       user: {
-        id: user.id,
-        name: user.fullName,
-        email: user.email,
-        subscription: user.subscription,
-        profileStatus: user.profileStatus as ProfileStatus,
+        id: user[0].id,
+        email: user[0].email,
+        fullName: user[0].fullName,
+        profileStatus: user[0].profileStatus,
+        subscription: user[0].subscription,
       },
-    })
-
-    // Set HTTP-only cookie
-    response.cookies.set("auth-token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-    })
-
-    // Update last login
-    await updateUser(user.id, { lastActive: new Date() })
-
-    return response
+      token,
+    });
   } catch (error) {
-    console.error("Login error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Login error:", error);
+    return NextResponse.json(
+      { error: "Invalid request" },
+      { status: 400 }
+    );
   }
-}
-
-async function verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
-  return await bcrypt.compare(plainPassword, hashedPassword)
 }

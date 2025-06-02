@@ -1,79 +1,75 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { createUser, getUserByEmail } from "@/lib/database"
-import { hashPassword } from "@/lib/auth"
-import { sendVerificationEmail, sendVerificationSMS } from "@/lib/notifications"
+import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
+import { db } from "../../../../src/db";
+import { users } from "../../../../src/db/schema";
+import { z } from "zod";
 
-type UserRegistration = {
-  fullName: string
-  email: string
-  phone: string
-  password: string
-  gender: "male" | "female"
-  age: number
-  [key: string]: any // For additional profile fields
-}
+const registerSchema = z.object({
+  fullName: z.string().min(2),
+  email: z.string().email(),
+  phone: z.string().min(10),
+  password: z.string().min(6),
+  gender: z.enum(["male", "female"]),
+  age: z.number().min(18),
+  location: z.string(),
+  education: z.string(),
+  profession: z.string(),
+  sect: z.string(),
+});
 
-function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body = await request.json()
-
-    // Validate required fields
-    const { fullName, email, phone, password, gender, age } = body as UserRegistration
-
-    if (!fullName || !email || !phone || !password || !gender || !age) {
-      return NextResponse.json({ error: "All required fields must be provided" }, { status: 400 })
-    }
+    const body = await req.json();
+    const userData = registerSchema.parse(body);
 
     // Check if user already exists
-    const existingUser = await getUserByEmail(email)
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, userData.email))
+      .limit(1);
 
-    if (existingUser) {
-      return NextResponse.json({ error: "User already exists with this email" }, { status: 409 })
+    if (existingUser && existingUser.length > 0) {
+      return NextResponse.json(
+        { error: "User already exists" },
+        { status: 409 }
+      );
     }
 
     // Hash password
-    const hashedPassword = await hashPassword(password)
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-    // Generate OTPs for email and SMS verification
-    const emailOTP = generateOTP()
-    const smsOTP = generateOTP()
-
-    // Create user profile
-    const newUser = await createUser({
-      fullName,
-      email,
-      phone,
+    // Create user
+    const [newUser] = await db.insert(users).values({
+      ...userData,
       password: hashedPassword,
-      gender,
-      age: Number.parseInt(age.toString()),
       profileStatus: "pending",
       subscription: "free",
       verified: false,
       lastActive: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      emailOTP, // Store OTPs for verification
-      smsOTP,
-      ...body, // Include other profile fields
-    })
+    }).returning();
 
-    // Send verification email/SMS
-    await sendVerificationEmail(email, emailOTP)
-    await sendVerificationSMS(phone, smsOTP)
-
-    return NextResponse.json(
-      {
-        message: "Registration successful! Please verify your email and phone.",
-        userId: newUser.id,
+    return NextResponse.json({
+      message: "Registration successful",
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        fullName: newUser.fullName,
+        profileStatus: newUser.profileStatus,
       },
-      { status: 201 },
-    )
+    });
   } catch (error) {
-    console.error("Registration error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Registration error:", error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Invalid input", details: error.errors },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Registration failed" },
+      { status: 500 }
+    );
   }
 }
