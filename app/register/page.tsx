@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { playfair } from "../lib/fonts"
 import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 interface ExtractedData {
   fullName?: string;
@@ -50,7 +51,7 @@ interface FormData {
   email: string;
   phone: string;
   password: string;
-  confirmPassword: string;
+  confirmPassword?: string;
   gender: string;
   age: string;
   country: string;
@@ -73,12 +74,34 @@ interface FormData {
   aboutMe: string;
   familyDetails: string;
   expectations: string;
-  bioDataFile: File | null;
+  bioDataFile?: File | null;
   termsAccepted: boolean;
   privacyAccepted: boolean;
   profileVisibility: string;
   motherTongue: string;
+  profilePhoto?: File | null;
+  profilePhotoPreview?: string;
 }
+
+// Add this interface for field errors
+interface FieldErrors {
+  [key: string]: string;
+}
+
+// Add this function before the RegisterPage component
+const isFieldFilled = (value: string | boolean | File | null) => {
+  if (typeof value === 'boolean') return value;
+  if (value === null) return false;
+  return value.toString().trim().length > 0;
+};
+
+// Add this before the RegisterPage component
+const inputStyles = "transition-colors focus:ring-2 focus:ring-primary/20 data-[filled=true]:bg-primary/5 data-[filled=true]:border-primary/30"
+
+const selectTriggerStyles = cn(
+  "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+  "transition-colors focus:ring-2 focus:ring-primary/20 data-[filled=true]:bg-primary/5 data-[filled=true]:border-primary/30"
+)
 
 export default function RegisterPage() {
   const [step, setStep] = useState(0)
@@ -128,8 +151,11 @@ export default function RegisterPage() {
     termsAccepted: false,
     privacyAccepted: false,
     profileVisibility: "public",
-    motherTongue: ""
+    motherTongue: "",
+    profilePhoto: null,
+    profilePhotoPreview: ""
   })
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
   const totalSteps = 4
   const router = useRouter()
@@ -154,77 +180,120 @@ export default function RegisterPage() {
     }
   }, [])
 
+  const validateFields = (fields: { [key: string]: string }, fieldLabels: { [key: string]: string }) => {
+    const errors: FieldErrors = {};
+    Object.entries(fields).forEach(([key, value]) => {
+      if (!value || value.trim() === '') {
+        errors[key] = `${fieldLabels[key]} is required`;
+      }
+    });
+    return errors;
+  };
+
   const handleNext = () => {
-    // Validate current step before proceeding
+    let errors: FieldErrors = {};
+    
     if (step === 1) {
       // Basic Information validation
-      if (!formData.fullName || !formData.gender || !formData.phone || !formData.age || 
-          !formData.country || !formData.city || !formData.password || !formData.confirmPassword) {
-        toast({
-          title: "Missing Required Fields",
-          description: "Please fill in all required fields before proceeding.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
+      errors = validateFields(
+        {
+          fullName: formData.fullName,
+          gender: formData.gender,
+          phone: formData.phone,
+          age: formData.age,
+          country: formData.country,
+          city: formData.city,
+          password: formData.password,
+          confirmPassword: formData?.confirmPassword || "",
+          motherTongue: formData.motherTongue
+        },
+        {
+          fullName: "Full Name",
+          gender: "Gender",
+          phone: "Phone Number",
+          age: "Age",
+          country: "Country",
+          city: "City",
+          password: "Password",
+          confirmPassword: "Confirm Password",
+          motherTongue: "Mother Tongue"
+        }
+      );
+
       // Password validation
       if (formData.password !== formData.confirmPassword) {
-        setPasswordError("Passwords do not match");
-        return;
+        errors.confirmPassword = "Passwords do not match";
       }
 
-      if (formData.password.length < 6) {
-        setPasswordError("Password must be at least 6 characters long");
-        return;
+      if (formData.password && formData.password.length < 6) {
+        errors.password = "Password must be at least 6 characters long";
       }
 
       // Phone number validation
-      const phoneRegex = /^\+?[1-9]\d{9,14}$/;
-      if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
-        toast({
-          title: "Invalid Phone Number",
-          description: "Please enter a valid phone number.",
-          variant: "destructive",
-        });
-        return;
+      if (formData.phone) {
+        const phoneRegex = /^\+?[1-9]\d{9,14}$/;
+        if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
+          errors.phone = "Please enter a valid phone number";
+        }
       }
     }
 
     if (step === 2) {
       // Important Details validation
-      if (!formData.sect || !formData.education || !formData.height) {
-        toast({
-          title: "Missing Required Fields",
-          description: "Please fill in all required fields before proceeding.",
-          variant: "destructive",
-        });
-        return;
-      }
+      errors = validateFields(
+        {
+          sect: formData.sect,
+          education: formData.education,
+          profession: formData.profession,
+          income: formData.income,
+          height: formData.height
+        },
+        {
+          sect: "Sect",
+          education: "Education",
+          profession: "Profession",
+          income: "Income",
+          height: "Height"
+        }
+      );
     }
 
     if (step === 3) {
       // Partner Preferences validation
-      if (!formData.preferredAgeMin || !formData.preferredAgeMax) {
-        toast({
-          title: "Missing Required Fields",
-          description: "Please specify preferred age range.",
-          variant: "destructive",
-        });
-        return;
-      }
+      errors = validateFields(
+        {
+          preferredAgeMin: formData.preferredAgeMin,
+          preferredAgeMax: formData.preferredAgeMax
+        },
+        {
+          preferredAgeMin: "Minimum Preferred Age",
+          preferredAgeMax: "Maximum Preferred Age"
+        }
+      );
 
       // Validate age range
-      if (parseInt(formData.preferredAgeMin) >= parseInt(formData.preferredAgeMax)) {
-        toast({
-          title: "Invalid Age Range",
-          description: "Maximum age should be greater than minimum age.",
-          variant: "destructive",
-        });
-        return;
+      if (formData.preferredAgeMin && formData.preferredAgeMax) {
+        if (parseInt(formData.preferredAgeMin) >= parseInt(formData.preferredAgeMax)) {
+          errors.preferredAgeMax = "Maximum age should be greater than minimum age";
+        }
       }
     }
 
+    // If there are any errors, show them and prevent proceeding
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      toast({
+        title: "Required Fields Missing",
+        description: "Please fill in all required fields before proceeding.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Clear any existing errors if validation passes
+    setFieldErrors({});
+    
+    // Proceed to next step
     if (step < totalSteps) setStep(step + 1);
   };
 
@@ -236,91 +305,20 @@ export default function RegisterPage() {
     try {
       setIsProcessing(true);
       
-      // Validate all required fields before submission
-      const requiredFields: Record<keyof typeof formData, string> = {
-        fullName: "Full Name",
-        gender: "Gender",
-        phone: "Phone Number",
-        age: "Age",
-        country: "Country",
-        city: "City",
-        password: "Password",
-        sect: "Sect",
-        education: "Education",
-        height: "Height",
-        preferredAgeMin: "Minimum Preferred Age",
-        preferredAgeMax: "Maximum Preferred Age",
-        // Add all other form fields with their display names
-        email: "Email",
-        confirmPassword: "Confirm Password",
-        profession: "Profession",
-        income: "Income",
-        hijabNiqab: "Hijab/Niqab Preference",
-        beard: "Beard Preference",
-        complexion: "Complexion",
-        maritalPreferences: "Marital Preferences",
-        preferredEducation: "Preferred Education",
-        preferredProfession: "Preferred Profession",
-        preferredLocation: "Preferred Location",
-        housing: "Housing",
-        aboutMe: "About Me",
-        familyDetails: "Family Details",
-        expectations: "Expectations",
-        bioDataFile: "Bio Data File",
-        termsAccepted: "Terms Acceptance",
-        privacyAccepted: "Privacy Policy Acceptance",
-        profileVisibility: "Profile Visibility",
-        motherTongue: "Mother Tongue"
+      // Convert form data to JSON format, omitting optional fields
+      const { confirmPassword, profilePhotoPreview, bioDataFile, profilePhoto, ...rest } = formData;
+      
+      const jsonData = {
+        ...rest,
+        age: parseInt(formData.age, 10), // Convert age to number
       };
-
-      const missingFields = Object.entries(requiredFields)
-        .filter(([key]) => !formData[key as keyof typeof formData])
-        .map(([_, label]) => label);
-
-      if (missingFields.length > 0) {
-        toast({
-          title: "Missing Required Fields",
-          description: `Please fill in: ${missingFields.join(", ")}`,
-          variant: "destructive",
-        });
-        setIsProcessing(false);
-        return;
-      }
-
-      // Validate terms acceptance
-      if (!formData.termsAccepted || !formData.privacyAccepted) {
-        toast({
-          title: "Terms & Privacy Policy",
-          description: "Please accept the Terms of Service and Privacy Policy to proceed.",
-          variant: "destructive",
-        });
-        setIsProcessing(false);
-        return;
-      }
 
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password,
-          gender: formData.gender,
-          age: parseInt(formData.age),
-          location: `${formData.city}, ${formData.country}`,
-          education: formData.education,
-          profession: formData.profession || undefined,
-          sect: formData.sect,
-          motherTongue: formData.motherTongue,
-          height: formData.height,
-          complexion: formData.complexion,
-          maritalPreferences: formData.maritalPreferences,
-          aboutMe: formData.aboutMe,
-          familyDetails: formData.familyDetails
-        }),
+        body: JSON.stringify(jsonData),
       });
 
       const data = await response.json();
@@ -343,6 +341,7 @@ export default function RegisterPage() {
             variant: "destructive",
           });
         } else {
+          console.log(data)
           throw new Error(data.error || "Registration failed");
         }
         setIsProcessing(false);
@@ -520,6 +519,49 @@ export default function RegisterPage() {
     }
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload an image file (JPG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    
+    setFormData(prev => ({
+      ...prev,
+      profilePhoto: file,
+      profilePhotoPreview: previewUrl
+    }));
+  };
+
+  // Clean up preview URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (formData.profilePhotoPreview) {
+        URL.revokeObjectURL(formData.profilePhotoPreview);
+      }
+    };
+  }, [formData.profilePhotoPreview]);
+
   // Preview Dialog Component
   const PreviewDialog = () => (
     <Dialog open={extractedPreview.showDialog} onOpenChange={(open) => setExtractedPreview(prev => ({ ...prev, showDialog: open }))}>
@@ -693,25 +735,40 @@ export default function RegisterPage() {
                         <Label htmlFor="fullName">Full Name *</Label>
                         <Input
                           id="fullName"
+                          className={cn(inputStyles, fieldErrors.fullName && "border-red-500")}
+                          data-filled={isFieldFilled(formData.fullName)}
                           value={formData.fullName}
-                          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                          onChange={(e) => {
+                            setFormData({ ...formData, fullName: e.target.value });
+                            if (fieldErrors.fullName) {
+                              setFieldErrors({ ...fieldErrors, fullName: "" });
+                            }
+                          }}
                           placeholder="Enter your full name"
                         />
+                        {fieldErrors.fullName && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.fullName}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="gender">Gender *</Label>
-                        <Select
-                          value={formData.gender}
-                          onValueChange={(value) => setFormData({ ...formData, gender: value })}
-                        >
-                          <SelectTrigger>
+                        <Select value={formData.gender} onValueChange={(value) => {
+                          setFormData({ ...formData, gender: value });
+                          if (fieldErrors.gender) {
+                            setFieldErrors({ ...fieldErrors, gender: "" });
+                          }
+                        }}>
+                          <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.gender && "border-red-500")} data-filled={isFieldFilled(formData.gender)}>
                             <SelectValue placeholder="Select gender" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="male">Male (Groom)</SelectItem>
-                            <SelectItem value="female">Female (Bride)</SelectItem>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
                           </SelectContent>
                         </Select>
+                        {fieldErrors.gender && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.gender}</p>
+                        )}
                       </div>
                     </div>
 
@@ -721,6 +778,8 @@ export default function RegisterPage() {
                         <Input
                           id="email"
                           type="email"
+                          className={inputStyles}
+                          data-filled={isFieldFilled(formData.email)}
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           placeholder="your@email.com"
@@ -730,10 +789,20 @@ export default function RegisterPage() {
                         <Label htmlFor="phone">WhatsApp Phone Number *</Label>
                         <Input
                           id="phone"
+                          className={cn(inputStyles, fieldErrors.phone && "border-red-500")}
+                          data-filled={isFieldFilled(formData.phone)}
                           value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          onChange={(e) => {
+                            setFormData({ ...formData, phone: e.target.value });
+                            if (fieldErrors.phone) {
+                              setFieldErrors({ ...fieldErrors, phone: "" });
+                            }
+                          }}
                           placeholder="WhatsApp Phone Number"
                         />
+                        {fieldErrors.phone && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>
+                        )}
                       </div>
                     </div>
 
@@ -743,21 +812,33 @@ export default function RegisterPage() {
                         <Input
                           id="age"
                           type="number"
+                          className={cn(inputStyles, fieldErrors.age && "border-red-500")}
+                          data-filled={isFieldFilled(formData.age)}
                           value={formData.age}
-                          onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                          onChange={(e) => {
+                            setFormData({ ...formData, age: e.target.value });
+                            if (fieldErrors.age) {
+                              setFieldErrors({ ...fieldErrors, age: "" });
+                            }
+                          }}
                           placeholder="Enter your age"
                           min="18"
                           max="60"
                           required
                         />
+                        {fieldErrors.age && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.age}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="motherTongue">Mother Tongue *</Label>
-                        <Select
-                          value={formData.motherTongue}
-                          onValueChange={(value) => setFormData({ ...formData, motherTongue: value })}
-                        >
-                          <SelectTrigger>
+                        <Select value={formData.motherTongue} onValueChange={(value) => {
+                          setFormData({ ...formData, motherTongue: value });
+                          if (fieldErrors.motherTongue) {
+                            setFieldErrors({ ...fieldErrors, motherTongue: "" });
+                          }
+                        }}>
+                          <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.motherTongue && "border-red-500")} data-filled={isFieldFilled(formData.motherTongue)}>
                             <SelectValue placeholder="Select mother tongue" />
                           </SelectTrigger>
                           <SelectContent>
@@ -775,18 +856,23 @@ export default function RegisterPage() {
                             <SelectItem value="other">Other</SelectItem>
                           </SelectContent>
                         </Select>
+                        {fieldErrors.motherTongue && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.motherTongue}</p>
+                        )}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="country">Country *</Label>
-                        <Select
-                          value={formData.country}
-                          onValueChange={(value) => setFormData({ ...formData, country: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your country" />
+                        <Select value={formData.country} onValueChange={(value) => {
+                          setFormData({ ...formData, country: value });
+                          if (fieldErrors.country) {
+                            setFieldErrors({ ...fieldErrors, country: "" });
+                          }
+                        }}>
+                          <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.country && "border-red-500")} data-filled={isFieldFilled(formData.country)}>
+                            <SelectValue placeholder="Select country" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="india">India</SelectItem>                      
@@ -799,15 +885,28 @@ export default function RegisterPage() {
                             <SelectItem value="other">Other</SelectItem>
                           </SelectContent>
                         </Select>
+                        {fieldErrors.country && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.country}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="city">City *</Label>
                         <Input
                           id="city"
+                          className={cn(inputStyles, fieldErrors.city && "border-red-500")}
+                          data-filled={isFieldFilled(formData.city)}
                           value={formData.city}
-                          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                          onChange={(e) => {
+                            setFormData({ ...formData, city: e.target.value });
+                            if (fieldErrors.city) {
+                              setFieldErrors({ ...fieldErrors, city: "" });
+                            }
+                          }}
                           placeholder="Enter city"
                         />
+                        {fieldErrors.city && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.city}</p>
+                        )}
                       </div>
                     </div>
 
@@ -818,8 +917,15 @@ export default function RegisterPage() {
                           <Input
                             id="password"
                             type={showPassword ? "text" : "password"}
+                            className={cn(inputStyles, fieldErrors.password && "border-red-500")}
+                            data-filled={isFieldFilled(formData.password)}
                             value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            onChange={(e) => {
+                              setFormData({ ...formData, password: e.target.value });
+                              if (fieldErrors.password) {
+                                setFieldErrors({ ...fieldErrors, password: "" });
+                              }
+                            }}
                             placeholder="Create a strong password"
                           />
                           <Button
@@ -832,27 +938,28 @@ export default function RegisterPage() {
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </Button>
                         </div>
+                        {fieldErrors.password && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="confirmPassword">Confirm Password *</Label>
                         <Input
                           id="confirmPassword"
-                          type="password"
-                          value={formData.confirmPassword}
+                          type={showPassword ? "text" : "password"}
+                          className={cn(inputStyles, fieldErrors.confirmPassword && "border-red-500")}
+                          data-filled={isFieldFilled(formData.confirmPassword || "")}
+                          value={formData.confirmPassword || ""}
                           onChange={(e) => {
-                            const value = e.target.value;
-                            setFormData({ ...formData, confirmPassword: value });
-                            if (value !== formData.password) {
-                              setPasswordError("Passwords do not match");
-                            } else {
-                              setPasswordError("");
+                            setFormData({ ...formData, confirmPassword: e.target.value });
+                            if (fieldErrors.confirmPassword) {
+                              setFieldErrors({ ...fieldErrors, confirmPassword: "" });
                             }
                           }}
                           placeholder="Confirm your password"
-                          className={passwordError ? "border-red-500" : ""}
                         />
-                        {passwordError && (
-                          <p className="text-sm text-red-500 mt-1">{passwordError}</p>
+                        {fieldErrors.confirmPassword && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
                         )}
                       </div>
                     </div>
@@ -870,8 +977,13 @@ export default function RegisterPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="sect">Maslak / Sect *</Label>
-                        <Select value={formData.sect} onValueChange={(value) => setFormData({ ...formData, sect: value })}>
-                          <SelectTrigger>
+                        <Select value={formData.sect} onValueChange={(value) => {
+                          setFormData({ ...formData, sect: value });
+                          if (fieldErrors.sect) {
+                            setFieldErrors({ ...fieldErrors, sect: "" });
+                          }
+                        }}>
+                          <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.sect && "border-red-500")} data-filled={isFieldFilled(formData.sect)}>
                             <SelectValue placeholder="Select Maslak" />
                           </SelectTrigger>
                           <SelectContent>
@@ -886,26 +998,36 @@ export default function RegisterPage() {
                             <SelectItem value="no-preference">No Preference</SelectItem>
                           </SelectContent>
                         </Select>
+                        {fieldErrors.sect && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.sect}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="education">Education *</Label>
                         <Input
                           id="education"
+                          className={cn(inputStyles, fieldErrors.education && "border-red-500")}
+                          data-filled={isFieldFilled(formData.education)}
                           value={formData.education}
-                          onChange={(e) => setFormData({ ...formData, education: e.target.value })}
+                          onChange={(e) => {
+                            setFormData({ ...formData, education: e.target.value });
+                            if (fieldErrors.education) {
+                              setFieldErrors({ ...fieldErrors, education: "" });
+                            }
+                          }}
                           placeholder="e.g., Bachelor's in Computer Science"
                         />
+                        {fieldErrors.education && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.education}</p>
+                        )}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="profession">Profession *</Label>
-                        <Select
-                          value={formData.profession}
-                          onValueChange={(value) => setFormData({ ...formData, profession: value })}
-                        >
-                          <SelectTrigger>
+                        <Select value={formData.profession} onValueChange={(value) => setFormData({ ...formData, profession: value })}>
+                          <SelectTrigger className={selectTriggerStyles} data-filled={isFieldFilled(formData.profession)}>
                             <SelectValue placeholder="Select profession" />
                           </SelectTrigger>
                           <SelectContent>
@@ -924,12 +1046,9 @@ export default function RegisterPage() {
                       </div>
                       <div>
                         <Label htmlFor="income">Income Source *</Label>
-                        <Select
-                          value={formData.income}
-                          onValueChange={(value) => setFormData({ ...formData, income: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select income source" />
+                        <Select value={formData.income} onValueChange={(value) => setFormData({ ...formData, income: value })}>
+                          <SelectTrigger className={selectTriggerStyles} data-filled={isFieldFilled(formData.income)}>
+                            <SelectValue placeholder="Select income range" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="salaried">Salaried</SelectItem>
@@ -949,18 +1068,25 @@ export default function RegisterPage() {
                         <Label htmlFor="height">Height *</Label>
                         <Input
                           id="height"
+                          className={cn(inputStyles, fieldErrors.height && "border-red-500")}
+                          data-filled={isFieldFilled(formData.height)}
                           value={formData.height}
-                          onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                          onChange={(e) => {
+                            setFormData({ ...formData, height: e.target.value });
+                            if (fieldErrors.height) {
+                              setFieldErrors({ ...fieldErrors, height: "" });
+                            }
+                          }}
                           placeholder="e.g., 5'6''"
                         />
+                        {fieldErrors.height && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.height}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="complexion">Complexion</Label>
-                        <Select
-                          value={formData.complexion}
-                          onValueChange={(value) => setFormData({ ...formData, complexion: value })}
-                        >
-                          <SelectTrigger>
+                        <Select value={formData.complexion} onValueChange={(value) => setFormData({ ...formData, complexion: value })}>
+                          <SelectTrigger className={selectTriggerStyles} data-filled={isFieldFilled(formData.complexion)}>
                             <SelectValue placeholder="Select complexion" />
                           </SelectTrigger>
                           <SelectContent>
@@ -978,12 +1104,9 @@ export default function RegisterPage() {
                     {formData.gender === "male" && (
                       <div>
                         <Label htmlFor="beard">Beard</Label>
-                        <Select
-                          value={formData.beard}
-                          onValueChange={(value) => setFormData({ ...formData, beard: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select beard preference" />
+                        <Select value={formData.beard} onValueChange={(value) => setFormData({ ...formData, beard: value })}>
+                          <SelectTrigger className={selectTriggerStyles} data-filled={isFieldFilled(formData.beard)}>
+                            <SelectValue placeholder="Select beard style" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="full">Full beard</SelectItem>
@@ -1013,8 +1136,15 @@ export default function RegisterPage() {
                           <Input
                             id="preferredAgeMin"
                             type="number"
+                            className={cn(inputStyles, fieldErrors.preferredAgeMin && "border-red-500")}
+                            data-filled={isFieldFilled(formData.preferredAgeMin)}
                             value={formData.preferredAgeMin}
-                            onChange={(e) => setFormData({ ...formData, preferredAgeMin: e.target.value })}
+                            onChange={(e) => {
+                              setFormData({ ...formData, preferredAgeMin: e.target.value });
+                              if (fieldErrors.preferredAgeMin) {
+                                setFieldErrors({ ...fieldErrors, preferredAgeMin: "" });
+                              }
+                            }}
                             placeholder="Min age (e.g., 21)"
                             min="18"
                             max="60"
@@ -1022,22 +1152,32 @@ export default function RegisterPage() {
                           <Input
                             id="preferredAgeMax"
                             type="number"
+                            className={cn(inputStyles, fieldErrors.preferredAgeMax && "border-red-500")}
+                            data-filled={isFieldFilled(formData.preferredAgeMax)}
                             value={formData.preferredAgeMax}
-                            onChange={(e) => setFormData({ ...formData, preferredAgeMax: e.target.value })}
+                            onChange={(e) => {
+                              setFormData({ ...formData, preferredAgeMax: e.target.value });
+                              if (fieldErrors.preferredAgeMax) {
+                                setFieldErrors({ ...fieldErrors, preferredAgeMax: "" });
+                              }
+                            }}
                             placeholder="Max age (e.g., 30)"
                             min="18"
                             max="60"
                           />
                         </div>
+                        {fieldErrors.preferredAgeMin && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.preferredAgeMin}</p>
+                        )}
+                        {fieldErrors.preferredAgeMax && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.preferredAgeMax}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="preferredEducation">Preferred Education</Label>
-                        <Select
-                          value={formData.preferredEducation}
-                          onValueChange={(value) => setFormData({ ...formData, preferredEducation: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select preferred education level" />
+                        <Select value={formData.preferredEducation} onValueChange={(value) => setFormData({ ...formData, preferredEducation: value })}>
+                          <SelectTrigger className={selectTriggerStyles} data-filled={isFieldFilled(formData.preferredEducation)}>
+                            <SelectValue placeholder="Select preferred education" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="any">Any</SelectItem>
@@ -1055,6 +1195,8 @@ export default function RegisterPage() {
                         <Label htmlFor="preferredProfession">Preferred Profession</Label>
                         <Input
                           id="preferredProfession"
+                          className={inputStyles}
+                          data-filled={isFieldFilled(formData.preferredProfession)}
                           value={formData.preferredProfession}
                           onChange={(e) => setFormData({ ...formData, preferredProfession: e.target.value })}
                           placeholder="e.g., Doctor, Engineer, Teacher"
@@ -1062,12 +1204,9 @@ export default function RegisterPage() {
                       </div>
                       <div>
                         <Label htmlFor="housing">Housing Status</Label>
-                        <Select
-                          value={formData.housing}
-                          onValueChange={(value) => setFormData({ ...formData, housing: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select current housing status" />
+                        <Select value={formData.housing} onValueChange={(value) => setFormData({ ...formData, housing: value })}>
+                          <SelectTrigger className={selectTriggerStyles} data-filled={isFieldFilled(formData.housing)}>
+                            <SelectValue placeholder="Select housing status" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="own">Own House</SelectItem>
@@ -1084,6 +1223,8 @@ export default function RegisterPage() {
                         <Label htmlFor="preferredLocation">Preferred Location</Label>
                         <Input
                           id="preferredLocation"
+                          className={inputStyles}
+                          data-filled={isFieldFilled(formData.preferredLocation)}
                           value={formData.preferredLocation}
                           onChange={(e) => setFormData({ ...formData, preferredLocation: e.target.value })}
                           placeholder="e.g., Mumbai, Maharashtra, India"
@@ -1091,11 +1232,8 @@ export default function RegisterPage() {
                       </div>
                       <div>
                         <Label htmlFor="maritalPreferences">Marital Preferences</Label>
-                        <Select
-                          value={formData.maritalPreferences}
-                          onValueChange={(value) => setFormData({ ...formData, maritalPreferences: value })}
-                        >
-                          <SelectTrigger>
+                        <Select value={formData.maritalPreferences} onValueChange={(value) => setFormData({ ...formData, maritalPreferences: value })}>
+                          <SelectTrigger className={selectTriggerStyles} data-filled={isFieldFilled(formData.maritalPreferences)}>
                             <SelectValue placeholder="Select marital status preference" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1112,6 +1250,8 @@ export default function RegisterPage() {
                       <Label htmlFor="expectations">What are you looking for in a life partner?</Label>
                       <Textarea
                         id="expectations"
+                        className={inputStyles}
+                        data-filled={isFieldFilled(formData.expectations)}
                         value={formData.expectations}
                         onChange={(e) => setFormData({ ...formData, expectations: e.target.value })}
                         placeholder="Describe your expectations, values, and what matters most to you in a life partner..."
@@ -1133,6 +1273,8 @@ export default function RegisterPage() {
                       <Label htmlFor="aboutMe">About Me</Label>
                       <Textarea
                         id="aboutMe"
+                        className={inputStyles}
+                        data-filled={isFieldFilled(formData.aboutMe)}
                         value={formData.aboutMe}
                         onChange={(e) => setFormData({ ...formData, aboutMe: e.target.value })}
                         placeholder="Tell us about yourself, your interests, and what makes you unique..."
@@ -1144,6 +1286,8 @@ export default function RegisterPage() {
                       <Label htmlFor="familyDetails">Family Details</Label>
                       <Textarea
                         id="familyDetails"
+                        className={inputStyles}
+                        data-filled={isFieldFilled(formData.familyDetails)}
                         value={formData.familyDetails}
                         onChange={(e) => setFormData({ ...formData, familyDetails: e.target.value })}
                         placeholder="Brief information about your family background..."
@@ -1153,12 +1297,58 @@ export default function RegisterPage() {
 
                     <div>
                       <Label>Profile Photo</Label>
-                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                        <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-sm text-muted-foreground mb-2">Upload your profile photo (Optional)</p>
-                        <Button variant="outline" size="sm">
-                          Choose File
-                        </Button>
+                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
+                        <div className="space-y-4">
+                          {formData.profilePhotoPreview ? (
+                            <div className="relative w-32 h-32 mx-auto">
+                              <img
+                                src={formData.profilePhotoPreview}
+                                alt="Profile preview"
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                                onClick={() => {
+                                  if (formData.profilePhotoPreview) {
+                                    URL.revokeObjectURL(formData.profilePhotoPreview);
+                                  }
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    profilePhoto: null,
+                                    profilePhotoPreview: ""
+                                  }));
+                                }}
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                              <p className="text-sm text-muted-foreground mb-2">Upload your profile photo</p>
+                              <p className="text-xs text-muted-foreground mb-4">JPG or PNG, max 5MB</p>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-center">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              id="profilePhoto"
+                              onChange={handlePhotoChange}
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => document.getElementById('profilePhoto')?.click()}
+                            >
+                              {formData.profilePhoto ? 'Change Photo' : 'Choose Photo'}
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
 

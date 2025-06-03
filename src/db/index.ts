@@ -5,12 +5,12 @@ import { config } from "dotenv";
 config({ path: ".env" });
 
 // Check if DATABASE_URL is defined
-if (!process.env.DATABASE_URL) {
+if (!process.env.POSTGRES_URL) {
   throw new Error("DATABASE_URL is not defined in environment variables");
 }
 
 // Configure Neon
-const sql = neon(process.env.DATABASE_URL);
+const sql = neon(process.env.POSTGRES_URL);
 
 // Initialize Drizzle with the SQL client
 export const db = drizzle(sql);

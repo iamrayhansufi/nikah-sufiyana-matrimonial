@@ -20,9 +20,8 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: "Nikah Sufiyana - Find Your Perfect Islamic Match",
-  description:
-    "Premium Muslim matrimonial platform for finding halal relationships. Join thousands of profiles seeking meaningful Islamic marriages.",
+  title: "Nikah Sufiyana - Muslim Matrimonial Service",
+  description: "Find your perfect Muslim life partner with Nikah Sufiyana matrimonial service.",
   keywords:
     "Muslim matrimony, Islamic marriage, halal relationships, Muslim bride, Muslim groom, nikah, Islamic wedding",
   openGraph: {
