@@ -40,6 +40,46 @@ interface ExtractedData {
   [key: string]: string | undefined;
 }
 
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
+interface FormData {
+  fullName: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+  gender: string;
+  age: string;
+  country: string;
+  city: string;
+  education: string;
+  profession: string;
+  income: string;
+  sect: string;
+  hijabNiqab: string;
+  beard: string;
+  height: string;
+  complexion: string;
+  maritalPreferences: string;
+  preferredAgeMin: string;
+  preferredAgeMax: string;
+  preferredEducation: string;
+  preferredProfession: string;
+  preferredLocation: string;
+  housing: string;
+  aboutMe: string;
+  familyDetails: string;
+  expectations: string;
+  bioDataFile: File | null;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
+  profileVisibility: string;
+  motherTongue: string;
+}
+
 export default function RegisterPage() {
   const [step, setStep] = useState(0)
   const [showPassword, setShowPassword] = useState(false)
@@ -56,8 +96,7 @@ export default function RegisterPage() {
     showDialog: false,
   })
   const { toast } = useToast()
-  const [formData, setFormData] = useState({
-    // Basic Info
+  const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
     phone: "",
@@ -65,45 +104,31 @@ export default function RegisterPage() {
     confirmPassword: "",
     gender: "",
     age: "",
-
-    // Location
     country: "",
     city: "",
-
-    // Education & Profession
     education: "",
     profession: "",
     income: "",
-
-    // Islamic Details
     sect: "",
     hijabNiqab: "",
     beard: "",
     height: "",
     complexion: "",
     maritalPreferences: "",
-
-    // Partner Preferences
     preferredAgeMin: "",
     preferredAgeMax: "",
     preferredEducation: "",
     preferredProfession: "",
     preferredLocation: "",
     housing: "",
-
-    // Additional
     aboutMe: "",
     familyDetails: "",
     expectations: "",
-    bioDataFile: null as File | null,
-
-    // Agreements
+    bioDataFile: null,
     termsAccepted: false,
     privacyAccepted: false,
     profileVisibility: "public",
-
-    // New fields
-    motherTongue: "",
+    motherTongue: ""
   })
 
   const totalSteps = 4
@@ -130,15 +155,78 @@ export default function RegisterPage() {
   }, [])
 
   const handleNext = () => {
+    // Validate current step before proceeding
     if (step === 1) {
-      // Validate passwords match before allowing to proceed
+      // Basic Information validation
+      if (!formData.fullName || !formData.gender || !formData.phone || !formData.age || 
+          !formData.country || !formData.city || !formData.password || !formData.confirmPassword) {
+        toast({
+          title: "Missing Required Fields",
+          description: "Please fill in all required fields before proceeding.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Password validation
       if (formData.password !== formData.confirmPassword) {
         setPasswordError("Passwords do not match");
         return;
       }
+
+      if (formData.password.length < 6) {
+        setPasswordError("Password must be at least 6 characters long");
+        return;
+      }
+
+      // Phone number validation
+      const phoneRegex = /^\+?[1-9]\d{9,14}$/;
+      if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
+        toast({
+          title: "Invalid Phone Number",
+          description: "Please enter a valid phone number.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
-    if (step < totalSteps) setStep(step + 1)
-  }
+
+    if (step === 2) {
+      // Important Details validation
+      if (!formData.sect || !formData.education || !formData.height) {
+        toast({
+          title: "Missing Required Fields",
+          description: "Please fill in all required fields before proceeding.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (step === 3) {
+      // Partner Preferences validation
+      if (!formData.preferredAgeMin || !formData.preferredAgeMax) {
+        toast({
+          title: "Missing Required Fields",
+          description: "Please specify preferred age range.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate age range
+      if (parseInt(formData.preferredAgeMin) >= parseInt(formData.preferredAgeMax)) {
+        toast({
+          title: "Invalid Age Range",
+          description: "Maximum age should be greater than minimum age.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (step < totalSteps) setStep(step + 1);
+  };
 
   const handlePrevious = () => {
     if (step > 1) setStep(step - 1)
@@ -146,6 +234,70 @@ export default function RegisterPage() {
 
   const handleSubmit = async () => {
     try {
+      setIsProcessing(true);
+      
+      // Validate all required fields before submission
+      const requiredFields: Record<keyof typeof formData, string> = {
+        fullName: "Full Name",
+        gender: "Gender",
+        phone: "Phone Number",
+        age: "Age",
+        country: "Country",
+        city: "City",
+        password: "Password",
+        sect: "Sect",
+        education: "Education",
+        height: "Height",
+        preferredAgeMin: "Minimum Preferred Age",
+        preferredAgeMax: "Maximum Preferred Age",
+        // Add all other form fields with their display names
+        email: "Email",
+        confirmPassword: "Confirm Password",
+        profession: "Profession",
+        income: "Income",
+        hijabNiqab: "Hijab/Niqab Preference",
+        beard: "Beard Preference",
+        complexion: "Complexion",
+        maritalPreferences: "Marital Preferences",
+        preferredEducation: "Preferred Education",
+        preferredProfession: "Preferred Profession",
+        preferredLocation: "Preferred Location",
+        housing: "Housing",
+        aboutMe: "About Me",
+        familyDetails: "Family Details",
+        expectations: "Expectations",
+        bioDataFile: "Bio Data File",
+        termsAccepted: "Terms Acceptance",
+        privacyAccepted: "Privacy Policy Acceptance",
+        profileVisibility: "Profile Visibility",
+        motherTongue: "Mother Tongue"
+      };
+
+      const missingFields = Object.entries(requiredFields)
+        .filter(([key]) => !formData[key as keyof typeof formData])
+        .map(([_, label]) => label);
+
+      if (missingFields.length > 0) {
+        toast({
+          title: "Missing Required Fields",
+          description: `Please fill in: ${missingFields.join(", ")}`,
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      // Validate terms acceptance
+      if (!formData.termsAccepted || !formData.privacyAccepted) {
+        toast({
+          title: "Terms & Privacy Policy",
+          description: "Please accept the Terms of Service and Privacy Policy to proceed.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
@@ -160,19 +312,40 @@ export default function RegisterPage() {
           age: parseInt(formData.age),
           location: `${formData.city}, ${formData.country}`,
           education: formData.education,
-          profession: formData.profession,
+          profession: formData.profession || undefined,
           sect: formData.sect,
+          motherTongue: formData.motherTongue,
+          height: formData.height,
+          complexion: formData.complexion,
+          maritalPreferences: formData.maritalPreferences,
+          aboutMe: formData.aboutMe,
+          familyDetails: formData.familyDetails
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        toast({
-          title: "Registration Failed",
-          description: data.error || "Something went wrong. Please try again.",
-          variant: "destructive",
-        });
+        if (response.status === 409) {
+          toast({
+            title: "Registration Failed",
+            description: data.error,
+            variant: "destructive",
+          });
+        } else if (response.status === 400 && data.details) {
+          // Handle validation errors
+          const errorMessage = (data.details as ValidationError[])
+            .map((err: ValidationError) => err.message)
+            .join("\n");
+          toast({
+            title: "Validation Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        } else {
+          throw new Error(data.error || "Registration failed");
+        }
+        setIsProcessing(false);
         return;
       }
 
@@ -182,7 +355,7 @@ export default function RegisterPage() {
       // Show success message
       toast({
         title: "Registration Successful",
-        description: "Your profile has been created successfully.",
+        description: "Your profile has been created successfully. Please check your phone for verification.",
       });
 
       // Redirect to success page
@@ -191,9 +364,10 @@ export default function RegisterPage() {
       console.error('Registration error:', error);
       toast({
         title: "Registration Failed",
-        description: "Something went wrong. Please try again.",
+        description: "An unexpected error occurred. Please try again later.",
         variant: "destructive",
       });
+      setIsProcessing(false);
     }
   };
 

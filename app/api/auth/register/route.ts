@@ -6,16 +6,24 @@ import { users } from "../../../../src/db/schema";
 import { z } from "zod";
 
 const registerSchema = z.object({
-  fullName: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(10),
-  password: z.string().min(6),
-  gender: z.enum(["male", "female"]),
-  age: z.number().min(18),
-  location: z.string(),
-  education: z.string(),
-  profession: z.string(),
-  sect: z.string(),
+  fullName: z.string().min(2, "Full name must be at least 2 characters long"),
+  email: z.string().email("Invalid email format").optional(),
+  phone: z.string().regex(/^\+?[1-9]\d{9,14}$/, "Invalid phone number format"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+  gender: z.enum(["male", "female"], {
+    errorMap: () => ({ message: "Gender must be either male or female" }),
+  }),
+  age: z.number().min(18, "Age must be at least 18").max(80, "Age must be less than 80"),
+  location: z.string().min(1, "Location is required"),
+  education: z.string().min(1, "Education is required"),
+  profession: z.string().optional(),
+  sect: z.string().min(1, "Sect is required"),
+  motherTongue: z.string().optional(),
+  height: z.string().optional(),
+  complexion: z.string().optional(),
+  maritalPreferences: z.string().optional(),
+  aboutMe: z.string().optional(),
+  familyDetails: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -23,35 +31,43 @@ export async function POST(req: Request) {
     const body = await req.json();
     const userData = registerSchema.parse(body);
 
-    // Check if user already exists
-    const existingUser = await db
+    // Check if user already exists with phone number
+    const existingUserByPhone = await db
       .select()
       .from(users)
-      .where(eq(users.email, userData.email))
+      .where(eq(users.phone, userData.phone))
       .limit(1);
 
-    if (existingUser && existingUser.length > 0) {
+    if (existingUserByPhone && existingUserByPhone.length > 0) {
       return NextResponse.json(
-        { error: "User already exists" },
+        { error: "Phone number already registered" },
         { status: 409 }
       );
+    }
+
+    // Check if user exists with email (if provided)
+    if (userData.email) {
+      const existingUserByEmail = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, userData.email))
+        .limit(1);
+
+      if (existingUserByEmail && existingUserByEmail.length > 0) {
+        return NextResponse.json(
+          { error: "Email already registered" },
+          { status: 409 }
+        );
+      }
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-    // Create user
+    // Create user with all provided fields
     const [newUser] = await db.insert(users).values({
-      fullName: userData.fullName,
-      email: userData.email,
-      phone: userData.phone,
+      ...userData,
       password: hashedPassword,
-      gender: userData.gender,
-      age: userData.age,
-      location: userData.location,
-      education: userData.education,
-      profession: userData.profession,
-      sect: userData.sect,
       profileStatus: "pending",
       subscription: "free",
       lastActive: new Date(),
@@ -65,14 +81,24 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("Registration error:", error);
+    
     if (error instanceof z.ZodError) {
+      const errors = error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+      
       return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
+        { 
+          error: "Validation failed",
+          details: errors
+        },
         { status: 400 }
       );
     }
+
     return NextResponse.json(
-      { error: "Registration failed" },
+      { error: "Registration failed. Please try again later." },
       { status: 500 }
     );
   }
