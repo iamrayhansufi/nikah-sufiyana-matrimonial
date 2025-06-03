@@ -14,12 +14,14 @@ const registerSchema = z.object({
     errorMap: () => ({ message: "Gender must be either male or female" }),
   }),
   age: z.number().min(18, "Age must be at least 18").max(80, "Age must be less than 80"),
+  country: z.string().min(1, "Country is required"),
+  city: z.string().min(1, "City is required"),
   location: z.string().min(1, "Location is required"),
   education: z.string().min(1, "Education is required"),
   profession: z.string().optional(),
   sect: z.string().min(1, "Sect is required"),
-  motherTongue: z.string().optional(),
-  height: z.string().optional(),
+  motherTongue: z.string().min(1, "Mother tongue is required"),
+  height: z.string().min(1, "Height is required"),
   complexion: z.string().optional(),
   maritalPreferences: z.string().optional(),
   aboutMe: z.string().optional(),
@@ -66,11 +68,28 @@ export async function POST(req: Request) {
 
     // Create user with all provided fields
     const [newUser] = await db.insert(users).values({
-      ...userData,
+      fullName: userData.fullName,
+      email: userData.email,
+      phone: userData.phone,
       password: hashedPassword,
+      gender: userData.gender,
+      age: userData.age,
+      country: userData.country,
+      city: userData.city,
+      location: userData.location,
+      education: userData.education,
+      profession: userData.profession,
+      sect: userData.sect,
+      motherTongue: userData.motherTongue,
+      height: userData.height,
+      complexion: userData.complexion,
       profileStatus: "pending",
       subscription: "free",
       lastActive: new Date(),
+      // Optional fields
+      maritalStatus: userData.maritalPreferences,
+      aboutMe: userData.aboutMe,
+      familyDetails: userData.familyDetails,
     }).returning();
 
     return NextResponse.json({

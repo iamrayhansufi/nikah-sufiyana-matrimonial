@@ -28,7 +28,6 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   
   // Additional profile fields
-  maritalStatus: varchar('marital_status', { length: 50 }),
   religiousInclination: text('religious_inclination'),
   expectations: text('expectations'),
   aboutMe: text('about_me'),
