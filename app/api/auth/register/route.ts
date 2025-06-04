@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken"; // Added for JWT
 import { db } from "../../../../src/db";
 import { users } from "../../../../src/db/schema";
 import { z } from "zod";
+
+// IMPORTANT: Store this in environment variables in a real application
+const JWT_SECRET = process.env.JWT_SECRET || "your-very-secure-and-long-secret-key";
 
 const registerSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters long"),
@@ -92,11 +96,26 @@ export async function POST(req: Request) {
       familyDetails: userData.familyDetails,
     }).returning();
 
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        id: newUser.id,
+        email: newUser.email,
+        fullName: newUser.fullName,
+      },
+      JWT_SECRET,
+      { expiresIn: "7d" } // Token expires in 7 days
+    );
+
     return NextResponse.json({
-      id: newUser.id,
-      email: newUser.email,
-      fullName: newUser.fullName,
-      profileStatus: newUser.profileStatus,
+      message: "User registered successfully",
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        fullName: newUser.fullName,
+        profileStatus: newUser.profileStatus,
+      },
+      token, // Return the token
     });
   } catch (error) {
     console.error("Registration error:", error);

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -99,18 +99,133 @@ export default function EditProfilePage() {
     allowMessages: true
   })
   
-  const handleSaveChanges = (section: string) => {
+  useEffect(() => {
+    // Load user data from localStorage if available
+    const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        setBasicInfo((prev) => ({
+          ...prev,
+          fullName: user.fullName || prev.fullName,
+          age: user.age ? String(user.age) : prev.age,
+          email: user.email || prev.email,
+          phone: user.phone || prev.phone,
+          gender: user.gender || prev.gender,
+          city: user.city || prev.city,
+          country: user.country || prev.country,
+        }))
+      } catch {}
+    }
+  }, [])
+  
+  // Fetch user profile from backend and populate all state on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
+      const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
+      if (!token || !userStr) return
+      let userId = null
+      try { userId = JSON.parse(userStr).id } catch {}
+      if (!userId) return
+      try {
+        const res = await fetch(`/api/profiles/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!res.ok) return
+        const profile = await res.json()
+        setBasicInfo((prev) => ({
+          ...prev,
+          fullName: profile.fullName || prev.fullName,
+          age: profile.age ? String(profile.age) : prev.age,
+          email: profile.email || prev.email,
+          phone: profile.phone || prev.phone,
+          gender: profile.gender || prev.gender,
+          city: profile.city || prev.city,
+          country: profile.country || prev.country,
+          height: profile.height || prev.height,
+          complexion: profile.complexion || prev.complexion,
+          maritalStatus: profile.maritalStatus || prev.maritalStatus,
+          bio: profile.aboutMe || prev.bio,
+        }))
+        setReligiousInfo((prev) => ({
+          ...prev,
+          sect: profile.sect || prev.sect,
+          // Add more fields as needed from backend
+        }))
+        setEducationCareer((prev) => ({
+          ...prev,
+          education: profile.education || prev.education,
+          profession: profile.profession || prev.profession,
+          // Add more fields as needed from backend
+        }))
+        setFamilyInfo((prev) => ({
+          ...prev,
+          familyValues: profile.familyDetails || prev.familyValues,
+          // Add more fields as needed from backend
+        }))
+        setPartnerPreferences((prev) => ({
+          ...prev,
+          ageRange: profile.preferredAgeMin && profile.preferredAgeMax ? `${profile.preferredAgeMin}-${profile.preferredAgeMax}` : prev.ageRange,
+          education: profile.preferredEducation || prev.education,
+          location: profile.preferredLocation || prev.location,
+          expectations: profile.expectations || prev.expectations,
+          // Add more fields as needed from backend
+        }))
+        // Optionally set privacySettings if backend supports
+      } catch {}
+    }
+    fetchProfile()
+  }, [])
+  
+  const handleSaveChanges = async (section: string) => {
     setSaveStatus("saving")
-    
-    // Simulate API call
-    setTimeout(() => {
+    let payload: any = {}
+    if (section === "basic") payload = basicInfo
+    else if (section === "religious") payload = religiousInfo
+    else if (section === "education") payload = educationCareer
+    else if (section === "family") payload = familyInfo
+    else if (section === "preferences") payload = partnerPreferences
+    else if (section === "privacy") payload = privacySettings
+    else payload = {
+      ...basicInfo,
+      ...religiousInfo,
+      ...educationCareer,
+      ...familyInfo,
+      ...partnerPreferences,
+      ...privacySettings
+    }
+
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
+      if (!token) throw new Error("Not logged in.")
+      const res = await fetch(`/api/profiles/update`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to save changes.")
+      }
+      const updated = await res.json()
+      // Update localStorage for basic info changes
+      if (section === "basic" || section === "all") {
+        const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
+        const user = userStr ? JSON.parse(userStr) : null
+        const newUser = { ...user, ...basicInfo, ...updated.user }
+        localStorage.setItem("currentUser", JSON.stringify(newUser))
+      }
       setSaveStatus("success")
-      
-      // Reset status after 2 seconds
-      setTimeout(() => {
-        setSaveStatus("idle")
-      }, 2000)
-    }, 1000)
+      setTimeout(() => setSaveStatus("idle"), 2000)
+    } catch (err: any) {
+      setSaveStatus("error")
+      alert(err.message || "An error occurred while saving.")
+      setTimeout(() => setSaveStatus("idle"), 2000)
+    }
   }
 
   return (
@@ -407,7 +522,7 @@ export default function EditProfilePage() {
                         <SelectContent>
                           <SelectItem value="Beginner">Beginner</SelectItem>
                           <SelectItem value="Intermediate">Intermediate</SelectItem>
-                          <SelectItem value="Advanced">Advanced with Tajweed</SelectItem>
+                          <SelectItem value="Advanced with Tajweed">Advanced with Tajweed</SelectItem>
                           <SelectItem value="Hafiz">Hafiz/Hafiza</SelectItem>
                         </SelectContent>
                       </Select>

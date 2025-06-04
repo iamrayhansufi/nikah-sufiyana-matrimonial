@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -26,18 +26,68 @@ import {
 import { playfair } from "../lib/fonts"
 
 export default function DashboardPage() {
-  const [profileStatus, setProfileStatus] = useState<"pending" | "approved" | "active">("approved")
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  const userProfile = {
-    name: "Fatima Ahmed",
-    age: 26,
-    location: "Mumbai, Maharashtra",
-    profession: "Software Engineer",
-    profilePhoto: "/placeholder.svg?height=150&width=150",
-    completeness: 85,
-    verified: true,
-    premium: false,
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true)
+      setError("")
+      try {
+        const token = localStorage.getItem("authToken")
+        if (!token) {
+          setError("Not logged in.")
+          setLoading(false)
+          return
+        }
+        // Try to get user id from localStorage or token
+        let userId = null
+        const userStr = localStorage.getItem("currentUser")
+        if (userStr) {
+          try { userId = JSON.parse(userStr).id } catch {}
+        }
+        // Fallback: decode JWT if needed (not implemented here)
+        if (!userId) {
+          setError("User info missing. Please log in again.")
+          setLoading(false)
+          return
+        }
+        // Fetch user profile from API
+        const res = await fetch(`/api/profiles/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!res.ok) {
+          setError("Failed to load profile.")
+          setLoading(false)
+          return
+        }
+        const profile = await res.json()
+        setUserProfile({
+          ...profile,
+          name: profile.fullName || profile.name || "",
+          completeness: profile.completeness || 80, // fallback if not present
+        })
+      } catch (e) {
+        setError("An error occurred.")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProfile()
+  }, [])
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center"><span>Loading your dashboard...</span></div>
   }
+  if (error) {
+    return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>
+  }
+  if (!userProfile) {
+    return <div className="min-h-screen flex items-center justify-center">No profile data found.</div>
+  }
+
+  const profileStatus = "approved"
 
   const stats = {
     profileViews: 156,
@@ -155,7 +205,7 @@ export default function DashboardPage() {
                     <AvatarFallback className="text-2xl">
                       {userProfile.name
                         .split(" ")
-                        .map((n) => n[0])
+                        .map((n: string) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
@@ -270,7 +320,7 @@ export default function DashboardPage() {
                             <AvatarFallback>
                               {interest.name
                                 .split(" ")
-                                .map((n) => n[0])
+                                .map((n: string) => n[0])
                                 .join("")}
                             </AvatarFallback>
                           </Avatar>
@@ -319,7 +369,7 @@ export default function DashboardPage() {
                             <AvatarFallback>
                               {profile.name
                                 .split(" ")
-                                .map((n) => n[0])
+                                .map((n: string) => n[0])
                                 .join("")}
                             </AvatarFallback>
                           </Avatar>

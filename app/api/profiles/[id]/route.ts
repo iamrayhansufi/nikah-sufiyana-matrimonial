@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "../../../../src/db";
 import { users } from "../../../../src/db/schema";
+import { verifyAuth } from "../../../../src/lib/auth";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -20,6 +21,9 @@ export async function GET(
         { status: 400 }
       );
     }
+
+    // Get logged-in user id
+    const userId = await verifyAuth(request);
 
     const profile = await db
       .select({
@@ -55,9 +59,8 @@ export async function GET(
       );
     }
 
-    // Only return approved profiles or if user is viewing their own profile
-    // TODO: Add auth check for viewing own profile
-    if (profile[0].profileStatus !== "approved") {
+    // Allow user to view their own profile regardless of status
+    if (profile[0].profileStatus !== "approved" && userId !== id) {
       return NextResponse.json(
         { error: "Profile not available" },
         { status: 403 }
@@ -72,4 +75,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

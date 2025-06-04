@@ -9,15 +9,26 @@ import { Menu, Moon, Sun, Heart, MessageCircle, User, Home, Search, Globe } from
 import { useTheme } from "next-themes"
 import { MarqueeBanner } from "@/components/marquee-banner"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [language, setLanguage] = useState("en")
   const [mounted, setMounted] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState<any>(null)
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
+    // Check login state
+    const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
+    const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
+    setIsLoggedIn(!!token)
+    if (userStr) {
+      try { setUser(JSON.parse(userStr)) } catch {}
+    }
   }, [])
 
   useEffect(() => {
@@ -44,6 +55,14 @@ export function Header() {
     setLanguage(value)
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem("authToken")
+    localStorage.removeItem("currentUser")
+    setIsLoggedIn(false)
+    setUser(null)
+    router.push("/")
+  }
+
   if (!mounted) return null
 
   return (
@@ -58,7 +77,7 @@ export function Header() {
                 src="http://suficreations.com/wp-content/uploads/2021/03/Nikah-Sufiyana-Logo-01.png"
                 alt="Nikah Sufiyana" 
                 width={130} 
-                height={30} 
+                height={30}
               />
             </Link>
 
@@ -110,16 +129,32 @@ export function Header() {
                 <span className="sr-only">Toggle theme</span>
               </Button>
 
-              <Link href="/login">
-                <Button variant="outline" className="font-body">
-                  {language === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button className="gradient-primary text-white btn-hover font-body">
-                  {language === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
-                </Button>
-              </Link>
+              {isLoggedIn ? (
+                <div className="relative group">
+                  <Button variant="outline" className="font-body flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {user?.fullName || "My Account"}
+                  </Button>
+                  <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-900 border rounded shadow-lg hidden group-hover:block z-50">
+                    <Link href="/dashboard" className="block px-4 py-2 hover:bg-muted" >Dashboard</Link>
+                    <Link href="/edit-profile" className="block px-4 py-2 hover:bg-muted">Edit Profile</Link>
+                    <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-muted">Logout</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button variant="outline" className="font-body">
+                      {language === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button className="gradient-primary text-white btn-hover font-body">
+                      {language === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu */}
@@ -168,48 +203,58 @@ export function Header() {
                         <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                       </Button>
                     </div>
-                    <Link href="/login" onClick={() => setIsOpen(false)}>
-                      <Button variant="outline" className="w-full font-body">
-                        {language === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
-                      </Button>
-                    </Link>
-                    <Link href="/register" onClick={() => setIsOpen(false)}>
-                      <Button className="w-full gradient-primary text-white font-body">
-                        {language === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
-                      </Button>
-                    </Link>
+                    {isLoggedIn ? (
+                      <div className="flex flex-col space-y-2">
+                        <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                          <Button variant="outline" className="w-full font-body">
+                            {language === "en" ? "Dashboard" : <span className="font-arabic">ڈیش بورڈ</span>}
+                          </Button>
+                        </Link>
+                        <Link href="/edit-profile" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full gradient-primary text-white font-body">
+                            {language === "en" ? "Edit Profile" : <span className="font-arabic">پروفائل ایڈٹ کریں</span>}
+                          </Button>
+                        </Link>
+                        <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-muted">
+                          {language === "en" ? "Logout" : <span className="font-arabic">لاگ آؤٹ</span>}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col space-y-2">
+                        <Link href="/login" onClick={() => setIsOpen(false)}>
+                          <Button variant="outline" className="w-full font-body">
+                            {language === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
+                          </Button>
+                        </Link>
+                        <Link href="/register" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full gradient-primary text-white font-body">
+                            {language === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
-
-        {/* Mobile Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t md:hidden">
-          <div className="grid grid-cols-5 h-16">
-            <Link href="/" className="flex flex-col items-center justify-center space-y-1">
-              <Home className="h-5 w-5" />
-              <span className="text-xs font-body">Home</span>
-            </Link>
-            <Link href="/browse" className="flex flex-col items-center justify-center space-y-1">
-              <Search className="h-5 w-5" />
-              <span className="text-xs font-body">Browse</span>
-            </Link>
-            <Link href="/dashboard" className="flex flex-col items-center justify-center space-y-1">
-              <User className="h-5 w-5" />
-              <span className="text-xs font-body">Profile</span>
-            </Link>
-            <Link href="/messages" className="flex flex-col items-center justify-center space-y-1">
-              <MessageCircle className="h-5 w-5" />
-              <span className="text-xs font-body">Messages</span>
-            </Link>
-            <Link href="/menu" className="flex flex-col items-center justify-center space-y-1">
-              <Menu className="h-5 w-5" />
-              <span className="text-xs font-body">Menu</span>
-            </Link>
+        {/* Mobile Bottom Navigation - Optional, uncomment if needed */}
+        {/* <div className="md:hidden border-t">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between py-3">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="flex-1 text-center text-sm font-medium transition-colors hover:text-primary font-body"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        </div> */}
       </header>
     </>
   )

@@ -107,7 +107,8 @@ export default function RegisterPage() {
   const [step, setStep] = useState(0)
   const [showPassword, setShowPassword] = useState(false)
   const [passwordError, setPasswordError] = useState("")
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false) // For bio-data file processing
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false) // For final form submission
   const [processingProgress, setProcessingProgress] = useState(0)
   const [extractedPreview, setExtractedPreview] = useState<{
     text: string;
@@ -263,11 +264,13 @@ export default function RegisterPage() {
       errors = validateFields(
         {
           preferredAgeMin: formData.preferredAgeMin,
-          preferredAgeMax: formData.preferredAgeMax
+          preferredAgeMax: formData.preferredAgeMax,
+          preferredLocation: formData.preferredLocation // Add preferredLocation for validation
         },
         {
           preferredAgeMin: "Minimum Preferred Age",
-          preferredAgeMax: "Maximum Preferred Age"
+          preferredAgeMax: "Maximum Preferred Age",
+          preferredLocation: "Preferred Location" // Add label for error message
         }
       );
 
@@ -303,7 +306,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async () => {
     try {
-      setIsProcessing(true);
+      setIsSubmittingForm(true);
       
       // Convert form data to JSON format, omitting optional fields
       const { confirmPassword, profilePhotoPreview, bioDataFile, profilePhoto, ...rest } = formData;
@@ -325,13 +328,40 @@ export default function RegisterPage() {
 
       if (!response.ok) {
         if (response.status === 409) {
+          const errorMessage = data.error || "An account with these details already exists.";
           toast({
             title: "Registration Failed",
-            description: data.error,
+            description: errorMessage,
             variant: "destructive",
           });
+
+          const lowerErrorMessage = errorMessage.toLowerCase();
+          
+          // Check if error relates to fields in Step 1 and navigate back
+          if (lowerErrorMessage.includes("phone") || lowerErrorMessage.includes("mobile") || lowerErrorMessage.includes("email")) {
+            setStep(1); // Navigate user to Step 1
+
+            if (lowerErrorMessage.includes("phone") || lowerErrorMessage.includes("mobile")) {
+                setFieldErrors(prevErrors => ({ ...prevErrors, phone: errorMessage }));
+            } else if (lowerErrorMessage.includes("email")) {
+                // This 'else if' ensures only one field error is set if message is ambiguous,
+                // prioritizing phone/mobile if keywords for both are present.
+                // The toast will show the full original error message.
+                setFieldErrors(prevErrors => ({ ...prevErrors, email: errorMessage }));
+            }
+          }
+          // If the error is generic and not tied to phone/email by keywords,
+          // user stays on current step, toast is the main feedback.
+
         } else if (response.status === 400 && data.details) {
           // Handle validation errors
+          // Map errors to fields for inline display
+          const fieldErrs: FieldErrors = {};
+          (data.details as ValidationError[]).forEach((err: ValidationError) => {
+            if (err.field) fieldErrs[err.field] = err.message;
+          });
+          setFieldErrors(fieldErrs);
+          // Show all messages in toast as well
           const errorMessage = (data.details as ValidationError[])
             .map((err: ValidationError) => err.message)
             .join("\n");
@@ -340,25 +370,48 @@ export default function RegisterPage() {
             description: errorMessage,
             variant: "destructive",
           });
+          // Optionally, navigate to the step containing the first error field
+          // Example: if (fieldErrs.email || fieldErrs.phone) setStep(1);
         } else {
-          console.log(data)
-          throw new Error(data.error || "Registration failed");
+          // Generic error for other non-ok statuses
+          toast({
+            title: "Registration Failed",
+            description: data.error || `An unexpected error occurred (Status: ${response.status}). Please try again.`,
+            variant: "destructive",
+          });
         }
-        setIsProcessing(false);
+        // No need to set setIsProcessing(false) here as it's not used for form submission
+        setIsSubmittingForm(false);
         return;
       }
 
       // Clear form data from localStorage
       localStorage.removeItem("heroRegistrationData");
 
-      // Show success message
-      toast({
-        title: "Registration Successful",
-        description: "Your profile has been created successfully. Please check your phone for verification.",
-      });
+      // Store token and user data
+      if (data.token && data.user) {
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
+        
+        // Show success message
+        toast({
+          title: "Registration Successful!",
+          description: `Welcome, ${data.user.fullName}! You are now logged in. Redirecting to your dashboard...`,
+        });
 
-      // Redirect to success page
-      router.push('/success');
+        // Redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        // Fallback if token/user is somehow missing despite a 200 OK
+        // This case should ideally not happen if the API is consistent
+        toast({
+          title: "Registration Completed",
+          description: "Your profile has been created, but an issue occurred with auto-login. Please try logging in manually.",
+          variant: "default"
+        });
+        router.push('/login'); // Or '/success' if preferred as a fallback
+      }
+
     } catch (error) {
       console.error('Registration error:', error);
       toast({
@@ -366,7 +419,8 @@ export default function RegisterPage() {
         description: "An unexpected error occurred. Please try again later.",
         variant: "destructive",
       });
-      setIsProcessing(false);
+    } finally {
+      setIsSubmittingForm(false);
     }
   };
 
@@ -662,13 +716,26 @@ export default function RegisterPage() {
     </Card>
   );
 
+  // Loading overlay for form submission
+  const LoadingOverlay = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-black/80 backdrop-blur-sm">
+      <div className="flex flex-col items-center space-y-4">
+        <svg className="animate-spin h-10 w-10 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <span className="text-lg font-semibold text-primary">Creating your profile, please wait...</span>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />
-
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          {isProcessing && (
+          {/* Show bio-data processing UI only during step 0 (file upload) */}
+          {isProcessing && step === 0 && (
             <Card className="mb-4">
               <CardContent className="py-6">
                 <div className="text-center space-y-4">
@@ -735,7 +802,10 @@ export default function RegisterPage() {
                         <Label htmlFor="fullName">Full Name *</Label>
                         <Input
                           id="fullName"
-                          className={cn(inputStyles, fieldErrors.fullName && "border-red-500")}
+                          className={cn(
+                            inputStyles,
+                            fieldErrors.fullName && "border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500"
+                          )}
                           data-filled={isFieldFilled(formData.fullName)}
                           value={formData.fullName}
                           onChange={(e) => {
@@ -778,12 +848,20 @@ export default function RegisterPage() {
                         <Input
                           id="email"
                           type="email"
-                          className={inputStyles}
+                          className={cn(inputStyles, fieldErrors.email && "border-red-500")}
                           data-filled={isFieldFilled(formData.email)}
                           value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          onChange={(e) => {
+                            setFormData({ ...formData, email: e.target.value });
+                            if (fieldErrors.email) {
+                              setFieldErrors({ ...fieldErrors, email: "" });
+                            }
+                          }}
                           placeholder="your@email.com"
                         />
+                        {fieldErrors.email && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="phone">WhatsApp Phone Number *</Label>
@@ -1416,9 +1494,9 @@ export default function RegisterPage() {
                   <Button
                     onClick={handleSubmit}
                     className="gradient-emerald text-white"
-                    disabled={!formData.termsAccepted || !formData.privacyAccepted}
+                    disabled={isSubmittingForm || !formData.termsAccepted || !formData.privacyAccepted}
                   >
-                    Create Profile
+                    {isSubmittingForm ? "Creating Profile..." : "Create Profile"}
                   </Button>
                 )}
               </div>
@@ -1437,6 +1515,8 @@ export default function RegisterPage() {
         </div>
       </div>
 
+      {/* Loading overlay shown during registration submission */}
+      {isSubmittingForm && <LoadingOverlay />}
       <PreviewDialog />
       <Footer />
     </div>
