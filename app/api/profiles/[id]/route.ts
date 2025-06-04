@@ -63,13 +63,16 @@ export async function GET(
     }
 
     // Allow user to view their own profile regardless of status
-    if (profile[0].profileStatus !== "approved" && Number(userId) !== Number(id)) {
+    if (Number(userId) === Number(id)) {
+      return NextResponse.json(profile[0]);
+    }
+    // For others, only allow if profile is approved
+    if (profile[0].profileStatus !== "approved") {
       return NextResponse.json(
         { error: "Profile not available" },
         { status: 403 }
       );
     }
-
     return NextResponse.json(profile[0]);
   } catch (error) {
     console.error("Get profile error:", error);
