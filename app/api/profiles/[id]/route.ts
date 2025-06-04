@@ -25,6 +25,9 @@ export async function GET(
     // Get logged-in user id
     const userId = await verifyAuth(request);
 
+    // Debug logging for auth and id
+    console.log({ userId, id, authHeader: request.headers.get("authorization") });
+
     const profile = await db
       .select({
         id: users.id,
@@ -60,7 +63,7 @@ export async function GET(
     }
 
     // Allow user to view their own profile regardless of status
-    if (profile[0].profileStatus !== "approved" && userId !== id) {
+    if (profile[0].profileStatus !== "approved" && Number(userId) !== Number(id)) {
       return NextResponse.json(
         { error: "Profile not available" },
         { status: 403 }

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -36,51 +37,19 @@ export default function AdminDashboard() {
   const [subscriptionFilter, setSubscriptionFilter] = useState("all")
   const [selectedUsers, setSelectedUsers] = useState<number[]>([])
 
-  // Mock data
-  const stats = {
-    totalRegistrations: 15420,
-    activeSubscriptions: 3240,
-    pendingApprovals: 156,
-    totalRevenue: 2450000,
-    monthlyGrowth: 12.5,
-    successfulMatches: 1250,
-  }
+  const [pendingUsers, setPendingUsers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  const recentRegistrations = [
-    {
-      id: 1,
-      name: "Fatima Ahmed",
-      email: "fatima@email.com",
-      phone: "+91 98765 43210",
-      age: 26,
-      location: "Mumbai",
-      status: "pending",
-      joinedDate: "2024-01-15",
-      subscription: "free",
-    },
-    {
-      id: 2,
-      name: "Ahmed Khan",
-      email: "ahmed@email.com",
-      phone: "+91 87654 32109",
-      age: 28,
-      location: "Delhi",
-      status: "approved",
-      joinedDate: "2024-01-14",
-      subscription: "premium",
-    },
-    {
-      id: 3,
-      name: "Aisha Rahman",
-      email: "aisha@email.com",
-      phone: "+91 76543 21098",
-      age: 24,
-      location: "Bangalore",
-      status: "pending",
-      joinedDate: "2024-01-13",
-      subscription: "free",
-    },
-  ]
+  // Remove mock stats and fetch real stats from API
+  const [stats, setStats] = useState({
+    totalRegistrations: 0,
+    activeSubscriptions: 0,
+    pendingApprovals: 0,
+    totalRevenue: 0,
+    monthlyGrowth: 0,
+    successfulMatches: 0,
+  })
 
   const subscriptions = [
     {
@@ -136,6 +105,46 @@ export default function AdminDashboard() {
     },
   ]
 
+  useEffect(() => {
+    const fetchPendingUsers = async () => {
+      setLoading(true)
+      setError("")
+      try {
+        const res = await fetch("/api/admin/users?status=pending")
+        if (!res.ok) throw new Error("Failed to fetch users")
+        const data = await res.json()
+        setPendingUsers(data.users || [])
+      } catch (err: any) {
+        setError(err.message || "Error loading users")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPendingUsers()
+  }, [])
+
+  // Fetch real stats from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/admin/stats")
+        if (!res.ok) throw new Error("Failed to fetch stats")
+        const data = await res.json()
+        setStats({
+          totalRegistrations: data.totalRegistrations || 0,
+          activeSubscriptions: data.activeSubscriptions || 0,
+          pendingApprovals: data.pendingApprovals || 0,
+          totalRevenue: data.totalRevenue || 0,
+          monthlyGrowth: data.monthlyGrowth || 0,
+          successfulMatches: data.successfulMatches || 0,
+        })
+      } catch (err) {
+        // Optionally handle error
+      }
+    }
+    fetchStats()
+  }, [])
+
   const handleApproveProfile = (userId: number) => {
     console.log("Approving profile:", userId)
     // Handle profile approval
@@ -171,6 +180,15 @@ export default function AdminDashboard() {
     console.log("Sending email to users:", selectedUsers)
     // Handle sending email logic
   }
+
+  // Admin authentication check
+  const router = useRouter();
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("adminToken") : null;
+    if (!token) {
+      router.replace("/admin/login");
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
@@ -334,7 +352,7 @@ export default function AdminDashboard() {
                     </div>
                   )}
                   <div className="space-y-4">
-                    {recentRegistrations
+                    {pendingUsers
                       .filter((user) => {
                         const matchesSearch =
                           user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -368,7 +386,7 @@ export default function AdminDashboard() {
                               <AvatarFallback>
                                 {user.name
                                   .split(" ")
-                                  .map((n) => n[0])
+                                  .map((n: string) => n[0])
                                   .join("")}
                               </AvatarFallback>
                             </Avatar>
@@ -492,52 +510,61 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {recentRegistrations
-                      .filter((user) => user.status === "pending")
-                      .map((user) => (
-                        <div
-                          key={user.id}
-                          className="flex items-center justify-between p-4 border rounded-lg card-hover"
-                        >
-                          <div className="flex items-center gap-4">
-                            <Avatar>
-                              <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={user.name} />
-                              <AvatarFallback>
-                                {user.name
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h4 className="font-semibold font-heading">{user.name}</h4>
-                              <p className="text-sm text-muted-foreground font-body">
-                                {user.age} years • {user.location}
-                              </p>
-                              <p className="text-xs text-muted-foreground font-body">Joined: {user.joinedDate}</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={() => handleApproveProfile(user.id)}
-                              className="gradient-primary text-white btn-hover font-body"
-                            >
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleRejectProfile(user.id)}
-                              className="font-body"
-                            >
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Reject
-                            </Button>
+                    {pendingUsers.length === 0 && !loading && (
+                      <p className="text-center text-muted-foreground font-body">No pending approvals</p>
+                    )}
+                    {pendingUsers.map((user) => (
+                      <div
+                        key={user.id}
+                        className="flex items-center justify-between p-4 border rounded-lg card-hover"
+                      >
+                        <div className="flex items-center gap-4">
+                          <Avatar>
+                            <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={user.name} />
+                            <AvatarFallback>
+                              {user.name
+                                .split(" ")
+                                .map((n: string) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h4 className="font-semibold font-heading">{user.name}</h4>
+                            <p className="text-sm text-muted-foreground font-body">
+                              {user.age} years • {user.location}
+                            </p>
+                            <p className="text-xs text-muted-foreground font-body">Joined: {user.joinedDate}</p>
                           </div>
                         </div>
-                      ))}
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleApproveProfile(user.id)}
+                            className="gradient-primary text-white btn-hover font-body"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleRejectProfile(user.id)}
+                            className="font-body"
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {loading && (
+                      <div className="flex justify-center py-4">
+                        <span className="loader"></span>
+                      </div>
+                    )}
+                    {error && (
+                      <p className="text-red-500 text-center text-sm font-body">{error}</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
