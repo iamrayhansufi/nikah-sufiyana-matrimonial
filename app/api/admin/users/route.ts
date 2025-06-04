@@ -1,7 +1,12 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { db } from "@/src/db/index"
+import { users } from "@/src/db/schema"
+import { eq, and } from "drizzle-orm"
 import { verifyAdminAuth } from "@/lib/auth"
-import { getUsers, getUserStats, updateUserProfile, type User } from "@/lib/database"
 import { sendUserNotification } from "@/lib/notifications"
+// Fix: Import updateUserProfile and User type from correct source
+import { updateUserProfile } from "@/lib/database"
+import type { User } from "@/lib/database"
 
 type AdminUserFilters = {
   profileStatus?: "pending" | "approved" | "rejected" | "suspended"
@@ -21,23 +26,28 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "20")
-    const status = searchParams.get("status") as AdminUserFilters["profileStatus"]
-    const subscription = searchParams.get("subscription") as AdminUserFilters["subscription"]
+    const status = searchParams.get("status")
+    const subscription = searchParams.get("subscription")
 
-    const filters: AdminUserFilters = {}
-    if (status) filters.profileStatus = status
-    if (subscription) filters.subscription = subscription
+    // Build filters
+    const filters = []
+    if (status) filters.push(eq(users.profileStatus, status))
+    if (subscription) filters.push(eq(users.subscription, subscription))
 
-    const users = await getUsers(filters, page, limit)
-    const stats = await getUserStats()
+    // Query users with filters
+    let userList = []
+    if (filters.length > 0) {
+      userList = await db.select().from(users).where(and(...filters)).limit(limit).offset((page - 1) * limit)
+    } else {
+      userList = await db.select().from(users).limit(limit).offset((page - 1) * limit)
+    }
 
     return NextResponse.json({
-      users,
+      users: userList,
       pagination: {
         page,
         limit,
-        total: stats.total,
-        pages: Math.ceil(stats.total / limit),
+        total: userList.length, // Replace with real total if you add a count query
       },
     })
   } catch (error) {

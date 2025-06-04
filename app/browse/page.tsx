@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Heart, Star, MapPin, GraduationCap, Briefcase, Filter, Eye, MessageSquare } from "lucide-react"
 import Link from "next/link"
 import { playfair } from "../lib/fonts"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 
 interface Profile {
   id: number
@@ -32,7 +33,7 @@ interface Profile {
 }
 
 // Mock profile data
-const profiles: Profile[] = [
+const initialProfiles: Profile[] = [
   {
     id: 1,
     name: "Fatima Ahmed",
@@ -144,23 +145,52 @@ export default function BrowseProfilesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showFilters, setShowFilters] = useState(false)
+  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
+  const [isPremium, setIsPremium] = useState(false)
+  const [contactInfo, setContactInfo] = useState<string | null>(null)
+  const [showContactDialog, setShowContactDialog] = useState(false)
 
+  // Fetch real profiles from API
+  useEffect(() => {
+    setLoading(true)
+    fetch("/api/profiles/search?limit=50")
+      .then(res => res.json())
+      .then(data => {
+        setProfiles(data.profiles || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  // Simulate user subscription status (replace with real logic)
+  useEffect(() => {
+    const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
+    let premium = false
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        premium = user.subscription === "premium" || user.subscription === "vip"
+      } catch {}
+    }
+    setIsPremium(premium)
+  }, [])
+
+  // Filtering logic (update to use real profiles)
   const filteredProfiles = profiles.filter((profile) => {
-    const matchesAge = 
+    const matchesAge =
       (!filters.ageMin || profile.age >= Number(filters.ageMin)) &&
       (!filters.ageMax || profile.age <= Number(filters.ageMax))
-    
-    const matchesHeight = 
+    const matchesHeight =
       (!filters.heightMin || parseFloat(profile.height) >= parseFloat(filters.heightMin)) &&
       (!filters.heightMax || parseFloat(profile.height) <= parseFloat(filters.heightMax))
-    
     const matchesMaritalStatus = !filters.maritalStatus || profile.maritalStatus === filters.maritalStatus
     const matchesHousing = !filters.housing || profile.housing === filters.housing
     const matchesLocation = !filters.location || profile.location === filters.location
     const matchesEducation = !filters.education || profile.education === filters.education
     const matchesSect = !filters.sect || profile.sect === filters.sect
     const matchesSearch = !searchTerm || profile.name.toLowerCase().includes(searchTerm.toLowerCase())
-
     return (
       matchesAge &&
       matchesHeight &&
@@ -172,6 +202,28 @@ export default function BrowseProfilesPage() {
       matchesSearch
     )
   })
+
+  // Contact Info logic
+  const handleContactInfo = async (profile: Profile) => {
+    if (!isPremium) {
+      setShowUpgradeDialog(true)
+      return
+    }
+    // Fetch contact info from API (replace with real endpoint)
+    setContactInfo(null)
+    setShowContactDialog(true)
+    try {
+      const res = await fetch(`/api/profiles/${profile.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setContactInfo(data.phone || data.email || "Contact info not available")
+      } else {
+        setContactInfo("Contact info not available")
+      }
+    } catch {
+      setContactInfo("Contact info not available")
+    }
+  }
 
   const FilterContent = () => (
     <div className="space-y-6 p-4">
@@ -472,89 +524,93 @@ export default function BrowseProfilesPage() {
             </div>
 
             {/* Profiles Grid/List */}
-            <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-4"}>
-              {filteredProfiles.map((profile) => (
-                <Card key={profile.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="relative">
-                    <img
-                      src={profile.image || "/placeholder.svg"}
-                      alt={profile.name}
-                      className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"} ${!profile.premium ? "blur-sm" : ""}`}
-                    />
-                    {!profile.premium && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <div className="text-white text-center">
-                          <Eye className="h-8 w-8 mx-auto mb-2" />
-                          <p className="text-sm">Upgrade to view</p>
+            {loading ? (
+              <div className="min-h-screen flex items-center justify-center">Loading profiles...</div>
+            ) : (
+              <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-4"}>
+                {filteredProfiles.map((profile) => (
+                  <Card key={profile.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="relative">
+                      <img
+                        src={profile.image || "/placeholder.svg"}
+                        alt={profile.name}
+                        className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"} ${!profile.premium ? "blur-sm" : ""}`}
+                      />
+                      {!profile.premium && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <div className="text-white text-center">
+                            <Eye className="h-8 w-8 mx-auto mb-2" />
+                            <p className="text-sm">Upgrade to view</p>
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute top-2 left-2 flex gap-2">
+                        <Badge className="bg-yellow-500 text-white">⭐ Premium</Badge>
+                      </div>
+                      <div className="absolute top-2 right-2">
+                        <Badge variant="secondary" className="bg-primary text-white">
+                          {profile.match}% Match
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className={`${playfair.className} font-semibold text-lg`}>{profile.name}</h3>
+                          <p className="text-sm text-muted-foreground">{profile.age} years old</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button size="icon" variant="ghost" className="h-8 w-8">
+                            <Heart className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8">
+                            <Star className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                    )}
-                    <div className="absolute top-2 left-2 flex gap-2">
-                      <Badge className="bg-yellow-500 text-white">⭐ Premium</Badge>
-                    </div>
-                    <div className="absolute top-2 right-2">
-                      <Badge variant="secondary" className="bg-primary text-white">
-                        {profile.match}% Match
-                      </Badge>
-                    </div>
-                  </div>
 
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className={`${playfair.className} font-semibold text-lg`}>{profile.name}</h3>
-                        <p className="text-sm text-muted-foreground">{profile.age} years old</p>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span>{profile.location}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                          <span>{profile.education}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="h-4 w-4 text-muted-foreground" />
+                          <span>{profile.profession}</span>
+                        </div>
                       </div>
-                      <div className="flex gap-1">
-                        <Button size="icon" variant="ghost" className="h-8 w-8">
-                          <Heart className="h-4 w-4" />
+
+                      <div className="flex gap-2 mt-3">
+                        <Badge variant="outline">{profile.sect}</Badge>
+                      </div>
+
+                      <div className="flex gap-2 mt-4">
+                        <Button className="flex-1" onClick={() => handleContactInfo(profile)}>
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Contact Info
                         </Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8">
-                          <Star className="h-4 w-4" />
-                        </Button>
+                        <Link href={`/profile/${profile.id}`}>
+                          <Button variant="outline" className="flex-1">
+                            View Profile
+                          </Button>
+                        </Link>
                       </div>
-                    </div>
 
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span>{profile.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                        <span>{profile.education}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="h-4 w-4 text-muted-foreground" />
-                        <span>{profile.profession}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 mt-3">
-                      <Badge variant="outline">{profile.sect}</Badge>
-                    </div>
-
-                    <div className="flex gap-2 mt-4">
-                      <Button className="flex-1" disabled={!profile.premium}>
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Send Interest
-                      </Button>
-                      <Link href={`/profile/${profile.id}`}>
-                        <Button variant="outline" className="flex-1">
-                          View Profile
-                        </Button>
-                      </Link>
-                    </div>
-
-                    {!profile.premium && (
-                      <p className="text-xs text-center text-muted-foreground mt-2">
-                        Upgrade to Premium to send interests
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      {!profile.premium && (
+                        <p className="text-xs text-center text-muted-foreground mt-2">
+                          Upgrade to Premium to send interests
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             {filteredProfiles.length === 0 && (
               <div className="text-center py-12">
@@ -600,6 +656,45 @@ export default function BrowseProfilesPage() {
       </div>
 
       <Footer />
+
+      {/* Upgrade Dialog */}
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upgrade to Premium</DialogTitle>
+            <DialogDescription>
+              Only premium members can view contact info and connect with other users. Upgrade now to unlock this feature!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 mt-4">
+            <Link href="/premium">
+              <Button className="w-full gradient-gold text-white">Upgrade Now</Button>
+            </Link>
+            <Button variant="outline" className="w-full" onClick={() => setShowUpgradeDialog(false)}>
+              Maybe Later
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contact Information</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 text-center">
+            {contactInfo ? (
+              <span className="font-semibold text-lg">{contactInfo}</span>
+            ) : (
+              <span>Loading contact info...</span>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" className="w-full mt-4" onClick={() => setShowContactDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
