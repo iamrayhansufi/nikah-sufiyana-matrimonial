@@ -2,6 +2,7 @@
 const bcrypt = require('bcryptjs');
 const { db } = require('../src/db');
 const { adminUsers } = require('../src/db/schema');
+const { eq } = require('drizzle-orm');
 
 async function insertAdmin() {
   const email = 'nikahsufiyana@gmail.com';
@@ -10,7 +11,7 @@ async function insertAdmin() {
   const hashed = await bcrypt.hash(password, 10);
 
   // Check if already exists
-  const existing = await db.select().from(adminUsers).where(adminUsers.email.eq(email)).limit(1);
+  const existing = await db.select().from(adminUsers).where(eq(adminUsers.email, email)).limit(1);
   if (existing && existing.length > 0) {
     console.log('Admin user already exists.');
     return;

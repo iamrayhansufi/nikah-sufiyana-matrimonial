@@ -25,7 +25,10 @@ export async function POST(req: NextRequest) {
     }
     // Create JWT
     const token = jwt.sign({ adminId: admin[0].id, email: admin[0].email, role: admin[0].role }, JWT_SECRET, { expiresIn: "24h" })
-    return NextResponse.json({ token, admin: { id: admin[0].id, email: admin[0].email, role: admin[0].role } })
+    return new NextResponse(JSON.stringify({ token, admin: { id: admin[0].id, email: admin[0].email, role: admin[0].role } }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    })
   } catch (error) {
     console.error("Admin login error:", error)
     return NextResponse.json({ error: "Login failed" }, { status: 500 })
