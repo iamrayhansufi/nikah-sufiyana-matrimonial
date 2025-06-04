@@ -58,7 +58,9 @@ export default function DashboardPage() {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (!res.ok) {
-          setError("Failed to load profile.")
+          const errorText = await res.text();
+          console.error("Profile fetch failed:", res.status, errorText);
+          setError(`Failed to load profile. (${res.status})`)
           setLoading(false)
           return
         }
