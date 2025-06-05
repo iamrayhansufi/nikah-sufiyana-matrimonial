@@ -27,6 +27,7 @@ import { playfair } from "../lib/fonts"
 
 export default function DashboardPage() {
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [stats, setStats] = useState({ profileViews: 0, interests: 0, shortlisted: 0, matches: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
@@ -67,7 +68,6 @@ export default function DashboardPage() {
           const decoded = decodeToken(token)
           userId = decoded?.userId
         }
-        // No userId found in either place
         if (!userId) {
           setError("User info missing. Please log in again.")
           setLoading(false)
@@ -90,6 +90,12 @@ export default function DashboardPage() {
           name: profile.fullName || profile.name || "",
           completeness: profile.completeness || 80, // fallback if not present
         })
+        // Fetch user stats for dashboard
+        const statsRes = await fetch(`/api/profiles/${userId}/stats`)
+        if (statsRes.ok) {
+          const statsData = await statsRes.json()
+          setStats(statsData)
+        }
       } catch (e) {
         setError("An error occurred.")
       } finally {
@@ -110,13 +116,6 @@ export default function DashboardPage() {
   }
 
   const profileStatus = "approved"
-
-  const stats = {
-    profileViews: 156,
-    interests: 23,
-    shortlisted: 12,
-    matches: 8,
-  }
 
   const recentInterests = [
     {

@@ -280,6 +280,9 @@ export default function RegisterPage() {
           errors.preferredAgeMax = "Maximum age should be greater than minimum age";
         }
       }
+      if (!formData.preferredLocation.trim()) {
+        errors.preferredLocation = "Preferred location is required.";
+      }
     }
 
     // If there are any errors, show them and prevent proceeding
@@ -1300,15 +1303,19 @@ export default function RegisterPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="preferredLocation">Preferred Location</Label>
+                        <Label htmlFor="preferredLocation">Preferred Location *</Label>
                         <Input
                           id="preferredLocation"
-                          className={inputStyles}
+                          className={cn(inputStyles, formData.preferredLocation.trim() === "" ? "border-red-500" : "")}
                           data-filled={isFieldFilled(formData.preferredLocation)}
                           value={formData.preferredLocation}
                           onChange={(e) => setFormData({ ...formData, preferredLocation: e.target.value })}
                           placeholder="e.g., Mumbai, Maharashtra, India"
+                          required
                         />
+                        {formData.preferredLocation.trim() === "" && (
+                          <span className="text-xs text-red-500">Preferred location is required.</span>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="maritalPreferences">Marital Preferences</Label>

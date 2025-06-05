@@ -109,6 +109,18 @@ export async function getUserStats() {
   }
 }
 
+// Get per-user stats for dashboard
+export async function getUserStatsById(userId: string) {
+  // TODO: Replace with real DB queries
+  // Example: Fetch from profile_views, interests, shortlist, matches tables/collections
+  return {
+    profileViews: 0, // e.g., await ProfileViews.count({ userId })
+    interests: 0,    // e.g., await Interests.count({ to: userId })
+    shortlisted: 0,  // e.g., await Shortlist.count({ userId })
+    matches: 0,      // e.g., await Matches.count({ userId })
+  }
+}
+
 export async function updateUserProfile(id: string, updates: Partial<User>): Promise<User | null> {
   // Update user profile
   console.log("Updating user profile:", id, updates)

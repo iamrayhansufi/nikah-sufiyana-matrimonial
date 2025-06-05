@@ -50,7 +50,11 @@ export default function EditProfilePage() {
     city: "Mumbai",
     state: "Maharashtra",
     country: "India",
-    bio: "Assalamu Alaikum! I am a practicing Muslim who believes in balancing deen and dunya. I work as a software engineer and love to learn new technologies. I'm looking for a life partner who shares similar values and is committed to growing together in faith and life. I enjoy cooking, reading Islamic books, and spending time with family."
+    bio: "Assalamu Alaikum! I am a practicing Muslim who believes in balancing deen and dunya. I work as a software engineer and love to learn new technologies. I'm looking for a life partner who shares similar values and is committed to growing together in faith and life. I enjoy cooking, reading Islamic books, and spending time with family.",
+    id: "",
+    profilePhoto: "",
+    joinedDate: "",
+    lastUpdated: ""
   })
   
   const [religiousInfo, setReligiousInfo] = useState({
@@ -99,6 +103,10 @@ export default function EditProfilePage() {
     allowMessages: true
   })
   
+  // --- Gallery Photos State and Handlers ---
+  const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
+  const maxGalleryPhotos = 6
+
   useEffect(() => {
     // Load user data from localStorage if available
     const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
@@ -114,11 +122,15 @@ export default function EditProfilePage() {
           gender: user.gender || prev.gender,
           city: user.city || prev.city,
           country: user.country || prev.country,
+          id: user.id || prev.id,
+          profilePhoto: user.profilePhoto || prev.profilePhoto,
+          joinedDate: user.joinedDate || prev.joinedDate,
+          lastUpdated: user.lastUpdated || prev.lastUpdated,
         }))
       } catch {}
     }
   }, [])
-  
+
   // Fetch user profile from backend and populate all state on mount
   useEffect(() => {
     const fetchProfile = async () => {
@@ -147,6 +159,10 @@ export default function EditProfilePage() {
           complexion: profile.complexion || prev.complexion,
           maritalStatus: profile.maritalStatus || prev.maritalStatus,
           bio: profile.aboutMe || prev.bio,
+          id: profile.id || prev.id,
+          profilePhoto: profile.profilePhoto || prev.profilePhoto,
+          joinedDate: profile.joinedDate || prev.joinedDate,
+          lastUpdated: profile.lastUpdated || prev.lastUpdated,
         }))
         setReligiousInfo((prev) => ({
           ...prev,
@@ -172,6 +188,7 @@ export default function EditProfilePage() {
           expectations: profile.expectations || prev.expectations,
           // Add more fields as needed from backend
         }))
+        setGalleryPhotos(Array.isArray(profile.gallery) ? profile.gallery : [])
         // Optionally set privacySettings if backend supports
       } catch {}
     }
@@ -228,6 +245,118 @@ export default function EditProfilePage() {
     }
   }
 
+  // Profile photo upload handler
+  const handleProfilePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const formData = new FormData()
+    formData.append('photo', file)
+    setSaveStatus("saving")
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
+      if (!token) throw new Error("Not logged in.")
+      const res = await fetch('/api/upload/profile-photo', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData as any
+      } as any)
+      if (!res.ok) throw new Error("Failed to upload photo.")
+      const data = await res.json()
+      setBasicInfo((prev) => ({ ...prev, profilePhoto: data.url }))
+      // Optionally update localStorage
+      const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
+      if (userStr) {
+        const user = JSON.parse(userStr)
+        user.profilePhoto = data.url
+        localStorage.setItem("currentUser", JSON.stringify(user))
+      }
+      setSaveStatus("success")
+      setTimeout(() => setSaveStatus("idle"), 2000)
+    } catch (err: any) {
+      setSaveStatus("error")
+      alert(err.message || "Photo upload failed.")
+      setTimeout(() => setSaveStatus("idle"), 2000)
+    }
+  }
+
+  // --- Gallery Photos State and Handlers ---
+  // (Already declared at top, so do not redeclare)
+
+  // Fetch gallery photos from profile (if available)
+  useEffect(() => {
+    const fetchGallery = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
+      const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
+      if (!token || !userStr) return
+      let userId = null
+      try { userId = JSON.parse(userStr).id } catch {}
+      if (!userId) return
+      try {
+        const res = await fetch(`/api/profiles/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!res.ok) return
+        const profile = await res.json()
+        setGalleryPhotos(Array.isArray(profile.gallery) ? profile.gallery : [])
+      } catch {}
+    }
+    fetchGallery()
+  }, [])
+
+  // Upload new gallery photo
+  const handleGalleryPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (galleryPhotos.length >= maxGalleryPhotos) {
+      alert("You can upload up to 6 gallery photos only.")
+      return
+    }
+    const formData = new FormData()
+    formData.append('photo', file)
+    setSaveStatus("saving")
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
+      if (!token) throw new Error("Not logged in.")
+      const res = await fetch('/api/profiles/upload-photo', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData as any
+      } as any)
+      if (!res.ok) throw new Error("Failed to upload photo.")
+      const data = await res.json()
+      setGalleryPhotos((prev) => [...prev, data.photoUrl])
+      setSaveStatus("success")
+      setTimeout(() => setSaveStatus("idle"), 2000)
+    } catch (err: any) {
+      setSaveStatus("error")
+      alert(err.message || "Photo upload failed.")
+      setTimeout(() => setSaveStatus("idle"), 2000)
+    }
+  }
+
+  // Delete gallery photo
+  const handleDeleteGalleryPhoto = async (photoUrl: string) => {
+    if (!window.confirm("Are you sure you want to delete this photo?")) return
+    setSaveStatus("saving")
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
+      if (!token) throw new Error("Not logged in.")
+      const res = await fetch('/api/profiles/delete-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ photoUrl })
+      })
+      if (!res.ok) throw new Error("Failed to delete photo.")
+      setGalleryPhotos((prev) => prev.filter((url) => url !== photoUrl))
+      setSaveStatus("success")
+      setTimeout(() => setSaveStatus("idle"), 2000)
+    } catch (err: any) {
+      setSaveStatus("error")
+      alert(err.message || "Photo delete failed.")
+      setTimeout(() => setSaveStatus("idle"), 2000)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />
@@ -250,26 +379,31 @@ export default function EditProfilePage() {
               <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="relative">
                   <Avatar className="h-32 w-32">
-                    <AvatarImage src="/placeholder.svg?height=150&width=150" alt="Fatima Ahmed" />
+                    <AvatarImage src={basicInfo.profilePhoto || "/placeholder.svg?height=150&width=150"} alt={basicInfo.fullName || "Profile Photo"} />
                     <AvatarFallback className="text-2xl">
-                      FA
+                      {basicInfo.fullName ? basicInfo.fullName.split(" ").map((n: string) => n[0]).join("") : "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <Button size="icon" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="profile-photo-input"
+                    style={{ display: 'none' }}
+                    onChange={handleProfilePhotoChange}
+                  />
+                  <Button size="icon" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full" onClick={() => document.getElementById('profile-photo-input')?.click()}>
                     <Camera className="h-4 w-4" />
                   </Button>
                 </div>
-                
                 <div className="flex-1 text-center md:text-left">
-                  <h2 className="text-xl font-bold mb-2">Fatima Ahmed</h2>
+                  <h2 className="text-xl font-bold mb-2">{basicInfo.fullName || "Your Name"}</h2>
                   <p className="text-muted-foreground mb-2">
-                    ID: NS78945 • Joined: January 2024
+                    ID: NS{basicInfo.id || "-"} • Joined: {basicInfo.joinedDate || "-"} • Last Updated: {basicInfo.lastUpdated || "-"}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Your profile is visible to other members. Last updated 2 days ago.
+                    Your profile is visible to other members. Last updated {basicInfo.lastUpdated || "recently"}.
                   </p>
                 </div>
-                
                 <div className="flex flex-col gap-2">
                   <Button 
                     className="gradient-emerald text-white"
@@ -754,12 +888,17 @@ export default function EditProfilePage() {
                     </div>
                     
                     <div>
-                      <Label htmlFor="prefLocation">Preferred Location</Label>
+                      <Label htmlFor="prefLocation">Preferred Location *</Label>
                       <Input
                         id="prefLocation"
                         value={partnerPreferences.location}
                         onChange={(e) => setPartnerPreferences({ ...partnerPreferences, location: e.target.value })}
+                        required
+                        className={partnerPreferences.location.trim() === "" ? "border-red-500" : ""}
                       />
+                      {partnerPreferences.location.trim() === "" && (
+                        <span className="text-xs text-red-500">Preferred location is required.</span>
+                      )}
                     </div>
                     
                     <div>
@@ -793,7 +932,13 @@ export default function EditProfilePage() {
 
                   <div className="flex justify-end">
                     <Button 
-                      onClick={() => handleSaveChanges("preferences")} 
+                      onClick={() => {
+                        if (!partnerPreferences.location.trim()) {
+                          alert("Preferred location is required.");
+                          return;
+                        }
+                        handleSaveChanges("preferences")
+                      }} 
                       disabled={saveStatus === "saving"}
                       className="gradient-emerald text-white"
                     >
@@ -816,12 +961,19 @@ export default function EditProfilePage() {
                     <div className="flex items-center gap-6">
                       <div className="relative">
                         <Avatar className="h-24 w-24">
-                          <AvatarImage src="/placeholder.svg?height=100&width=100" alt="Profile Photo" />
+                          <AvatarImage src={basicInfo.profilePhoto || "/placeholder.svg?height=100&width=100"} alt="Profile Photo" />
                           <AvatarFallback className="text-2xl">
-                            FA
+                            {basicInfo.fullName ? basicInfo.fullName.split(" ").map((n: string) => n[0]).join("") : "U"}
                           </AvatarFallback>
                         </Avatar>
-                        <Button size="icon" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          id="profile-photo-upload"
+                          style={{ display: 'none' }}
+                          onChange={handleProfilePhotoChange}
+                        />
+                        <Button size="icon" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full" onClick={() => document.getElementById('profile-photo-upload')?.click()}>
                           <Camera className="h-4 w-4" />
                         </Button>
                       </div>
@@ -829,46 +981,48 @@ export default function EditProfilePage() {
                         <p className="text-sm text-muted-foreground mb-2">
                           Your profile photo is visible to all members. Upload a clear face photo for better responses.
                         </p>
-                        <Button variant="outline" size="sm">Change Photo</Button>
+                        <Button variant="outline" size="sm" onClick={() => document.getElementById('profile-photo-upload')?.click()}>Change Photo</Button>
                       </div>
                     </div>
                   </div>
-                  
                   <Separator className="my-6" />
-                  
                   <div>
                     <h3 className="font-semibold mb-4">Photo Gallery</h3>
                     <p className="text-sm text-muted-foreground mb-4">
                       Add up to 6 photos to your gallery. These photos will be visible based on your privacy settings.
                     </p>
-                    
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                      {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <div key={i} className="border rounded-lg p-2">
-                          {i <= 2 ? (
-                            <div className="relative aspect-square bg-muted rounded-md overflow-hidden">
-                              <img 
-                                src={`/placeholder.svg?height=150&width=150&text=Photo ${i}`} 
-                                alt={`Gallery photo ${i}`}
-                                className="w-full h-full object-cover"
-                              />
-                              <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                <Button size="icon" variant="outline" className="h-8 w-8 bg-white text-red-500">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="aspect-square bg-muted rounded-md flex items-center justify-center">
-                              <Button variant="ghost">
-                                <Camera className="h-8 w-8 text-muted-foreground" />
+                      {galleryPhotos.map((url, i) => (
+                        <div key={url} className="border rounded-lg p-2 relative group">
+                          <div className="relative aspect-square bg-muted rounded-md overflow-hidden">
+                            <img 
+                              src={url}
+                              alt={`Gallery photo ${i+1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <Button size="icon" variant="outline" className="h-8 w-8 bg-white text-red-500" onClick={() => handleDeleteGalleryPhoto(url)}>
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                          )}
+                          </div>
                         </div>
                       ))}
+                      {galleryPhotos.length < maxGalleryPhotos && (
+                        <div className="aspect-square bg-muted rounded-md flex items-center justify-center">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="gallery-photo-upload"
+                            style={{ display: 'none' }}
+                            onChange={handleGalleryPhotoUpload}
+                          />
+                          <Button variant="ghost" onClick={() => document.getElementById('gallery-photo-upload')?.click()}>
+                            <Camera className="h-8 w-8 text-muted-foreground" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    
                     <div className="flex justify-end">
                       <Button 
                         onClick={() => handleSaveChanges("photos")} 
