@@ -391,12 +391,14 @@ export default function RegisterPage() {
       // Store token and user data
       if (data.token && data.user) {
         localStorage.setItem("authToken", data.token);
-        localStorage.setItem("currentUser", JSON.stringify(data.user));
-        
+        // Ensure 'id' is present for dashboard fetch compatibility
+        const userObj = { ...data.user };
+        if (!userObj.id && data.user.userId) userObj.id = data.user.userId;
+        localStorage.setItem("currentUser", JSON.stringify(userObj));
         // Show success message
         toast({
           title: "Registration Successful!",
-          description: `Welcome, ${data.user.fullName}! You are now logged in. Redirecting to your dashboard...`,
+          description: `Welcome, ${userObj.fullName}! You are now logged in. Redirecting to your dashboard...`,
         });
 
         // Redirect to dashboard

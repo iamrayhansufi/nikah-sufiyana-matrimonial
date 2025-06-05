@@ -30,6 +30,21 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
+  // Helper function to decode JWT
+  const decodeToken = (token: string) => {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => 
+        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      ).join(''))
+      return JSON.parse(jsonPayload)
+    } catch (e) {
+      console.error('Failed to decode token:', e)
+      return null
+    }
+  }
+
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true)
@@ -47,7 +62,12 @@ export default function DashboardPage() {
         if (userStr) {
           try { userId = JSON.parse(userStr).id } catch {}
         }
-        // Fallback: decode JWT if needed (not implemented here)
+        // Fallback: decode JWT to get userId
+        if (!userId) {
+          const decoded = decodeToken(token)
+          userId = decoded?.userId
+        }
+        // No userId found in either place
         if (!userId) {
           setError("User info missing. Please log in again.")
           setLoading(false)
