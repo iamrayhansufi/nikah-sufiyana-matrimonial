@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -31,90 +31,24 @@ import {
 import Link from "next/link"
 import { playfair } from "../../lib/fonts"
 
-// Mock profile data - in real app, this would come from API
-const profileData = {
-  id: "1",
-  name: "Fatima Ahmed",
-  age: 26,
-  location: "Mumbai, Maharashtra, India",
-  profession: "Software Engineer",
-  education: "Master's in Computer Science",
-  company: "Tech Solutions Pvt Ltd",
-  profilePhoto: "/placeholder.svg?height=400&width=400",
-  premium: true,
-  lastSeen: "2 hours ago",
-  joinedDate: "January 2024",
-
-  // Personal Details
-  height: "5'4\"",
-  weight: "55 kg",
-  complexion: "Fair",
-  bodyType: "Slim",
-  maritalStatus: "Never Married",
-  motherTongue: "Hindi",
-  languages: ["Hindi", "English", "Urdu"],
-
-  // Islamic Details
-  sect: "Sunni",
-  prayerHabit: "Prays 5 times regularly",
-  hijab: "Yes, always",
-  quranReading: "Can read with Tajweed",
-  islamicEducation: "Basic Islamic studies",
-
-  // Family Details
-  fatherOccupation: "Business Owner",
-  motherOccupation: "Homemaker",
-  siblings: "2 sisters, 1 brother",
-  familyType: "Joint Family",
-  familyValues: "Traditional with modern outlook",
-
-  // Lifestyle
-  diet: "Halal only",
-  smoking: "No",
-  drinking: "No",
-  hobbies: ["Reading", "Cooking", "Traveling", "Photography"],
-
-  // Partner Preferences
-  preferredAge: "26-32 years",
-  preferredHeight: "5'6\" and above",
-  preferredEducation: "Graduate or above",
-  preferredProfession: "Any",
-  preferredLocation: "Mumbai, Delhi, Bangalore",
-
-  // About
-  aboutMe:
-    "Assalamu Alaikum! I am a practicing Muslim who believes in balancing deen and dunya. I work as a software engineer and love to learn new technologies. I'm looking for a life partner who shares similar values and is committed to growing together in faith and life. I enjoy cooking, reading Islamic books, and spending time with family.",
-
-  // Contact Info (hidden for non-premium)
-  phone: "+91 98765 43210",
-  email: "fatima.ahmed@email.com",
-  whatsapp: "+91 98765 43210",
-
-  // Gallery
-  gallery: [
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-  ],
-
-  // Match percentage (calculated based on user preferences)
-  matchPercentage: 95,
-
-  // Privacy settings
-  showContactInfo: false, // Only for premium users
-  showFullPhotos: true,
-}
-
 export default function ProfilePage() {
   const params = useParams()
+  const [profile, setProfile] = useState<any>(null)
   const [isShortlisted, setIsShortlisted] = useState(false)
   const [isInterestSent, setIsInterestSent] = useState(false)
   const [showContactDialog, setShowContactDialog] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-  // In real app, you'd fetch profile data based on params.id
-  const profile = profileData
+  useEffect(() => {
+    if (!params?.id) return
+
+    fetch(`/api/profiles/${params.id}`)
+      .then((res) => res.json())
+      .then((data) => setProfile(data))
+      .catch(() => setProfile(null))
+  }, [params?.id])
+
+  if (!profile) return <div className="min-h-screen flex items-center justify-center">Loading profile...</div>
 
   const handleSendInterest = () => {
     setIsInterestSent(true)
@@ -171,7 +105,7 @@ export default function ProfilePage() {
                       <AvatarFallback className="text-4xl h-80 rounded-lg">
                         {profile.name
                           .split(" ")
-                          .map((n) => n[0])
+                          .map((n: string) => n[0])
                           .join("")}
                       </AvatarFallback>
                     </Avatar>
@@ -494,7 +428,7 @@ export default function ProfilePage() {
                         <div>
                           <p className="font-medium mb-2">Hobbies & Interests</p>
                           <div className="flex flex-wrap gap-2">
-                            {profile.hobbies.map((hobby, index) => (
+                            {profile.hobbies.map((hobby: string, index: number) => (
                               <Badge key={index} variant="outline">
                                 {hobby}
                               </Badge>
@@ -548,7 +482,7 @@ export default function ProfilePage() {
                     <CardContent>
                       {profile.showFullPhotos ? (
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          {profile.gallery.map((image, index) => (
+                          {profile.gallery.map((image: string, index: number) => (
                             <div key={index} className="relative aspect-square">
                               <img
                                 src={image || "/placeholder.svg"}

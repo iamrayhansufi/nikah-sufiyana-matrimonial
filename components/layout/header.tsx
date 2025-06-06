@@ -10,6 +10,13 @@ import { useTheme } from "next-themes"
 import { MarqueeBanner } from "@/components/marquee-banner"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu"
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -130,19 +137,24 @@ export function Header() {
               </Button>
 
               {isLoggedIn ? (
-                <div className="relative" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
-                  <Button variant="outline" className="font-body flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    {user?.fullName || "My Account"}
-                  </Button>
-                  {isOpen && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-900 border rounded shadow-lg z-50" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
-                      <Link href="/dashboard" className="block px-4 py-2 hover:bg-muted">Dashboard</Link>
-                      <Link href="/edit-profile" className="block px-4 py-2 hover:bg-muted">Edit Profile</Link>
-                      <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-muted">Logout</button>
-                    </div>
-                  )}
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="font-body flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      {user?.fullName || "My Account"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard">Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/edit-profile">Edit Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
                 <>
                   <Link href="/login">

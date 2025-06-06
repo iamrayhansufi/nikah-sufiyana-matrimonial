@@ -357,6 +357,8 @@ export default function EditProfilePage() {
     }
   }
 
+  const [locationTouched, setLocationTouched] = useState(false)
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />
@@ -893,10 +895,11 @@ export default function EditProfilePage() {
                         id="prefLocation"
                         value={partnerPreferences.location}
                         onChange={(e) => setPartnerPreferences({ ...partnerPreferences, location: e.target.value })}
+                        onBlur={() => setLocationTouched(true)}
                         required
-                        className={partnerPreferences.location.trim() === "" ? "border-red-500" : ""}
+                        className={partnerPreferences.location.trim() === "" && locationTouched ? "border-red-500" : ""}
                       />
-                      {partnerPreferences.location.trim() === "" && (
+                      {partnerPreferences.location.trim() === "" && locationTouched && (
                         <span className="text-xs text-red-500">Preferred location is required.</span>
                       )}
                     </div>

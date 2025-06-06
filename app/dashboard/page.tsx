@@ -25,11 +25,60 @@ import {
 } from "lucide-react"
 import { playfair } from "../lib/fonts"
 
+// Helper functions for status icons/text
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case "approved":
+      return <CheckCircle className="h-5 w-5 text-green-500" />
+    case "pending":
+      return <Clock className="h-5 w-5 text-yellow-500" />
+    case "active":
+      return <CheckCircle className="h-5 w-5 text-green-500" />
+    default:
+      return <AlertCircle className="h-5 w-5 text-red-500" />
+  }
+}
+const getStatusText = (status: string) => {
+  switch (status) {
+    case "approved":
+      return "Profile Approved"
+    case "pending":
+      return "Verification Pending"
+    case "active":
+      return "Profile Active"
+    default:
+      return "Profile Inactive"
+  }
+}
+
+// Add types for interests and shortlist
+interface DashboardInterest {
+  id: number;
+  name: string;
+  age: number;
+  location: string;
+  profession: string;
+  image: string;
+  status: string;
+  time: string;
+}
+interface DashboardShortlist {
+  id: number;
+  name: string;
+  age: number;
+  location: string;
+  profession: string;
+  image: string;
+  match: number;
+}
+
 export default function DashboardPage() {
   const [userProfile, setUserProfile] = useState<any>(null)
   const [stats, setStats] = useState({ profileViews: 0, interests: 0, shortlisted: 0, matches: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [recentInterests, setRecentInterests] = useState<DashboardInterest[]>([])
+  const [shortlistedProfiles, setShortlistedProfiles] = useState<DashboardShortlist[]>([])
 
   // Helper function to decode JWT
   const decodeToken = (token: string) => {
@@ -46,6 +95,7 @@ export default function DashboardPage() {
     }
   }
 
+  // Fetch profile and stats
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true)
@@ -73,6 +123,7 @@ export default function DashboardPage() {
           setLoading(false)
           return
         }
+
         // Fetch user profile from API
         const res = await fetch(`/api/profiles/${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -90,11 +141,43 @@ export default function DashboardPage() {
           name: profile.fullName || profile.name || "",
           completeness: profile.completeness || 80, // fallback if not present
         })
+
         // Fetch user stats for dashboard
         const statsRes = await fetch(`/api/profiles/${userId}/stats`)
         if (statsRes.ok) {
           const statsData = await statsRes.json()
           setStats(statsData)
+        }
+
+        // Fetch recent interests
+        const interestsRes = await fetch('/api/profiles/interests?type=received')
+        if (interestsRes.ok) {
+          const interests = await interestsRes.json()
+          setRecentInterests(interests.slice(0, 3).map((interest: any) => ({
+            id: interest.id,
+            name: interest.fromUser.fullName,
+            age: interest.fromUser.age,
+            location: interest.fromUser.location,
+            profession: interest.fromUser.profession,
+            image: interest.fromUser.profilePhoto || "/placeholder.svg?height=60&width=60",
+            status: interest.status,
+            time: formatTimeAgo(interest.createdAt),
+          })))
+        }
+
+        // Fetch shortlisted profiles
+        const shortlistRes = await fetch('/api/profiles/shortlist')
+        if (shortlistRes.ok) {
+          const shortlisted = await shortlistRes.json()
+          setShortlistedProfiles(shortlisted.slice(0, 3).map((item: any) => ({
+            id: item.shortlistedUser.id,
+            name: item.shortlistedUser.fullName,
+            age: item.shortlistedUser.age,
+            location: item.shortlistedUser.location,
+            profession: item.shortlistedUser.profession,
+            image: item.shortlistedUser.profilePhoto || "/placeholder.svg?height=80&width=80",
+            match: calculateMatchPercentage(userProfile, item.shortlistedUser),
+          })))
         }
       } catch (e) {
         setError("An error occurred.")
@@ -104,6 +187,76 @@ export default function DashboardPage() {
     }
     fetchProfile()
   }, [])
+
+  // Helper function to format time ago
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const hours = Math.floor(minutes / 60)
+    const days = Math.floor(hours / 24)
+
+    if (days > 0) return `${days} days ago`
+    if (hours > 0) return `${hours} hours ago`
+    if (minutes > 0) return `${minutes} minutes ago`
+    return 'just now'
+  }
+
+  // Enhanced profile matching algorithm
+  const calculateMatchPercentage = (user1: any, user2: any) => {
+    if (!user1 || !user2) return 0
+    let matches = 0
+    let total = 0
+
+    // Education
+    if (user1.education && user2.education) {
+      total++
+      if (user1.education === user2.education) matches++
+    }
+    // Location (city or location string)
+    if (user1.city && user2.city) {
+      total++
+      if (user1.city === user2.city) matches++
+    } else if (user1.location && user2.location) {
+      total++
+      if (user1.location === user2.location) matches++
+    }
+    // Age range (within 3 years)
+    if (user1.age && user2.age) {
+      total++
+      const ageDiff = Math.abs(user1.age - user2.age)
+      if (ageDiff <= 3) matches++
+    }
+    // Sect
+    if (user1.sect && user2.sect) {
+      total++
+      if (user1.sect === user2.sect) matches++
+    }
+    // Marital Status
+    if (user1.maritalStatus && user2.maritalStatus) {
+      total++
+      if (user1.maritalStatus === user2.maritalStatus) matches++
+    }
+    // Mother Tongue
+    if (user1.motherTongue && user2.motherTongue) {
+      total++
+      if (user1.motherTongue === user2.motherTongue) matches++
+    }
+    // Preferred Location (if set)
+    if (user1.preferredLocation && user2.location) {
+      total++
+      if (user2.location.includes(user1.preferredLocation)) matches++
+    }
+    // Profession
+    if (user1.profession && user2.profession) {
+      total++
+      if (user1.profession === user2.profession) matches++
+    }
+    // Add more fields as needed for your business logic
+
+    return total > 0 ? Math.round((matches / total) * 100) : 0
+  }
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><span>Loading your dashboard...</span></div>
@@ -116,99 +269,6 @@ export default function DashboardPage() {
   }
 
   const profileStatus = "approved"
-
-  const recentInterests = [
-    {
-      id: 1,
-      name: "Ahmed Khan",
-      age: 28,
-      location: "Delhi",
-      profession: "Doctor",
-      image: "/placeholder.svg?height=60&width=60",
-      status: "pending",
-      time: "2 hours ago",
-    },
-    {
-      id: 2,
-      name: "Omar Ali",
-      age: 30,
-      location: "Bangalore",
-      profession: "Engineer",
-      image: "/placeholder.svg?height=60&width=60",
-      status: "accepted",
-      time: "1 day ago",
-    },
-    {
-      id: 3,
-      name: "Hassan Sheikh",
-      age: 27,
-      location: "Hyderabad",
-      profession: "Teacher",
-      image: "/placeholder.svg?height=60&width=60",
-      status: "declined",
-      time: "3 days ago",
-    },
-  ]
-
-  const shortlistedProfiles = [
-    {
-      id: 1,
-      name: "Yusuf Rahman",
-      age: 29,
-      location: "Pune",
-      profession: "Business Analyst",
-      image: "/placeholder.svg?height=80&width=80",
-      match: 92,
-    },
-    {
-      id: 2,
-      name: "Ibrahim Malik",
-      age: 31,
-      location: "Chennai",
-      profession: "Architect",
-      image: "/placeholder.svg?height=80&width=80",
-      match: 88,
-    },
-  ]
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "approved":
-        return <CheckCircle className="h-5 w-5 text-green-500" />
-      case "pending":
-        return <Clock className="h-5 w-5 text-yellow-500" />
-      case "active":
-        return <CheckCircle className="h-5 w-5 text-green-500" />
-      default:
-        return <AlertCircle className="h-5 w-5 text-red-500" />
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "Profile Approved"
-      case "pending":
-        return "Verification Pending"
-      case "active":
-        return "Profile Active"
-      default:
-        return "Profile Inactive"
-    }
-  }
-
-  function getProfileStatus(status: string) {
-    switch (status) {
-      case "approved":
-        return "Active"
-      case "pending":
-        return "Under Review"
-      case "rejected":
-        return "Rejected"
-      default:
-        return "Under Review"
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">

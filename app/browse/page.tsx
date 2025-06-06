@@ -32,100 +32,6 @@ interface Profile {
   premium: boolean
 }
 
-// Mock profile data
-const initialProfiles: Profile[] = [
-  {
-    id: 1,
-    name: "Fatima Ahmed",
-    age: 26,
-    location: "Mumbai, Maharashtra",
-    education: "Master's in Computer Science",
-    profession: "Software Engineer",
-    sect: "Sunni",
-    height: "5.5",
-    maritalStatus: "never-married",
-    housing: "own",
-    image: "/placeholder.svg?height=300&width=300",
-    match: 95,
-    premium: false,
-  },
-  {
-    id: 2,
-    name: "Aisha Khan",
-    age: 24,
-    location: "Delhi, Delhi",
-    education: "Bachelor's in Medicine",
-    profession: "Doctor",
-    sect: "Sunni",
-    height: "5.2",
-    maritalStatus: "never-married",
-    housing: "own",
-    image: "/placeholder.svg?height=300&width=300",
-    match: 88,
-    premium: true,
-  },
-  {
-    id: 3,
-    name: "Zainab Ali",
-    age: 28,
-    location: "Bangalore, Karnataka",
-    education: "Master's in Business",
-    profession: "Marketing Manager",
-    sect: "Shia",
-    height: "5.7",
-    maritalStatus: "never-married",
-    housing: "own",
-    image: "/placeholder.svg?height=300&width=300",
-    match: 82,
-    premium: false,
-  },
-  {
-    id: 4,
-    name: "Mariam Sheikh",
-    age: 25,
-    location: "Hyderabad, Telangana",
-    education: "Bachelor's in Education",
-    profession: "Teacher",
-    sect: "Sunni",
-    height: "5.4",
-    maritalStatus: "never-married",
-    housing: "own",
-    image: "/placeholder.svg?height=300&width=300",
-    match: 90,
-    premium: true,
-  },
-  {
-    id: 5,
-    name: "Hafsa Rahman",
-    age: 27,
-    location: "Kolkata, West Bengal",
-    education: "Master's in Literature",
-    profession: "Writer",
-    sect: "Sunni",
-    height: "5.6",
-    maritalStatus: "never-married",
-    housing: "own",
-    image: "/placeholder.svg?height=300&width=300",
-    match: 85,
-    premium: false,
-  },
-  {
-    id: 6,
-    name: "Ruqaiya Siddiqui",
-    age: 29,
-    location: "Pune, Maharashtra",
-    education: "PhD in Psychology",
-    profession: "Psychologist",
-    sect: "Sunni",
-    height: "5.8",
-    maritalStatus: "never-married",
-    housing: "own",
-    image: "/placeholder.svg?height=300&width=300",
-    match: 92,
-    premium: true,
-  },
-]
-
 export default function BrowseProfilesPage() {
   const [filters, setFilters] = useState({
     ageRange: [22, 35],
@@ -155,7 +61,7 @@ export default function BrowseProfilesPage() {
   // Fetch real profiles from API
   useEffect(() => {
     setLoading(true)
-    fetch("/api/profiles/search?limit=50")
+    fetch("/api/profiles?limit=50")
       .then(res => res.json())
       .then(data => {
         setProfiles(data.profiles || [])

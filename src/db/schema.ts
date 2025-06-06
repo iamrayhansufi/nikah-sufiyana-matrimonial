@@ -120,4 +120,20 @@ export const blockedUsers = pgTable('blocked_users', {
   blockedUserId: integer('blocked_user_id').notNull(),
   reason: text('reason'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-}); 
+});
+
+export const interests = pgTable('interests', {
+  id: serial('id').primaryKey(),
+  fromUserId: integer('from_user_id').notNull(),
+  toUserId: integer('to_user_id').notNull(),
+  message: text('message'),
+  status: varchar('status', { length: 20 }).notNull().default('pending'), // pending, accepted, declined
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const shortlist = pgTable('shortlist', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull(),
+  shortlistedUserId: integer('shortlisted_user_id').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
