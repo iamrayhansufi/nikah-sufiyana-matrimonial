@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { XCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -33,24 +34,82 @@ import {
   Trash2
 } from "lucide-react"
 
+type ProfileVisibility = "all-members" | "premium-only" | "match-criteria";
+
+interface Profile {
+  id: string;
+  fullName: string;
+  age?: number;
+  email: string;
+  phone?: string;
+  gender?: string;
+  height?: string;
+  weight?: string;
+  complexion?: string;
+  maritalStatus?: string;
+  languages?: string[];
+  city?: string;
+  state?: string;
+  country?: string;
+  aboutMe?: string;
+  profilePhoto?: string;
+  joinedDate?: string;
+  lastUpdated?: string;
+  sect?: string;
+  prayerHabit?: string;
+  hijab?: string;
+  quranReading?: string;
+  islamicEducation?: string;
+  religiousValues?: string;
+  attendsMosque?: string;
+  education?: string;
+  university?: string;
+  profession?: string;
+  company?: string;
+  experience?: string;
+  income?: string;
+  fatherOccupation?: string;
+  motherOccupation?: string;
+  siblings?: string;
+  familyType?: string;
+  familyValues?: string;
+  livingWithParents?: string;
+  preferredAgeMin?: number;
+  preferredAgeMax?: number;
+  preferredHeight?: string;
+  preferredEducation?: string;
+  preferredProfession?: string;
+  preferredLocation?: string;
+  preferredSect?: string;
+  preferredReligiosity?: string;
+  expectations?: string;
+  showContactInfo?: boolean;
+  showPhotoToAll?: boolean;
+  profileVisibility?: ProfileVisibility;
+  allowMessages?: boolean;
+  gallery?: string[];
+}
+
 export default function EditProfilePage() {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle")
   
   const [basicInfo, setBasicInfo] = useState({
-    fullName: "Fatima Ahmed",
-    age: "26",
-    email: "fatima.ahmed@email.com",
-    phone: "+91 98765 43210",
-    gender: "female",
-    height: "5'4\"",
-    weight: "55 kg",
-    complexion: "Fair",
-    maritalStatus: "Never Married",
-    languages: ["Hindi", "English", "Urdu"],
-    city: "Mumbai",
-    state: "Maharashtra",
-    country: "India",
-    bio: "Assalamu Alaikum! I am a practicing Muslim who believes in balancing deen and dunya. I work as a software engineer and love to learn new technologies. I'm looking for a life partner who shares similar values and is committed to growing together in faith and life. I enjoy cooking, reading Islamic books, and spending time with family.",
+    fullName: "",
+    age: "",
+    email: "",
+    phone: "",
+    gender: "",
+    height: "",
+    weight: "",
+    complexion: "",
+    maritalStatus: "",
+    languages: [] as string[],
+    city: "",
+    state: "",
+    country: "",
+    bio: "",
     id: "",
     profilePhoto: "",
     joinedDate: "",
@@ -58,143 +117,211 @@ export default function EditProfilePage() {
   })
   
   const [religiousInfo, setReligiousInfo] = useState({
-    sect: "Sunni",
-    prayerHabit: "Regular",
-    hijab: "Yes",
-    quranReading: "Intermediate",
-    islamicEducation: "Basic Islamic studies",
-    religiousValues: "Moderately practicing",
-    attendsMosque: "Regularly"
+    sect: "",
+    prayerHabit: "",
+    hijab: "",
+    quranReading: "",
+    islamicEducation: "",
+    religiousValues: "",
+    attendsMosque: ""
   })
   
   const [educationCareer, setEducationCareer] = useState({
-    education: "Master's in Computer Science",
-    university: "Mumbai University",
-    profession: "Software Engineer",
-    company: "Tech Solutions Pvt Ltd",
-    experience: "4 years",
-    income: "₹10-15 Lakhs per annum"
+    education: "",
+    university: "",
+    profession: "",
+    company: "",
+    experience: "",
+    income: ""
   })
   
   const [familyInfo, setFamilyInfo] = useState({
-    fatherOccupation: "Business Owner",
-    motherOccupation: "Homemaker",
-    siblings: "2 sisters, 1 brother",
-    familyType: "Joint Family",
-    familyValues: "Traditional with modern outlook",
-    livingWithParents: "Yes"
+    fatherOccupation: "",
+    motherOccupation: "",
+    siblings: "",
+    familyType: "",
+    familyValues: "",
+    livingWithParents: ""
   })
   
   const [partnerPreferences, setPartnerPreferences] = useState({
-    ageRange: "25-32",
-    heightRange: "5'6\" - 6'0\"",
-    education: "Graduate or above",
-    profession: "Any professional career",
-    location: "Mumbai, Delhi, Bangalore",
-    sect: "Sunni",
-    religiosity: "Practicing",
-    expectations: "Looking for someone who is kind, respectful, family-oriented and has a good understanding of Islam. Should have a stable career and be ready for marriage."
+    ageRange: "",
+    heightRange: "",
+    education: "",
+    profession: "",
+    location: "",
+    sect: "",
+    religiosity: "",
+    expectations: ""
   })
   
-  const [privacySettings, setPrivacySettings] = useState({
+  type ProfileVisibility = "all-members" | "premium-only" | "match-criteria";
+
+const [privacySettings, setPrivacySettings] = useState({
     showContactInfo: false,
     showPhotoToAll: false,
-    profileVisibility: "all-members",
+    profileVisibility: "all-members" as ProfileVisibility,
     allowMessages: true
   })
   
-  // --- Gallery Photos State and Handlers ---
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
   const maxGalleryPhotos = 6
 
   useEffect(() => {
-    // Load user data from localStorage if available
-    const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr)
-        setBasicInfo((prev) => ({
-          ...prev,
-          fullName: user.fullName || prev.fullName,
-          age: user.age ? String(user.age) : prev.age,
-          email: user.email || prev.email,
-          phone: user.phone || prev.phone,
-          gender: user.gender || prev.gender,
-          city: user.city || prev.city,
-          country: user.country || prev.country,
-          id: user.id || prev.id,
-          profilePhoto: user.profilePhoto || prev.profilePhoto,
-          joinedDate: user.joinedDate || prev.joinedDate,
-          lastUpdated: user.lastUpdated || prev.lastUpdated,
-        }))
-      } catch {}
-    }
-  }, [])
-
-  // Fetch user profile from backend and populate all state on mount
-  useEffect(() => {
     const fetchProfile = async () => {
-      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
-      const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
-      if (!token || !userStr) return
-      let userId = null
-      try { userId = JSON.parse(userStr).id } catch {}
-      if (!userId) return
+      setLoading(true)
+      setError(null)
+      
       try {
+        const token = localStorage.getItem("token")
+        const userId = localStorage.getItem("userId")
+        if (!token || !userId) {
+          setError("Not authenticated")
+          return
+        }
+        
         const res = await fetch(`/api/profiles/${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
-        if (!res.ok) return
-        const profile = await res.json()
-        setBasicInfo((prev) => ({
+        
+        if (!res.ok) {
+          throw new Error(await res.text())
+        }
+        
+        const profile: Profile = await res.json()
+        
+        // Update all form sections with profile data
+        setBasicInfo(prev => ({
           ...prev,
           fullName: profile.fullName || prev.fullName,
           age: profile.age ? String(profile.age) : prev.age,
           email: profile.email || prev.email,
           phone: profile.phone || prev.phone,
           gender: profile.gender || prev.gender,
-          city: profile.city || prev.city,
-          country: profile.country || prev.country,
           height: profile.height || prev.height,
+          weight: profile.weight || prev.weight,
           complexion: profile.complexion || prev.complexion,
           maritalStatus: profile.maritalStatus || prev.maritalStatus,
+          languages: profile.languages || prev.languages,
+          city: profile.city || prev.city,
+          state: profile.state || prev.state,
+          country: profile.country || prev.country,
           bio: profile.aboutMe || prev.bio,
           id: profile.id || prev.id,
           profilePhoto: profile.profilePhoto || prev.profilePhoto,
           joinedDate: profile.joinedDate || prev.joinedDate,
-          lastUpdated: profile.lastUpdated || prev.lastUpdated,
+          lastUpdated: profile.lastUpdated || prev.lastUpdated
         }))
-        setReligiousInfo((prev) => ({
+
+        setReligiousInfo(prev => ({
           ...prev,
           sect: profile.sect || prev.sect,
-          // Add more fields as needed from backend
+          prayerHabit: profile.prayerHabit || prev.prayerHabit,
+          hijab: profile.hijab || prev.hijab,
+          quranReading: profile.quranReading || prev.quranReading,
+          islamicEducation: profile.islamicEducation || prev.islamicEducation,
+          religiousValues: profile.religiousValues || prev.religiousValues,
+          attendsMosque: profile.attendsMosque || prev.attendsMosque
         }))
-        setEducationCareer((prev) => ({
+
+        setEducationCareer(prev => ({
           ...prev,
           education: profile.education || prev.education,
+          university: profile.university || prev.university,
           profession: profile.profession || prev.profession,
-          // Add more fields as needed from backend
+          company: profile.company || prev.company,
+          experience: profile.experience || prev.experience,
+          income: profile.income || prev.income
         }))
-        setFamilyInfo((prev) => ({
+
+        setFamilyInfo(prev => ({
           ...prev,
-          familyValues: profile.familyDetails || prev.familyValues,
-          // Add more fields as needed from backend
+          fatherOccupation: profile.fatherOccupation || prev.fatherOccupation,
+          motherOccupation: profile.motherOccupation || prev.motherOccupation,
+          siblings: profile.siblings || prev.siblings,
+          familyType: profile.familyType || prev.familyType,
+          familyValues: profile.familyValues || prev.familyValues,
+          livingWithParents: profile.livingWithParents || prev.livingWithParents
         }))
-        setPartnerPreferences((prev) => ({
+
+        setPartnerPreferences(prev => ({
           ...prev,
-          ageRange: profile.preferredAgeMin && profile.preferredAgeMax ? `${profile.preferredAgeMin}-${profile.preferredAgeMax}` : prev.ageRange,
+          ageRange: profile.preferredAgeMin && profile.preferredAgeMax 
+            ? `${profile.preferredAgeMin}-${profile.preferredAgeMax}` 
+            : prev.ageRange,
+          heightRange: profile.preferredHeight || prev.heightRange,
           education: profile.preferredEducation || prev.education,
+          profession: profile.preferredProfession || prev.profession,
           location: profile.preferredLocation || prev.location,
-          expectations: profile.expectations || prev.expectations,
-          // Add more fields as needed from backend
+          sect: profile.preferredSect || prev.sect,
+          religiosity: profile.preferredReligiosity || prev.religiosity,
+          expectations: profile.expectations || prev.expectations
         }))
-        setGalleryPhotos(Array.isArray(profile.gallery) ? profile.gallery : [])
-        // Optionally set privacySettings if backend supports
-      } catch {}
+
+        setPrivacySettings(prev => ({
+          ...prev,          showContactInfo: profile.showContactInfo ?? prev.showContactInfo,
+          showPhotoToAll: profile.showPhotoToAll ?? prev.showPhotoToAll,
+          profileVisibility: (profile.profileVisibility as ProfileVisibility) || prev.profileVisibility,
+          allowMessages: profile.allowMessages ?? prev.allowMessages
+        }))
+
+        setGalleryPhotos(profile.gallery || [])
+        
+      } catch (err) {
+        console.error("Error fetching profile:", err)
+        setError(err instanceof Error ? err.message : "Failed to load profile")
+      } finally {
+        setLoading(false)
+      }
     }
+
     fetchProfile()
   }, [])
-  
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="text-center">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading your profile...</p>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="text-center">
+              <div className="text-destructive mb-4">
+                <XCircle className="h-12 w-12 mx-auto" />
+              </div>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button 
+                onClick={() => window.location.reload()} 
+                variant="outline"
+              >
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
   const handleSaveChanges = async (section: string) => {
     setSaveStatus("saving")
     let payload: any = {}
@@ -255,7 +382,7 @@ export default function EditProfilePage() {
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
       if (!token) throw new Error("Not logged in.")
-      const res = await fetch('/api/upload/profile-photo', {
+      const res = await fetch('/api/profiles/upload-photo', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData as any

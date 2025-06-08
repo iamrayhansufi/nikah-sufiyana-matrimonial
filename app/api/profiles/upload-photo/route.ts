@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { writeFile } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { db } from "../../../../src/db";
 import { users } from "../../../../src/db/schema";
@@ -42,11 +42,15 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(bytes);
 
     // Ensure upload directory exists
-    const uploadDir = join(process.cwd(), "public", "uploads");
-    await writeFile(join(uploadDir, filename), buffer);
+    const uploadDir = join(process.cwd(), "public", "uploads", "profiles");
+    await mkdir(uploadDir, { recursive: true });
+
+    // Save file
+    const filepath = join(uploadDir, filename);
+    await writeFile(filepath, buffer);
 
     // Update user profile with photo URL
-    const photoUrl = `/uploads/${filename}`;
+    const photoUrl = `/uploads/profiles/${filename}`;
     await db
       .update(users)
       .set({ profilePhoto: photoUrl })
@@ -54,7 +58,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       message: "Photo uploaded successfully",
-      photoUrl,
+      url: photoUrl, // Changed to match what frontend expects
     });
   } catch (error) {
     console.error("Photo upload error:", error);
@@ -63,4 +67,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-} 
+}

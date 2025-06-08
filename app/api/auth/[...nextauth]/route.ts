@@ -17,22 +17,43 @@ declare module "next-auth" {
   }
 }
 
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET must be set in environment variables')
+}
+
 const handler = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
+      name: "Credentials",      credentials: {
+        email: { label: "Email", type: "text" },
+        phone: { label: "Phone", type: "text" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
-        const userArr = await db.select().from(users).where(eq(users.email, credentials.email)).limit(1)
-        const user = userArr[0]
-        if (!user) return null
+        if (!credentials?.password || (!credentials?.email && !credentials?.phone)) {
+          throw new Error("Missing credentials")
+        }
+        
+        let userArr;
+        if (credentials.email) {
+          userArr = await db.select().from(users).where(eq(users.email, credentials.email)).limit(1)
+        } else {
+          userArr = await db.select().from(users).where(eq(users.phone, credentials.phone)).limit(1)
+        }
+        
+        const user = userArr?.[0]
+        if (!user) throw new Error("Invalid credentials")
+        
         const isValid = await bcrypt.compare(credentials.password, user.password)
-        if (!isValid) return null
-        return { id: user.id, name: user.fullName, email: user.email }
+        if (!isValid) throw new Error("Invalid credentials")
+        
+        return { 
+          id: user.id, 
+          name: user.fullName, 
+          email: user.email,
+          phone: user.phone
+        }
       }
     }),
     GoogleProvider({

@@ -2,6 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 import { verifyJWT } from "@/lib/auth"
+import { db } from "@/src/db"
+import { users } from "@/src/db/schema"
+import { eq } from "drizzle-orm"
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,11 +56,14 @@ export async function POST(request: NextRequest) {
 
     // Update user profile with photo URL
     const photoUrl = `/uploads/profiles/${filename}`
-    // await updateUserProfile(user.userId, { profilePhoto: photoUrl })
+    await db
+      .update(users)
+      .set({ profilePhoto: photoUrl })
+      .where(eq(users.id, parseInt(user.userId)))
 
     return NextResponse.json({
       message: "Photo uploaded successfully",
-      photoUrl,
+      url: photoUrl, // Changed to match what frontend expects
     })
   } catch (error) {
     console.error("Upload error:", error)

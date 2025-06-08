@@ -1,6 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { useToast } from "@/components/ui/use-toast"
+import { cn } from "@/lib/utils"
+import { playfair } from "@/lib/fonts"
+
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -11,21 +17,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
-import { Heart, Upload, Eye, EyeOff, FileText, PenSquare } from "lucide-react"
-import Link from "next/link"
-import { useToast } from "@/components/ui/use-toast"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { playfair } from "../lib/fonts"
-import { useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+
+import { Heart, Upload, Eye, EyeOff, FileText, PenSquare } from "lucide-react"
 
 interface ExtractedData {
   fullName?: string;
@@ -48,17 +44,15 @@ interface ValidationError {
 
 interface FormData {
   fullName: string;
+  gender: string;
   email: string;
   phone: string;
-  password: string;
-  confirmPassword?: string;
-  gender: string;
+  countryCode: string;
   age: string;
-  country: string;
-  city: string;
   education: string;
   profession: string;
   income: string;
+  religion: string;
   sect: string;
   hijabNiqab: string;
   beard: string;
@@ -74,13 +68,17 @@ interface FormData {
   aboutMe: string;
   familyDetails: string;
   expectations: string;
-  bioDataFile?: File | null;
+  bioDataFile: File | null;
   termsAccepted: boolean;
   privacyAccepted: boolean;
   profileVisibility: string;
   motherTongue: string;
-  profilePhoto?: File | null;
-  profilePhotoPreview?: string;
+  profilePhoto: File | null;
+  profilePhotoPreview: string;
+  password: string;
+  confirmPassword: string;
+  country: string;
+  city: string;
 }
 
 // Add this interface for field errors
@@ -122,17 +120,15 @@ export default function RegisterPage() {
   const { toast } = useToast()
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
+    gender: "",
     email: "",
     phone: "",
-    password: "",
-    confirmPassword: "",
-    gender: "",
+    countryCode: "+91",
     age: "",
-    country: "",
-    city: "",
     education: "",
     profession: "",
     income: "",
+    religion: "",
     sect: "",
     hijabNiqab: "",
     beard: "",
@@ -154,7 +150,11 @@ export default function RegisterPage() {
     profileVisibility: "public",
     motherTongue: "",
     profilePhoto: null,
-    profilePhotoPreview: ""
+    profilePhotoPreview: "",
+    password: "",
+    confirmPassword: "",
+    country: "",
+    city: ""
   })
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
@@ -162,19 +162,17 @@ export default function RegisterPage() {
   const router = useRouter()
 
   // Load data from localStorage on page load
-  useEffect(() => {
-    const savedData = localStorage.getItem("heroRegistrationData")
+  useEffect(() => {    const savedData = localStorage.getItem("heroRegistrationData");
     if (savedData) {
       try {
-        const heroData = JSON.parse(savedData)
-        setFormData({
-          ...formData,
+        const heroData = JSON.parse(savedData);
+        setFormData(prev => ({
+          ...prev,
           fullName: heroData.fullName || "",
           gender: heroData.lookingFor === "bride" ? "male" : heroData.lookingFor === "groom" ? "female" : "",
-          phone: heroData.countryCode && heroData.mobileNumber 
-            ? `${heroData.countryCode}${heroData.mobileNumber}` 
-            : ""
-        })
+          countryCode: heroData.countryCode || "+91",
+          phone: heroData.mobileNumber || ""
+        }));
       } catch (error) {
         console.error("Error parsing hero registration data:", error)
       }
@@ -232,9 +230,18 @@ export default function RegisterPage() {
 
       // Phone number validation
       if (formData.phone) {
-        const phoneRegex = /^\+?[1-9]\d{9,14}$/;
-        if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) {
-          errors.phone = "Please enter a valid phone number";
+        const phoneWithoutCountry = formData.phone.replace(/\D/g, '');
+        const validLengths: Record<string, number> = {
+          '+91': 10,  // India
+          '+1': 10,   // US/Canada
+          '+44': 10,  // UK
+          '+971': 9,  // UAE
+          '+966': 9   // Saudi Arabia
+        };
+        
+        if (validLengths[formData.countryCode] && 
+            phoneWithoutCountry.length !== validLengths[formData.countryCode]) {
+          errors.phone = `Please enter a valid ${formData.countryCode} phone number`;
         }
       }
     }
@@ -310,13 +317,13 @@ export default function RegisterPage() {
   const handleSubmit = async () => {
     try {
       setIsSubmittingForm(true);
-      
-      // Convert form data to JSON format, omitting optional fields
-      const { confirmPassword, profilePhotoPreview, bioDataFile, profilePhoto, ...rest } = formData;
+        // Convert form data to JSON format, omitting optional fields
+      const { confirmPassword, profilePhotoPreview, bioDataFile, profilePhoto, ...formDataRest } = formData;
       
       const jsonData = {
-        ...rest,
+        ...formDataRest,
         age: parseInt(formData.age, 10), // Convert age to number
+        phone: `${formData.countryCode}${formData.phone.replace(/\D/g, '')}`, // Combine country code with cleaned phone number
       };
 
       const response = await fetch('/api/auth/register', {
@@ -870,19 +877,37 @@ export default function RegisterPage() {
                       </div>
                       <div>
                         <Label htmlFor="phone">WhatsApp Phone Number *</Label>
-                        <Input
-                          id="phone"
-                          className={cn(inputStyles, fieldErrors.phone && "border-red-500")}
-                          data-filled={isFieldFilled(formData.phone)}
-                          value={formData.phone}
-                          onChange={(e) => {
-                            setFormData({ ...formData, phone: e.target.value });
-                            if (fieldErrors.phone) {
-                              setFieldErrors({ ...fieldErrors, phone: "" });
-                            }
-                          }}
-                          placeholder="WhatsApp Phone Number"
-                        />
+                        <div className="flex mt-1 space-x-2">
+                          <Select
+                            value={formData.countryCode}
+                            onValueChange={(value) => setFormData({ ...formData, countryCode: value })}
+                          >
+                            <SelectTrigger className={cn(selectTriggerStyles, "w-[120px]")} data-filled={isFieldFilled(formData.countryCode)}>
+                              <SelectValue placeholder="+91" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="+91">🇮🇳 +91</SelectItem>
+                              <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                              <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                              <SelectItem value="+971">🇦🇪 +971</SelectItem>
+                              <SelectItem value="+966">🇸🇦 +966</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            id="phone"
+                            className={cn(inputStyles, fieldErrors.phone && "border-red-500", "flex-1")}
+                            data-filled={isFieldFilled(formData.phone)}
+                            value={formData.phone}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, ''); // Keep only digits
+                              setFormData({ ...formData, phone: value });
+                              if (fieldErrors.phone) {
+                                setFieldErrors({ ...fieldErrors, phone: "" });
+                              }
+                            }}
+                            placeholder="WhatsApp number without country code"
+                          />
+                        </div>
                         {fieldErrors.phone && (
                           <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>
                         )}
