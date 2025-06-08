@@ -139,7 +139,7 @@ export default function DashboardPage() {
         setUserProfile({
           ...profile,
           name: profile.fullName || profile.name || "",
-          completeness: profile.completeness || 80, // fallback if not present
+          completeness: calculateCompleteness(profile),
         })
 
         // Fetch user stats for dashboard
@@ -258,6 +258,22 @@ export default function DashboardPage() {
     return total > 0 ? Math.round((matches / total) * 100) : 0
   }
 
+  // Helper to calculate profile completeness
+  const calculateCompleteness = (profile: any) => {
+    if (!profile) return 0
+    // List of important fields for completeness
+    const fields = [
+      'fullName', 'age', 'email', 'phone', 'gender', 'city', 'country', 'height', 'complexion', 'maritalStatus',
+      'aboutMe', 'profilePhoto', 'sect', 'education', 'profession', 'motherTongue', 'preferredLocation',
+      'preferredAgeMin', 'preferredAgeMax', 'preferredEducation', 'preferredProfession', 'familyDetails',
+    ]
+    let filled = 0
+    fields.forEach(f => {
+      if (profile[f] && String(profile[f]).trim() !== "") filled++
+    })
+    return Math.round((filled / fields.length) * 100)
+  }
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><span>Loading your dashboard...</span></div>
   }
@@ -318,6 +334,11 @@ export default function DashboardPage() {
                       <span className="text-sm font-medium">{userProfile.completeness}%</span>
                     </div>
                     <Progress value={userProfile.completeness} className="h-2" />
+                    {userProfile.completeness < 100 && (
+                      <Link href="/edit-profile">
+                        <Button size="sm" variant="outline" className="mt-2">Complete Your Profile</Button>
+                      </Link>
+                    )}
                   </div>
                 </div>
 

@@ -32,51 +32,33 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: loginMethod === "email" ? formData.email : undefined,
-          phone: loginMethod === "phone" ? formData.phone : undefined,
-          password: formData.password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
+      // Use NextAuth credentials provider for login
+      const res = await signIn("credentials", {
+        redirect: false,
+        email: loginMethod === "email" ? formData.email : undefined,
+        phone: loginMethod === "phone" ? formData.phone : undefined,
+        password: formData.password,
+      })
+      if (res?.error) {
         toast({
           title: "Login Failed",
-          description: data.error || "Invalid credentials. Please try again.",
+          description: res.error || "Invalid credentials. Please try again.",
           variant: "destructive",
-        });
-        return;
+        })
+        return
       }
-
-      // Store the token
-      if (formData.rememberMe) {
-        localStorage.setItem('auth-token', data.token);
-      } else {
-        sessionStorage.setItem('auth-token', data.token);
-      }
-
-      // Show success message
       toast({
         title: "Login Successful",
         description: "Welcome back to Nikah Sufiyana!",
-      });
-
-      // Redirect to dashboard
-      router.push('/dashboard');
+      })
+      router.push("/dashboard")
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error)
       toast({
         title: "Login Failed",
         description: "Something went wrong. Please try again.",
         variant: "destructive",
-      });
+      })
     }
   }
 

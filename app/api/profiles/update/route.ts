@@ -7,8 +7,11 @@ import { verifyAuth } from "../../../../src/lib/auth";
 
 const updateProfileSchema = z.object({
   fullName: z.string().min(2).optional(),
+  email: z.string().email().optional(),
   phone: z.string().min(10).optional(),
   age: z.number().min(18).optional(),
+  city: z.string().optional(),
+  country: z.string().optional(),
   location: z.string().optional(),
   education: z.string().optional(),
   profession: z.string().optional(),
@@ -21,7 +24,13 @@ const updateProfileSchema = z.object({
   preferredAgeMin: z.number().min(18).optional(),
   preferredAgeMax: z.number().max(100).optional(),
   preferredEducation: z.string().optional(),
+  preferredProfession: z.string().optional(),
   preferredLocation: z.string().optional(),
+  motherTongue: z.string().optional(),
+  height: z.string().optional(),
+  complexion: z.string().optional(),
+  profilePhoto: z.string().optional(),
+  profileVisibility: z.string().optional(),
 });
 
 export async function PUT(req: Request) {
@@ -67,12 +76,28 @@ export async function PUT(req: Request) {
       user: {
         id: updatedUser.id,
         fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
         age: updatedUser.age,
+        city: updatedUser.city,
+        country: updatedUser.country,
         location: updatedUser.location,
         education: updatedUser.education,
         profession: updatedUser.profession,
         sect: updatedUser.sect,
         maritalStatus: updatedUser.maritalStatus,
+        religiousInclination: updatedUser.religiousInclination,
+        expectations: updatedUser.expectations,
+        aboutMe: updatedUser.aboutMe,
+        familyDetails: updatedUser.familyDetails,
+        preferredAgeMin: updatedUser.preferredAgeMin,
+        preferredAgeMax: updatedUser.preferredAgeMax,
+        preferredEducation: updatedUser.preferredEducation,
+        preferredLocation: updatedUser.preferredLocation,
+        motherTongue: updatedUser.motherTongue,
+        height: updatedUser.height,
+        complexion: updatedUser.complexion,
+        profilePhoto: updatedUser.profilePhoto,
         profileStatus: updatedUser.profileStatus,
       },
     });
@@ -89,4 +114,4 @@ export async function PUT(req: Request) {
       { status: 500 }
     );
   }
-} 
+}
