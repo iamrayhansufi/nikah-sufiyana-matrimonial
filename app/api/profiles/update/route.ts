@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { eq } from "drizzle-orm";
-import { db } from "../../../../src/db";
-import { users } from "../../../../src/db/schema";
+import { db } from "@/src/db";
+import { users } from "@/src/db/schema";
+import { authOptions } from "@/lib/auth-options";
 import { z } from "zod";
-import { verifyAuth } from "../../../../src/lib/auth";
 
 const updateProfileSchema = z.object({
   fullName: z.string().min(2).optional(),
@@ -34,15 +35,14 @@ const updateProfileSchema = z.object({
 });
 
 export async function PUT(req: Request) {
-  try {
-    // Verify authentication
-    const userId = await verifyAuth(req);
-    if (!userId) {
+  try {    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
-      );
+      )
     }
+    const userId = parseInt(session.user.id);
 
     const body = await req.json();
     const updates = updateProfileSchema.parse(body);

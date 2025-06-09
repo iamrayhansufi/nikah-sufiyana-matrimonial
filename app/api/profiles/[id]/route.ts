@@ -1,34 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { db } from "../../../../src/db";
-import { users } from "../../../../src/db/schema";
-import { verifyAuth } from "../../../../src/lib/auth";
+import { NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { eq } from "drizzle-orm"
+import { db } from "@/src/db"
+import { users } from "@/src/db/schema"
+import { authOptions } from "@/lib/auth-options"
 
 type Props = {
-  params: Promise<{ id: string }>;
-};
+  params: Promise<{ id: string }>
+}
 
 export async function GET(
   request: NextRequest,
   { params }: Props
-) {
-  try {
-    const { id: paramId } = await params;
-    const id = parseInt(paramId);
+) {  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
+    const { id: paramId } = await params
+    const id = parseInt(paramId)
+    
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid profile ID" },
         { status: 400 }
-      );
-    }
-
-    // Get logged-in user id
-    const userId = await verifyAuth(request);
-
-    // Debug logging for auth and id
-    console.log({ userId, id, authHeader: request.headers.get("authorization") });
-
-    const profile = await db
+      )
+    }    const profile = await db
       .select({
         id: users.id,
         fullName: users.fullName,
@@ -60,10 +61,8 @@ export async function GET(
         { error: "Profile not found" },
         { status: 404 }
       );
-    }
-
-    // Allow user to view their own profile regardless of status
-    if (Number(userId) === Number(id)) {
+    }    // Allow user to view their own profile regardless of status
+    if (parseInt(session.user.id) === id) {
       return NextResponse.json(profile[0]);
     }
     // For others, only allow if profile is approved

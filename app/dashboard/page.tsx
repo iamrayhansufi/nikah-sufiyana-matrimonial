@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -53,84 +54,68 @@ const getStatusText = (status: string) => {
 
 // Add types for interests and shortlist
 interface DashboardInterest {
-  id: number;
-  name: string;
-  age: number;
-  location: string;
-  profession: string;
-  image: string;
-  status: string;
-  time: string;
+  id: number
+  name: string
+  age: number
+  location: string
+  profession: string
+  image: string
+  status: string
+  time: string
 }
+
 interface DashboardShortlist {
-  id: number;
-  name: string;
-  age: number;
-  location: string;
-  profession: string;
-  image: string;
-  match: number;
+  id: number
+  name: string
+  age: number
+  location: string
+  profession: string
+  image: string
+  match: number
+}
+
+interface DashboardStats {
+  profileViews: number
+  interests: number
+  shortlisted: number
+  matches: number
 }
 
 export default function DashboardPage() {
+  const { data: session, status } = useSession()
   const [userProfile, setUserProfile] = useState<any>(null)
-  const [stats, setStats] = useState({ profileViews: 0, interests: 0, shortlisted: 0, matches: 0 })
+  const [stats, setStats] = useState<DashboardStats>({
+    profileViews: 0,
+    interests: 0,
+    shortlisted: 0,
+    matches: 0
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [recentInterests, setRecentInterests] = useState<DashboardInterest[]>([])
   const [shortlistedProfiles, setShortlistedProfiles] = useState<DashboardShortlist[]>([])
 
-  // Helper function to decode JWT
-  const decodeToken = (token: string) => {
-    try {
-      const base64Url = token.split('.')[1]
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => 
-        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-      ).join(''))
-      return JSON.parse(jsonPayload)
-    } catch (e) {
-      console.error('Failed to decode token:', e)
-      return null
-    }
-  }
-
-  // Fetch profile and stats
   useEffect(() => {
     const fetchProfile = async () => {
-      setLoading(true)
-      setError("")
+      if (status === "loading") return
+      if (status === "unauthenticated") {
+        setError("Please log in to access your dashboard.")
+        setLoading(false)
+        return
+      }
+
       try {
-        const token = localStorage.getItem("authToken")
-        if (!token) {
-          setError("Not logged in.")
-          setLoading(false)
-          return
-        }
-        // Try to get user id from localStorage or token
-        let userId = null
-        const userStr = localStorage.getItem("currentUser")
-        if (userStr) {
-          try { userId = JSON.parse(userStr).id } catch {}
-        }
-        // Fallback: decode JWT to get userId
-        if (!userId) {
-          const decoded = decodeToken(token)
-          userId = decoded?.userId
-        }
-        if (!userId) {
-          setError("User info missing. Please log in again.")
+        if (!session?.user?.id) {
+          setError("User ID not found. Please log in again.")
           setLoading(false)
           return
         }
 
         // Fetch user profile from API
-        const res = await fetch(`/api/profiles/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const res = await fetch(`/api/profiles/${session.user.id}`)
         if (!res.ok) {
-          const errorText = await res.text();
-          console.error("Profile fetch failed:", res.status, errorText);
+          const errorText = await res.text()
+          console.error("Profile fetch failed:", res.status, errorText)
           setError(`Failed to load profile. (${res.status})`)
           setLoading(false)
           return
@@ -143,7 +128,7 @@ export default function DashboardPage() {
         })
 
         // Fetch user stats for dashboard
-        const statsRes = await fetch(`/api/profiles/${userId}/stats`)
+        const statsRes = await fetch(`/api/profiles/${session.user.id}/stats`)
         if (statsRes.ok) {
           const statsData = await statsRes.json()
           setStats(statsData)
@@ -186,7 +171,7 @@ export default function DashboardPage() {
       }
     }
     fetchProfile()
-  }, [])
+  }, [session, status])
 
   // Helper function to format time ago
   const formatTimeAgo = (dateStr: string) => {
