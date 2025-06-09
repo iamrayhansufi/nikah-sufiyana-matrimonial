@@ -1,19 +1,24 @@
-import NextAuth from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
-import FacebookProvider from "next-auth/providers/facebook"
+import NextAuth, { AuthOptions, User } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import { db } from "@/src/db"
 import { users } from "@/src/db/schema"
 import { eq } from "drizzle-orm"
-import { Session } from "next-auth"
 
 declare module "next-auth" {
   interface User {
-    id?: string | number;
+    id: number;
+    name: string;
+    email: string | null;
+    phone?: string;
   }
   interface Session {
-    user?: User;
+    user: {
+      id: number;
+      name: string;
+      email: string | null;
+      phone?: string;
+    };
   }
 }
 
@@ -21,11 +26,35 @@ if (!process.env.NEXTAUTH_SECRET) {
   throw new Error('NEXTAUTH_SECRET must be set in environment variables')
 }
 
-const handler = NextAuth({
+export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "jwt"
+  },
+  pages: {
+    signIn: "/login",
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.phone = user.phone;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as number;
+        session.user.phone = token.phone as string;
+      }
+      return session;
+    }
+  },
   providers: [
     CredentialsProvider({
-      name: "Credentials",      credentials: {
+      id: "credentials",
+      name: "Credentials",
+      credentials: {
         email: { label: "Email", type: "text" },
         phone: { label: "Phone", type: "text" },
         password: { label: "Password", type: "password" }
@@ -43,10 +72,10 @@ const handler = NextAuth({
         }
         
         const user = userArr?.[0]
-        if (!user) throw new Error("Invalid credentials")
+        if (!user) return null;
         
         const isValid = await bcrypt.compare(credentials.password, user.password)
-        if (!isValid) throw new Error("Invalid credentials")
+        if (!isValid) return null;
         
         return { 
           id: user.id, 
@@ -55,31 +84,10 @@ const handler = NextAuth({
           phone: user.phone
         }
       }
-    }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID!,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
-    }),
-  ],
-  session: {
-    strategy: "jwt",
-  },
-  callbacks: {
-    async jwt({ token, account, profile }) {
-      // Optionally persist user info to DB here
-      return token
-    },
-    async session({ session, token }) {
-      if (session.user && token.sub) {
-        session.user.id = token.sub
-      }
-      return session
-    },
-  },
-})
+    })
+  ]
+}
+
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }

@@ -254,16 +254,21 @@ const [privacySettings, setPrivacySettings] = useState({
           profession: profile.preferredProfession || prev.profession,
           location: profile.preferredLocation || prev.location,
           sect: profile.preferredSect || prev.sect,
-          religiosity: profile.preferredReligiosity || prev.religiosity,
-          expectations: profile.expectations || prev.expectations
-        }))
+          religiosity: profile.preferredReligiosity || prev.religiosity,          expectations: profile.expectations || prev.expectations
+        }));
+
+        const validateVisibility = (value: any): value is ProfileVisibility =>
+          value === "all-members" || value === "premium-only" || value === "match-criteria";
 
         setPrivacySettings(prev => ({
-          ...prev,          showContactInfo: profile.showContactInfo ?? prev.showContactInfo,
+          ...prev,
+          showContactInfo: profile.showContactInfo ?? prev.showContactInfo,
           showPhotoToAll: profile.showPhotoToAll ?? prev.showPhotoToAll,
-          profileVisibility: (profile.profileVisibility as ProfileVisibility) || prev.profileVisibility,
+          profileVisibility: validateVisibility(profile.profileVisibility) 
+            ? profile.profileVisibility 
+            : prev.profileVisibility,
           allowMessages: profile.allowMessages ?? prev.allowMessages
-        }))
+        }));
 
         setGalleryPhotos(profile.gallery || [])
         
@@ -1220,7 +1225,12 @@ const [privacySettings, setPrivacySettings] = useState({
                       <h3 className="font-semibold mb-2">Profile Visibility</h3>
                       <Select 
                         value={privacySettings.profileVisibility}
-                        onValueChange={(value) => setPrivacySettings({ ...privacySettings, profileVisibility: value })}
+                        onValueChange={(value: string) => {
+                          const validValue = value as ProfileVisibility;
+                          if (validValue === "all-members" || validValue === "premium-only" || validValue === "match-criteria") {
+                            setPrivacySettings({ ...privacySettings, profileVisibility: validValue });
+                          }
+                        }}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select visibility" />
