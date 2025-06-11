@@ -1,4 +1,5 @@
-import type { NextAuthOptions, User } from "next-auth"
+import type { NextAuthOptions } from "next-auth"
+import type { Session, User } from "next-auth"
 import type { JWT } from "next-auth/jwt"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
@@ -12,8 +13,10 @@ declare module "next-auth" {
     name: string
     email: string | null
     phone?: string
+    role?: string
   }
-    interface Session {
+  
+  interface Session {
     user: {
       id: string
       name: string
@@ -32,6 +35,25 @@ declare module "next-auth" {
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: "/login",
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NEXTAUTH_COOKIE_DOMAIN
+      }
+    }
+  },
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -63,7 +85,8 @@ export const authOptions: NextAuthOptions = {
             id: user.id.toString(),
             name: user.fullName,
             email: user.email,
-            phone: user.phone
+            phone: user.phone,
+            role: 'user' // Default to 'user' until the migration is applied
           }
         } catch (error) {
           console.error("Auth error:", error)
@@ -72,27 +95,44 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
-  pages: {
-    signIn: "/login",
-  },  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-  callbacks: {    async jwt({ token, user }: { token: JWT, user: User | null }) {
+  callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Check if url starts with baseUrl or is allowed preview URL
+      const allowedUrls = [
+        baseUrl,
+        ...(process.env.NEXTAUTH_PREVIEW_URLS || '').split(',').filter(Boolean)
+      ]
+      if (allowedUrls.some(allowed => url.startsWith(allowed))) {
+        return url
+      }
+      return baseUrl
+    },
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
         token.phone = user.phone
-        // Assuming the role is part of the user object from authorize callback
-        token.role = (user as any).role
+        token.role = user.role
       }
       return token
-    },    async session({ session, token }: { session: any, token: JWT }) {
+    },
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
         session.user.phone = token.phone as string | undefined
-        session.user.role = token.role
+        session.user.role = token.role as string | undefined
       }
       return session
+    }
+  },
+  events: {
+    async signIn({ user }) {
+      if (user.id) {
+        await db
+          .update(users)
+          .set({ lastActive: new Date() })
+          .where(eq(users.id, parseInt(user.id)))
+          .execute()
+      }
     }
   }
 }

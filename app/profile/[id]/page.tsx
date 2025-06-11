@@ -42,10 +42,23 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!params?.id) return
 
-    fetch(`/api/profiles/${params.id}`)
-      .then((res) => res.json())
-      .then((data) => setProfile(data))
-      .catch(() => setProfile(null))
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`/api/profiles/${params.id}`, {
+          credentials: 'include' // This ensures cookies are sent
+        });
+        if (!res.ok) {
+          throw new Error('Failed to fetch profile');
+        }
+        const data = await res.json();
+        setProfile(data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        setProfile(null);
+      }
+    };
+
+    fetchProfile();
   }, [params?.id])
 
   if (!profile) return <div className="min-h-screen flex items-center justify-center">Loading profile...</div>

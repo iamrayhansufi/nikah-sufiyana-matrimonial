@@ -97,26 +97,39 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (status === "loading") return
+      if (status === "loading") return;
       if (status === "unauthenticated") {
-        setError("Please log in to access your dashboard.")
-        setLoading(false)
-        return
+        setError("Please log in to access your dashboard.");
+        setLoading(false);
+        return;
       }
 
       try {
         if (!session?.user?.id) {
-          setError("User ID not found. Please log in again.")
-          setLoading(false)
-          return
+          setError("User ID not found. Please log in again.");
+          setLoading(false);
+          return;
         }
+        
+        // Add credentials to ensure cookies are sent
+        const fetchOptions = {
+          credentials: 'include' as RequestCredentials,
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        };
 
         // Fetch user profile from API
-        const res = await fetch(`/api/profiles/${session.user.id}`)
+        const res = await fetch(`/api/profiles/${session.user.id}`, fetchOptions)
         if (!res.ok) {
           const errorText = await res.text()
           console.error("Profile fetch failed:", res.status, errorText)
-          setError(`Failed to load profile. (${res.status})`)
+          if (res.status === 401) {
+            // Session expired or invalid
+            setError("Your session has expired. Please log in again.")
+          } else {
+            setError(`Failed to load profile. (${res.status})`)
+          }
           setLoading(false)
           return
         }

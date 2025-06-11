@@ -397,13 +397,15 @@ export default function RegisterPage() {
 
       // Clear form data from localStorage
       localStorage.removeItem("heroRegistrationData");
-
-      // Store token and user data
+    // Store token and user data
       if (data.token && data.user) {
         localStorage.setItem("authToken", data.token);
-        // Ensure 'id' is present for dashboard fetch compatibility
+        // Make sure we store the correct user ID
         const userObj = { ...data.user };
-        if (!userObj.id && data.user.userId) userObj.id = data.user.userId;
+        // NewAuth expects user.id, so make sure it's set correctly
+        if (!userObj.id) {
+          userObj.id = data.user.id || data.user.userId;
+        }
         localStorage.setItem("currentUser", JSON.stringify(userObj));
         // Show success message
         toast({
