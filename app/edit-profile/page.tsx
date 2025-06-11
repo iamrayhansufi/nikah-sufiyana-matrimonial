@@ -115,7 +115,7 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'success';
 type PendingAction = null | 'save' | 'navigate';
 
 export default function EditProfilePage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -197,12 +197,25 @@ const [privacySettings, setPrivacySettings] = useState({
     profileVisibility: "all-members" as ProfileVisibility,
     allowMessages: true
   })
-  
-  const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
+    const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
   const maxGalleryPhotos = 6
+  
   useEffect(() => {
     const fetchProfile = async (retryCount = 0) => {
-      if (!session?.user?.id) return
+      if (status === "loading") return;
+      
+      if (status === "unauthenticated") {
+        setError("Please log in to access your profile.");
+        setLoading(false);
+        router.push('/login?callbackUrl=/edit-profile');
+        return;
+      }
+
+      if (!session?.user?.id) {
+        setError("User ID not found. Please log in again.");
+        setLoading(false);
+        return;
+      }
 
       setLoading(true)
       setError(null)
@@ -224,6 +237,13 @@ const [privacySettings, setPrivacySettings] = useState({
             setTimeout(() => fetchProfile(retryCount + 1), 1000 * (retryCount + 1))
             return
           }
+          
+          if (res.status === 401) {
+            setError("Your session has expired. Please log in again.");
+            router.push('/login?callbackUrl=/edit-profile');
+            return;
+          }
+          
           throw new Error(await res.text())
         }
         
@@ -319,15 +339,12 @@ const [privacySettings, setPrivacySettings] = useState({
       } catch (err) {
         console.error("Error fetching profile:", err)
         setError(err instanceof Error ? err.message : "Failed to load profile")
-      } finally {
-        setLoading(false)
+      } finally {        setLoading(false)
       }
     }
 
-    if (session?.user?.id) {
-      fetchProfile()
-    }
-  }, [session])
+    fetchProfile()
+  }, [session, status, router])
 
   // Show loading state
   if (loading) {

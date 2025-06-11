@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useToast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
 import { playfair } from "@/lib/fonts"
+import { signIn } from "next-auth/react"
 
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -393,37 +394,46 @@ export default function RegisterPage() {
         // No need to set setIsProcessing(false) here as it's not used for form submission
         setIsSubmittingForm(false);
         return;
-      }
-
-      // Clear form data from localStorage
+      }      // Clear form data from localStorage
       localStorage.removeItem("heroRegistrationData");
-    // Store token and user data
-      if (data.token && data.user) {
-        localStorage.setItem("authToken", data.token);
-        // Make sure we store the correct user ID
-        const userObj = { ...data.user };
-        // NewAuth expects user.id, so make sure it's set correctly
-        if (!userObj.id) {
-          userObj.id = data.user.id || data.user.userId;
-        }
-        localStorage.setItem("currentUser", JSON.stringify(userObj));
-        // Show success message
+      
+      // Registration successful - now sign in with NextAuth
+      if (data.user) {
         toast({
           title: "Registration Successful!",
-          description: `Welcome, ${userObj.fullName}! You are now logged in. Redirecting to your dashboard...`,
+          description: `Welcome, ${data.user.fullName}! Signing you in...`,
         });
 
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Use NextAuth to sign in the user automatically
+        const signInResult = await signIn("credentials", {
+          redirect: false,
+          email: data.user.email,
+          phone: jsonData.phone,
+          password: formData.password,
+        });
+
+        if (signInResult?.ok) {
+          toast({
+            title: "Login Successful",
+            description: "Redirecting to your dashboard...",
+          });
+          router.push('/dashboard');
+        } else {
+          // If auto-signin fails, redirect to login page
+          toast({
+            title: "Registration Complete",
+            description: "Please log in to access your dashboard.",
+            variant: "default"
+          });
+          router.push('/login');
+        }
       } else {
-        // Fallback if token/user is somehow missing despite a 200 OK
-        // This case should ideally not happen if the API is consistent
         toast({
           title: "Registration Completed",
-          description: "Your profile has been created, but an issue occurred with auto-login. Please try logging in manually.",
+          description: "Your profile has been created. Please log in to continue.",
           variant: "default"
         });
-        router.push('/login'); // Or '/success' if preferred as a fallback
+        router.push('/login');
       }
 
     } catch (error) {

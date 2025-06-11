@@ -15,6 +15,7 @@ import { Heart, Star, MapPin, GraduationCap, Briefcase, Filter, Eye, MessageSqua
 import Link from "next/link"
 import { playfair } from "../lib/fonts"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { useSession } from "next-auth/react"
 
 interface Profile {
   id: number
@@ -33,6 +34,7 @@ interface Profile {
 }
 
 export default function BrowseProfilesPage() {
+  const { data: session } = useSession()
   const [filters, setFilters] = useState({
     ageRange: [22, 35],
     location: "",
@@ -70,18 +72,15 @@ export default function BrowseProfilesPage() {
       .catch(() => setLoading(false))
   }, [])
 
-  // Simulate user subscription status (replace with real logic)
+  // Check user subscription status from session
   useEffect(() => {
-    const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
-    let premium = false
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr)
-        premium = user.subscription === "premium" || user.subscription === "vip"
-      } catch {}
+    if (session?.user) {
+      // For now, we'll assume free users. In a real app, you'd fetch subscription status from the user profile
+      setIsPremium(false)
+    } else {
+      setIsPremium(false)
     }
-    setIsPremium(premium)
-  }, [])
+  }, [session])
 
   // Filtering logic (update to use real profiles)
   const filteredProfiles = profiles.filter((profile) => {

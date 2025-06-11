@@ -10,6 +10,7 @@ import { useTheme } from "next-themes"
 import { MarqueeBanner } from "@/components/marquee-banner"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { useSession, signOut } from "next-auth/react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -22,20 +23,15 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [language, setLanguage] = useState("en")
   const [mounted, setMounted] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const { data: session, status } = useSession()
   const { theme, setTheme } = useTheme()
   const router = useRouter()
 
+  const isLoggedIn = status === "authenticated" && !!session
+  const user = session?.user
+
   useEffect(() => {
     setMounted(true)
-    // Check login state
-    const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
-    const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
-    setIsLoggedIn(!!token)
-    if (userStr) {
-      try { setUser(JSON.parse(userStr)) } catch {}
-    }
   }, [])
 
   useEffect(() => {
@@ -62,12 +58,8 @@ export function Header() {
     setLanguage(value)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken")
-    localStorage.removeItem("currentUser")
-    setIsLoggedIn(false)
-    setUser(null)
-    router.push("/")
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' })
   }
 
   if (!mounted) return null
@@ -141,7 +133,7 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="font-body flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      {user?.fullName || "My Account"}
+                      {user?.name || "My Account"}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-44">
