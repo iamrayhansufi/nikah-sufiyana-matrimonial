@@ -1,0 +1,27 @@
+# Vercel build files
+.vercel
+
+# Node modules (already in .gitignore but ensuring)
+node_modules
+
+# Local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build artifacts
+.next
+out
+dist
+
+# Database files
+*.db
+*.sqlite
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
