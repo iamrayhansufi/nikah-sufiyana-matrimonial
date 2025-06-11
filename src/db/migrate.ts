@@ -15,7 +15,7 @@ if (!databaseUrl) {
 
 // Create the database connection
 const sql = neon(databaseUrl);
-const db = drizzle({ client: sql, schema });
+const db = drizzle(sql, { schema });
 
 async function main() {
   try {

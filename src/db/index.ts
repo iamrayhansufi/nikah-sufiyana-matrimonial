@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
 import { config } from "dotenv";
+import * as schema from "./schema";
 
 config({ path: ".env" });
 
@@ -12,8 +13,8 @@ if (!process.env.POSTGRES_URL) {
 // Configure Neon
 const sql = neon(process.env.POSTGRES_URL);
 
-// Initialize Drizzle with the SQL client
-export const db = drizzle(sql);
+// Initialize Drizzle with the SQL client and schema
+export const db = drizzle(sql, { schema });
 
 // Test the connection
 export async function testDatabaseConnection() {
@@ -28,4 +29,4 @@ export async function testDatabaseConnection() {
 }
 
 // Export the sql client for raw queries if needed
-export const sqlClient = sql; 
+export const sqlClient = sql;
