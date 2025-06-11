@@ -51,8 +51,8 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NEXTAUTH_COOKIE_DOMAIN || undefined
-      }
+        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+      },
     },
     callbackUrl: {
       name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.callback-url`,

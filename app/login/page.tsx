@@ -48,13 +48,16 @@ function LoginFormWithParams() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      // Use NextAuth credentials provider for login
+      // Use NextAuth credentials provider for login with proper redirect
       const res = await signIn("credentials", {
-        redirect: false,
         email: loginMethod === "email" ? formData.email : undefined,
         phone: loginMethod === "phone" ? formData.phone : undefined,
         password: formData.password,
+        callbackUrl: callbackUrl,
+        redirect: true, // Let NextAuth handle the redirect
       })
+      
+      // This code will only run if redirect: false and there's an error
       if (res?.error) {
         toast({
           title: "Login Failed",
@@ -63,12 +66,12 @@ function LoginFormWithParams() {
         })
         return
       }
+      
+      // Success toast - this may not show due to redirect
       toast({
         title: "Login Successful",
         description: "Welcome back to Nikah Sufiyana!",
       })
-      // Use window.location.href for hard redirect to ensure session is properly set
-      window.location.href = callbackUrl
     } catch (error) {
       console.error("Login error:", error)
       toast({

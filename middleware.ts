@@ -9,19 +9,25 @@ export default withAuth(
                       req.nextUrl.pathname.startsWith('/register')
     const isProtectedPage = req.nextUrl.pathname.startsWith('/dashboard') ||
                           req.nextUrl.pathname.startsWith('/edit-profile') ||
-                          req.nextUrl.pathname.startsWith('/settings')
-
-    // Handle domain check
+                          req.nextUrl.pathname.startsWith('/settings')    // Handle domain check
     const hostname = req.headers.get('host') || ''
     const mainDomain = new URL(process.env.NEXTAUTH_URL || '').hostname
     const previewUrls = (process.env.NEXTAUTH_PREVIEW_URLS || '').split(',')
-      .map(url => new URL(url.trim()).hostname)
+      .map(url => url.trim())
+      .filter(Boolean)
+      .map(url => {
+        try {
+          return new URL(url).hostname
+        } catch {
+          return null
+        }
+      })
       .filter(Boolean)
 
     // Allow preview URLs in development and preview environments
     if (process.env.NODE_ENV !== 'production' || previewUrls.includes(hostname)) {
       // Continue with auth checks
-    } else if (hostname !== mainDomain) {
+    } else if (hostname !== mainDomain && process.env.NODE_ENV === 'production') {
       // Redirect non-main domains to main domain in production
       return NextResponse.redirect(new URL(req.url, process.env.NEXTAUTH_URL))
     }
