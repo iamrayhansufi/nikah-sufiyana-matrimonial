@@ -396,8 +396,7 @@ export default function RegisterPage() {
         return;
       }      // Clear form data from localStorage
       localStorage.removeItem("heroRegistrationData");
-      
-      // Registration successful - now sign in with NextAuth
+        // Registration successful - now sign in with NextAuth
       if (data.user) {
         toast({
           title: "Registration Successful!",
@@ -412,20 +411,22 @@ export default function RegisterPage() {
           password: formData.password,
         });
 
-        if (signInResult?.ok) {
+        if (signInResult?.ok && !signInResult.error) {
           toast({
             title: "Login Successful",
             description: "Redirecting to your dashboard...",
           });
-          router.push('/dashboard');
+          // Use window.location.href for a hard redirect to ensure session is properly set
+          window.location.href = '/dashboard';
         } else {
-          // If auto-signin fails, redirect to login page
+          console.error("Auto-signin failed:", signInResult?.error);
+          // If auto-signin fails, redirect to login page with success message
           toast({
             title: "Registration Complete",
             description: "Please log in to access your dashboard.",
             variant: "default"
           });
-          router.push('/login');
+          router.push('/login?message=registration-success');
         }
       } else {
         toast({
@@ -433,7 +434,7 @@ export default function RegisterPage() {
           description: "Your profile has been created. Please log in to continue.",
           variant: "default"
         });
-        router.push('/login');
+        router.push('/login?message=registration-success');
       }
 
     } catch (error) {

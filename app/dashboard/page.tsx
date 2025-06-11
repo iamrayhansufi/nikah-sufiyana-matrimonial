@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -83,6 +84,7 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
+  const router = useRouter()
   const [userProfile, setUserProfile] = useState<any>(null)
   const [stats, setStats] = useState<DashboardStats>({
     profileViews: 0,
@@ -98,19 +100,22 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       if (status === "loading") return;
+      
       if (status === "unauthenticated") {
         setError("Please log in to access your dashboard.");
         setLoading(false);
+        router.push('/login?callbackUrl=/dashboard');
+        return;
+      }
+
+      if (!session?.user?.id) {
+        setError("User ID not found. Please log in again.");
+        setLoading(false);
+        router.push('/login?callbackUrl=/dashboard');
         return;
       }
 
       try {
-        if (!session?.user?.id) {
-          setError("User ID not found. Please log in again.");
-          setLoading(false);
-          return;
-        }
-        
         // Add credentials to ensure cookies are sent
         const fetchOptions = {
           credentials: 'include' as RequestCredentials,
@@ -127,6 +132,8 @@ export default function DashboardPage() {
           if (res.status === 401) {
             // Session expired or invalid
             setError("Your session has expired. Please log in again.")
+            router.push('/login?callbackUrl=/dashboard');
+            return;
           } else {
             setError(`Failed to load profile. (${res.status})`)
           }

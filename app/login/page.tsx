@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -13,12 +13,13 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { Heart, Eye, EyeOff, Mail, Phone } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 import { signIn } from "next-auth/react"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const [showPassword, setShowPassword] = useState(false)
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email")
@@ -28,6 +29,20 @@ export default function LoginPage() {
     password: "",
     rememberMe: false,
   })
+
+  // Get callback URL and message from search params
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+  const message = searchParams.get('message')
+
+  // Show success message if coming from registration
+  useEffect(() => {
+    if (message === 'registration-success') {
+      toast({
+        title: "Registration Successful!",
+        description: "Please sign in to access your dashboard.",
+      })
+    }
+  }, [message, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,7 +66,8 @@ export default function LoginPage() {
         title: "Login Successful",
         description: "Welcome back to Nikah Sufiyana!",
       })
-      router.push("/dashboard")
+      // Use window.location.href for hard redirect to ensure session is properly set
+      window.location.href = callbackUrl
     } catch (error) {
       console.error("Login error:", error)
       toast({

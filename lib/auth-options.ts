@@ -112,18 +112,30 @@ export const authOptions: NextAuthOptions = {
         }
       }
     })
-  ],
-  callbacks: {
+  ],  callbacks: {
     async redirect({ url, baseUrl }) {
-      // Check if url starts with baseUrl or is allowed preview URL
+      // If the URL is relative, make it absolute with baseUrl
+      if (url.startsWith('/')) {
+        url = new URL(url, baseUrl).toString()
+      }
+      
+      // Allow redirects to dashboard and other internal pages
       const allowedUrls = [
         baseUrl,
+        `${baseUrl}/dashboard`,
+        `${baseUrl}/edit-profile`,
+        `${baseUrl}/settings`,
+        `${baseUrl}/browse`,
         ...(process.env.NEXTAUTH_PREVIEW_URLS || '').split(',').filter(Boolean)
       ]
+      
+      // Check if the URL is allowed
       if (allowedUrls.some(allowed => url.startsWith(allowed))) {
         return url
       }
-      return baseUrl
+      
+      // Default redirect to dashboard for authenticated users
+      return `${baseUrl}/dashboard`
     },
     async jwt({ token, user }) {
       if (user) {
