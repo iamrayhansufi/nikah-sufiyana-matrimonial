@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -17,7 +17,8 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 import { signIn } from "next-auth/react"
 
-export default function LoginPage() {
+// Component to handle search params logic
+function LoginFormWithParams() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -252,5 +253,37 @@ export default function LoginPage() {
 
       <Footer />
     </div>
+  )
+}
+
+// Loading component for Suspense fallback
+function LoginPageLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto">
+          <Card>
+            <CardHeader className="text-center">
+              <div className="flex items-center justify-center mb-4">
+                <Heart className="h-8 w-8 text-primary mr-2" />
+                <h1 className="text-2xl font-bold">Welcome Back</h1>
+              </div>
+              <p className="text-muted-foreground">Loading...</p>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  )
+}
+
+// Main component with Suspense boundary
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginPageLoading />}>
+      <LoginFormWithParams />
+    </Suspense>
   )
 }
