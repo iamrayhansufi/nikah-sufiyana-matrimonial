@@ -1,6 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
+import { 
+  basicInfoSchema,
+  religiousInfoSchema,
+  educationCareerSchema,
+  familyInfoSchema,
+  partnerPreferencesSchema,
+  privacySettingsSchema,
+  type ValidationError
+} from "@/lib/validations/profile"
+import { validateImage, resizeImage } from "@/lib/utils/image-utils"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -14,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { 
   User, 
   Heart, 
@@ -90,11 +104,31 @@ interface Profile {
   gallery?: string[];
 }
 
+const sectOptions = [
+  { value: "Sunni", label: "Sunni" },
+  { value: "Shia", label: "Shia" },
+  { value: "Other", label: "Other" },
+  { value: "No Preference", label: "No Preference" },
+];
+
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'success';
+type PendingAction = null | 'save' | 'navigate';
+
 export default function EditProfilePage() {
+  const { data: session } = useSession()
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({})
   
+  // Add missing state variables
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null)
+
+  // Form section states
   const [basicInfo, setBasicInfo] = useState({
     fullName: "",
     age: "",
@@ -166,31 +200,40 @@ const [privacySettings, setPrivacySettings] = useState({
   
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
   const maxGalleryPhotos = 6
-
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfile = async (retryCount = 0) => {
+      if (!session?.user?.id) return
+
       setLoading(true)
       setError(null)
       
       try {
-        const token = localStorage.getItem("token")
-        const userId = localStorage.getItem("userId")
-        if (!token || !userId) {
-          setError("Not authenticated")
-          return
-        }
-        
-        const res = await fetch(`/api/profiles/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
+        const res = await fetch(`/api/profiles/${session.user.id}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          credentials: 'include'
         })
         
         if (!res.ok) {
+          // Retry on 5xx errors
+          if (res.status >= 500 && retryCount < 3) {
+            console.log(`Retrying profile fetch (attempt ${retryCount + 1})...`)
+            setTimeout(() => fetchProfile(retryCount + 1), 1000 * (retryCount + 1))
+            return
+          }
           throw new Error(await res.text())
         }
         
         const profile: Profile = await res.json()
         
-        // Update all form sections with profile data
+        if (!profile || !profile.id) {
+          throw new Error('Invalid profile data received')
+        }
+        
+        // Update basic info
         setBasicInfo(prev => ({
           ...prev,
           fullName: profile.fullName || prev.fullName,
@@ -208,11 +251,10 @@ const [privacySettings, setPrivacySettings] = useState({
           country: profile.country || prev.country,
           bio: profile.aboutMe || prev.bio,
           id: profile.id || prev.id,
-          profilePhoto: profile.profilePhoto || prev.profilePhoto,
-          joinedDate: profile.joinedDate || prev.joinedDate,
-          lastUpdated: profile.lastUpdated || prev.lastUpdated
+          profilePhoto: profile.profilePhoto || prev.profilePhoto
         }))
 
+        // Update religious info
         setReligiousInfo(prev => ({
           ...prev,
           sect: profile.sect || prev.sect,
@@ -224,6 +266,7 @@ const [privacySettings, setPrivacySettings] = useState({
           attendsMosque: profile.attendsMosque || prev.attendsMosque
         }))
 
+        // Update other sections...
         setEducationCareer(prev => ({
           ...prev,
           education: profile.education || prev.education,
@@ -254,11 +297,12 @@ const [privacySettings, setPrivacySettings] = useState({
           profession: profile.preferredProfession || prev.profession,
           location: profile.preferredLocation || prev.location,
           sect: profile.preferredSect || prev.sect,
-          religiosity: profile.preferredReligiosity || prev.religiosity,          expectations: profile.expectations || prev.expectations
-        }));
+          religiosity: profile.preferredReligiosity || prev.religiosity,
+          expectations: profile.expectations || prev.expectations
+        }))
 
         const validateVisibility = (value: any): value is ProfileVisibility =>
-          value === "all-members" || value === "premium-only" || value === "match-criteria";
+          value === "all-members" || value === "premium-only" || value === "match-criteria"
 
         setPrivacySettings(prev => ({
           ...prev,
@@ -268,7 +312,7 @@ const [privacySettings, setPrivacySettings] = useState({
             ? profile.profileVisibility 
             : prev.profileVisibility,
           allowMessages: profile.allowMessages ?? prev.allowMessages
-        }));
+        }))
 
         setGalleryPhotos(profile.gallery || [])
         
@@ -280,8 +324,10 @@ const [privacySettings, setPrivacySettings] = useState({
       }
     }
 
-    fetchProfile()
-  }, [])
+    if (session?.user?.id) {
+      fetchProfile()
+    }
+  }, [session])
 
   // Show loading state
   if (loading) {
@@ -327,169 +373,411 @@ const [privacySettings, setPrivacySettings] = useState({
     )
   }
 
+  // Validation functions
+  const validateBasicInfo = async () => {
+    try {
+      const result = basicInfoSchema.safeParse(basicInfo)
+      if (!result.success) {
+        const errors: { [key: string]: string } = {}
+        result.error.errors.forEach(err => {
+          errors[err.path.join('.')] = err.message
+        })
+        setValidationErrors(prev => ({ ...prev, ...errors }))
+        return false
+      }
+      return true
+    } catch (error) {
+      console.error('Validation error:', error)
+      return false
+    }
+  }
+
+  const validateSectionData = async (
+    data: any,
+    schema: typeof basicInfoSchema | typeof religiousInfoSchema | typeof educationCareerSchema | typeof familyInfoSchema | typeof partnerPreferencesSchema | typeof privacySettingsSchema,
+    section: string
+  ): Promise<boolean> => {
+    try {
+      const result = schema.safeParse(data)
+      if (!result.success) {
+        const errors: { [key: string]: string } = {}
+        result.error.errors.forEach((err: { path: (string | number)[]; message: string }) => {
+          errors[`${section}.${err.path.join('.')}`] = err.message
+        })
+        setValidationErrors(prev => ({ ...prev, ...errors }))
+        return false
+      }
+      return true
+    } catch (error) {
+      console.error(`Validation error in ${section}:`, error)
+      return false
+    }
+  }
+
+  const validateAllSections = async () => {
+    const validations = [
+      validateSectionData(basicInfo, basicInfoSchema, 'basicInfo'),
+      validateSectionData(religiousInfo, religiousInfoSchema, 'religiousInfo'),
+      validateSectionData(educationCareer, educationCareerSchema, 'educationCareer'),
+      validateSectionData(familyInfo, familyInfoSchema, 'familyInfo'),
+      validateSectionData(partnerPreferences, partnerPreferencesSchema, 'partnerPreferences'),
+      validateSectionData(privacySettings, privacySettingsSchema, 'privacySettings')
+    ]
+
+    const results = await Promise.all(validations)
+    return results.every(Boolean)
+  }
+
+  // Image handling with validation
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'gallery') => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const validationResult = await validateImage(file)
+      if (!validationResult.valid) {
+        toast({
+          title: "Image Validation Error",
+          description: validationResult.error,
+          variant: "destructive"
+        })
+        return
+      }
+
+      // Resize image if needed
+      const resizedImage = await resizeImage(file)
+      const formData = new FormData()
+      formData.append('image', resizedImage)
+      formData.append('type', type)
+
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image')
+      }
+
+      const data = await response.json()
+
+      if (type === 'profile') {
+        setBasicInfo(prev => ({ ...prev, profilePhoto: data.url }))
+      } else {
+        setGalleryPhotos(prev => [...prev, data.url])
+      }
+
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      })
+    } catch (error) {
+      console.error('Image upload error:', error)
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Handle form submission with validation
+  const handleFormSubmit = async () => {
+    setIsSubmitting(true)
+    setValidationErrors({})
+
+    try {
+      const isValid = await validateAllSections()
+      if (!isValid) {
+        toast({
+          title: "Validation Error",
+          description: "Please check the form for errors",
+          variant: "destructive"
+        })
+        setIsSubmitting(false)
+        return
+      }
+
+      // Prepare data for submission
+      const formData = {
+        basicInfo,
+        religiousInfo,
+        educationCareer,
+        familyInfo,
+        partnerPreferences,
+        privacySettings
+      }
+
+      const response = await fetch(`/api/profiles/${session?.user?.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.message || 'Failed to update profile')
+      }
+
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      })
+    } catch (error) {
+      console.error('Form submission error:', error)
+      toast({
+        title: "Update Failed",
+        description: error instanceof Error ? error.message : "Failed to update profile",
+        variant: "destructive"
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const handleSaveChanges = async (section: string) => {
+    if (!session) {
+      router.push('/login?callbackUrl=/edit-profile')
+      return
+    }
+
     setSaveStatus("saving")
+    
+    // Prepare payload based on section
     let payload: any = {}
-    if (section === "basic") payload = basicInfo
-    else if (section === "religious") payload = religiousInfo
-    else if (section === "education") payload = educationCareer
-    else if (section === "family") payload = familyInfo
-    else if (section === "preferences") payload = partnerPreferences
-    else if (section === "privacy") payload = privacySettings
-    else payload = {
-      ...basicInfo,
-      ...religiousInfo,
-      ...educationCareer,
-      ...familyInfo,
-      ...partnerPreferences,
-      ...privacySettings
+    switch(section) {
+      case "basic":
+        payload = { basicInfo }
+        break
+      case "religious":
+        payload = { religiousInfo }
+        break
+      case "education":
+        payload = { educationCareer }
+        break
+      case "family":
+        payload = { familyInfo }
+        break
+      case "preferences":
+        payload = { partnerPreferences }
+        break
+      case "privacy":
+        payload = { privacySettings }
+        break
+      case "all":
+        payload = {
+          basicInfo,
+          religiousInfo,
+          educationCareer,
+          familyInfo,
+          partnerPreferences,
+          privacySettings
+        }
+        break
     }
 
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
-      if (!token) throw new Error("Not logged in.")
-      const res = await fetch(`/api/profiles/update`, {
-        method: "PUT",
+      // Validate required fields based on section
+      const validateSection = async (section: string, data: any) => {
+        switch(section) {
+          case "basic":
+            return validateSectionData(data, basicInfoSchema, 'basicInfo')
+          case "religious":
+            return validateSectionData(data, religiousInfoSchema, 'religiousInfo')
+          case "education":
+            return validateSectionData(data, educationCareerSchema, 'educationCareer')
+          case "family":
+            return validateSectionData(data, familyInfoSchema, 'familyInfo')
+          case "preferences":
+            return validateSectionData(data, partnerPreferencesSchema, 'partnerPreferences')
+          case "privacy":
+            return validateSectionData(data, privacySettingsSchema, 'privacySettings')
+          default:
+            return true
+        }
+      }
+
+      if (section !== 'all') {
+        const isValid = await validateSection(section, payload[Object.keys(payload)[0]])
+        if (!isValid) {
+          setSaveStatus("error")
+          return
+        }
+      } else {
+        const isValid = await validateAllSections()
+        if (!isValid) {
+          setSaveStatus("error")
+          return
+        }
+      }
+
+      const res = await fetch('/api/profiles/update', {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(payload)
       })
+
+      const responseData = await res.json()
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || "Failed to save changes.")
-      }
-      const updated = await res.json()
-      // Update localStorage for basic info changes
-      if (section === "basic" || section === "all") {
-        const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
-        const user = userStr ? JSON.parse(userStr) : null
-        const newUser = { ...user, ...basicInfo, ...updated.user }
-        localStorage.setItem("currentUser", JSON.stringify(newUser))
-      }
-      setSaveStatus("success")
-      setTimeout(() => setSaveStatus("idle"), 2000)
-    } catch (err: any) {
-      setSaveStatus("error")
-      alert(err.message || "An error occurred while saving.")
-      setTimeout(() => setSaveStatus("idle"), 2000)
-    }
-  }
-
-  // Profile photo upload handler
-  const handleProfilePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const formData = new FormData()
-    formData.append('photo', file)
-    setSaveStatus("saving")
-    try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
-      if (!token) throw new Error("Not logged in.")
-      const res = await fetch('/api/profiles/upload-photo', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData as any
-      } as any)
-      if (!res.ok) throw new Error("Failed to upload photo.")
-      const data = await res.json()
-      setBasicInfo((prev) => ({ ...prev, profilePhoto: data.url }))
-      // Optionally update localStorage
-      const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
-      if (userStr) {
-        const user = JSON.parse(userStr)
-        user.profilePhoto = data.url
-        localStorage.setItem("currentUser", JSON.stringify(user))
-      }
-      setSaveStatus("success")
-      setTimeout(() => setSaveStatus("idle"), 2000)
-    } catch (err: any) {
-      setSaveStatus("error")
-      alert(err.message || "Photo upload failed.")
-      setTimeout(() => setSaveStatus("idle"), 2000)
-    }
-  }
-
-  // --- Gallery Photos State and Handlers ---
-  // (Already declared at top, so do not redeclare)
-
-  // Fetch gallery photos from profile (if available)
-  useEffect(() => {
-    const fetchGallery = async () => {
-      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
-      const userStr = typeof window !== 'undefined' ? localStorage.getItem("currentUser") : null
-      if (!token || !userStr) return
-      let userId = null
-      try { userId = JSON.parse(userStr).id } catch {}
-      if (!userId) return
-      try {
-        const res = await fetch(`/api/profiles/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
+        setSaveStatus("error")
+        toast({
+          title: "Update Failed",
+          description: responseData.message || "Failed to update profile",
+          variant: "destructive"
         })
-        if (!res.ok) return
-        const profile = await res.json()
-        setGalleryPhotos(Array.isArray(profile.gallery) ? profile.gallery : [])
-      } catch {}
-    }
-    fetchGallery()
-  }, [])
+        return
+      }
 
-  // Upload new gallery photo
-  const handleGalleryPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (galleryPhotos.length >= maxGalleryPhotos) {
-      alert("You can upload up to 6 gallery photos only.")
-      return
-    }
-    const formData = new FormData()
-    formData.append('photo', file)
-    setSaveStatus("saving")
-    try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
-      if (!token) throw new Error("Not logged in.")
-      const res = await fetch('/api/profiles/upload-photo', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData as any
-      } as any)
-      if (!res.ok) throw new Error("Failed to upload photo.")
-      const data = await res.json()
-      setGalleryPhotos((prev) => [...prev, data.photoUrl])
-      setSaveStatus("success")
-      setTimeout(() => setSaveStatus("idle"), 2000)
-    } catch (err: any) {
-      setSaveStatus("error")
-      alert(err.message || "Photo upload failed.")
-      setTimeout(() => setSaveStatus("idle"), 2000)
-    }
-  }
-
-  // Delete gallery photo
-  const handleDeleteGalleryPhoto = async (photoUrl: string) => {
-    if (!window.confirm("Are you sure you want to delete this photo?")) return
-    setSaveStatus("saving")
-    try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null
-      if (!token) throw new Error("Not logged in.")
-      const res = await fetch('/api/profiles/delete-photo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ photoUrl })
+      setSaveStatus("saved")
+      setHasUnsavedChanges(false)
+      toast({
+        title: "Success",
+        description: "Profile updated successfully"
       })
-      if (!res.ok) throw new Error("Failed to delete photo.")
-      setGalleryPhotos((prev) => prev.filter((url) => url !== photoUrl))
-      setSaveStatus("success")
-      setTimeout(() => setSaveStatus("idle"), 2000)
-    } catch (err: any) {
+    } catch (err) {
       setSaveStatus("error")
-      alert(err.message || "Photo delete failed.")
-      setTimeout(() => setSaveStatus("idle"), 2000)
+      toast({
+        title: "Update Failed",
+        description: err instanceof Error ? err.message : "An unexpected error occurred",
+        variant: "destructive"
+      })
     }
   }
+
+  const handleSave = async (section: string) => {
+    await handleSaveChanges(section)
+    setHasUnsavedChanges(false)
+  }
+
+  // Handle unsaved changes when navigating away
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [hasUnsavedChanges])
+
+  const handleConfirmDialogAction = (confirmed: boolean) => {
+    setShowConfirmDialog(false)
+    if (confirmed && pendingAction) {
+      if (pendingAction === 'save') {
+        handleFormSubmit()
+      } else if (pendingAction === 'navigate') {
+        setHasUnsavedChanges(false)
+        router.push('/dashboard')
+      }
+      setPendingAction(null)
+    }
+  }
+
+  // Add handlers for form changes
+  const handleFormChange = () => {
+    setHasUnsavedChanges(true)
+    setSaveStatus('idle')
+  }
+
+  // Update each form section's onChange to trigger handleFormChange
+  useEffect(() => {
+    if (saveStatus === 'saved') {
+      setHasUnsavedChanges(false)
+    }
+  }, [saveStatus])
+
+  // Add confirmation dialog component
+  const ConfirmDialog = () => (
+    <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Unsaved Changes</DialogTitle>
+        </DialogHeader>
+        <p>You have unsaved changes. Are you sure you want to leave?</p>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+            Cancel
+          </Button>
+          <Button 
+            variant="destructive"            onClick={() => {
+              setShowConfirmDialog(false)
+              if (pendingAction === 'save') {
+                handleFormSubmit()
+              } else if (pendingAction === 'navigate') {
+                setHasUnsavedChanges(false)
+                router.push('/dashboard')
+              }
+              setPendingAction(null)
+            }}
+          >
+            Discard Changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 
   const [locationTouched, setLocationTouched] = useState(false)
+  
+  // Profile photo handling
+  const handleProfilePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await handleImageUpload(e, 'profile')
+    handleFormChange()
+  }
+
+  // Gallery photo handling
+  const handleGalleryPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (galleryPhotos.length >= maxGalleryPhotos) {
+      toast({
+        title: "Gallery Full",
+        description: `You can only upload up to ${maxGalleryPhotos} photos`,
+        variant: "destructive"
+      })
+      return
+    }
+    await handleImageUpload(e, 'gallery')
+    handleFormChange()
+  }
+
+  const handleDeleteGalleryPhoto = async (photoUrl: string) => {
+    try {
+      setSaveStatus("saving")
+      const response = await fetch('/api/upload/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: photoUrl })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete photo')
+      }
+
+      setGalleryPhotos(prev => prev.filter(url => url !== photoUrl))
+      handleFormChange()
+      
+      toast({
+        title: "Success",
+        description: "Photo deleted successfully"
+      })
+      setSaveStatus("idle")
+    } catch (error) {
+      console.error('Delete photo error:', error)
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete photo. Please try again.",
+        variant: "destructive"
+      })
+      setSaveStatus("error")
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
@@ -541,12 +829,11 @@ const [privacySettings, setPrivacySettings] = useState({
                 <div className="flex flex-col gap-2">
                   <Button 
                     className="gradient-emerald text-white"
-                    onClick={() => handleSaveChanges("all")}
+                    onClick={() => handleSave("all")}
                     disabled={saveStatus === "saving"}
-                  >
-                    {saveStatus === "saving" ? (
+                  >                    {saveStatus === "saving" ? (
                       <>Saving...</>
-                    ) : saveStatus === "success" ? (
+                    ) : saveStatus === "saved" ? (
                       <>Saved <Save className="h-4 w-4 ml-2" /></>
                     ) : (
                       <>Save All Changes</>
@@ -603,8 +890,23 @@ const [privacySettings, setPrivacySettings] = useState({
                       <Input
                         id="fullName"
                         value={basicInfo.fullName}
-                        onChange={(e) => setBasicInfo({ ...basicInfo, fullName: e.target.value })}
+                        onChange={(e) => {
+                          setBasicInfo({ ...basicInfo, fullName: e.target.value })
+                          // Clear validation error when user starts typing
+                          if (validationErrors['basicInfo.fullName']) {
+                            setValidationErrors(prev => {
+                              const { ['basicInfo.fullName']: _, ...rest } = prev
+                              return rest
+                            })
+                          }
+                        }}
+                        onBlur={handleFormChange}
+                        className={validationErrors['basicInfo.fullName'] ? 'border-red-500' : ''}
+                        disabled={isSubmitting}
                       />
+                      {validationErrors['basicInfo.fullName'] && (
+                        <p className="text-sm text-red-500 mt-1">{validationErrors['basicInfo.fullName']}</p>
+                      )}
                     </div>
                     
                     <div>
@@ -614,6 +916,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         type="number"
                         value={basicInfo.age}
                         onChange={(e) => setBasicInfo({ ...basicInfo, age: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -624,6 +927,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         type="email"
                         value={basicInfo.email}
                         onChange={(e) => setBasicInfo({ ...basicInfo, email: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -633,6 +937,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="phone"
                         value={basicInfo.phone}
                         onChange={(e) => setBasicInfo({ ...basicInfo, phone: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -642,6 +947,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="height"
                         value={basicInfo.height}
                         onChange={(e) => setBasicInfo({ ...basicInfo, height: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -689,6 +995,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="city"
                         value={basicInfo.city}
                         onChange={(e) => setBasicInfo({ ...basicInfo, city: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                   </div>
@@ -704,13 +1011,26 @@ const [privacySettings, setPrivacySettings] = useState({
                     />
                   </div>
 
-                  <div className="flex justify-end">
-                    <Button 
-                      onClick={() => handleSaveChanges("basic")} 
-                      disabled={saveStatus === "saving"}
-                      className="gradient-emerald text-white"
+                  <div className="flex justify-end gap-4 mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={() => router.push('/dashboard')}
+                      disabled={isSubmitting}
                     >
-                      {saveStatus === "saving" ? "Saving..." : "Save Changes"}
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleFormSubmit}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <span className="animate-spin mr-2">⟳</span>
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
                     </Button>
                   </div>
                 </CardContent>
@@ -735,9 +1055,11 @@ const [privacySettings, setPrivacySettings] = useState({
                           <SelectValue placeholder="Select sect" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Sunni">Sunni</SelectItem>
-                          <SelectItem value="Shia">Shia</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
+                          {sectOptions.filter(opt => opt.value !== "No Preference").map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -799,7 +1121,7 @@ const [privacySettings, setPrivacySettings] = useState({
 
                   <div className="flex justify-end">
                     <Button 
-                      onClick={() => handleSaveChanges("religious")} 
+                      onClick={() => handleSave("religious")} 
                       disabled={saveStatus === "saving"}
                       className="gradient-emerald text-white"
                     >
@@ -824,6 +1146,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="education"
                         value={educationCareer.education}
                         onChange={(e) => setEducationCareer({ ...educationCareer, education: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -833,6 +1156,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="university"
                         value={educationCareer.university}
                         onChange={(e) => setEducationCareer({ ...educationCareer, university: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -842,6 +1166,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="profession"
                         value={educationCareer.profession}
                         onChange={(e) => setEducationCareer({ ...educationCareer, profession: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -851,6 +1176,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="company"
                         value={educationCareer.company}
                         onChange={(e) => setEducationCareer({ ...educationCareer, company: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -860,6 +1186,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="experience"
                         value={educationCareer.experience}
                         onChange={(e) => setEducationCareer({ ...educationCareer, experience: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -887,7 +1214,7 @@ const [privacySettings, setPrivacySettings] = useState({
 
                   <div className="flex justify-end">
                     <Button 
-                      onClick={() => handleSaveChanges("education")} 
+                      onClick={() => handleSave("education")} 
                       disabled={saveStatus === "saving"}
                       className="gradient-emerald text-white"
                     >
@@ -912,6 +1239,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="fatherOccupation"
                         value={familyInfo.fatherOccupation}
                         onChange={(e) => setFamilyInfo({ ...familyInfo, fatherOccupation: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -921,6 +1249,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="motherOccupation"
                         value={familyInfo.motherOccupation}
                         onChange={(e) => setFamilyInfo({ ...familyInfo, motherOccupation: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -930,6 +1259,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="siblings"
                         value={familyInfo.siblings}
                         onChange={(e) => setFamilyInfo({ ...familyInfo, siblings: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -964,7 +1294,7 @@ const [privacySettings, setPrivacySettings] = useState({
 
                   <div className="flex justify-end">
                     <Button 
-                      onClick={() => handleSaveChanges("family")} 
+                      onClick={() => handleSave("family")} 
                       disabled={saveStatus === "saving"}
                       className="gradient-emerald text-white"
                     >
@@ -990,6 +1320,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         value={partnerPreferences.ageRange}
                         onChange={(e) => setPartnerPreferences({ ...partnerPreferences, ageRange: e.target.value })}
                         placeholder="e.g., 25-32"
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -1000,6 +1331,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         value={partnerPreferences.heightRange}
                         onChange={(e) => setPartnerPreferences({ ...partnerPreferences, heightRange: e.target.value })}
                         placeholder="5.4 Ft"
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -1009,6 +1341,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="prefEducation"
                         value={partnerPreferences.education}
                         onChange={(e) => setPartnerPreferences({ ...partnerPreferences, education: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -1018,6 +1351,7 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="prefProfession"
                         value={partnerPreferences.profession}
                         onChange={(e) => setPartnerPreferences({ ...partnerPreferences, profession: e.target.value })}
+                        onBlur={handleFormChange}
                       />
                     </div>
                     
@@ -1027,7 +1361,10 @@ const [privacySettings, setPrivacySettings] = useState({
                         id="prefLocation"
                         value={partnerPreferences.location}
                         onChange={(e) => setPartnerPreferences({ ...partnerPreferences, location: e.target.value })}
-                        onBlur={() => setLocationTouched(true)}
+                        onBlur={() => {
+                          setLocationTouched(true)
+                          handleFormChange()
+                        }}
                         required
                         className={partnerPreferences.location.trim() === "" && locationTouched ? "border-red-500" : ""}
                       />
@@ -1046,9 +1383,11 @@ const [privacySettings, setPrivacySettings] = useState({
                           <SelectValue placeholder="Select sect preference" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Sunni">Sunni</SelectItem>
-                          <SelectItem value="Shia">Shia</SelectItem>
-                          <SelectItem value="No Preference">No Preference</SelectItem>
+                          {sectOptions.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1072,7 +1411,7 @@ const [privacySettings, setPrivacySettings] = useState({
                           alert("Preferred location is required.");
                           return;
                         }
-                        handleSaveChanges("preferences")
+                        handleSave("preferences")
                       }} 
                       disabled={saveStatus === "saving"}
                       className="gradient-emerald text-white"
@@ -1160,7 +1499,7 @@ const [privacySettings, setPrivacySettings] = useState({
                     </div>
                     <div className="flex justify-end">
                       <Button 
-                        onClick={() => handleSaveChanges("photos")} 
+                        onClick={() => handleSave("photos")} 
                         disabled={saveStatus === "saving"}
                         className="gradient-emerald text-white"
                       >
@@ -1263,7 +1602,7 @@ const [privacySettings, setPrivacySettings] = useState({
 
                   <div className="flex justify-end">
                     <Button 
-                      onClick={() => handleSaveChanges("privacy")} 
+                      onClick={() => handleSave("privacy")} 
                       disabled={saveStatus === "saving"}
                       className="gradient-emerald text-white"
                     >
@@ -1278,6 +1617,8 @@ const [privacySettings, setPrivacySettings] = useState({
       </div>
 
       <Footer />
+
+      <ConfirmDialog />
     </div>
   )
 }

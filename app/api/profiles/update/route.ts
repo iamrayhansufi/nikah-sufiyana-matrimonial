@@ -7,31 +7,67 @@ import { authOptions } from "@/lib/auth-options";
 import { z } from "zod";
 
 const updateProfileSchema = z.object({
+  // Basic Info
   fullName: z.string().min(2).optional(),
   email: z.string().email().optional(),
   phone: z.string().min(10).optional(),
   age: z.number().min(18).optional(),
-  city: z.string().optional(),
-  country: z.string().optional(),
-  location: z.string().optional(),
-  education: z.string().optional(),
-  profession: z.string().optional(),
-  sect: z.string().optional(),
+  gender: z.string().optional(),
+  height: z.string().optional(),
+  weight: z.string().optional(),
+  complexion: z.string().optional(),
   maritalStatus: z.string().optional(),
-  religiousInclination: z.string().optional(),
-  expectations: z.string().optional(),
-  aboutMe: z.string().optional(),
-  familyDetails: z.string().optional(),
+  languages: z.array(z.string()).optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().optional(),
+  bio: z.string().optional(),
+  
+  // Religious Info
+  sect: z.string().optional(),
+  prayerHabit: z.string().optional(),
+  hijab: z.string().optional(),
+  quranReading: z.string().optional(),
+  islamicEducation: z.string().optional(),
+  religiousValues: z.string().optional(),
+  attendsMosque: z.string().optional(),
+  
+  // Education & Career
+  education: z.string().optional(),
+  university: z.string().optional(),
+  profession: z.string().optional(),
+  company: z.string().optional(),
+  experience: z.string().optional(),
+  income: z.string().optional(),
+  
+  // Family Info
+  fatherOccupation: z.string().optional(),
+  motherOccupation: z.string().optional(),
+  siblings: z.string().optional(),
+  familyType: z.string().optional(),
+  familyValues: z.string().optional(),
+  livingWithParents: z.string().optional(),
+  
+  // Partner Preferences
   preferredAgeMin: z.number().min(18).optional(),
   preferredAgeMax: z.number().max(100).optional(),
+  preferredHeight: z.string().optional(),
   preferredEducation: z.string().optional(),
   preferredProfession: z.string().optional(),
   preferredLocation: z.string().optional(),
-  motherTongue: z.string().optional(),
-  height: z.string().optional(),
-  complexion: z.string().optional(),
+  preferredSect: z.string().optional(),
+  preferredReligiosity: z.string().optional(),
+  expectations: z.string().optional(),
+  
+  // Privacy Settings
+  showContactInfo: z.boolean().optional(),
+  showPhotoToAll: z.boolean().optional(),
+  profileVisibility: z.enum(["all-members", "premium-only", "match-criteria"]).optional(),
+  allowMessages: z.boolean().optional(),
+  
+  // Other fields
   profilePhoto: z.string().optional(),
-  profileVisibility: z.string().optional(),
+  gallery: z.array(z.string()).optional(),
 });
 
 export async function PUT(req: Request) {
