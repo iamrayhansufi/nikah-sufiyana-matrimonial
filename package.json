@@ -13,7 +13,8 @@
     "db:drop": "drizzle-kit drop",
     "deploy": "npm run build && npm run start",
     "postinstall": "npm run db:push || echo 'Database push failed, continuing...'",
-    "vercel-build": "npm run build"
+    "vercel-build": "npm run build",
+    "git:sync": "node scripts/git-sync.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
