@@ -13,23 +13,25 @@ declare module "next-auth" {
     email: string | null
     phone?: string
   }
-  
-  interface Session {
+    interface Session {
     user: {
       id: string
       name: string
       email: string | null
       phone?: string
+      role?: string
     }
   }
 
   interface JWT {
     id: string
     phone?: string
+    role?: string
   }
 }
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -76,18 +78,19 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  callbacks: {
-    async jwt({ token, user }: { token: JWT, user: User | null }) {
+  callbacks: {    async jwt({ token, user }: { token: JWT, user: User | null }) {
       if (user) {
         token.id = user.id
         token.phone = user.phone
+        // Assuming the role is part of the user object from authorize callback
+        token.role = (user as any).role
       }
       return token
-    },
-    async session({ session, token }: { session: any, token: JWT }) {
+    },    async session({ session, token }: { session: any, token: JWT }) {
       if (session.user) {
         session.user.id = token.id as string
         session.user.phone = token.phone as string | undefined
+        session.user.role = token.role
       }
       return session
     }

@@ -2,7 +2,8 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import { NextRequest } from "next/server"
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "./auth-options"
 
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 12
@@ -13,16 +14,13 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword)
 }
 
-export function generateJWT(userId: string, role = "user"): string {
-  return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: "7d" })
+export async function getAuthSession() {
+  return await getServerSession(authOptions)
 }
 
-export function verifyJWT(token: string): { userId: string; role: string } | null {
-  try {
-    return jwt.verify(token, JWT_SECRET) as { userId: string; role: string }
-  } catch (error) {
-    return null
-  }
+export async function getCurrentUserId(): Promise<string | null> {
+  const session = await getAuthSession()
+  return session?.user?.id || null
 }
 
 export async function generateOTP(): Promise<string> {
@@ -30,10 +28,10 @@ export async function generateOTP(): Promise<string> {
 }
 
 export async function verifyAdminAuth(request: NextRequest){
-  const token = request.headers.get("Authorization")?.split(" ")[1]
-  if (!token) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) {
     return false
   }
-  const decoded = verifyJWT(token)
-  return decoded?.role === "admin"
+  // Assuming you store the role in the session
+  return (session as any).user.role === "admin"
 }

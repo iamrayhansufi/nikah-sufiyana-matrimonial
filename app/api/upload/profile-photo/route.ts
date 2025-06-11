@@ -1,24 +1,20 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
-import { verifyJWT } from "@/lib/auth"
+import { getAuthSession } from "@/lib/auth"
 import { db } from "@/src/db"
 import { users } from "@/src/db/schema"
 import { eq } from "drizzle-orm"
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify user authentication
-    const authHeader = request.headers.get("authorization")
-    if (!authHeader) {
-      return NextResponse.json({ error: "No authorization header" }, { status: 401 })
+    // Verify user authentication using NextAuth session
+    const session = await getAuthSession()
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const token = authHeader.replace("Bearer ", "")
-    const user = verifyJWT(token)
-    if (!user) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
-    }
+    const userId = session.user.id
 
     const formData = await request.formData()
     const file = formData.get("photo") as File
@@ -48,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Generate unique filename
     const timestamp = Date.now()
     const extension = file.name.split(".").pop()
-    const filename = `${user.userId}_${timestamp}.${extension}`
+    const filename = `${userId}_${timestamp}.${extension}`
     const filepath = join(uploadDir, filename)
 
     // Save file
@@ -59,7 +55,7 @@ export async function POST(request: NextRequest) {
     await db
       .update(users)
       .set({ profilePhoto: photoUrl })
-      .where(eq(users.id, parseInt(user.userId)))
+      .where(eq(users.id, parseInt(userId)))
 
     return NextResponse.json({
       message: "Photo uploaded successfully",
