@@ -188,10 +188,7 @@ export default function EditProfilePage() {
     religiosity: "",
     expectations: ""
   })
-  
-  type ProfileVisibility = "all-members" | "premium-only" | "match-criteria";
-
-const [privacySettings, setPrivacySettings] = useState({
+  const [privacySettings, setPrivacySettings] = useState({
     showContactInfo: false,
     showPhotoToAll: false,
     profileVisibility: "all-members" as ProfileVisibility,
@@ -199,37 +196,55 @@ const [privacySettings, setPrivacySettings] = useState({
   })
     const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
   const maxGalleryPhotos = 6
-  
-  useEffect(() => {
+    useEffect(() => {
+    // Create a mounted flag to prevent state updates after unmount
+    let isMounted = true;
+    
     const fetchProfile = async (retryCount = 0) => {
       if (status === "loading") return;
       
       if (status === "unauthenticated") {
-        setError("Please log in to access your profile.");
-        setLoading(false);
+        if (isMounted) {
+          setError("Please log in to access your profile.");
+          setLoading(false);
+        }
         router.push('/login?callbackUrl=/edit-profile');
         return;
       }
 
       if (!session?.user?.id) {
-        setError("User ID not found. Please log in again.");
-        setLoading(false);
+        if (isMounted) {
+          setError("User ID not found. Please log in again.");
+          setLoading(false);
+        }
         return;
       }
 
       setLoading(true)
       setError(null)
-      
-      try {        const res = await fetch(`/api/profiles/${session.user.id}`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-            'Pragma': 'no-cache'
-          },
-          credentials: 'include',
-          cache: 'no-store'
-        })
+        try {
+        // Check if session and user ID are still valid
+        if (!session?.user?.id) {
+          throw new Error("Session or user ID is missing");
+        }
+        
+        // Add safe API call with proper error handling
+        let res;
+        try {
+          res = await fetch(`/api/profiles/${session.user.id}`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Cache-Control': 'no-store, no-cache, must-revalidate',
+              'Pragma': 'no-cache'
+            },
+            credentials: 'include',
+            cache: 'no-store'
+          });
+        } catch (fetchError) {
+          console.error("Network error during profile fetch:", fetchError);
+          throw new Error("Network error. Please check your connection and try again.");
+        }
         
         if (!res.ok) {
           // Retry on 5xx errors
@@ -368,13 +383,19 @@ const [privacySettings, setPrivacySettings] = useState({
         if (retryCount < 2) {
           setTimeout(() => fetchProfile(retryCount + 1), 2000);
           return;
+        }      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
-      } finally {
-        setLoading(false);
       }
     }
 
-    fetchProfile()
+    fetchProfile();
+    
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
   }, [session, status, router])
 
   // Show loading state
@@ -735,7 +756,7 @@ const [privacySettings, setPrivacySettings] = useState({
     setSaveStatus('idle')
   }
 
-  // Update each form section's onChange to trigger handleFormChange
+  // Update each form section's onChange to trigger handleFormChange  // Effect to update unsaved changes state when save status changes
   useEffect(() => {
     if (saveStatus === 'saved') {
       setHasUnsavedChanges(false)
