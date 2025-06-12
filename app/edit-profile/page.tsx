@@ -220,14 +220,15 @@ const [privacySettings, setPrivacySettings] = useState({
       setLoading(true)
       setError(null)
       
-      try {
-        const res = await fetch(`/api/profiles/${session.user.id}`, {
+      try {        const res = await fetch(`/api/profiles/${session.user.id}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Cache-Control': 'no-cache'
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'Pragma': 'no-cache'
           },
-          credentials: 'include'
+          credentials: 'include',
+          cache: 'no-store'
         })
         
         if (!res.ok) {
@@ -244,7 +245,18 @@ const [privacySettings, setPrivacySettings] = useState({
             return;
           }
           
-          throw new Error(await res.text())
+          // Try to parse error message
+          let errorText = "Failed to load profile data";
+          try {
+            const errorData = await res.json();
+            errorText = errorData.message || errorData.error || errorText;
+          } catch {
+            try { 
+              errorText = await res.text();
+            } catch {}
+          }
+          
+          throw new Error(`HTTP ${res.status}: ${errorText}`)
         }
         
         const profile: Profile = await res.json()
@@ -335,11 +347,30 @@ const [privacySettings, setPrivacySettings] = useState({
         }))
 
         setGalleryPhotos(profile.gallery || [])
-        
-      } catch (err) {
+          } catch (err) {
         console.error("Error fetching profile:", err)
-        setError(err instanceof Error ? err.message : "Failed to load profile")
-      } finally {        setLoading(false)
+        
+        // Check if the error is related to authentication
+        const errorMessage = err instanceof Error ? err.message : "Failed to load profile";
+        const isAuthError = errorMessage.toLowerCase().includes('unauthorized') || 
+                          errorMessage.toLowerCase().includes('auth') ||
+                          errorMessage.toLowerCase().includes('401');
+                          
+        // Handle auth errors by redirecting
+        if (isAuthError) {
+          router.push('/login?callbackUrl=/edit-profile');
+          return;
+        }
+        
+        setError(errorMessage);
+        
+        // Retry on network or unexpected errors
+        if (retryCount < 2) {
+          setTimeout(() => fetchProfile(retryCount + 1), 2000);
+          return;
+        }
+      } finally {
+        setLoading(false);
       }
     }
 

@@ -73,7 +73,7 @@ export function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
               <Image 
-                src="http://suficreations.com/wp-content/uploads/2021/03/Nikah-Sufiyana-Logo-01.png"
+                src="/placeholder-logo.svg"
                 alt="Nikah Sufiyana" 
                 width={130} 
                 height={30}
