@@ -81,3 +81,90 @@ export async function GET(
     );
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: Props
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+
+    const { id: paramId } = await params
+    const id = parseInt(paramId)
+    
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { error: "Invalid profile ID" },
+        { status: 400 }
+      )
+    }
+    
+    // Only allow users to update their own profile
+    if (parseInt(session.user.id) !== id) {
+      return NextResponse.json(
+        { error: "You can only update your own profile" },
+        { status: 403 }
+      )
+    }
+    
+    const body = await request.json()
+    
+    // Update user profile in database
+    const updatedProfile = await db
+      .update(users)
+      .set({
+        // Basic Info
+        fullName: body.fullName || undefined,
+        age: body.age !== undefined ? parseInt(body.age) : undefined,
+        gender: body.gender || undefined,
+        location: body.location || undefined,
+        education: body.education || undefined,
+        profession: body.profession || undefined,
+        maritalStatus: body.maritalStatus || undefined,
+        sect: body.sect || undefined,
+        aboutMe: body.aboutMe || undefined,
+        
+        // Religious info
+        religiousInclination: body.religiousInclination || undefined,
+        
+        // Family info
+        familyDetails: body.familyDetails || undefined,
+        
+        // Education & Career
+        income: body.income || undefined,
+        
+        // Partner preferences
+        preferredAgeMin: body.preferredAgeMin !== undefined ? parseInt(body.preferredAgeMin) : undefined,
+        preferredAgeMax: body.preferredAgeMax !== undefined ? parseInt(body.preferredAgeMax) : undefined,
+        preferredEducation: body.preferredEducation || undefined,
+        preferredLocation: body.preferredLocation || undefined,
+        expectations: body.expectations || undefined,
+        
+        // Update timestamp
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+      
+    if (!updatedProfile || updatedProfile.length === 0) {
+      return NextResponse.json(
+        { error: "Profile could not be updated" },
+        { status: 500 }
+      );
+    }
+    
+    return NextResponse.json(updatedProfile[0]);
+  } catch (error) {
+    console.error("Update profile error:", error);
+    return NextResponse.json(
+      { error: "Failed to update profile" },
+      { status: 500 }
+    );
+  }
+}
