@@ -2,14 +2,16 @@ import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 
 export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token
+  function middleware(req) {    const token = req.nextauth.token
     const isAuth = !!token
+    
     const isAuthPage = req.nextUrl.pathname.startsWith('/login') ||
                       req.nextUrl.pathname.startsWith('/register')
+    
     const isProtectedPage = req.nextUrl.pathname.startsWith('/dashboard') ||
-                          req.nextUrl.pathname.startsWith('/edit-profile') ||
-                          req.nextUrl.pathname.startsWith('/settings')    // Handle domain check
+                          req.nextUrl.pathname === '/edit-profile' ||
+                          req.nextUrl.pathname.startsWith('/edit-profile/') ||
+                          req.nextUrl.pathname.startsWith('/settings')// Handle domain check
     const hostname = req.headers.get('host') || ''
     
     // Avoid URL parsing errors by providing a fallback
@@ -78,6 +80,7 @@ export const config = {
     '/register',
     // Protected pages
     '/dashboard/:path*',
+    '/edit-profile', // Added without path wildcard to match exact path
     '/edit-profile/:path*',
     '/settings/:path*',
     '/messages/:path*',

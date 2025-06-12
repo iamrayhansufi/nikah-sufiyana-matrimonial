@@ -39,7 +39,7 @@ export function Footer() {
                 alt="Logo"
                 height="48"
                 width="215"
-                src="/logo.png"
+                src="/placeholder-logo.svg"
                 className="h-12 w-auto"
               />
             </Link>
