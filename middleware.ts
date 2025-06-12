@@ -11,7 +11,18 @@ export default withAuth(
                           req.nextUrl.pathname.startsWith('/edit-profile') ||
                           req.nextUrl.pathname.startsWith('/settings')    // Handle domain check
     const hostname = req.headers.get('host') || ''
-    const mainDomain = new URL(process.env.NEXTAUTH_URL || '').hostname
+    
+    // Avoid URL parsing errors by providing a fallback
+    let mainDomain = 'nikah-sufiyana-matrimonial.vercel.app'
+    try {
+      if (process.env.NEXTAUTH_URL) {
+        mainDomain = new URL(process.env.NEXTAUTH_URL).hostname
+      }
+    } catch (error) {
+      console.error('Error parsing NEXTAUTH_URL:', error)
+    }
+    
+    // Parse preview URLs safely
     const previewUrls = (process.env.NEXTAUTH_PREVIEW_URLS || '').split(',')
       .map(url => url.trim())
       .filter(Boolean)
@@ -19,17 +30,22 @@ export default withAuth(
         try {
           return new URL(url).hostname
         } catch {
-          return null
+          return url // Keep as is if URL parsing fails
         }
       })
       .filter(Boolean)
 
-    // Allow preview URLs in development and preview environments
-    if (process.env.NODE_ENV !== 'production' || previewUrls.includes(hostname)) {
-      // Continue with auth checks
+    // Always allow Vercel preview domains
+    const isVercelPreview = hostname.includes('vercel.app') && hostname !== mainDomain
+    
+    // Allow known domains in development and preview environments
+    if (process.env.NODE_ENV !== 'production' || 
+        previewUrls.includes(hostname) || 
+        isVercelPreview) {
+      // Continue with auth checks - no redirect needed
     } else if (hostname !== mainDomain && process.env.NODE_ENV === 'production') {
       // Redirect non-main domains to main domain in production
-      return NextResponse.redirect(new URL(req.url, process.env.NEXTAUTH_URL))
+      return NextResponse.redirect(new URL(req.url, process.env.NEXTAUTH_URL || `https://${mainDomain}`))
     }
 
     // Redirect authenticated users from auth pages to dashboard

@@ -42,8 +42,7 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // 24 hours
-  },
-  cookies: {
+  },  cookies: {
     sessionToken: {
       name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
       options: {
@@ -51,7 +50,8 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+        // Let the cookie system use the default domain
+        // This works better with Vercel's multi-domain support
       },
     },
     callbackUrl: {
@@ -114,28 +114,68 @@ export const authOptions: NextAuthOptions = {
     })
   ],  callbacks: {
     async redirect({ url, baseUrl }) {
-      // If the URL is relative, make it absolute with baseUrl
-      if (url.startsWith('/')) {
-        url = new URL(url, baseUrl).toString()
+      try {
+        // If the URL is relative, make it absolute with baseUrl
+        if (url.startsWith('/')) {
+          url = new URL(url, baseUrl).toString()
+        }
+        
+        // Create allowlist of permitted origins/urls
+        const vercelAppUrl = 'https://nikah-sufiyana-matrimonial.vercel.app'
+        const allowedOrigins = [
+          new URL(baseUrl).origin, 
+          vercelAppUrl,
+          ...(process.env.NEXTAUTH_PREVIEW_URLS || '').split(',')
+            .filter(Boolean)
+            .map(previewUrl => {
+              try {
+                return new URL(previewUrl).origin
+              } catch {
+                return null
+              }
+            })
+            .filter(Boolean) as string[]
+        ]
+        
+        // Get url origin for checking
+        let urlOrigin
+        try {
+          urlOrigin = new URL(url).origin
+        } catch {
+          // If URL parsing fails, default to baseUrl
+          console.error('Failed to parse redirect URL:', url)
+          return `${baseUrl}/dashboard`
+        }
+        
+        // First check if the origin is allowed
+        if (allowedOrigins.includes(urlOrigin)) {
+          // Allow redirect to this origin, but check the path
+          const safePaths = [
+            '/',
+            '/dashboard',
+            '/edit-profile',
+            '/settings',
+            '/browse',
+            '/messages',
+            '/interests',
+            '/shortlist'
+          ]
+          
+          const urlPath = new URL(url).pathname
+          
+          // If the path is in our safelist, allow the full URL
+          if (safePaths.some(path => urlPath === path || urlPath.startsWith(`${path}/`))) {
+            return url
+          }
+        }
+        
+        // Default redirect to dashboard for authenticated users
+        return `${baseUrl}/dashboard`
+      } catch (error) {
+        console.error('Error in redirect callback:', error)
+        // Fallback to dashboard if anything goes wrong
+        return `${baseUrl}/dashboard`
       }
-      
-      // Allow redirects to dashboard and other internal pages
-      const allowedUrls = [
-        baseUrl,
-        `${baseUrl}/dashboard`,
-        `${baseUrl}/edit-profile`,
-        `${baseUrl}/settings`,
-        `${baseUrl}/browse`,
-        ...(process.env.NEXTAUTH_PREVIEW_URLS || '').split(',').filter(Boolean)
-      ]
-      
-      // Check if the URL is allowed
-      if (allowedUrls.some(allowed => url.startsWith(allowed))) {
-        return url
-      }
-      
-      // Default redirect to dashboard for authenticated users
-      return `${baseUrl}/dashboard`
     },
     async jwt({ token, user }) {
       if (user) {

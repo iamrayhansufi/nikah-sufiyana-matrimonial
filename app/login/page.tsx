@@ -49,11 +49,16 @@ function LoginFormWithParams() {
     e.preventDefault()
     try {
       // Use NextAuth credentials provider for login with proper redirect
+      // Create a full URL for the callbackUrl to ensure absolute path redirect works correctly
+      const absoluteCallbackUrl = callbackUrl.startsWith('http') 
+        ? callbackUrl 
+        : new URL(callbackUrl, window.location.origin).toString();
+        
       const res = await signIn("credentials", {
         email: loginMethod === "email" ? formData.email : undefined,
         phone: loginMethod === "phone" ? formData.phone : undefined,
         password: formData.password,
-        callbackUrl: callbackUrl,
+        callbackUrl: absoluteCallbackUrl,
         redirect: true, // Let NextAuth handle the redirect
       })
       

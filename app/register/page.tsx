@@ -401,33 +401,23 @@ export default function RegisterPage() {
         toast({
           title: "Registration Successful!",
           description: `Welcome, ${data.user.fullName}! Signing you in...`,
-        });
-
-        // Use NextAuth to sign in the user automatically
+        });        // Use NextAuth to sign in the user automatically
+        // Create a full URL for the callbackUrl to ensure absolute path redirect works correctly
+        const callbackUrl = new URL('/dashboard', window.location.origin).toString();
+        
         const signInResult = await signIn("credentials", {
-          redirect: false,
           email: data.user.email,
           phone: jsonData.phone,
           password: formData.password,
+          callbackUrl: callbackUrl, // Use full URL for callback
+          redirect: true, // Let NextAuth handle the server-side redirect
         });
 
-        if (signInResult?.ok && !signInResult.error) {
-          toast({
-            title: "Login Successful",
-            description: "Redirecting to your dashboard...",
-          });
-          // Use window.location.href for a hard redirect to ensure session is properly set
-          window.location.href = '/dashboard';
-        } else {
-          console.error("Auto-signin failed:", signInResult?.error);
-          // If auto-signin fails, redirect to login page with success message
-          toast({
-            title: "Registration Complete",
-            description: "Please log in to access your dashboard.",
-            variant: "default"
-          });
-          router.push('/login?message=registration-success');
-        }
+        // This code won't run because of the redirect above, but keeping for fallback
+        toast({
+          title: "Login Successful",
+          description: "Redirecting to your dashboard...",
+        });
       } else {
         toast({
           title: "Registration Completed",
