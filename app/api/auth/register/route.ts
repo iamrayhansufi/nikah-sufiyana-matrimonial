@@ -9,7 +9,9 @@ const registerSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters long"),
   email: z.string().email("Invalid email format").optional(),
   phone: z.string().regex(/^\+?[1-9]\d{9,14}$/, "Invalid phone number format"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
+  password: z.string().min(8, "Password must be at least 8 characters long")
+    .regex(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d@$!%*?&#^()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/, 
+      "Password must include letters, numbers, and special characters"),
   gender: z.enum(["male", "female"], {
     errorMap: () => ({ message: "Gender must be either male or female" }),
   }),
@@ -20,7 +22,7 @@ const registerSchema = z.object({
   education: z.string().min(1, "Education is required"),
   profession: z.string().optional(),
   sect: z.string().min(1, "Sect is required"),
-  motherTongue: z.string().min(1, "Mother tongue is required"),
+  motherTongue: z.string().optional(), // Made optional as requested
   height: z.string().min(1, "Height is required"),
   complexion: z.string().optional(),
   maritalPreferences: z.string().optional(),
@@ -80,7 +82,7 @@ export async function POST(req: Request) {
       education: userData.education,
       profession: userData.profession,
       sect: userData.sect,
-      motherTongue: userData.motherTongue,
+      motherTongue: userData.motherTongue || "", // Made optional
       height: userData.height,
       complexion: userData.complexion,
       profileStatus: "pending",

@@ -196,16 +196,14 @@ export default function RegisterPage() {
     if (step === 1) {
       // Basic Information validation
       errors = validateFields(
-        {
-          fullName: formData.fullName,
+        {          fullName: formData.fullName,
           gender: formData.gender,
           phone: formData.phone,
           age: formData.age,
           country: formData.country,
           city: formData.city,
           password: formData.password,
-          confirmPassword: formData?.confirmPassword || "",
-          motherTongue: formData.motherTongue
+          confirmPassword: formData?.confirmPassword || ""
         },
         {
           fullName: "Full Name",
@@ -214,19 +212,15 @@ export default function RegisterPage() {
           age: "Age",
           country: "Country",
           city: "City",
-          password: "Password",
-          confirmPassword: "Confirm Password",
-          motherTongue: "Mother Tongue"
+          password: "Password",          confirmPassword: "Confirm Password"
         }
-      );
-
-      // Password validation
+      );      // Password validation
       if (formData.password !== formData.confirmPassword) {
         errors.confirmPassword = "Passwords do not match";
-      }
-
-      if (formData.password && formData.password.length < 6) {
-        errors.password = "Password must be at least 6 characters long";
+      }      // Enhanced password validation
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d@$!%*?&#^()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
+      if (formData.password && !passwordRegex.test(formData.password)) {
+        errors.password = "Password must be at least 8 characters long and include letters, numbers, and special characters";
       }
 
       // Phone number validation
@@ -318,7 +312,7 @@ export default function RegisterPage() {
   const handleSubmit = async () => {
     try {
       setIsSubmittingForm(true);
-        // Convert form data to JSON format, omitting optional fields
+      // Convert form data to JSON format, omitting optional fields
       const { confirmPassword, profilePhotoPreview, bioDataFile, profilePhoto, ...formDataRest } = formData;
       
       const jsonData = {
@@ -394,39 +388,64 @@ export default function RegisterPage() {
         // No need to set setIsProcessing(false) here as it's not used for form submission
         setIsSubmittingForm(false);
         return;
-      }      // Clear form data from localStorage
-      localStorage.removeItem("heroRegistrationData");
-        // Registration successful - now sign in with NextAuth
-      if (data.user) {
-        toast({
-          title: "Registration Successful!",
-          description: `Welcome, ${data.user.fullName}! Signing you in...`,
-        });        // Use NextAuth to sign in the user automatically
-        // Create a full URL for the callbackUrl to ensure absolute path redirect works correctly
-        const callbackUrl = new URL('/dashboard', window.location.origin).toString();
-        
-        const signInResult = await signIn("credentials", {
-          email: data.user.email,
-          phone: jsonData.phone,
-          password: formData.password,
-          callbackUrl: callbackUrl, // Use full URL for callback
-          redirect: true, // Let NextAuth handle the server-side redirect
-        });
-
-        // This code won't run because of the redirect above, but keeping for fallback
-        toast({
-          title: "Login Successful",
-          description: "Redirecting to your dashboard...",
-        });
       } else {
-        toast({
-          title: "Registration Completed",
-          description: "Your profile has been created. Please log in to continue.",
-          variant: "default"
-        });
-        router.push('/login?message=registration-success');
-      }
+        // Registration successful - now upload profile photo if exists
+        if (profilePhoto) {
+          try {
+            const photoFormData = new FormData();
+            photoFormData.append('photo', profilePhoto);
+            photoFormData.append('userId', data.user.id); // Pass the user ID for non-authenticated upload
+            
+            const photoResponse = await fetch('/api/upload/profile-photo', {
+              method: 'POST',
+              body: photoFormData,
+            });
+            
+            if (!photoResponse.ok) {
+              console.error('Failed to upload profile photo');
+              // Continue with sign-in even if photo upload fails
+            }
+          } catch (photoError) {
+            console.error('Error uploading profile photo:', photoError);
+            // Continue with sign-in even if photo upload fails
+          }
+        }
+        
+        // Clear form data from localStorage
+        localStorage.removeItem("heroRegistrationData");
+        
+        // Registration successful - now sign in with NextAuth
+        if (data.user) {
+          toast({
+            title: "Registration Successful!",
+            description: `Welcome, ${data.user.fullName}! Signing you in...`,
+          });
+          
+          // Use NextAuth to sign in the user automatically
+          // Create a full URL for the callbackUrl to ensure absolute path redirect works correctly
+          const callbackUrl = new URL('/dashboard', window.location.origin).toString();
+          
+          const signInResult = await signIn("credentials", {
+            email: data.user.email,
+            phone: jsonData.phone,
+            password: formData.password,
+            callbackUrl: callbackUrl, // Use full URL for callback
+            redirect: true, // Let NextAuth handle the server-side redirect
+          });
 
+          // This code won't run because of the redirect above, but keeping for fallback
+          toast({
+            title: "Login Successful",
+            description: "Redirecting to your dashboard...",
+          });
+        } else {
+          toast({
+            title: "Registration Completed",
+            description: "Your profile has been created. Please log in to continue.",
+            variant: "default"
+          });
+          router.push('/login?message=registration-success');
+        }      }
     } catch (error) {
       console.error('Registration error:', error);
       toast({
@@ -834,21 +853,19 @@ export default function RegisterPage() {
                         {fieldErrors.fullName && (
                           <p className="text-sm text-red-500 mt-1">{fieldErrors.fullName}</p>
                         )}
-                      </div>
-                      <div>
+                      </div>                      <div>
                         <Label htmlFor="gender">Gender *</Label>
                         <Select value={formData.gender} onValueChange={(value) => {
                           setFormData({ ...formData, gender: value });
                           if (fieldErrors.gender) {
                             setFieldErrors({ ...fieldErrors, gender: "" });
                           }
-                        }}>
-                          <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.gender && "border-red-500")} data-filled={isFieldFilled(formData.gender)}>
+                        }}>                          <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.gender && "border-red-500")} data-filled={isFieldFilled(formData.gender)}>
                             <SelectValue placeholder="Select gender" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="male">Male</SelectItem>
-                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="male">Male (Groom)</SelectItem>
+                            <SelectItem value="female">Female (Bride)</SelectItem>
                           </SelectContent>
                         </Select>
                         {fieldErrors.gender && (
@@ -878,8 +895,7 @@ export default function RegisterPage() {
                           <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>
                         )}
                       </div>
-                      <div>
-                        <Label htmlFor="phone">WhatsApp Phone Number *</Label>
+                      <div>                        <Label htmlFor="phone">WhatsApp Phone Number *</Label>
                         <div className="flex mt-1 space-x-2">
                           <Select
                             value={formData.countryCode}
@@ -889,11 +905,28 @@ export default function RegisterPage() {
                               <SelectValue placeholder="+91" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="+91">🇮🇳 +91</SelectItem>
-                              <SelectItem value="+1">🇺🇸 +1</SelectItem>
-                              <SelectItem value="+44">🇬🇧 +44</SelectItem>
-                              <SelectItem value="+971">🇦🇪 +971</SelectItem>
-                              <SelectItem value="+966">🇸🇦 +966</SelectItem>
+                              {/* Popular countries first */}
+                              <SelectItem value="+91">🇮🇳 +91 (India)</SelectItem>
+                              <SelectItem value="+971">🇦🇪 +971 (UAE)</SelectItem>
+                              <SelectItem value="+966">🇸🇦 +966 (Saudi Arabia)</SelectItem>
+                              <SelectItem value="+1">🇺🇸 +1 (USA)</SelectItem>
+                              <SelectItem value="+1-ca">🇨🇦 +1 (Canada)</SelectItem>
+                              <SelectItem value="+61">🇦🇺 +61 (Australia)</SelectItem>
+                              <SelectItem value="+44">🇬🇧 +44 (UK)</SelectItem>
+                              
+                              {/* Other countries */}
+                              <SelectItem value="+965">🇰🇼 +965 (Kuwait)</SelectItem>
+                              <SelectItem value="+974">🇶🇦 +974 (Qatar)</SelectItem>
+                              <SelectItem value="+968">🇴🇲 +968 (Oman)</SelectItem>
+                              <SelectItem value="+973">🇧🇭 +973 (Bahrain)</SelectItem>
+                              <SelectItem value="+60">🇲🇾 +60 (Malaysia)</SelectItem>
+                              <SelectItem value="+65">🇸🇬 +65 (Singapore)</SelectItem>
+                              <SelectItem value="+27">🇿🇦 +27 (South Africa)</SelectItem>
+                              <SelectItem value="+92">🇵🇰 +92 (Pakistan)</SelectItem>
+                              <SelectItem value="+880">🇧🇩 +880 (Bangladesh)</SelectItem>
+                              <SelectItem value="+64">🇳🇿 +64 (New Zealand)</SelectItem>
+                              <SelectItem value="+49">🇩🇪 +49 (Germany)</SelectItem>
+                              <SelectItem value="+33">🇫🇷 +33 (France)</SelectItem>
                             </SelectContent>
                           </Select>
                           <Input
@@ -940,52 +973,21 @@ export default function RegisterPage() {
                         {fieldErrors.age && (
                           <p className="text-sm text-red-500 mt-1">{fieldErrors.age}</p>
                         )}
-                      </div>
-                      <div>
-                        <Label htmlFor="motherTongue">Mother Tongue *</Label>
-                        <Select value={formData.motherTongue} onValueChange={(value) => {
-                          setFormData({ ...formData, motherTongue: value });
-                          if (fieldErrors.motherTongue) {
-                            setFieldErrors({ ...fieldErrors, motherTongue: "" });
-                          }
-                        }}>
-                          <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.motherTongue && "border-red-500")} data-filled={isFieldFilled(formData.motherTongue)}>
-                            <SelectValue placeholder="Select mother tongue" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="urdu">Urdu</SelectItem>
-                            <SelectItem value="hindi">Hindi</SelectItem>
-                            <SelectItem value="english">English</SelectItem>
-                            <SelectItem value="arabic">Arabic</SelectItem>
-                            <SelectItem value="bengali">Bengali</SelectItem>
-                            <SelectItem value="gujarati">Gujarati</SelectItem>
-                            <SelectItem value="marathi">Marathi</SelectItem>
-                            <SelectItem value="tamil">Tamil</SelectItem>
-                            <SelectItem value="telugu">Telugu</SelectItem>
-                            <SelectItem value="kannada">Kannada</SelectItem>
-                            <SelectItem value="malayalam">Malayalam</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {fieldErrors.motherTongue && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.motherTongue}</p>
-                        )}
-                      </div>
+                      </div>                      {/* Mother Tongue field removed as requested */}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                      <div>
                         <Label htmlFor="country">Country *</Label>
                         <Select value={formData.country} onValueChange={(value) => {
-                          setFormData({ ...formData, country: value });
+                          setFormData({ ...formData, country: value, city: "" });
                           if (fieldErrors.country) {
                             setFieldErrors({ ...fieldErrors, country: "" });
                           }
                         }}>
                           <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.country && "border-red-500")} data-filled={isFieldFilled(formData.country)}>
                             <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent>
+                          </SelectTrigger>                          <SelectContent>
+                            {/* Popular countries first */}
                             <SelectItem value="india">India</SelectItem>                      
                             <SelectItem value="uae">United Arab Emirates</SelectItem>
                             <SelectItem value="saudi-arabia">Saudi Arabia</SelectItem>
@@ -993,6 +995,28 @@ export default function RegisterPage() {
                             <SelectItem value="kuwait">Kuwait</SelectItem>
                             <SelectItem value="oman">Oman</SelectItem>
                             <SelectItem value="bahrain">Bahrain</SelectItem>
+                            
+                            {/* Western countries */}
+                            <SelectItem value="usa">United States</SelectItem>
+                            <SelectItem value="canada">Canada</SelectItem>
+                            <SelectItem value="australia">Australia</SelectItem>
+                            <SelectItem value="uk">United Kingdom</SelectItem>
+                            <SelectItem value="new-zealand">New Zealand</SelectItem>
+                            <SelectItem value="germany">Germany</SelectItem>
+                            <SelectItem value="france">France</SelectItem>
+                            
+                            {/* Asian countries */}
+                            <SelectItem value="singapore">Singapore</SelectItem>
+                            <SelectItem value="malaysia">Malaysia</SelectItem>
+                            <SelectItem value="japan">Japan</SelectItem>
+                            <SelectItem value="indonesia">Indonesia</SelectItem>
+                            
+                            {/* Other countries */}
+                            <SelectItem value="south-africa">South Africa</SelectItem>
+                            <SelectItem value="pakistan">Pakistan</SelectItem>
+                            <SelectItem value="bangladesh">Bangladesh</SelectItem>
+                            <SelectItem value="egypt">Egypt</SelectItem>
+                            <SelectItem value="turkey">Turkey</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
                           </SelectContent>
                         </Select>
@@ -1002,19 +1026,105 @@ export default function RegisterPage() {
                       </div>
                       <div>
                         <Label htmlFor="city">City *</Label>
-                        <Input
-                          id="city"
-                          className={cn(inputStyles, fieldErrors.city && "border-red-500")}
-                          data-filled={isFieldFilled(formData.city)}
-                          value={formData.city}
-                          onChange={(e) => {
-                            setFormData({ ...formData, city: e.target.value });
-                            if (fieldErrors.city) {
-                              setFieldErrors({ ...fieldErrors, city: "" });
-                            }
-                          }}
-                          placeholder="Enter city"
-                        />
+                        {formData.country === 'india' ? (
+                          <Select 
+                            value={formData.city} 
+                            onValueChange={(value) => {
+                              setFormData({ ...formData, city: value });
+                              if (fieldErrors.city) {
+                                setFieldErrors({ ...fieldErrors, city: "" });
+                              }
+                            }}
+                          >
+                            <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.city && "border-red-500")} data-filled={isFieldFilled(formData.city)}>
+                              <SelectValue placeholder="Select city" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="mumbai">Mumbai</SelectItem>
+                              <SelectItem value="delhi">Delhi</SelectItem>
+                              <SelectItem value="bangalore">Bangalore</SelectItem>
+                              <SelectItem value="hyderabad">Hyderabad</SelectItem>
+                              <SelectItem value="chennai">Chennai</SelectItem>
+                              <SelectItem value="kolkata">Kolkata</SelectItem>
+                              <SelectItem value="pune">Pune</SelectItem>
+                              <SelectItem value="ahmedabad">Ahmedabad</SelectItem>
+                              <SelectItem value="jaipur">Jaipur</SelectItem>
+                              <SelectItem value="lucknow">Lucknow</SelectItem>
+                              <SelectItem value="surat">Surat</SelectItem>
+                              <SelectItem value="kanpur">Kanpur</SelectItem>
+                              <SelectItem value="nagpur">Nagpur</SelectItem>
+                              <SelectItem value="indore">Indore</SelectItem>
+                              <SelectItem value="thane">Thane</SelectItem>
+                              <SelectItem value="bhopal">Bhopal</SelectItem>
+                              <SelectItem value="vadodara">Vadodara</SelectItem>
+                              <SelectItem value="other">Other City</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : formData.country === 'uae' ? (
+                          <Select 
+                            value={formData.city} 
+                            onValueChange={(value) => {
+                              setFormData({ ...formData, city: value });
+                              if (fieldErrors.city) {
+                                setFieldErrors({ ...fieldErrors, city: "" });
+                              }
+                            }}
+                          >
+                            <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.city && "border-red-500")} data-filled={isFieldFilled(formData.city)}>
+                              <SelectValue placeholder="Select city" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="dubai">Dubai</SelectItem>
+                              <SelectItem value="abu-dhabi">Abu Dhabi</SelectItem>
+                              <SelectItem value="sharjah">Sharjah</SelectItem>
+                              <SelectItem value="al-ain">Al Ain</SelectItem>
+                              <SelectItem value="ajman">Ajman</SelectItem>
+                              <SelectItem value="ras-al-khaimah">Ras Al Khaimah</SelectItem>
+                              <SelectItem value="fujairah">Fujairah</SelectItem>
+                              <SelectItem value="umm-al-quwain">Umm Al Quwain</SelectItem>
+                              <SelectItem value="other">Other City</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : formData.country === 'saudi-arabia' ? (
+                          <Select 
+                            value={formData.city} 
+                            onValueChange={(value) => {
+                              setFormData({ ...formData, city: value });
+                              if (fieldErrors.city) {
+                                setFieldErrors({ ...fieldErrors, city: "" });
+                              }
+                            }}
+                          >
+                            <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.city && "border-red-500")} data-filled={isFieldFilled(formData.city)}>
+                              <SelectValue placeholder="Select city" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="riyadh">Riyadh</SelectItem>
+                              <SelectItem value="jeddah">Jeddah</SelectItem>
+                              <SelectItem value="mecca">Mecca</SelectItem>
+                              <SelectItem value="medina">Medina</SelectItem>
+                              <SelectItem value="dammam">Dammam</SelectItem>
+                              <SelectItem value="taif">Taif</SelectItem>
+                              <SelectItem value="tabuk">Tabuk</SelectItem>
+                              <SelectItem value="khobar">Khobar</SelectItem>
+                              <SelectItem value="other">Other City</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input
+                            id="city"
+                            className={cn(inputStyles, fieldErrors.city && "border-red-500")}
+                            data-filled={isFieldFilled(formData.city)}
+                            value={formData.city}
+                            onChange={(e) => {
+                              setFormData({ ...formData, city: e.target.value });
+                              if (fieldErrors.city) {
+                                setFieldErrors({ ...fieldErrors, city: "" });
+                              }
+                            }}
+                            placeholder="Enter city"
+                          />
+                        )}
                         {fieldErrors.city && (
                           <p className="text-sm text-red-500 mt-1">{fieldErrors.city}</p>
                         )}
@@ -1096,13 +1206,11 @@ export default function RegisterPage() {
                         }}>
                           <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.sect && "border-red-500")} data-filled={isFieldFilled(formData.sect)}>
                             <SelectValue placeholder="Select Maslak" />
-                          </SelectTrigger>
-                          <SelectContent>
+                          </SelectTrigger>                          <SelectContent>
                             <SelectItem value="sunni">Sunni</SelectItem>
                             <SelectItem value="shafii">Shafi'i</SelectItem>
                             <SelectItem value="barelvi">Barelvi</SelectItem>
-                            <SelectItem value="deobandi">Deobandi</SelectItem>
-                            <SelectItem value="hanafi">Hanafi</SelectItem>
+                            <SelectItem value="ahl-e-sunnat">Ahl-e-Sunnat</SelectItem>
                             <SelectItem value="shia">Shia</SelectItem>
                             <SelectItem value="revert">Revert Muslim</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
@@ -1228,8 +1336,7 @@ export default function RegisterPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                    )}
-                  </CardContent>
+                    )}                  </CardContent>
                 </Card>
               )}
 
@@ -1327,22 +1434,74 @@ export default function RegisterPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    </div>                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="preferredLocation">Preferred Location *</Label>
-                        <Input
-                          id="preferredLocation"
-                          className={cn(inputStyles, formData.preferredLocation.trim() === "" ? "border-red-500" : "")}
-                          data-filled={isFieldFilled(formData.preferredLocation)}
-                          value={formData.preferredLocation}
-                          onChange={(e) => setFormData({ ...formData, preferredLocation: e.target.value })}
-                          placeholder="e.g., Mumbai, Maharashtra, India"
-                          required
-                        />
-                        {formData.preferredLocation.trim() === "" && (
-                          <span className="text-xs text-red-500">Preferred location is required.</span>
+                        {formData.country !== '' ? (
+                          <Select
+                            value={formData.preferredLocation}
+                            onValueChange={(value) => {
+                              setFormData({ ...formData, preferredLocation: value });
+                              if (fieldErrors.preferredLocation) {
+                                setFieldErrors({ ...fieldErrors, preferredLocation: "" });
+                              }
+                            }}
+                          >
+                            <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.preferredLocation && "border-red-500")} data-filled={isFieldFilled(formData.preferredLocation)}>
+                              <SelectValue placeholder="Select preferred location" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {/* Based on country selected in step 1, show relevant cities */}
+                              {formData.country === 'india' && [
+                                <SelectItem key="any-india" value="anywhere-in-india">Anywhere in India</SelectItem>,
+                                <SelectItem key="mumbai" value="mumbai">Mumbai</SelectItem>,
+                                <SelectItem key="delhi" value="delhi">Delhi</SelectItem>,
+                                <SelectItem key="bangalore" value="bangalore">Bangalore</SelectItem>,
+                                <SelectItem key="hyderabad" value="hyderabad">Hyderabad</SelectItem>,
+                                <SelectItem key="chennai" value="chennai">Chennai</SelectItem>,
+                                <SelectItem key="kolkata" value="kolkata">Kolkata</SelectItem>,
+                                <SelectItem key="pune" value="pune">Pune</SelectItem>,
+                                <SelectItem key="ahmedabad" value="ahmedabad">Ahmedabad</SelectItem>,
+                                <SelectItem key="jaipur" value="jaipur">Jaipur</SelectItem>,
+                                <SelectItem key="lucknow" value="lucknow">Lucknow</SelectItem>,
+                                <SelectItem key="other-india" value="other-in-india">Other in India</SelectItem>
+                              ]}                              {formData.country === 'uae' && [
+                                <SelectItem key="any-uae" value="anywhere-in-uae">Anywhere in UAE</SelectItem>,
+                                <SelectItem key="dubai" value="dubai">Dubai</SelectItem>,
+                                <SelectItem key="abu-dhabi" value="abu-dhabi">Abu Dhabi</SelectItem>,
+                                <SelectItem key="sharjah" value="sharjah">Sharjah</SelectItem>,
+                                <SelectItem key="ajman" value="ajman">Ajman</SelectItem>,
+                                <SelectItem key="ras-al-khaimah" value="ras-al-khaimah">Ras Al Khaimah</SelectItem>,
+                                <SelectItem key="other-uae" value="other-in-uae">Other in UAE</SelectItem>
+                              ]}
+                              {formData.country === 'saudi-arabia' && [
+                                <SelectItem key="any-saudi" value="anywhere-in-saudi">Anywhere in Saudi Arabia</SelectItem>,
+                                <SelectItem key="riyadh" value="riyadh">Riyadh</SelectItem>,
+                                <SelectItem key="jeddah" value="jeddah">Jeddah</SelectItem>,
+                                <SelectItem key="mecca" value="mecca">Mecca</SelectItem>,
+                                <SelectItem key="medina" value="medina">Medina</SelectItem>,
+                                <SelectItem key="dammam" value="dammam">Dammam</SelectItem>,
+                                <SelectItem key="other-saudi" value="other-in-saudi">Other in Saudi Arabia</SelectItem>
+                              ]}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input
+                            id="preferredLocation"
+                            className={cn(inputStyles, fieldErrors.preferredLocation && "border-red-500")}
+                            data-filled={isFieldFilled(formData.preferredLocation)}
+                            value={formData.preferredLocation}
+                            onChange={(e) => {
+                              setFormData({ ...formData, preferredLocation: e.target.value });
+                              if (fieldErrors.preferredLocation) {
+                                setFieldErrors({ ...fieldErrors, preferredLocation: "" });
+                              }
+                            }}
+                            placeholder="e.g., Mumbai, Maharashtra, India"
+                          />
+                        )}
+                        {fieldErrors.preferredLocation && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.preferredLocation}</p>
                         )}
                       </div>
                       <div>
