@@ -894,15 +894,35 @@ export default function RegisterPage() {
                         {fieldErrors.email && (
                           <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>
                         )}
-                      </div>
-                      <div>                        <Label htmlFor="phone">WhatsApp Phone Number *</Label>
+                      </div>                      <div>                        <Label htmlFor="phone">WhatsApp Phone Number *</Label>
                         <div className="flex mt-1 space-x-2">
                           <Select
                             value={formData.countryCode}
                             onValueChange={(value) => setFormData({ ...formData, countryCode: value })}
                           >
-                            <SelectTrigger className={cn(selectTriggerStyles, "w-[120px]")} data-filled={isFieldFilled(formData.countryCode)}>
-                              <SelectValue placeholder="+91" />
+                            <SelectTrigger className={cn(selectTriggerStyles, "w-[120px] flex items-center")} data-filled={isFieldFilled(formData.countryCode)}>
+                              <SelectValue placeholder="+91">
+                                {formData.countryCode === "+91" && <span className="mr-2">🇮🇳</span>}
+                                {formData.countryCode === "+971" && <span className="mr-2">🇦🇪</span>}
+                                {formData.countryCode === "+966" && <span className="mr-2">🇸🇦</span>}
+                                {formData.countryCode === "+1" && <span className="mr-2">🇺🇸</span>}
+                                {formData.countryCode === "+1-ca" && <span className="mr-2">🇨🇦</span>}
+                                {formData.countryCode === "+61" && <span className="mr-2">🇦🇺</span>}
+                                {formData.countryCode === "+44" && <span className="mr-2">🇬🇧</span>}
+                                {formData.countryCode === "+965" && <span className="mr-2">🇰🇼</span>}
+                                {formData.countryCode === "+974" && <span className="mr-2">🇶🇦</span>}
+                                {formData.countryCode === "+968" && <span className="mr-2">🇴🇲</span>}
+                                {formData.countryCode === "+973" && <span className="mr-2">🇧🇭</span>}
+                                {formData.countryCode === "+60" && <span className="mr-2">🇲🇾</span>}
+                                {formData.countryCode === "+65" && <span className="mr-2">🇸🇬</span>}
+                                {formData.countryCode === "+27" && <span className="mr-2">🇿🇦</span>}
+                                {formData.countryCode === "+92" && <span className="mr-2">🇵🇰</span>}
+                                {formData.countryCode === "+880" && <span className="mr-2">🇧🇩</span>}
+                                {formData.countryCode === "+64" && <span className="mr-2">🇳🇿</span>}
+                                {formData.countryCode === "+49" && <span className="mr-2">🇩🇪</span>}
+                                {formData.countryCode === "+33" && <span className="mr-2">🇫🇷</span>}
+                                {formData.countryCode}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {/* Popular countries first */}
@@ -948,9 +968,7 @@ export default function RegisterPage() {
                           <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>
                         )}
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    </div>                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <Label htmlFor="age">Age *</Label>
                         <Input
@@ -973,10 +991,7 @@ export default function RegisterPage() {
                         {fieldErrors.age && (
                           <p className="text-sm text-red-500 mt-1">{fieldErrors.age}</p>
                         )}
-                      </div>                      {/* Mother Tongue field removed as requested */}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                      <div>
+                      </div>                      <div>
                         <Label htmlFor="country">Country *</Label>
                         <Select value={formData.country} onValueChange={(value) => {
                           setFormData({ ...formData, country: value, city: "" });
@@ -1129,9 +1144,7 @@ export default function RegisterPage() {
                           <p className="text-sm text-red-500 mt-1">{fieldErrors.city}</p>
                         )}
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    </div>                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="password">Password *</Label>
                         <div className="relative">
@@ -1165,20 +1178,22 @@ export default function RegisterPage() {
                       </div>
                       <div>
                         <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                        <Input
-                          id="confirmPassword"
-                          type={showPassword ? "text" : "password"}
-                          className={cn(inputStyles, fieldErrors.confirmPassword && "border-red-500")}
-                          data-filled={isFieldFilled(formData.confirmPassword || "")}
-                          value={formData.confirmPassword || ""}
-                          onChange={(e) => {
-                            setFormData({ ...formData, confirmPassword: e.target.value });
-                            if (fieldErrors.confirmPassword) {
-                              setFieldErrors({ ...fieldErrors, confirmPassword: "" });
-                            }
-                          }}
-                          placeholder="Confirm your password"
-                        />
+                        <div className="relative">
+                          <Input
+                            id="confirmPassword"
+                            type={showPassword ? "text" : "password"}
+                            className={cn(inputStyles, fieldErrors.confirmPassword && "border-red-500")}
+                            data-filled={isFieldFilled(formData.confirmPassword || "")}
+                            value={formData.confirmPassword || ""}
+                            onChange={(e) => {
+                              setFormData({ ...formData, confirmPassword: e.target.value });
+                              if (fieldErrors.confirmPassword) {
+                                setFieldErrors({ ...fieldErrors, confirmPassword: "" });
+                              }
+                            }}
+                            placeholder="Confirm your password"
+                          />
+                        </div>
                         {fieldErrors.confirmPassword && (
                           <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
                         )}
@@ -1209,8 +1224,8 @@ export default function RegisterPage() {
                           </SelectTrigger>                          <SelectContent>
                             <SelectItem value="sunni">Sunni</SelectItem>
                             <SelectItem value="shafii">Shafi'i</SelectItem>
-                            <SelectItem value="barelvi">Barelvi</SelectItem>
-                            <SelectItem value="ahl-e-sunnat">Ahl-e-Sunnat</SelectItem>
+                            <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
+                            <SelectItem value="deobandi">Deobandi</SelectItem>
                             <SelectItem value="shia">Shia</SelectItem>
                             <SelectItem value="revert">Revert Muslim</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
