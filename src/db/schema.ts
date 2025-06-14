@@ -19,7 +19,7 @@ export const users = pgTable('users', {
   height: varchar('height', { length: 20 }).notNull(),
   complexion: varchar('complexion', { length: 50 }),
   maritalStatus: varchar('marital_status', { length: 50 }),
-  profileStatus: varchar('profile_status', { length: 20 }).notNull().default('pending'),
+  profileStatus: varchar('profile_status', { length: 20 }).notNull().default('approved'),
   subscription: varchar('subscription', { length: 20 }).notNull().default('free'),
   subscriptionExpiry: timestamp('subscription_expiry'),
   profilePhoto: text('profile_photo'),

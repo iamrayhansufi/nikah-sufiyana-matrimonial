@@ -305,10 +305,12 @@ export default function DashboardPage() {
                   <Avatar className="h-32 w-32">
                     <AvatarImage src={userProfile.profilePhoto || "/placeholder.svg"} alt={userProfile.name} />
                     <AvatarFallback className="text-2xl">
-                      {userProfile.name
-                        .split(" ")
-                        .map((n: string) => n[0])
-                        .join("")}
+                      {userProfile.name && typeof userProfile.name === 'string' 
+                        ? userProfile.name
+                            .split(" ")
+                            .map((n: string) => n[0])
+                            .join("")
+                        : "U"}
                     </AvatarFallback>
                   </Avatar>
                   <Button size="icon" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full">
@@ -425,10 +427,12 @@ export default function DashboardPage() {
                           <Avatar>
                             <AvatarImage src={interest.image || "/placeholder.svg"} alt={interest.name} />
                             <AvatarFallback>
-                              {interest.name
-                                .split(" ")
-                                .map((n: string) => n[0])
-                                .join("")}
+                              {interest.name && typeof interest.name === 'string'
+                                ? interest.name
+                                    .split(" ")
+                                    .map((n: string) => n[0])
+                                    .join("")
+                                : "U"}
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -474,10 +478,12 @@ export default function DashboardPage() {
                           <Avatar className="h-16 w-16">
                             <AvatarImage src={profile.image || "/placeholder.svg"} alt={profile.name} />
                             <AvatarFallback>
-                              {profile.name
-                                .split(" ")
-                                .map((n: string) => n[0])
-                                .join("")}
+                              {profile.name && typeof profile.name === 'string'
+                                ? profile.name
+                                    .split(" ")
+                                    .map((n: string) => n[0])
+                                    .join("")
+                                : "U"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">

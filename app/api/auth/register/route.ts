@@ -85,7 +85,7 @@ export async function POST(req: Request) {
       motherTongue: userData.motherTongue || "", // Made optional
       height: userData.height,
       complexion: userData.complexion,
-      profileStatus: "pending",
+      profileStatus: "approved", // All profiles are automatically approved
       subscription: "free",
       lastActive: new Date(),
       // Optional fields

@@ -239,10 +239,12 @@ export default function ProfilePage({
                         className="object-cover"
                       />
                       <AvatarFallback className="text-4xl h-80 rounded-lg">
-                        {profile.name
-                          .split(" ")
-                          .map((n: string) => n[0])
-                          .join("")}
+                        {profile.name && typeof profile.name === 'string' 
+                          ? profile.name
+                              .split(" ")
+                              .map((n: string) => n[0])
+                              .join("")
+                          : "U"}
                       </AvatarFallback>
                     </Avatar>
 

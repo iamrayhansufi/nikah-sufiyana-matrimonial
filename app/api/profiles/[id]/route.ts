@@ -81,28 +81,54 @@ export async function GET(
         { error: "Profile not found" },
         { status: 404 }
       );
-    }    // Allow user to view their own profile regardless of status
-    if (session && session.user && parseInt(session.user.id) === id) {
-      return NextResponse.json(profile[0]);
-    }
+    }    
+    // Add formatted profile info for consistent display
+    const profileData = {
+      ...profile[0],
+      name: profile[0].fullName, // Add name field from fullName for consistency
+      joinedDate: profile[0].lastActive ? new Date(profile[0].lastActive).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) : 'Unknown',
+      matchPercentage: 85, // Default match percentage
+      lastSeen: profile[0].lastActive ? new Date(profile[0].lastActive).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) : 'Unknown',
+      // Default fields for display
+      showContactInfo: false,
+      showFullPhotos: false,
+      gallery: [],
+      prayerHabit: 'Not specified',
+      hijab: 'Not specified',
+      quranReading: 'Not specified',
+      islamicEducation: 'Not specified',
+      diet: 'Not specified',
+      smoking: 'Not specified',
+      drinking: 'Not specified',
+      languages: ['Not specified'],
+      hobbies: ['Not specified'],
+      fatherOccupation: 'Not specified',
+      motherOccupation: 'Not specified',
+      siblings: 'Not specified',
+      familyType: 'Not specified',
+      height: 'Not specified',
+      weight: 'Not specified',
+      complexion: 'Not specified',
+      bodyType: 'Not specified',
+      motherTongue: 'Not specified',
+      preferredHeight: 'Not specified',
+      preferredAge: profile[0].preferredAgeMin && profile[0].preferredAgeMax ? 
+        `${profile[0].preferredAgeMin} - ${profile[0].preferredAgeMax} years` : 'Not specified',
+    };
     
-    // TEMPORARY: Allow all profiles to be viewed for testing
-    // Later we can reinstate the profileStatus check
-    
-    /*
-    // For others, only allow if profile is approved
-    if (profile[0].profileStatus !== "approved") {
-      return NextResponse.json(
-        { error: "Profile not available" },
-        { status: 403 }
-      );
-    }
-    */
-    
+    // Allow all profiles to be viewed regardless of status
     // Debug information
-    console.log(`Serving profile ${id} with status: ${profile[0].profileStatus}`);
+    console.log(`Serving profile ${id}`);
     
-    return NextResponse.json(profile[0]);
+    return NextResponse.json(profileData);
   } catch (error) {
     console.error("Get profile error:", error);
     return NextResponse.json(

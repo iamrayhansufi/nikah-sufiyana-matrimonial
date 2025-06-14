@@ -473,18 +473,9 @@ export default function EditProfilePage() {
                 </CardDescription>
               </div>
               
-              <div className="mt-4 md:mt-0 flex items-center">
-                {profileData?.profileStatus && (
-                  <Badge 
-                    className={`mr-2 ${
-                      profileData.profileStatus === 'approved' 
-                        ? 'bg-green-500' 
-                        : profileData.profileStatus === 'pending' 
-                          ? 'bg-yellow-500' 
-                          : 'bg-red-500'
-                    }`}
-                  >
-                    {profileData.profileStatus.toUpperCase()}
+              <div className="mt-4 md:mt-0 flex items-center">                {profileData?.profileStatus && (
+                  <Badge className="mr-2 bg-green-500">
+                    APPROVED
                   </Badge>
                 )}
                 

@@ -244,7 +244,7 @@ function mapDatabaseUserToAppUser(user: any): User {
     height: user.height || '5.7',
     complexion: user.complexion || null,
     maritalStatus: user.maritalStatus || null,
-    profileStatus: user.profileStatus || 'pending',
+    profileStatus: user.profileStatus || 'approved',
     subscription: user.subscription || 'free',
     subscriptionExpiry: user.subscriptionExpiry || null,
     profilePhoto: user.profilePhoto || "/placeholder-user.jpg",
@@ -285,14 +285,8 @@ export async function getUsers(filters: Record<string, any>, page: number, limit
     
     // Build conditions array
     const conditions = [];
-    
-    // Add filter conditions
-    if (filters.profileStatus && filters.profileStatus !== "all") {
-      console.log("Filtering by profileStatus:", filters.profileStatus);
-      conditions.push(eq(users.profileStatus, filters.profileStatus));
-    } else {
-      console.log("Showing all users regardless of profile status");
-    }
+      // No longer filtering by profileStatus - all profiles are automatically approved
+    console.log("Showing all users - profileStatus filtering removed");
     
     if (filters.gender) {
       conditions.push(eq(users.gender, filters.gender));
