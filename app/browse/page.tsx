@@ -63,14 +63,28 @@ export default function BrowseProfilesPage() {
   // Fetch real profiles from API
   useEffect(() => {
     setLoading(true)
-    fetch("/api/profiles?limit=50")
+    
+    // Build query parameters based on filters
+    const params = new URLSearchParams();
+    params.append("limit", "50");
+    
+    if (filters.ageMin) params.append("ageMin", filters.ageMin);
+    if (filters.ageMax) params.append("ageMax", filters.ageMax);
+    if (filters.location) params.append("location", filters.location);
+    if (filters.education) params.append("education", filters.education);
+    if (filters.sect) params.append("sect", filters.sect);
+    
+    fetch(`/api/profiles?${params.toString()}`)
       .then(res => res.json())
       .then(data => {
         setProfiles(data.profiles || [])
         setLoading(false)
       })
-      .catch(() => setLoading(false))
-  }, [])
+      .catch((error) => {
+        console.error("Error fetching profiles:", error);
+        setLoading(false)
+      })
+  }, [filters])
 
   // Check user subscription status from session
   useEffect(() => {
@@ -130,29 +144,47 @@ export default function BrowseProfilesPage() {
     }
   }
 
+  const [showApplyButton, setShowApplyButton] = useState(false);
+  const [tempFilters, setTempFilters] = useState(filters);
+
+  const applyFilters = () => {
+    setFilters(tempFilters);
+    setShowApplyButton(false);
+    // If mobile filters are open, close them after applying
+    if (showFilters) {
+      setShowFilters(false);
+    }
+  };
+
+  // Function to handle filter changes and show apply button
+  const handleFilterChange = (newFilters: any) => {
+    setTempFilters(newFilters);
+    setShowApplyButton(true);
+  };
+
   const FilterContent = () => (
     <div className="space-y-6 p-4">
-      <div>
-        <Label className="text-base font-semibold">Age Range</Label>
+      <div className="bg-primary/5 p-4 rounded-md border border-primary/20">
+        <Label className="text-base font-semibold mb-3 block text-primary">Age Range</Label>
         <div className="mt-2">
           <Slider
-            value={filters.ageRange}
+            value={tempFilters.ageRange}
             onValueChange={(value) => {
-              setFilters({ 
-                ...filters, 
+              handleFilterChange({ 
+                ...tempFilters, 
                 ageRange: value,
                 ageMin: value[0].toString(),
                 ageMax: value[1].toString()
-              })
+              });
             }}
             max={60}
             min={18}
             step={1}
             className="w-full relative [&>[role=slider]]:block"
           />
-          <div className="flex justify-between text-sm text-muted-foreground mt-1">
-            <span>{filters.ageRange[0]} years</span>
-            <span>{filters.ageRange[1]} years</span>
+          <div className="flex justify-between text-sm font-medium mt-3">
+            <span className="bg-primary/10 px-3 py-1 rounded-full">{tempFilters.ageRange[0]} years</span>
+            <span className="bg-primary/10 px-3 py-1 rounded-full">{tempFilters.ageRange[1]} years</span>
           </div>
         </div>
       </div>
@@ -161,8 +193,8 @@ export default function BrowseProfilesPage() {
         <Label>Height</Label>
         <div className="flex space-x-2">
           <Select
-            value={filters.heightMin}
-            onValueChange={(value) => setFilters({ ...filters, heightMin: value })}
+            value={tempFilters.heightMin}
+            onValueChange={(value) => handleFilterChange({ ...tempFilters, heightMin: value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Min height" />
@@ -195,8 +227,8 @@ export default function BrowseProfilesPage() {
             </SelectContent>
           </Select>
           <Select
-            value={filters.heightMax}
-            onValueChange={(value) => setFilters({ ...filters, heightMax: value })}
+            value={tempFilters.heightMax}
+            onValueChange={(value) => handleFilterChange({ ...tempFilters, heightMax: value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Max height" />
@@ -234,8 +266,8 @@ export default function BrowseProfilesPage() {
       <div>
         <Label>Marital Status</Label>
         <Select
-          value={filters.maritalStatus}
-          onValueChange={(value) => setFilters({ ...filters, maritalStatus: value })}
+          value={tempFilters.maritalStatus}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, maritalStatus: value })}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select marital status" />
@@ -252,8 +284,8 @@ export default function BrowseProfilesPage() {
       <div>
         <Label>Housing Status</Label>
         <Select
-          value={filters.housing}
-          onValueChange={(value) => setFilters({ ...filters, housing: value })}
+          value={tempFilters.housing}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, housing: value })}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select housing status" />
@@ -270,8 +302,8 @@ export default function BrowseProfilesPage() {
       <div>
         <Label>Education Level</Label>
         <Select
-          value={filters.education}
-          onValueChange={(value) => setFilters({ ...filters, education: value })}
+          value={tempFilters.education}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, education: value })}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select education level" />
@@ -289,8 +321,8 @@ export default function BrowseProfilesPage() {
       <div>
         <Label>Location</Label>
         <Select
-          value={filters.location}
-          onValueChange={(value) => setFilters({ ...filters, location: value })}
+          value={tempFilters.location}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, location: value })}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select location" />
@@ -309,45 +341,65 @@ export default function BrowseProfilesPage() {
       </div>
 
       <div>
-        <Label>Sect</Label>
+        <Label>Maslak/Sect</Label>
         <Select
-          value={filters.sect}
-          onValueChange={(value) => setFilters({ ...filters, sect: value })}
+          value={tempFilters.sect}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, sect: value })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select sect" />
+            <SelectValue placeholder="Select Maslak/Sect" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="sunni">Sunni</SelectItem>
+            <SelectItem value="shafii">Shafi'i</SelectItem>
+            <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
+            <SelectItem value="deobandi">Deobandi</SelectItem>
             <SelectItem value="shia">Shia</SelectItem>
+            <SelectItem value="revert">Revert Muslim</SelectItem>
             <SelectItem value="other">Other</SelectItem>
+            <SelectItem value="no-preference">No Preference</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <Button
-        onClick={() =>
-          setFilters({
-            ageRange: [22, 35],
-            location: "",
-            education: "",
-            profession: "",
-            sect: "",
-            prayer: "",
-            hijab: "",
-            ageMin: "",
-            ageMax: "",
-            heightMin: "",
-            heightMax: "",
-            maritalStatus: "",
-            housing: "",
-          })
-        }
-        variant="outline"
-        className="w-full"
-      >
-        Clear Filters
-      </Button>
+      <div className="flex gap-4">
+        <Button
+          onClick={() => {
+            const defaultFilters = {
+              ageRange: [22, 35],
+              location: "",
+              education: "",
+              profession: "",
+              sect: "",
+              prayer: "",
+              hijab: "",
+              ageMin: "",
+              ageMax: "",
+              heightMin: "",
+              heightMax: "",
+              maritalStatus: "",
+              housing: "",
+            };
+            setTempFilters(defaultFilters);
+            setFilters(defaultFilters);
+            setShowApplyButton(false);
+          }}
+          variant="outline"
+          className="flex-1"
+        >
+          Clear Filters
+        </Button>
+        
+        {showApplyButton && (
+          <Button
+            onClick={applyFilters}
+            variant="default"
+            className="flex-1 gradient-emerald text-white"
+          >
+            Apply Filters
+          </Button>
+        )}
+      </div>
     </div>
   )
 
