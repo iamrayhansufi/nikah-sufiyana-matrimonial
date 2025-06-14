@@ -76,6 +76,9 @@ export default function BrowseProfilesPage() {
     if (filters.education) params.append("education", filters.education);
     if (filters.sect) params.append("sect", filters.sect);
     
+    // Only use dummy data as fallback if there are no real users
+    // params.append("useDummy", "true");
+    
     // Log the API request for debugging
     console.log(`Fetching profiles with params: ${params.toString()}`);
     
@@ -89,17 +92,39 @@ export default function BrowseProfilesPage() {
       .then(data => {
         if (data.profiles && Array.isArray(data.profiles)) {
           console.log(`Received ${data.profiles.length} profiles from API`);
-          setProfiles(data.profiles)
+          
+          if (data.profiles.length === 0) {
+            // If no real profiles, try again with dummy data
+            const dummyParams = new URLSearchParams(params);
+            dummyParams.append("useDummy", "true");
+            
+            fetch(`/api/profiles?${dummyParams.toString()}`)
+              .then(res => res.json())
+              .then(dummyData => {
+                if (dummyData.profiles && Array.isArray(dummyData.profiles)) {
+                  console.log(`Received ${dummyData.profiles.length} dummy profiles as fallback`);
+                  setProfiles(dummyData.profiles);
+                }
+                setLoading(false);
+              })
+              .catch(err => {
+                console.error("Error fetching dummy profiles:", err);
+                setLoading(false);
+              });
+          } else {
+            setProfiles(data.profiles);
+            setLoading(false);
+          }
         } else {
           console.warn("API returned no profiles array:", data);
           setProfiles([]);
+          setLoading(false);
         }
-        setLoading(false)
       })
       .catch((error) => {
         console.error("Error fetching profiles:", error);
-        setLoading(false)
-      })
+        setLoading(false);
+      });
   }, [filters])
 
   // Check user subscription status from session
@@ -212,50 +237,6 @@ export default function BrowseProfilesPage() {
             <div className="flex flex-col gap-1">
               <span className="bg-primary/10 px-3 py-1 rounded-full text-center">{tempFilters.ageRange[1]} years</span>
               <span className="text-xs text-center">Max Age</span>
-            </div>
-          </div>
-          
-          {/* Precise Age Inputs */}
-          <div className="flex gap-2 mt-4">
-            <div className="flex-1">
-              <Label className="mb-1 block text-xs">Min Age</Label>
-              <Input 
-                type="number" 
-                min="18"
-                max="65"
-                value={tempFilters.ageMin}
-                onChange={(e) => {
-                  const minAge = Math.max(18, parseInt(e.target.value) || 18);
-                  const maxAge = Math.max(minAge, parseInt(tempFilters.ageMax) || minAge);
-                  handleFilterChange({
-                    ...tempFilters,
-                    ageMin: minAge.toString(),
-                    ageMax: maxAge.toString(),
-                    ageRange: [minAge, maxAge]
-                  });
-                }}
-                className="h-8 text-sm"
-              />
-            </div>
-            <div className="flex-1">
-              <Label className="mb-1 block text-xs">Max Age</Label>
-              <Input 
-                type="number"
-                min="18"
-                max="65" 
-                value={tempFilters.ageMax}
-                onChange={(e) => {
-                  const maxAge = Math.min(65, Math.max(18, parseInt(e.target.value) || 18));
-                  const minAge = Math.min(parseInt(tempFilters.ageMin) || 18, maxAge);
-                  handleFilterChange({
-                    ...tempFilters,
-                    ageMin: minAge.toString(),
-                    ageMax: maxAge.toString(),
-                    ageRange: [minAge, maxAge]
-                  });
-                }}
-                className="h-8 text-sm"
-              />
             </div>
           </div>
         </div>

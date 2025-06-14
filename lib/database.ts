@@ -105,7 +105,7 @@ import { db } from "@/src/db"
 import { users } from "@/src/db/schema"
 import { and, eq, gte, lte, like, sql } from "drizzle-orm"
 
-export async function getUsers(filters: Record<string, any>, page: number, limit: number): Promise<User[]> {
+export async function getUsers(filters: Record<string, any>, page: number, limit: number, useDummyData: boolean = false): Promise<User[]> {
   try {
     console.log("Fetching profiles with filters:", JSON.stringify(filters));
     
@@ -127,6 +127,14 @@ export async function getUsers(filters: Record<string, any>, page: number, limit
     if (filters.age && filters.age.$gte && filters.age.$lte) {
       conditions.push(gte(users.age, filters.age.$gte));
       conditions.push(lte(users.age, filters.age.$lte));
+    } else if (filters.ageMin || filters.ageMax) {
+      // Handle directly provided ageMin and ageMax 
+      if (filters.ageMin) {
+        conditions.push(gte(users.age, parseInt(filters.ageMin)));
+      }
+      if (filters.ageMax) {
+        conditions.push(lte(users.age, parseInt(filters.ageMax)));
+      }
     }
     
     if (filters.sect) {
@@ -136,10 +144,16 @@ export async function getUsers(filters: Record<string, any>, page: number, limit
     if (filters.location && filters.location.$regex) {
       // Using like for case-insensitive search
       conditions.push(like(users.location, `%${filters.location.$regex}%`));
+    } else if (filters.location) {
+      // Direct location match
+      conditions.push(like(users.location, `%${filters.location}%`));
     }
     
     if (filters.education && filters.education.$regex) {
       conditions.push(like(users.education, `%${filters.education.$regex}%`));
+    } else if (filters.education) {
+      // Direct education match
+      conditions.push(like(users.education, `%${filters.education}%`));
     }
     
     // Execute query with all conditions
@@ -157,9 +171,9 @@ export async function getUsers(filters: Record<string, any>, page: number, limit
     
     console.log(`Found ${result.length} profiles in database`);
     
-    // If no results, return dummy data for testing purposes
-    if (result.length === 0) {
-      console.log("No profiles found in database, using dummy data");
+    // If explicitly requested dummy data or no results and useDummyData is true
+    if ((result.length === 0 && useDummyData) || filters.useDummy === "true") {
+      console.log("Using dummy data for profiles");
       
       // Return dummy profiles for testing
       return [

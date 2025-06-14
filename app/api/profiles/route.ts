@@ -11,12 +11,15 @@ type ProfileFilters = {
   location?: {
     $regex: string
     $options: string
-  }
+  } | string
   education?: {
     $regex: string
     $options: string
-  }
+  } | string
   sect?: string
+  ageMin?: string
+  ageMax?: string
+  useDummy?: string
 }
 
 export async function GET(request: NextRequest) {
@@ -69,11 +72,16 @@ export async function GET(request: NextRequest) {
     if (sect) filters.sect = sect
 
     // Get profiles from database
-
+    
+    // Check if useDummy parameter is set
+    const useDummy = searchParams.get("useDummy") === "true";
+    if (useDummy) {
+      filters.useDummy = "true"; // Add to filters to pass through
+    }
 
     try {
       console.log("API: Fetching profiles with filters:", JSON.stringify(filters));
-      const profiles = await getUsers(filters, page, limit)
+      const profiles = await getUsers(filters, page, limit, useDummy)
       console.log(`API: Found ${profiles.length} profiles`);
       const stats = await getUserStats()
 
