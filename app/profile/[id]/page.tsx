@@ -77,6 +77,11 @@ export default function ProfilePage() {
               setAuthModalOpen(true);
               setLoading(false);
               return;
+            } else if (res.status === 403) {
+              // Handle forbidden error (likely profile not approved)
+              setError("This profile is not currently available for viewing");
+              setLoading(false);
+              return;
             }
             throw new Error(`Failed to fetch profile: ${res.status}`);
           }
