@@ -606,7 +606,7 @@ export default function BrowseProfilesPage() {
                           <MessageSquare className="h-4 w-4 mr-2" />
                           Contact Info
                         </Button>
-                        <Link href={`/profile/${profile.id}`}>
+                        <Link href={session ? `/profile/${profile.id}` : `/login?callbackUrl=${encodeURIComponent(`/profile/${profile.id}`)}`}>
                           <Button variant="outline" className="flex-1">
                             View Profile
                           </Button>

@@ -45,11 +45,22 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       try {
         const res = await fetch(`/api/profiles/${params.id}`, {
-          credentials: 'include' // This ensures cookies are sent
+          credentials: 'include', // This ensures cookies are sent
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store' // Disable caching to ensure we get fresh data
         });
+        
         if (!res.ok) {
-          throw new Error('Failed to fetch profile');
+          if (res.status === 401) {
+            // If unauthorized, redirect to login
+            window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`;
+            return;
+          }
+          throw new Error(`Failed to fetch profile: ${res.status}`);
         }
+        
         const data = await res.json();
         setProfile(data);
       } catch (error) {

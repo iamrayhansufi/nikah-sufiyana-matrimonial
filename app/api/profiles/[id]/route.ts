@@ -14,9 +14,14 @@ export async function GET(
   { params }: Props
 ) {  try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    // Check if we're in development mode where we might want to bypass auth
+    const isDev = process.env.NODE_ENV === 'development'
+    const bypassAuth = request.nextUrl.searchParams.get('public') === 'true' && isDev
+    
+    if (!session?.user?.id && !bypassAuth) {
+      console.log("Unauthorized profile access attempt")
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Unauthorized - Please log in to view profiles" },
         { status: 401 }
       )
     }
@@ -54,15 +59,13 @@ export async function GET(
       })
       .from(users)
       .where(eq(users.id, id))
-      .limit(1);
-
-    if (!profile || profile.length === 0) {
+      .limit(1);    if (!profile || profile.length === 0) {
       return NextResponse.json(
         { error: "Profile not found" },
         { status: 404 }
       );
     }    // Allow user to view their own profile regardless of status
-    if (parseInt(session.user.id) === id) {
+    if (session && session.user && parseInt(session.user.id) === id) {
       return NextResponse.json(profile[0]);
     }
     // For others, only allow if profile is approved
@@ -104,9 +107,8 @@ export async function PATCH(
         { status: 400 }
       )
     }
-    
-    // Only allow users to update their own profile
-    if (parseInt(session.user.id) !== id) {
+      // Only allow users to update their own profile
+    if (session && session.user && parseInt(session.user.id) !== id) {
       return NextResponse.json(
         { error: "You can only update your own profile" },
         { status: 403 }
