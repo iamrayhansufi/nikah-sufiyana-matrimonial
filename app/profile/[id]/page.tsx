@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { AuthRequiredModal } from "@/components/auth/auth-required-modal"
 import {
   Heart,
   Star,
@@ -39,6 +40,8 @@ export default function ProfilePage() {
   const [showContactDialog, setShowContactDialog] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  
   useEffect(() => {
     if (!params?.id) return
 
@@ -54,8 +57,8 @@ export default function ProfilePage() {
         
         if (!res.ok) {
           if (res.status === 401) {
-            // If unauthorized, redirect to login
-            window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`;
+            // Show auth modal instead of redirecting
+            setAuthModalOpen(true);
             return;
           }
           throw new Error(`Failed to fetch profile: ${res.status}`);
@@ -72,11 +75,16 @@ export default function ProfilePage() {
     fetchProfile();
   }, [params?.id])
 
-  if (!profile) return <div className="min-h-screen flex items-center justify-center">Loading profile...</div>
+  if (!profile && !authModalOpen) return <div className="min-h-screen flex items-center justify-center">Loading profile...</div>
 
   const handleSendInterest = () => {
     setIsInterestSent(true)
     // Handle send interest logic
+  }
+  
+  // Handle auth modal
+  const handleCloseAuthModal = () => {
+    setAuthModalOpen(false)
   }
 
   const handleShortlist = () => {
@@ -537,6 +545,15 @@ export default function ProfilePage() {
       </div>
 
       <Footer />
+      
+      {/* Auth Required Modal */}
+      {authModalOpen && (
+        <AuthRequiredModal 
+          isOpen={authModalOpen}
+          onClose={handleCloseAuthModal}
+          returnUrl={`/profile/${params?.id}`}
+        />
+      )}
     </div>
   )
 }

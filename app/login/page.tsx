@@ -199,40 +199,18 @@ function LoginFormWithParams() {
                   Sign In
                 </Button>
 
-                {/* Divider */}
-                <div className="relative">
+                {/* OTP Login - Commented out for now 
+                <div className="relative mt-4">
                   <Separator />
                   <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-sm text-muted-foreground">
-                    Or continue with
+                    Or
                   </span>
                 </div>
 
-                {/* Social Login */}
-                <div className="flex flex-col gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full flex items-center justify-center gap-2"
-                    onClick={() => signIn("google")}
-                  >
-                    <img src="/google.svg" alt="Google" className="h-5 w-5" />
-                    Continue with Google
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full flex items-center justify-center gap-2"
-                    onClick={() => signIn("facebook")}
-                  >
-                    <img src="/facebook.svg" alt="Facebook" className="h-5 w-5" />
-                    Continue with Facebook
-                  </Button>
-                </div>
-
-                {/* OTP Login */}
                 <Button variant="outline" className="w-full" type="button">
                   Login with OTP
                 </Button>
+                */}
               </form>
 
               {/* Sign Up Link */}
