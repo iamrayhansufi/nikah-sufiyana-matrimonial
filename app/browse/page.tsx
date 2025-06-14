@@ -18,33 +18,35 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useSession } from "next-auth/react"
 
 interface Profile {
-  id: number
+  id: string
   name: string
   age: number
   location: string
   education: string
-  profession: string
+  profession?: string
   sect: string
   height: string
-  maritalStatus: string
-  housing: string
-  image: string
-  match: number
-  premium: boolean
+  maritalStatus?: string
+  housing?: string
+  image?: string
+  profilePhoto?: string
+  match?: number
+  premium?: boolean
+  verified?: boolean
 }
 
 export default function BrowseProfilesPage() {
   const { data: session } = useSession()
   const [filters, setFilters] = useState({
-    ageRange: [22, 35],
+    ageRange: [18, 45],
     location: "",
     education: "",
     profession: "",
     sect: "",
     prayer: "",
     hijab: "",
-    ageMin: "",
-    ageMax: "",
+    ageMin: "18",
+    ageMax: "45",
     heightMin: "",
     heightMax: "",
     maritalStatus: "",
@@ -66,7 +68,7 @@ export default function BrowseProfilesPage() {
     
     // Build query parameters based on filters
     const params = new URLSearchParams();
-    params.append("limit", "50");
+    params.append("limit", "100"); // Increase limit to get more profiles
     
     if (filters.ageMin) params.append("ageMin", filters.ageMin);
     if (filters.ageMax) params.append("ageMax", filters.ageMax);
@@ -74,10 +76,24 @@ export default function BrowseProfilesPage() {
     if (filters.education) params.append("education", filters.education);
     if (filters.sect) params.append("sect", filters.sect);
     
+    // Log the API request for debugging
+    console.log(`Fetching profiles with params: ${params.toString()}`);
+    
     fetch(`/api/profiles?${params.toString()}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`API error with status ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
-        setProfiles(data.profiles || [])
+        if (data.profiles && Array.isArray(data.profiles)) {
+          console.log(`Received ${data.profiles.length} profiles from API`);
+          setProfiles(data.profiles)
+        } else {
+          console.warn("API returned no profiles array:", data);
+          setProfiles([]);
+        }
         setLoading(false)
       })
       .catch((error) => {
@@ -170,21 +186,77 @@ export default function BrowseProfilesPage() {
           <Slider
             value={tempFilters.ageRange}
             onValueChange={(value) => {
+              // Ensure minimum age is at least 18
+              const minAge = Math.max(18, value[0]);
+              // Ensure max age is at least min age
+              const maxAge = Math.max(minAge, value[1]); 
+              const newAgeRange = [minAge, maxAge];
+              
               handleFilterChange({ 
                 ...tempFilters, 
-                ageRange: value,
-                ageMin: value[0].toString(),
-                ageMax: value[1].toString()
+                ageRange: newAgeRange,
+                ageMin: minAge.toString(),
+                ageMax: maxAge.toString()
               });
             }}
-            max={60}
+            max={65}
             min={18}
             step={1}
             className="w-full relative [&>[role=slider]]:block"
           />
           <div className="flex justify-between text-sm font-medium mt-3">
-            <span className="bg-primary/10 px-3 py-1 rounded-full">{tempFilters.ageRange[0]} years</span>
-            <span className="bg-primary/10 px-3 py-1 rounded-full">{tempFilters.ageRange[1]} years</span>
+            <div className="flex flex-col gap-1">
+              <span className="bg-primary/10 px-3 py-1 rounded-full text-center">{tempFilters.ageRange[0]} years</span>
+              <span className="text-xs text-center">Min Age</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="bg-primary/10 px-3 py-1 rounded-full text-center">{tempFilters.ageRange[1]} years</span>
+              <span className="text-xs text-center">Max Age</span>
+            </div>
+          </div>
+          
+          {/* Precise Age Inputs */}
+          <div className="flex gap-2 mt-4">
+            <div className="flex-1">
+              <Label className="mb-1 block text-xs">Min Age</Label>
+              <Input 
+                type="number" 
+                min="18"
+                max="65"
+                value={tempFilters.ageMin}
+                onChange={(e) => {
+                  const minAge = Math.max(18, parseInt(e.target.value) || 18);
+                  const maxAge = Math.max(minAge, parseInt(tempFilters.ageMax) || minAge);
+                  handleFilterChange({
+                    ...tempFilters,
+                    ageMin: minAge.toString(),
+                    ageMax: maxAge.toString(),
+                    ageRange: [minAge, maxAge]
+                  });
+                }}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="flex-1">
+              <Label className="mb-1 block text-xs">Max Age</Label>
+              <Input 
+                type="number"
+                min="18"
+                max="65" 
+                value={tempFilters.ageMax}
+                onChange={(e) => {
+                  const maxAge = Math.min(65, Math.max(18, parseInt(e.target.value) || 18));
+                  const minAge = Math.min(parseInt(tempFilters.ageMin) || 18, maxAge);
+                  handleFilterChange({
+                    ...tempFilters,
+                    ageMin: minAge.toString(),
+                    ageMax: maxAge.toString(),
+                    ageRange: [minAge, maxAge]
+                  });
+                }}
+                className="h-8 text-sm"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -362,19 +434,18 @@ export default function BrowseProfilesPage() {
         </Select>
       </div>
 
-      <div className="flex gap-4">
-        <Button
-          onClick={() => {
+      <div className="flex gap-4">          <Button
+            onClick={() => {
             const defaultFilters = {
-              ageRange: [22, 35],
+              ageRange: [18, 45],
               location: "",
               education: "",
               profession: "",
               sect: "",
               prayer: "",
               hijab: "",
-              ageMin: "",
-              ageMax: "",
+              ageMin: "18",
+              ageMax: "45",
               heightMin: "",
               heightMax: "",
               maritalStatus: "",
@@ -489,9 +560,9 @@ export default function BrowseProfilesPage() {
                   <Card key={profile.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="relative">
                       <img
-                        src={profile.image || "/placeholder.svg"}
+                        src={profile.profilePhoto || "/placeholder-user.jpg"}
                         alt={profile.name}
-                        className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"} ${!profile.premium ? "blur-sm" : ""}`}
+                        className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"}`}
                       />
                       {!profile.premium && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

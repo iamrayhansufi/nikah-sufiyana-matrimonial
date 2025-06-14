@@ -72,7 +72,9 @@ export async function GET(request: NextRequest) {
 
 
     try {
+      console.log("API: Fetching profiles with filters:", JSON.stringify(filters));
       const profiles = await getUsers(filters, page, limit)
+      console.log(`API: Found ${profiles.length} profiles`);
       const stats = await getUserStats()
 
 
