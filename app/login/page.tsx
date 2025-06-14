@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -95,8 +96,14 @@ function LoginFormWithParams() {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <Heart className="h-8 w-8 text-primary mr-2" />
+              <div className="flex flex-col items-center justify-center mb-4">
+                <Image
+                  src="/Nikah Sufiyana Logo.svg"
+                  alt="Nikah Sufiyana"
+                  width={180}
+                  height={45}
+                  className="mb-4"
+                />
                 <h1 className="text-2xl font-bold">Welcome Back</h1>
               </div>
               <p className="text-muted-foreground">Sign in to your Nikah Sufiyana account</p>

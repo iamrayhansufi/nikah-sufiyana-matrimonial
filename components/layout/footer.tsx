@@ -36,10 +36,10 @@ export function Footer() {
           <div className="md:col-span-2 space-y-4">
             <Link href="/" className="flex items-center space-x-2">
               <Image
-                alt="Logo"
+                alt="Nikah Sufiyana"
                 height="48"
                 width="215"
-                src="/placeholder-logo.svg"
+                src="/Nikah Sufiyana Logo.svg"
                 className="h-12 w-auto"
               />
             </Link>

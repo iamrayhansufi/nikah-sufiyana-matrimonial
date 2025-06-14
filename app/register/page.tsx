@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { useToast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
 import { playfair } from "@/lib/fonts"
@@ -696,10 +697,15 @@ export default function RegisterPage() {
 
   // Choice screen component
   const ChoiceScreen = () => (
-    <Card className="mb-8">
-      <CardHeader className="text-center">
-        <div className="flex items-center justify-center mb-4">
-          <Heart className="h-8 w-8 text-primary mr-2" />
+    <Card className="mb-8">      <CardHeader className="text-center">
+        <div className="flex flex-col items-center justify-center mb-4">
+          <Image
+            src="/Nikah Sufiyana Logo.svg"
+            alt="Nikah Sufiyana"
+            width={180}
+            height={45}
+            className="mb-4"
+          />
           <h1 className={`${playfair.className} text-2xl font-bold`}>Create Your Profile</h1>
         </div>
         <p className="text-muted-foreground">Choose how you want to create your profile</p>
@@ -793,10 +799,15 @@ export default function RegisterPage() {
           ) : (
             <>
               {/* Progress Header */}
-              <Card className="mb-8">
-                <CardHeader className="text-center">
-                  <div className="flex items-center justify-center mb-4">
-                    <Heart className="h-8 w-8 text-primary mr-2" />
+              <Card className="mb-8">                <CardHeader className="text-center">
+                  <div className="flex flex-col items-center justify-center mb-4">
+                    <Image
+                      src="/Nikah Sufiyana Logo.svg"
+                      alt="Nikah Sufiyana"
+                      width={180}
+                      height={45}
+                      className="mb-4"
+                    />
                     <h1 className={`${playfair.className} text-2xl font-bold`}>Create Your Profile</h1>
                   </div>
                   <div className="flex justify-center space-x-2 mb-4">
