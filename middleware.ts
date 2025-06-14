@@ -4,14 +4,13 @@ import { NextResponse } from "next/server"
 export default withAuth(
   function middleware(req) {    const token = req.nextauth.token
     const isAuth = !!token
-    
-    const isAuthPage = req.nextUrl.pathname.startsWith('/login') ||
+      const isAuthPage = req.nextUrl.pathname.startsWith('/login') ||
                       req.nextUrl.pathname.startsWith('/register')
-      const isProtectedPage = req.nextUrl.pathname.startsWith('/dashboard') ||
+    
+    const isProtectedPage = req.nextUrl.pathname.startsWith('/dashboard') ||
                           req.nextUrl.pathname === '/edit-profile' ||
                           req.nextUrl.pathname.startsWith('/edit-profile/') ||
-                          req.nextUrl.pathname.startsWith('/settings') ||
-                          req.nextUrl.pathname.startsWith('/profile/')// Handle domain check
+                          req.nextUrl.pathname.startsWith('/settings')// Handle domain check
     const hostname = req.headers.get('host') || ''
     
     // Avoid URL parsing errors by providing a fallback
@@ -85,7 +84,8 @@ export const config = {
     '/settings/:path*',
     '/messages/:path*',
     '/interests/:path*',
-    '/shortlist/:path*',
-    '/profile/:path*'
+    '/shortlist/:path*'
+    // Profile pages are not strictly protected by middleware
+    // The page itself handles auth state
   ]
 }

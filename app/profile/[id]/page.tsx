@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { AuthRequiredModal } from "@/components/auth/auth-required-modal"
 import {
   Heart,
   Star,
@@ -31,10 +30,16 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { playfair } from "../../lib/fonts"
+import { useSession, signIn } from "next-auth/react"
 
-export default function ProfilePage() {
+// Simple ProfilePage Component that doesn't rely on complex URL handling
+export default function ProfilePage({ 
+  params
+}: { 
+  params: { id: string } 
+}) {
   const router = useRouter()
-  const params = useParams()
+  const { data: session, status } = useSession()
   const [profile, setProfile] = useState<any>(null)
   const [isShortlisted, setIsShortlisted] = useState(false)
   const [isInterestSent, setIsInterestSent] = useState(false)
@@ -42,68 +47,74 @@ export default function ProfilePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [authModalOpen, setAuthModalOpen] = useState(false)
+  
+  // Get the profile ID from params
+  const { id } = params
+  
+  // Handle login redirection
+  const handleLogin = () => {
+    // Store where the user was trying to go
+    localStorage.setItem('redirectAfterLogin', `/profile/${id}`)
+    // Redirect to login
+    router.push('/login')
+  }
   
   useEffect(() => {
-    // Safely extract profile ID
-    let profileId: string | null = null;
-    
-    try {
-      if (params && typeof params.id === 'string') {
-        profileId = params.id;
-      } else if (params && Array.isArray(params.id)) {
-        profileId = params.id[0];
+    const fetchProfile = async () => {
+      if (!id) {
+        setError("Invalid profile ID")
+        setLoading(false)
+        return
       }
       
-      if (!profileId) {
-        throw new Error("Invalid profile ID");
-      }
+      setLoading(true)
       
-      const fetchProfile = async () => {
-        setLoading(true);
-        try {
-          console.log(`Fetching profile with ID: ${profileId}`);
-          
-          const res = await fetch(`/api/profiles/${profileId}`, {
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            cache: 'no-store'
-          });
-          
-          if (!res.ok) {
-            if (res.status === 401) {
-              setAuthModalOpen(true);
-              setLoading(false);
-              return;
-            } else if (res.status === 403) {
-              // Handle forbidden error (likely profile not approved)
-              setError("This profile is not currently available for viewing");
-              setLoading(false);
-              return;
-            }
-            throw new Error(`Failed to fetch profile: ${res.status}`);
+      try {
+        console.log(`Fetching profile with ID: ${id}`)
+        
+        const res = await fetch(`/api/profiles/${id}`, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store'
+        })
+        
+        if (!res.ok) {
+          if (res.status === 401) {
+            setError("Please log in to view profiles")
+            setLoading(false)
+            return
           }
           
-          const data = await res.json();
-          setProfile(data);
-          setLoading(false);
-        } catch (error) {
-          console.error('Error fetching profile:', error);
-          setError(error instanceof Error ? error.message : 'Unknown error');
-          setProfile(null);
-          setLoading(false);
+          if (res.status === 403) {
+            setError("This profile is not currently available for viewing")
+            setLoading(false)
+            return
+          }
+          
+          throw new Error(`Failed to fetch profile: ${res.status}`)
         }
-      };
-
-      fetchProfile();
-    } catch (e) {
-      console.error("Error processing profile ID:", e);
-      setError("Invalid profile ID");
-      setLoading(false);
+        
+        const data = await res.json()
+        setProfile(data)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+        setError(error instanceof Error ? error.message : 'Unknown error')
+        setProfile(null)
+        setLoading(false)
+      }
     }
-  }, [])
+    
+    // Only fetch if we have a session
+    if (status === 'authenticated') {
+      fetchProfile()
+    } else if (status === 'unauthenticated') {
+      setError("Please log in to view profiles")
+      setLoading(false)
+    }
+  }, [id, status])
 
   // Loading state
   if (loading) {
@@ -117,14 +128,43 @@ export default function ProfilePage() {
     );
   }
   
-  // Error state
-  if (error && !authModalOpen) {
+  // Error state with login option
+  if (error) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="text-center max-w-md">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Profile</h2>
           <p className="mb-6">{error}</p>
-          <Button onClick={() => router.push('/browse')}>
+          
+          {status === 'unauthenticated' && (
+            <div className="flex flex-col space-y-4">
+              <p className="text-gray-700">You need to be logged in to view profiles.</p>
+              <Button onClick={handleLogin} className="w-full bg-emerald-600 hover:bg-emerald-700">
+                Login to View Profile
+              </Button>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-white px-2 text-sm text-gray-500">
+                    or
+                  </span>
+                </div>
+              </div>
+              <Link href="/register">
+                <Button variant="outline" className="w-full border-emerald-600 text-emerald-600">
+                  Create an Account
+                </Button>
+              </Link>
+            </div>
+          )}
+          
+          <Button 
+            variant="outline" 
+            onClick={() => router.push('/browse')}
+            className="mt-4"
+          >
             Return to Browse
           </Button>
         </div>
@@ -132,23 +172,7 @@ export default function ProfilePage() {
     );
   }
   
-  // No profile but auth modal is open
-  if (!profile && authModalOpen) {
-    return (
-      <div className="min-h-screen">
-        <AuthRequiredModal 
-          isOpen={authModalOpen}
-          onClose={() => {
-            setAuthModalOpen(false);
-            router.push('/browse');
-          }}
-          returnUrl={typeof params.id === 'string' ? `/profile/${params.id}` : '/browse'}
-        />
-      </div>
-    );
-  }
-  
-  // No profile and no auth modal (shouldn't happen but just in case)
+  // No profile state
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -165,12 +189,6 @@ export default function ProfilePage() {
   const handleSendInterest = () => {
     setIsInterestSent(true)
     // Handle send interest logic
-  }
-  
-  // Handle auth modal
-  const handleCloseAuthModal = () => {
-    setAuthModalOpen(false);
-    router.push('/browse');
   }
 
   const handleShortlist = () => {
@@ -631,15 +649,6 @@ export default function ProfilePage() {
       </div>
 
       <Footer />
-      
-      {/* Auth Required Modal */}
-      {authModalOpen && (
-        <AuthRequiredModal 
-          isOpen={authModalOpen}
-          onClose={handleCloseAuthModal}
-          returnUrl={typeof params?.id === 'string' ? `/profile/${params.id}` : '/browse'}
-        />
-      )}
     </div>
   )
 }
