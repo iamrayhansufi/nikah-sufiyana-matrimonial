@@ -33,49 +33,129 @@ import Link from "next/link"
 import { playfair } from "../../lib/fonts"
 
 export default function ProfilePage() {
+  const router = useRouter()
   const params = useParams()
   const [profile, setProfile] = useState<any>(null)
   const [isShortlisted, setIsShortlisted] = useState(false)
   const [isInterestSent, setIsInterestSent] = useState(false)
   const [showContactDialog, setShowContactDialog] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   
   useEffect(() => {
-    if (!params?.id) return
-
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch(`/api/profiles/${params.id}`, {
-          credentials: 'include', // This ensures cookies are sent
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          cache: 'no-store' // Disable caching to ensure we get fresh data
-        });
-        
-        if (!res.ok) {
-          if (res.status === 401) {
-            // Show auth modal instead of redirecting
-            setAuthModalOpen(true);
-            return;
-          }
-          throw new Error(`Failed to fetch profile: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        setProfile(data);
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        setProfile(null);
+    // Safely extract profile ID
+    let profileId: string | null = null;
+    
+    try {
+      if (params && typeof params.id === 'string') {
+        profileId = params.id;
+      } else if (params && Array.isArray(params.id)) {
+        profileId = params.id[0];
       }
-    };
+      
+      if (!profileId) {
+        throw new Error("Invalid profile ID");
+      }
+      
+      const fetchProfile = async () => {
+        setLoading(true);
+        try {
+          console.log(`Fetching profile with ID: ${profileId}`);
+          
+          const res = await fetch(`/api/profiles/${profileId}`, {
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            cache: 'no-store'
+          });
+          
+          if (!res.ok) {
+            if (res.status === 401) {
+              setAuthModalOpen(true);
+              setLoading(false);
+              return;
+            }
+            throw new Error(`Failed to fetch profile: ${res.status}`);
+          }
+          
+          const data = await res.json();
+          setProfile(data);
+          setLoading(false);
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+          setError(error instanceof Error ? error.message : 'Unknown error');
+          setProfile(null);
+          setLoading(false);
+        }
+      };
 
-    fetchProfile();
-  }, [params?.id])
+      fetchProfile();
+    } catch (e) {
+      console.error("Error processing profile ID:", e);
+      setError("Invalid profile ID");
+      setLoading(false);
+    }
+  }, [])
 
-  if (!profile && !authModalOpen) return <div className="min-h-screen flex items-center justify-center">Loading profile...</div>
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-t-emerald-600 border-emerald-200 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Error state
+  if (error && !authModalOpen) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Profile</h2>
+          <p className="mb-6">{error}</p>
+          <Button onClick={() => router.push('/browse')}>
+            Return to Browse
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  // No profile but auth modal is open
+  if (!profile && authModalOpen) {
+    return (
+      <div className="min-h-screen">
+        <AuthRequiredModal 
+          isOpen={authModalOpen}
+          onClose={() => {
+            setAuthModalOpen(false);
+            router.push('/browse');
+          }}
+          returnUrl={typeof params.id === 'string' ? `/profile/${params.id}` : '/browse'}
+        />
+      </div>
+    );
+  }
+  
+  // No profile and no auth modal (shouldn't happen but just in case)
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="mb-4">Profile not found or unavailable</p>
+          <Button onClick={() => router.push('/browse')}>
+            Return to Browse
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleSendInterest = () => {
     setIsInterestSent(true)
@@ -84,7 +164,8 @@ export default function ProfilePage() {
   
   // Handle auth modal
   const handleCloseAuthModal = () => {
-    setAuthModalOpen(false)
+    setAuthModalOpen(false);
+    router.push('/browse');
   }
 
   const handleShortlist = () => {
@@ -551,7 +632,7 @@ export default function ProfilePage() {
         <AuthRequiredModal 
           isOpen={authModalOpen}
           onClose={handleCloseAuthModal}
-          returnUrl={`/profile/${params?.id}`}
+          returnUrl={typeof params?.id === 'string' ? `/profile/${params.id}` : '/browse'}
         />
       )}
     </div>

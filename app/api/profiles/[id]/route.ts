@@ -26,7 +26,24 @@ export async function GET(
       )
     }
 
-    const { id: paramId } = await params
+    // Safely extract and validate the ID parameter
+    let paramId;
+    try {
+      paramId = (await params).id;
+      if (!paramId) {
+        return NextResponse.json(
+          { error: "Missing profile ID" }, 
+          { status: 400 }
+        );
+      }
+    } catch (error) {
+      console.error("Error extracting profile ID from params:", error);
+      return NextResponse.json(
+        { error: "Invalid profile ID parameter" }, 
+        { status: 400 }
+      );
+    }
+    
     const id = parseInt(paramId)
     
     if (isNaN(id)) {

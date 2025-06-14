@@ -14,17 +14,38 @@ interface AuthRequiredModalProps {
 export function AuthRequiredModal({ isOpen, onClose, returnUrl }: AuthRequiredModalProps) {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(isOpen);
+  // Safe URL encoding function
+  const safeEncodeURI = (url: string) => {
+    try {
+      return encodeURIComponent(url);
+    } catch (e) {
+      console.error("Error encoding URL:", e);
+      return encodeURIComponent("/browse"); // Default safe fallback
+    }
+  };
 
   const handleLogin = () => {
     setIsDialogOpen(false);
     onClose();
-    router.push(`/login?callbackUrl=${encodeURIComponent(returnUrl || window.location.pathname)}`);
+    try {
+      const safeUrl = safeEncodeURI(returnUrl || "/browse");
+      router.push(`/login?callbackUrl=${safeUrl}`);
+    } catch (e) {
+      console.error("Error navigating to login:", e);
+      router.push('/login');
+    }
   };
 
   const handleRegister = () => {
     setIsDialogOpen(false);
     onClose();
-    router.push(`/register?callbackUrl=${encodeURIComponent(returnUrl || window.location.pathname)}`);
+    try {
+      const safeUrl = safeEncodeURI(returnUrl || "/browse");
+      router.push(`/register?callbackUrl=${safeUrl}`);
+    } catch (e) {
+      console.error("Error navigating to register:", e);
+      router.push('/register');
+    }
   };
 
   return (
