@@ -44,8 +44,12 @@ export async function GET(request: NextRequest) {
 
     // Build filter object
     const filters: ProfileFilters = {
-      profileStatus: "approved",
+      // Do not restrict by profileStatus by default to show all users including newly registered ones
+      // Get profileStatus from query param if provided
+      profileStatus: (searchParams.get("profileStatus") as any) || "approved",
     }
+    
+    console.log("Initial filters:", filters);
 
 
     if (gender) {

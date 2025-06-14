@@ -70,6 +70,9 @@ export default function BrowseProfilesPage() {
     const params = new URLSearchParams();
     params.append("limit", "100"); // Increase limit to get more profiles
     
+    // Include all profile statuses to ensure we see newly registered users
+    params.append("profileStatus", "all");
+    
     if (filters.ageMin) params.append("ageMin", filters.ageMin);
     if (filters.ageMax) params.append("ageMax", filters.ageMax);
     if (filters.location) params.append("location", filters.location);
