@@ -39,8 +39,6 @@ interface BasicProfileForm {
   age: string;
   gender: string;
   location: string;
-  education: string;
-  profession: string;
   maritalStatus: string;
   maritalStatusOther?: string;
   sect: string;
@@ -81,7 +79,9 @@ interface MaternalPaternal {
 interface FamilyInfoForm {
   familyDetails: string;
   fatherName: string;
+  fatherMobile: string;
   motherName: string;
+  motherMobile: string;
   siblings: SiblingInfo[];
   brotherInLaws: SiblingBrotherInLaw[];
   maternalPaternal: MaternalPaternal[];
@@ -119,14 +119,14 @@ export default function EditProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [profileData, setProfileData] = useState<any>(null)
   // Default to basic tab and make sure we're not using the 'religious' tab anymore
-  const [activeTab, setActiveTab] = useState("basic")  // Form states for each tab
+  const [activeTab, setActiveTab] = useState("basic")  
+  
+  // Form states for each tab
   const [basicForm, setBasicForm] = useState<BasicProfileForm>({
     fullName: "",
     age: "",
     gender: "",
     location: "",
-    education: "",
-    profession: "",
     maritalStatus: "",
     sect: "",
     height: "",
@@ -147,7 +147,9 @@ export default function EditProfilePage() {
     const [familyForm, setFamilyForm] = useState<FamilyInfoForm>({
     familyDetails: "",
     fatherName: "",
+    fatherMobile: "",
     motherName: "",
+    motherMobile: "",
     siblings: [],
     brotherInLaws: [],
     maternalPaternal: [],
@@ -225,15 +227,14 @@ export default function EditProfilePage() {
         if (isMounted) {
           setProfileData(data)
             // Populate form data for each tab
-          setBasicForm({
-            fullName: data.fullName || "",
+          setBasicForm({            fullName: data.fullName || "",
             age: data.age ? String(data.age) : "",
             gender: data.gender || "",
-            location: data.location || "",            education: data.education || "",
-            profession: data.profession || "",
+            location: data.location || "",
             maritalStatus: data.maritalStatus || "",
             maritalStatusOther: data.maritalStatusOther || "",
-            sect: data.sect || "",            height: data.height || "",
+            sect: data.sect || "",
+            height: data.height || "",
             complexion: data.complexion || "",
             aboutMe: data.aboutMe || "",
             city: data.city || "",
@@ -288,7 +289,9 @@ export default function EditProfilePage() {
           setFamilyForm({
             familyDetails: data.familyDetails || "",
             fatherName: data.fatherName || "",
+            fatherMobile: data.fatherMobile || "",
             motherName: data.motherName || "",
+            motherMobile: data.motherMobile || "",
             siblings: siblingsArray || [],
             brotherInLaws: brotherInLawsArray || [],
             maternalPaternal: maternalPaternalArray || [],
@@ -482,9 +485,14 @@ export default function EditProfilePage() {
       // Store updated data in localStorage to ensure persistence
       const localStorageKey = `profile_${session.user.id}_${tabName.replace(/\s/g, '_')}`;
       localStorage.setItem(localStorageKey, JSON.stringify(tabData));
-      
-      // Refetch the complete profile to ensure all data is in sync
-      await refetchProfile();
+        // Refetch the complete profile to ensure all data is in sync
+      try {
+        await refetchProfile();
+        console.log("Profile data refreshed after save");
+      } catch (refreshError) {
+        console.error("Error refreshing profile data:", refreshError);
+        // Continue without failing the overall operation
+      }
       
       toast({
         title: "Profile Updated",
@@ -502,36 +510,71 @@ export default function EditProfilePage() {
       setSavingTab(null)
     }
   }
-  
-  // Function to refetch the complete profile
+    // Function to refetch the complete profile
   const refetchProfile = async () => {
     if (!session?.user?.id) return;
     
     try {
+      console.log("Refetching profile data for user:", session.user.id);
       const response = await fetch(`/api/profiles/${session.user.id}`, {
         headers: {
           "Cache-Control": "no-cache, no-store, must-revalidate"
-        }
+        },
+        next: { revalidate: 0 } // Ensure Next.js doesn't cache this request
       });
       
       if (!response.ok) {
+        console.error("Failed to fetch profile during refetch:", response.status);
         throw new Error(`Failed to fetch profile: ${response.status}`);
       }
       
       const data = await response.json();
+      console.log("Refetched profile data:", Object.keys(data).length, "fields");
       setProfileData(data);
       
+      // Process siblings data if it exists
+      let siblingsArray: SiblingInfo[] = [];
+      try {
+        if (data.siblings && typeof data.siblings === 'string') {
+          siblingsArray = JSON.parse(data.siblings);
+        } else if (Array.isArray(data.siblings)) {
+          siblingsArray = data.siblings;
+        }
+      } catch (e) {
+        console.warn("Could not parse siblings data during refetch:", e);
+      }
+        
+      // Process brother-in-law data if it exists
+      let brotherInLawsArray: SiblingBrotherInLaw[] = [];
+      try {
+        if (data.brotherInLaws && typeof data.brotherInLaws === 'string') {
+          brotherInLawsArray = JSON.parse(data.brotherInLaws);
+        } else if (Array.isArray(data.brotherInLaws)) {
+          brotherInLawsArray = data.brotherInLaws;
+        }
+      } catch (e) {
+        console.warn("Could not parse brother-in-law data during refetch:", e);
+      }
+
+      // Process maternal/paternal data if it exists
+      let maternalPaternalArray: MaternalPaternal[] = [];
+      try {
+        if (data.maternalPaternal && typeof data.maternalPaternal === 'string') {
+          maternalPaternalArray = JSON.parse(data.maternalPaternal);
+        } else if (Array.isArray(data.maternalPaternal)) {
+          maternalPaternalArray = data.maternalPaternal;
+        }
+      } catch (e) {
+        console.warn("Could not parse maternal/paternal data during refetch:", e);
+      }
+      
       // Update all form states with the fresh data
-      // Process the data for each tab as in the useEffect
       
       // Basic form data
-      setBasicForm({
-        fullName: data.fullName || "",
+      setBasicForm({        fullName: data.fullName || "",
         age: data.age ? String(data.age) : "",
         gender: data.gender || "",
         location: data.location || "",
-        education: data.education || "",
-        profession: data.profession || "",
         maritalStatus: data.maritalStatus || "",
         maritalStatusOther: data.maritalStatusOther || "",
         sect: data.sect || "",
@@ -541,6 +584,52 @@ export default function EditProfilePage() {
         city: data.city || "",
         country: data.country || "",
         address: data.address || ""
+      });
+      
+      // Education & Career form data
+      setEducationCareerForm({
+        education: data.education || "",
+        educationDetails: data.educationDetails || "",
+        profession: data.profession || "",
+        income: data.income || "",
+        jobTitle: data.jobTitle || ""
+      });
+      
+      // Family form data
+      setFamilyForm({
+        familyDetails: data.familyDetails || "",
+        fatherName: data.fatherName || "",
+        fatherMobile: data.fatherMobile || "",
+        motherName: data.motherName || "",
+        motherMobile: data.motherMobile || "",
+        siblings: siblingsArray || [],
+        brotherInLaws: brotherInLawsArray || [],
+        maternalPaternal: maternalPaternalArray || [],
+        housingStatus: data.housingStatus || ""
+      });
+      
+      // Partner preferences form data
+      setPartnerForm({
+        preferredAgeMin: data.preferredAgeMin ? String(data.preferredAgeMin) : "",
+        preferredAgeMax: data.preferredAgeMax ? String(data.preferredAgeMax) : "",
+        preferredLocation: data.preferredLocation || "",
+        preferredEducation: data.preferredEducation || "",
+        preferredOccupation: data.preferredOccupation || "",
+        preferredHeight: data.preferredHeight || "",
+        preferredComplexion: data.preferredComplexion || "",
+        preferredMaslak: data.preferredMaslak || "",
+        expectations: data.expectations || ""
+      });
+      
+      // Privacy settings form data
+      setPrivacyForm({
+        showContactInfo: data.showContactInfo !== undefined ? data.showContactInfo : true,
+        showPhotos: data.showPhotos !== undefined ? data.showPhotos : true,
+        hideProfile: data.hideProfile !== undefined ? data.hideProfile : false,
+        showOnlineStatus: data.showOnlineStatus !== undefined ? data.showOnlineStatus : true,
+        showFatherNumber: data.showFatherNumber !== undefined ? data.showFatherNumber : false,
+        showMotherNumber: data.showMotherNumber !== undefined ? data.showMotherNumber : false,
+        mobileNumber: data.mobileNumber || ""
       });
       
       // And similarly for other form sections
@@ -881,42 +970,7 @@ export default function EditProfilePage() {
                           <SelectItem value="dark">Dark</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-  
-                      <div className="space-y-2">
-                      <Label htmlFor="education">Highest Qualification</Label>
-                      <Select 
-                        value={basicForm.education} 
-                        onValueChange={(value) => handleBasicChange('education', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your highest qualification" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="secondary">Secondary School (10th)</SelectItem>
-                          <SelectItem value="higher-secondary">Higher Secondary (12th)</SelectItem>
-                          <SelectItem value="diploma">Diploma</SelectItem>
-                          <SelectItem value="undergraduate">Undergraduate (Pursuing)</SelectItem>
-                          <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
-                          <SelectItem value="postgraduate">Postgraduate (Pursuing)</SelectItem>
-                          <SelectItem value="master">Master's Degree</SelectItem>
-                          <SelectItem value="doctorate">PhD or Doctorate</SelectItem>
-                          <SelectItem value="professional">Professional Degree (Medical/Law/CA)</SelectItem>
-                          <SelectItem value="islamic-education">Islamic Education</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="profession">Profession</Label>
-                      <Input 
-                        id="profession"
-                        value={basicForm.profession}
-                        onChange={(e) => handleBasicChange('profession', e.target.value)}
-                        placeholder="Your current profession"
-                      />
-                    </div>
+                    </div>                      {/* Education and Profession fields moved to Education & Career tab */}
                     
                     <div className="space-y-2">
                       <Label htmlFor="maritalStatus">Marital Status</Label>
@@ -1004,22 +1058,26 @@ export default function EditProfilePage() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleEducationCareerSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="education">Highest Education</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                    <div className="space-y-2">
+                      <Label htmlFor="education">Highest Qualification</Label>
                       <Select 
                         value={educationCareerForm.education} 
                         onValueChange={(value) => handleEducationCareerChange('education', value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select education" />
+                          <SelectValue placeholder="Select your highest qualification" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="high-school">High School</SelectItem>
-                          <SelectItem value="bachelors">Bachelor's Degree</SelectItem>
-                          <SelectItem value="masters">Master's Degree</SelectItem>
-                          <SelectItem value="phd">PhD / Doctorate</SelectItem>
+                          <SelectItem value="secondary">Secondary School (10th)</SelectItem>
+                          <SelectItem value="higher-secondary">Higher Secondary (12th)</SelectItem>
                           <SelectItem value="diploma">Diploma</SelectItem>
+                          <SelectItem value="undergraduate">Undergraduate (Pursuing)</SelectItem>
+                          <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
+                          <SelectItem value="postgraduate">Postgraduate (Pursuing)</SelectItem>
+                          <SelectItem value="master">Master's Degree</SelectItem>
+                          <SelectItem value="doctorate">PhD or Doctorate</SelectItem>
+                          <SelectItem value="professional">Professional Degree (Medical/Law/CA)</SelectItem>
+                          <SelectItem value="islamic-education">Islamic Education</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -1095,8 +1153,7 @@ export default function EditProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleFamilySubmit} className="space-y-4">                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
+                <form onSubmit={handleFamilySubmit} className="space-y-4">                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                    <div className="space-y-2">
                       <Label htmlFor="fatherName">Father's Name</Label>
                       <Input 
                         id="fatherName"
@@ -1107,12 +1164,32 @@ export default function EditProfilePage() {
                     </div>
                     
                     <div className="space-y-2">
+                      <Label htmlFor="fatherMobile">Father's Mobile Number</Label>
+                      <Input 
+                        id="fatherMobile"
+                        value={familyForm.fatherMobile}
+                        onChange={(e) => handleFamilyChange('fatherMobile', e.target.value)}
+                        placeholder="Father's mobile number"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
                       <Label htmlFor="motherName">Mother's Name</Label>
                       <Input 
                         id="motherName"
                         value={familyForm.motherName}
                         onChange={(e) => handleFamilyChange('motherName', e.target.value)}
                         placeholder="Your mother's name"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="motherMobile">Mother's Mobile Number</Label>
+                      <Input 
+                        id="motherMobile"
+                        value={familyForm.motherMobile}
+                        onChange={(e) => handleFamilyChange('motherMobile', e.target.value)}
+                        placeholder="Mother's mobile number"
                       />
                     </div>
                     
