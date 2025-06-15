@@ -249,36 +249,41 @@ export default function EditProfilePage() {
             income: data.income || "",
             jobTitle: data.jobTitle || ""
           })
-          
-          // Process siblings data if it exists
+            // Process siblings data if it exists
           let siblingsArray: SiblingInfo[] = [];
           try {
             if (data.siblings && typeof data.siblings === 'string') {
-              // Try to parse if it's a JSON string
-              siblingsArray = JSON.parse(data.siblings);
+              // Skip parsing if it's "Not specified" or not valid JSON
+              if (data.siblings !== "Not specified" && data.siblings.startsWith('[')) {
+                // Try to parse if it's a JSON string
+                siblingsArray = JSON.parse(data.siblings);
+              }
             } else if (Array.isArray(data.siblings)) {
               siblingsArray = data.siblings;
             }
           } catch (e) {
             console.warn("Could not parse siblings data:", e);
-          }
-            // Process brother-in-law data if it exists
+          }          // Process brother-in-law data if it exists
           let brotherInLawsArray: SiblingBrotherInLaw[] = [];
           try {
             if (data.brotherInLaws && typeof data.brotherInLaws === 'string') {
-              brotherInLawsArray = JSON.parse(data.brotherInLaws);
+              // Skip parsing if it's "Not specified" or not valid JSON
+              if (data.brotherInLaws !== "Not specified" && data.brotherInLaws.startsWith('[')) {
+                brotherInLawsArray = JSON.parse(data.brotherInLaws);
+              }
             } else if (Array.isArray(data.brotherInLaws)) {
               brotherInLawsArray = data.brotherInLaws;
             }
           } catch (e) {
             console.warn("Could not parse brother-in-law data:", e);
-          }
-
-          // Process maternal/paternal data if it exists
+          }          // Process maternal/paternal data if it exists
           let maternalPaternalArray: MaternalPaternal[] = [];
           try {
             if (data.maternalPaternal && typeof data.maternalPaternal === 'string') {
-              maternalPaternalArray = JSON.parse(data.maternalPaternal);
+              // Skip parsing if it's "Not specified" or not valid JSON
+              if (data.maternalPaternal !== "Not specified" && data.maternalPaternal.startsWith('[')) {
+                maternalPaternalArray = JSON.parse(data.maternalPaternal);
+              }
             } else if (Array.isArray(data.maternalPaternal)) {
               maternalPaternalArray = data.maternalPaternal;
             }
@@ -535,24 +540,28 @@ export default function EditProfilePage() {
       const data = await response.json();
       console.log("Refetched profile data:", Object.keys(data).length, "fields");
       setProfileData(data);
-      
-      // Process siblings data if it exists
+        // Process siblings data if it exists
       let siblingsArray: SiblingInfo[] = [];
       try {
         if (data.siblings && typeof data.siblings === 'string') {
-          siblingsArray = JSON.parse(data.siblings);
+          // Skip parsing if it's "Not specified" or not valid JSON
+          if (data.siblings !== "Not specified" && data.siblings.startsWith('[')) {
+            siblingsArray = JSON.parse(data.siblings);
+          }
         } else if (Array.isArray(data.siblings)) {
           siblingsArray = data.siblings;
         }
       } catch (e) {
         console.warn("Could not parse siblings data during refetch:", e);
       }
-        
-      // Process brother-in-law data if it exists
+          // Process brother-in-law data if it exists
       let brotherInLawsArray: SiblingBrotherInLaw[] = [];
       try {
         if (data.brotherInLaws && typeof data.brotherInLaws === 'string') {
-          brotherInLawsArray = JSON.parse(data.brotherInLaws);
+          // Skip parsing if it's "Not specified" or not valid JSON
+          if (data.brotherInLaws !== "Not specified" && data.brotherInLaws.startsWith('[')) {
+            brotherInLawsArray = JSON.parse(data.brotherInLaws);
+          }
         } else if (Array.isArray(data.brotherInLaws)) {
           brotherInLawsArray = data.brotherInLaws;
         }
@@ -564,7 +573,10 @@ export default function EditProfilePage() {
       let maternalPaternalArray: MaternalPaternal[] = [];
       try {
         if (data.maternalPaternal && typeof data.maternalPaternal === 'string') {
-          maternalPaternalArray = JSON.parse(data.maternalPaternal);
+          // Skip parsing if it's "Not specified" or not valid JSON
+          if (data.maternalPaternal !== "Not specified" && data.maternalPaternal.startsWith('[')) {
+            maternalPaternalArray = JSON.parse(data.maternalPaternal);
+          }
         } else if (Array.isArray(data.maternalPaternal)) {
           maternalPaternalArray = data.maternalPaternal;
         }

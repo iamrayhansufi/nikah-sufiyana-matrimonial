@@ -32,6 +32,24 @@ import Link from "next/link"
 import { playfair } from "../../lib/fonts"
 import { useSession, signIn } from "next-auth/react"
 
+// Helper function to safely parse JSON arrays
+const safeJsonParse = (jsonString: string | null | undefined): any[] => {
+  if (!jsonString) return [];
+  if (jsonString === "Not specified") return [];
+  
+  try {
+    // Only attempt to parse if it looks like an array
+    if (typeof jsonString === 'string' && jsonString.trim().startsWith('[')) {
+      const parsed = JSON.parse(jsonString);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch (e) {
+    console.warn("Failed to parse JSON:", e);
+  }
+  
+  return [];
+};
+
 // Simple ProfilePage Component that doesn't rely on complex URL handling
 export default function ProfilePage({ 
   params
@@ -631,26 +649,84 @@ export default function ProfilePage({
                     </Card>
 
                     {/* Siblings Information - if available */}
-                    {profile.siblings && Array.isArray(JSON.parse(profile.siblings)) && JSON.parse(profile.siblings).length > 0 && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Siblings</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            {JSON.parse(profile.siblings).map((sibling: any, index: number) => (
-                              <div key={index} className="border-b pb-2 last:border-0">
-                                <p className="font-medium">{sibling.name}</p>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
-                                  <p>{sibling.siblingType}</p>
-                                  <p>{sibling.maritalStatus}</p>
-                                  <p>{sibling.occupation}</p>
-                                </div>
+                    {profile.siblings && (
+                      (() => {
+                        const siblings = safeJsonParse(profile.siblings);
+                        return siblings.length > 0 ? (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>Siblings</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-4">
+                                {siblings.map((sibling: any, index: number) => (
+                                  <div key={index} className="border-b pb-2 last:border-0">
+                                    <p className="font-medium">{sibling.name}</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
+                                      <p>{sibling.siblingType}</p>
+                                      <p>{sibling.maritalStatus}</p>
+                                      <p>{sibling.occupation}</p>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
+                            </CardContent>
+                          </Card>
+                        ) : null;
+                      })()
+                    )}
+
+                    {/* Brother In Law Information - if available */}
+                    {profile.brotherInLaws && (
+                      (() => {
+                        const brotherInLaws = safeJsonParse(profile.brotherInLaws);
+                        return brotherInLaws.length > 0 ? (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>Brothers-in-Law</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-4">
+                                {brotherInLaws.map((brotherInLaw: any, index: number) => (
+                                  <div key={index} className="border-b pb-2 last:border-0">
+                                    <p className="font-medium">{brotherInLaw.name}</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                      <p>{brotherInLaw.occupation}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ) : null;
+                      })()
+                    )}
+
+                    {/* Maternal/Paternal Information - if available */}
+                    {profile.maternalPaternal && (
+                      (() => {
+                        const maternalPaternals = safeJsonParse(profile.maternalPaternal);
+                        return maternalPaternals.length > 0 ? (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>Maternal & Paternal Relations</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-4">
+                                {maternalPaternals.map((relation: any, index: number) => (
+                                  <div key={index} className="border-b pb-2 last:border-0">
+                                    <p className="font-medium">{relation.relationType}</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                      <p>{relation.name}</p>
+                                      <p>{relation.location}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ) : null;
+                      })()
                     )}
                   </div>
                 </TabsContent>

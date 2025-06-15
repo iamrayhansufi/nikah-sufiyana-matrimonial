@@ -2,11 +2,18 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { writeFile, mkdir, access, constants } from "fs/promises";
 import { join } from "path";
+import path from "path";
 import { db } from "../../../../src/db";
 import { users } from "../../../../src/db/schema";
 import { verifyAuth } from "../../../../src/lib/auth";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options";
+import fs from 'fs';
+
+// Helper function to check if running in Vercel production environment
+function isVercelProduction() {
+  return process.env.VERCEL_ENV === 'production';
+}
 
 export async function POST(req: Request) {
   try {
@@ -76,12 +83,38 @@ export async function POST(req: Request) {
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const filename = `${userId}-${timestamp}-${sanitizedFileName}`;
     
-    console.log("Generated filename:", filename);
+    // Get the file bytes
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
     
+    // Check if running on Vercel production (where filesystem writes won't work)
+    if (isVercelProduction()) {
+      console.log("Running on Vercel production - using database storage instead of filesystem");
+      
+      // In production, store the image directly in the database as a data URL
+      // This is a temporary solution until you implement proper cloud storage
+      const base64Image = buffer.toString('base64');
+      const dataUrl = `data:${file.type};base64,${base64Image}`;
+      
+      // Update user profile with the data URL directly
+      await db
+        .update(users)
+        .set({ 
+          profilePhoto: dataUrl,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+        
+      console.log("User profile updated with data URL image");
+      
+      return NextResponse.json({
+        message: "Photo uploaded successfully",
+        url: dataUrl,
+      });
+    }
+    
+    // For local development, continue using the filesystem
     try {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
       // Ensure upload directory exists
       const uploadDir = join(process.cwd(), "public", "uploads", "profiles");
       
@@ -114,7 +147,7 @@ export async function POST(req: Request) {
       
       return NextResponse.json({
         message: "Photo uploaded successfully",
-        url: photoUrl, // Changed to match what frontend expects
+        url: photoUrl,
       });
     } catch (fsError) {
       console.error("File system error:", fsError);
