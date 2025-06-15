@@ -466,6 +466,9 @@ export default function EditProfilePage() {
     setSavingTab(tabName)
     
     try {
+      // Log the data we're sending for debugging
+      console.log(`Updating ${tabName} with data:`, JSON.stringify(tabData, null, 2));
+      
       const response = await fetch(`/api/profiles/${session.user.id}`, {
         method: "PATCH",
         headers: {
@@ -480,6 +483,7 @@ export default function EditProfilePage() {
       }
       
       const updatedProfile = await response.json()
+      console.log(`Profile update response:`, updatedProfile);
       setProfileData({...profileData, ...updatedProfile})
       
       // Store updated data in localStorage to ensure persistence
@@ -661,13 +665,35 @@ export default function EditProfilePage() {
   const handlePrivacySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     await updateProfile(privacyForm, "privacy settings")
-  }
-  // Handle photo upload
+  }  // Handle photo upload
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
     
     const file = files[0]
+    console.log("Selected file:", file.name, "Type:", file.type, "Size:", file.size);
+    
+    // Check file size client-side
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "File Too Large",
+        description: "The image file is too large. Please select an image smaller than 5MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check file type client-side
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please select an image file (JPG, PNG, GIF, etc.)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const formData = new FormData()
     formData.append('photo', file) // Using 'photo' as the key to match the API
     
@@ -677,7 +703,12 @@ export default function EditProfilePage() {
       // Add user ID to request - this is critical for the API to associate the photo with the user
       if (session?.user?.id) {
         formData.append('userId', session.user.id);
+        console.log("Adding user ID to request:", session.user.id);
+      } else {
+        console.warn("No user ID available in session");
       }
+      
+      console.log("Sending photo upload request...");
       
       const response = await fetch('/api/profiles/upload-photo', {
         method: 'POST',
@@ -688,15 +719,20 @@ export default function EditProfilePage() {
         }
       })
       
+      console.log("Upload response status:", response.status);
+      
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload profile photo')
+        console.error("Upload failed with response:", responseData);
+        throw new Error(responseData.error || 'Failed to upload profile photo')
       }
       
-      const data = await response.json()
+      console.log("Upload successful:", responseData);
       
       // Update the profile data with the new photo URL and add a timestamp to force refresh
-      const photoUrl = `${data.url}?t=${new Date().getTime()}`;
+      const photoUrl = `${responseData.url}?t=${new Date().getTime()}`;
+      console.log("Setting new photo URL:", photoUrl);
       setProfileData({...profileData, profilePhoto: photoUrl})
       
       // Force update the profile in the database with the new photo URL
@@ -707,7 +743,7 @@ export default function EditProfilePage() {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            profilePhoto: data.url
+            profilePhoto: responseData.url
           })
         });
       }
@@ -717,6 +753,9 @@ export default function EditProfilePage() {
         description: "Your profile photo has been successfully uploaded and saved",
         variant: "default"
       })
+      
+      // Refresh the page data to ensure everything is up to date
+      await refetchProfile();
     } catch (error) {
       console.error("Photo upload error:", error)
       toast({
@@ -1434,11 +1473,8 @@ export default function EditProfilePage() {
                                     <SelectTrigger className="h-8">
                                       <SelectValue placeholder="Relation" />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="maternal-uncle">Maternal Uncle</SelectItem>
-                                      <SelectItem value="maternal-aunt">Maternal Aunt</SelectItem>
+                                    <SelectContent>                                      <SelectItem value="maternal-uncle">Maternal Uncle</SelectItem>
                                       <SelectItem value="paternal-uncle">Paternal Uncle</SelectItem>
-                                      <SelectItem value="paternal-aunt">Paternal Aunt</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </td>
@@ -1692,23 +1728,9 @@ export default function EditProfilePage() {
                       />
                       <Label htmlFor="showOnlineStatus">Show Online Status</Label>
                     </div>
-                  </div>
-                    <div className="border p-4 rounded-md bg-yellow-50/30 space-y-4">
-                    <div className="space-y-2 mb-4">
-                      <Label htmlFor="mobileNumber">Mobile Number (Only Visible to Premium Members)</Label>
-                      <Input 
-                        id="mobileNumber"
-                        value={privacyForm.mobileNumber}
-                        onChange={(e) => handleMobileNumberChange(e.target.value)}
-                        placeholder="Enter your mobile number"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        This number will only be visible to premium members
-                      </p>
-                    </div>
+                  </div>                    <div className="border p-4 rounded-md bg-yellow-50/30 space-y-4">
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                      <div>
                         <div className="flex items-center space-x-2 mb-2">
                           <input
                             type="checkbox"
@@ -1720,7 +1742,7 @@ export default function EditProfilePage() {
                           <Label htmlFor="showFatherNumber">Show Father's Number (Premium Only)</Label>
                         </div>
                         <p className="text-xs text-muted-foreground ml-6">
-                          Only premium members will be able to see this information
+                          Father's number from Family Info tab: {familyForm.fatherMobile || "Not provided"}
                         </p>
                       </div>
                       
@@ -1736,7 +1758,7 @@ export default function EditProfilePage() {
                           <Label htmlFor="showMotherNumber">Show Mother's Number (Premium Only)</Label>
                         </div>
                         <p className="text-xs text-muted-foreground ml-6">
-                          Only premium members will be able to see this information
+                          Mother's number from Family Info tab: {familyForm.motherMobile || "Not provided"}
                         </p>
                       </div>
                     </div>

@@ -419,28 +419,16 @@ export default function ProfilePage({
                       </CardContent>
                     </Card>
 
-                    {/* Islamic Details */}
+                    {/* Additional Info about Islamic sect */}
                     <Card>
                       <CardHeader>
-                        <CardTitle>Islamic Details</CardTitle>
+                        <CardTitle>Religious Information</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <p className="font-medium mb-1">Prayer Habit</p>
-                            <p className="text-sm text-muted-foreground">{profile.prayerHabit}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Hijab</p>
-                            <p className="text-sm text-muted-foreground">{profile.hijab}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Quran Reading</p>
-                            <p className="text-sm text-muted-foreground">{profile.quranReading}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Islamic Education</p>
-                            <p className="text-sm text-muted-foreground">{profile.islamicEducation}</p>
+                            <p className="font-medium mb-1">Islamic Sect</p>
+                            <p className="text-sm text-muted-foreground">{profile.sect}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -455,21 +443,51 @@ export default function ProfilePage({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <p className="font-medium mb-1">Preferred Age</p>
-                            <p className="text-sm text-muted-foreground">{profile.preferredAge}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.preferredAgeMin && profile.preferredAgeMax 
+                                ? `${profile.preferredAgeMin} - ${profile.preferredAgeMax} years` 
+                                : "Not specified"}
+                            </p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Preferred Height</p>
-                            <p className="text-sm text-muted-foreground">{profile.preferredHeight}</p>
+                            <p className="text-sm text-muted-foreground">{profile.preferredHeight || "Not specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Preferred Complexion</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.preferredComplexion === "very-fair" ? "Very Fair" : 
+                               profile.preferredComplexion === "fair" ? "Fair" :
+                               profile.preferredComplexion === "wheatish" ? "Wheatish" :
+                               profile.preferredComplexion === "wheatish-brown" ? "Wheatish Brown" :
+                               profile.preferredComplexion === "brown" ? "Brown" :
+                               profile.preferredComplexion === "dark" ? "Dark" : "Not specified"}
+                            </p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Preferred Education</p>
-                            <p className="text-sm text-muted-foreground">{profile.preferredEducation}</p>
+                            <p className="text-sm text-muted-foreground">{profile.preferredEducation || "Not specified"}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Preferred Location</p>
-                            <p className="text-sm text-muted-foreground">{profile.preferredLocation}</p>
+                            <p className="text-sm text-muted-foreground">{profile.preferredLocation || "Not specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Preferred Occupation</p>
+                            <p className="text-sm text-muted-foreground">{profile.preferredOccupation || "Not specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Preferred Maslak</p>
+                            <p className="text-sm text-muted-foreground">{profile.preferredMaslak || "Not specified"}</p>
                           </div>
                         </div>
+                        
+                        {profile.expectations && (
+                          <div className="mt-4">
+                            <p className="font-medium mb-1">Additional Expectations</p>
+                            <p className="text-sm text-muted-foreground">{profile.expectations}</p>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
@@ -487,27 +505,26 @@ export default function ProfilePage({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <p className="font-medium mb-1">Height</p>
-                            <p className="text-sm text-muted-foreground">{profile.height}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Weight</p>
-                            <p className="text-sm text-muted-foreground">{profile.weight}</p>
+                            <p className="text-sm text-muted-foreground">{profile.height || "Not specified"}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Complexion</p>
-                            <p className="text-sm text-muted-foreground">{profile.complexion}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Body Type</p>
-                            <p className="text-sm text-muted-foreground">{profile.bodyType}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.complexion === "very-fair" ? "Very Fair" : 
+                               profile.complexion === "fair" ? "Fair" :
+                               profile.complexion === "wheatish" ? "Wheatish" :
+                               profile.complexion === "wheatish-brown" ? "Wheatish Brown" :
+                               profile.complexion === "brown" ? "Brown" :
+                               profile.complexion === "dark" ? "Dark" : "Not specified"}
+                            </p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Marital Status</p>
                             <p className="text-sm text-muted-foreground">{profile.maritalStatus}</p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Mother Tongue</p>
-                            <p className="text-sm text-muted-foreground">{profile.motherTongue}</p>
+                            <p className="font-medium mb-1">Address</p>
+                            <p className="text-sm text-muted-foreground">{profile.address || "Not specified"}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -536,41 +553,32 @@ export default function ProfilePage({
                       </CardContent>
                     </Card>
 
-                    {/* Lifestyle */}
+                    {/* Professional Details - expanded with more fields */}
                     <Card>
                       <CardHeader>
-                        <CardTitle>Lifestyle</CardTitle>
+                        <CardTitle>Education & Career</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <p className="font-medium mb-1">Diet</p>
-                            <p className="text-sm text-muted-foreground">{profile.diet}</p>
+                            <p className="font-medium mb-1">Education</p>
+                            <p className="text-sm text-muted-foreground">{profile.education}</p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Smoking</p>
-                            <p className="text-sm text-muted-foreground">{profile.smoking}</p>
+                            <p className="font-medium mb-1">Education Details</p>
+                            <p className="text-sm text-muted-foreground">{profile.educationDetails || "Not specified"}</p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Drinking</p>
-                            <p className="text-sm text-muted-foreground">{profile.drinking}</p>
+                            <p className="font-medium mb-1">Profession</p>
+                            <p className="text-sm text-muted-foreground">{profile.profession}</p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Languages</p>
-                            <p className="text-sm text-muted-foreground">{profile.languages.join(", ")}</p>
+                            <p className="font-medium mb-1">Job Title</p>
+                            <p className="text-sm text-muted-foreground">{profile.jobTitle || "Not specified"}</p>
                           </div>
-                        </div>
-
-                        <Separator className="my-4" />
-
-                        <div>
-                          <p className="font-medium mb-2">Hobbies & Interests</p>
-                          <div className="flex flex-wrap gap-2">
-                            {profile.hobbies.map((hobby: string, index: number) => (
-                              <Badge key={index} variant="outline">
-                                {hobby}
-                              </Badge>
-                            ))}
+                          <div>
+                            <p className="font-medium mb-1">Income</p>
+                            <p className="text-sm text-muted-foreground">{profile.income || "Not specified"}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -580,35 +588,71 @@ export default function ProfilePage({
 
                 {/* Family Tab */}
                 <TabsContent value="family">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Family Details</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <p className="font-medium mb-1">Father's Occupation</p>
-                          <p className="text-sm text-muted-foreground">{profile.fatherOccupation}</p>
+                  <div className="space-y-6">
+                    {/* Basic Family Information */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Family Details</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="font-medium mb-1">Father's Name</p>
+                            <p className="text-sm text-muted-foreground">{profile.fatherName || "Not specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Mother's Name</p>
+                            <p className="text-sm text-muted-foreground">{profile.motherName || "Not specified"}</p>
+                          </div>
+                          {/* Contact info is only shown to premium users */}
+                          {profile.showFatherNumber && profile.premium && (
+                            <div>
+                              <p className="font-medium mb-1">Father's Contact</p>
+                              <p className="text-sm text-muted-foreground">{profile.fatherMobile || "Not provided"}</p>
+                            </div>
+                          )}
+                          {profile.showMotherNumber && profile.premium && (
+                            <div>
+                              <p className="font-medium mb-1">Mother's Contact</p>
+                              <p className="text-sm text-muted-foreground">{profile.motherMobile || "Not provided"}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium mb-1">Housing Status</p>
+                            <p className="text-sm text-muted-foreground">{profile.housingStatus || "Not specified"}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium mb-1">Mother's Occupation</p>
-                          <p className="text-sm text-muted-foreground">{profile.motherOccupation}</p>
+                        
+                        <div className="mt-4">
+                          <p className="font-medium mb-1">Family Description</p>
+                          <p className="text-sm text-muted-foreground">{profile.familyDetails || "Not provided"}</p>
                         </div>
-                        <div>
-                          <p className="font-medium mb-1">Siblings</p>
-                          <p className="text-sm text-muted-foreground">{profile.siblings}</p>
-                        </div>
-                        <div>
-                          <p className="font-medium mb-1">Family Type</p>
-                          <p className="text-sm text-muted-foreground">{profile.familyType}</p>
-                        </div>
-                        <div className="md:col-span-2">
-                          <p className="font-medium mb-1">Family Values</p>
-                          <p className="text-sm text-muted-foreground">{profile.familyValues}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+
+                    {/* Siblings Information - if available */}
+                    {profile.siblings && Array.isArray(JSON.parse(profile.siblings)) && JSON.parse(profile.siblings).length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Siblings</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {JSON.parse(profile.siblings).map((sibling: any, index: number) => (
+                              <div key={index} className="border-b pb-2 last:border-0">
+                                <p className="font-medium">{sibling.name}</p>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
+                                  <p>{sibling.siblingType}</p>
+                                  <p>{sibling.maritalStatus}</p>
+                                  <p>{sibling.occupation}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
                 </TabsContent>
 
                 {/* Gallery Tab */}
@@ -618,27 +662,26 @@ export default function ProfilePage({
                       <CardTitle>Photo Gallery</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {profile.showFullPhotos ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                          {profile.gallery.map((image: string, index: number) => (
-                            <div key={index} className="relative aspect-square">
-                              <img
-                                src={image || "/placeholder.svg"}
-                                alt={`Gallery ${index + 1}`}
-                                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                                onClick={() => setCurrentImageIndex(index)}
-                              />
-                            </div>
-                          ))}
+                      {profile.showPhotos ? (
+                        <div className="text-center">
+                          <div className="aspect-square w-64 h-64 mx-auto rounded-lg overflow-hidden bg-gray-100 mb-4">
+                            <img 
+                              src={profile.profilePhoto || "/placeholder.svg"} 
+                              alt={`${profile.name}'s profile photo`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <p className="text-muted-foreground">
+                            Profile photo is visible to all members
+                          </p>
                         </div>
                       ) : (
-                        <div className="text-center py-12">
-                          <Eye className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-semibold mb-2">Upgrade to Premium</h3>
-                          <p className="text-muted-foreground mb-4">
-                            Full photo gallery is only available for Premium members
+                        <div className="text-center py-6">
+                          <EyeOff className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <h3 className="font-semibold mb-2">Photos are Private</h3>
+                          <p className="text-sm text-muted-foreground">
+                            This member has chosen to keep their photos private
                           </p>
-                          <Button className="gradient-gold text-white">Upgrade Now</Button>
                         </div>
                       )}
                     </CardContent>

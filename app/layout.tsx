@@ -25,8 +25,7 @@ export const metadata: Metadata = {
   description: "Find your perfect Muslim life partner with Nikah Sufiyana matrimonial service.",
   keywords:
     "Muslim matrimony, Islamic marriage, halal relationships, Muslim bride, Muslim groom, nikah, Islamic wedding",
-  icons: {
-    icon: "/Nikah Sufiyana Favicon.svg",
+  icons: {    icon: "/Nikah Sufiyana Favicon.svg",
     shortcut: "/Nikah Sufiyana Favicon.svg",
     apple: "/Nikah Sufiyana Favicon.svg",
   },

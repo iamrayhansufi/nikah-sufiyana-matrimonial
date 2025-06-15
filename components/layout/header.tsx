@@ -71,9 +71,8 @@ export function Header() {
         <div className="container mx-auto px-4">
           <div className="flex h-20 items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              <Image 
-                src="/public/Nikah Sufiyana Logo-01.svg"
+            <Link href="/" className="flex items-center space-x-2">              <Image 
+                src="/Nikah Sufiyana Logo.svg"
                 alt="Nikah Sufiyana" 
                 width={150} 
                 height={40}
