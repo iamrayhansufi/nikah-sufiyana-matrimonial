@@ -73,7 +73,7 @@ export function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
               <Image 
-                src="/Nikah Sufiyana Logo.svg"
+                src="/public/Nikah Sufiyana Logo-01.svg"
                 alt="Nikah Sufiyana" 
                 width={150} 
                 height={40}
