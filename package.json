@@ -14,7 +14,8 @@
     "deploy": "npm run build && npm run start",
     "postinstall": "npm run db:push || echo 'Database push failed, continuing...'",
     "vercel-build": "npm run build",
-    "git:sync": "node scripts/git-sync.js"
+    "git:sync": "node scripts/git-sync.js",
+    "migrate": "tsx scripts/migrate.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

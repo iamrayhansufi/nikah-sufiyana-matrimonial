@@ -8,6 +8,13 @@
       "when": 1748960484553,
       "tag": "0000_watery_thaddeus_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1718424600000,
+      "tag": "0002_add_profile_fields",
+      "breakpoints": true
     }
   ]
 }

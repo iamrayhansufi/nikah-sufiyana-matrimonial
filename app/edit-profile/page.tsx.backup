@@ -415,8 +415,8 @@ export default function EditProfilePage() {
       maternalPaternal: prev.maternalPaternal.filter((_, i) => i !== index)
     }));
   }
-  // Handle mobile number change in privacy settings
-  const handleMobileNumberChange = (value: string) => {
+
+  // Handle mobile number change in privacy settings  const handleMobileNumberChange = (value: string) => {
     setPrivacyForm(prev => ({
       ...prev,
       mobileNumber: value
@@ -1082,7 +1082,8 @@ export default function EditProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleFamilySubmit} className="space-y-4">                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={handleFamilySubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="fatherName">Father's Name</Label>
                       <Input 
@@ -1102,8 +1103,7 @@ export default function EditProfilePage() {
                         placeholder="Your mother's name"
                       />
                     </div>
-                    
-                    <div className="space-y-2">
+                      <div className="space-y-2">
                       <Label htmlFor="housingStatus">Housing Status</Label>
                       <Select 
                         value={familyForm.housingStatus} 
@@ -1122,13 +1122,21 @@ export default function EditProfilePage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="familyDetails">Family Details</Label>
-                      <Textarea
-                        id="familyDetails"
-                        value={familyForm.familyDetails}
-                        onChange={(e) => handleFamilyChange('familyDetails', e.target.value)}
-                        placeholder="Additional details about your family..."
-                      />
+                      <Label htmlFor="housingStatus">Housing Status</Label>
+                      <Select 
+                        value={familyForm.housingStatus} 
+                        onValueChange={(value) => handleFamilyChange('housingStatus', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select housing status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="owned">Own House/Flat</SelectItem>
+                          <SelectItem value="rented">Rented</SelectItem>
+                          <SelectItem value="family-owned">Family Owned Property</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   

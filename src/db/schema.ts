@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, timestamp, text, integer, boolean, decimal } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, timestamp, text, integer, boolean, decimal, json } from "drizzle-orm/pg-core";
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -10,15 +10,19 @@ export const users = pgTable('users', {
   age: integer('age').notNull(),
   country: varchar('country', { length: 100 }).notNull(),
   city: varchar('city', { length: 100 }).notNull(),
+  address: varchar('address', { length: 255 }),
   location: varchar('location', { length: 255 }).notNull(),
   education: varchar('education', { length: 255 }).notNull(),
+  educationDetails: varchar('education_details', { length: 255 }),
   profession: varchar('profession', { length: 255 }),
+  jobTitle: varchar('job_title', { length: 255 }),
   income: varchar('income', { length: 100 }),
   sect: varchar('sect', { length: 100 }).notNull(),
   motherTongue: varchar('mother_tongue', { length: 100 }).notNull(),
   height: varchar('height', { length: 20 }).notNull(),
   complexion: varchar('complexion', { length: 50 }),
   maritalStatus: varchar('marital_status', { length: 50 }),
+  maritalStatusOther: varchar('marital_status_other', { length: 100 }),
   profileStatus: varchar('profile_status', { length: 20 }).notNull().default('approved'),
   subscription: varchar('subscription', { length: 20 }).notNull().default('free'),
   subscriptionExpiry: timestamp('subscription_expiry'),
@@ -32,12 +36,33 @@ export const users = pgTable('users', {
   expectations: text('expectations'),
   aboutMe: text('about_me'),
   familyDetails: text('family_details'),
+  fatherName: varchar('father_name', { length: 255 }),
+  motherName: varchar('mother_name', { length: 255 }),
+  housingStatus: varchar('housing_status', { length: 100 }),
+  
+  // JSON fields for complex data
+  siblings: json('siblings'),
+  brotherInLaws: json('brother_in_laws'),
+  maternalPaternal: json('maternal_paternal'),
   
   // Partner preferences
   preferredAgeMin: integer('preferred_age_min'),
   preferredAgeMax: integer('preferred_age_max'),
   preferredEducation: varchar('preferred_education', { length: 255 }),
   preferredLocation: varchar('preferred_location', { length: 255 }),
+  preferredOccupation: varchar('preferred_occupation', { length: 255 }),
+  preferredHeight: varchar('preferred_height', { length: 100 }),
+  preferredComplexion: varchar('preferred_complexion', { length: 100 }),
+  preferredMaslak: varchar('preferred_maslak', { length: 100 }),
+  
+  // Privacy settings
+  showContactInfo: boolean('show_contact_info').default(true),
+  showPhotos: boolean('show_photos').default(true),
+  hideProfile: boolean('hide_profile').default(false),
+  showOnlineStatus: boolean('show_online_status').default(true),
+  showFatherNumber: boolean('show_father_number').default(false),
+  showMotherNumber: boolean('show_mother_number').default(false),
+  mobileNumber: varchar('mobile_number', { length: 20 }),
   
   // Admin action fields
   approvedAt: timestamp('approved_at'),
