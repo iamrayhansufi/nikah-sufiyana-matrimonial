@@ -43,32 +43,37 @@ interface BasicProfileForm {
   profession: string;
   maritalStatus: string;
   sect: string;
+  height: string;
+  complexion: string;
+  motherTongue: string;
   aboutMe: string;
-}
-
-interface ReligiousInfoForm {
-  religiousInclination: string;
-  prayerLevel: string;
-  religiousValues: string;
-  hijabLevel: string;
-  beardLevel: string;
+  city: string;
+  country: string;
 }
 
 interface EducationCareerForm {
   education: string;
   educationDetails: string;
   profession: string;
-  workExperience: string;
   income: string;
   jobTitle: string;
+}
+
+interface SiblingInfo {
+  name: string;
+  maritalStatus: string;
+  siblingType: string;
+  occupation: string;
 }
 
 interface FamilyInfoForm {
   familyType: string;
   familyDetails: string;
-  siblings: string;
+  fatherName: string;
+  motherName: string;
+  siblings: SiblingInfo[];
   livingWithParents: string;
-  familyValues: string;
+  housingStatus: string;
 }
 
 interface PartnerPreferencesForm {
@@ -77,6 +82,7 @@ interface PartnerPreferencesForm {
   preferredLocation: string;
   preferredEducation: string;
   preferredOccupation: string;
+  preferredMaslak: string;
   expectations: string;
 }
 
@@ -85,6 +91,8 @@ interface PrivacySettingsForm {
   showPhotos: boolean;
   hideProfile: boolean;
   showOnlineStatus: boolean;
+  showFatherNumber: boolean;
+  showMotherNumber: boolean;
 }
 
 export default function EditProfilePage() {
@@ -95,9 +103,9 @@ export default function EditProfilePage() {
   const [savingTab, setSavingTab] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [profileData, setProfileData] = useState<any>(null)
+  // Default to basic tab and make sure we're not using the 'religious' tab anymore
   const [activeTab, setActiveTab] = useState("basic")
-  
-  // Form states for each tab
+    // Form states for each tab
   const [basicForm, setBasicForm] = useState<BasicProfileForm>({
     fullName: "",
     age: "",
@@ -107,22 +115,18 @@ export default function EditProfilePage() {
     profession: "",
     maritalStatus: "",
     sect: "",
-    aboutMe: ""
-  })
-  
-  const [religiousForm, setReligiousForm] = useState<ReligiousInfoForm>({
-    religiousInclination: "",
-    prayerLevel: "",
-    religiousValues: "",
-    hijabLevel: "",
-    beardLevel: ""
+    height: "",
+    complexion: "",
+    motherTongue: "",
+    aboutMe: "",
+    city: "",
+    country: ""
   })
   
   const [educationCareerForm, setEducationCareerForm] = useState<EducationCareerForm>({
     education: "",
     educationDetails: "",
     profession: "",
-    workExperience: "",
     income: "",
     jobTitle: ""
   })
@@ -130,9 +134,11 @@ export default function EditProfilePage() {
   const [familyForm, setFamilyForm] = useState<FamilyInfoForm>({
     familyType: "",
     familyDetails: "",
-    siblings: "",
+    fatherName: "",
+    motherName: "",
+    siblings: [],
     livingWithParents: "",
-    familyValues: ""
+    housingStatus: ""
   })
   
   const [partnerForm, setPartnerForm] = useState<PartnerPreferencesForm>({
@@ -141,6 +147,7 @@ export default function EditProfilePage() {
     preferredLocation: "",
     preferredEducation: "",
     preferredOccupation: "",
+    preferredMaslak: "",
     expectations: ""
   })
   
@@ -148,7 +155,9 @@ export default function EditProfilePage() {
     showContactInfo: true,
     showPhotos: true,
     hideProfile: false,
-    showOnlineStatus: true
+    showOnlineStatus: true,
+    showFatherNumber: false,
+    showMotherNumber: false
   })
 
   // Fetch profile data on component mount
@@ -188,8 +197,7 @@ export default function EditProfilePage() {
         
         if (isMounted) {
           setProfileData(data)
-          
-          // Populate form data for each tab
+            // Populate form data for each tab
           setBasicForm({
             fullName: data.fullName || "",
             age: data.age ? String(data.age) : "",
@@ -199,32 +207,43 @@ export default function EditProfilePage() {
             profession: data.profession || "",
             maritalStatus: data.maritalStatus || "",
             sect: data.sect || "",
-            aboutMe: data.aboutMe || ""
-          })
-          
-          setReligiousForm({
-            religiousInclination: data.religiousInclination || "",
-            prayerLevel: data.prayerLevel || "",
-            religiousValues: data.religiousValues || "",
-            hijabLevel: data.hijabLevel || "",
-            beardLevel: data.beardLevel || ""
+            height: data.height || "",
+            complexion: data.complexion || "",
+            motherTongue: data.motherTongue || "",
+            aboutMe: data.aboutMe || "",
+            city: data.city || "",
+            country: data.country || ""
           })
           
           setEducationCareerForm({
             education: data.education || "",
             educationDetails: data.educationDetails || "",
             profession: data.profession || "",
-            workExperience: data.workExperience || "",
             income: data.income || "",
             jobTitle: data.jobTitle || ""
           })
           
+          // Process siblings data if it exists
+          let siblingsArray: SiblingInfo[] = [];
+          try {
+            if (data.siblings && typeof data.siblings === 'string') {
+              // Try to parse if it's a JSON string
+              siblingsArray = JSON.parse(data.siblings);
+            } else if (Array.isArray(data.siblings)) {
+              siblingsArray = data.siblings;
+            }
+          } catch (e) {
+            console.warn("Could not parse siblings data:", e);
+          }
+          
           setFamilyForm({
             familyType: data.familyType || "",
             familyDetails: data.familyDetails || "",
-            siblings: data.siblings || "",
+            fatherName: data.fatherName || "",
+            motherName: data.motherName || "",
+            siblings: siblingsArray || [],
             livingWithParents: data.livingWithParents || "",
-            familyValues: data.familyValues || ""
+            housingStatus: data.housingStatus || ""
           })
           
           setPartnerForm({
@@ -233,6 +252,7 @@ export default function EditProfilePage() {
             preferredLocation: data.preferredLocation || "",
             preferredEducation: data.preferredEducation || "",
             preferredOccupation: data.preferredOccupation || "",
+            preferredMaslak: data.preferredMaslak || "",
             expectations: data.expectations || ""
           })
           
@@ -240,7 +260,9 @@ export default function EditProfilePage() {
             showContactInfo: data.showContactInfo !== undefined ? data.showContactInfo : true,
             showPhotos: data.showPhotos !== undefined ? data.showPhotos : true,
             hideProfile: data.hideProfile !== undefined ? data.hideProfile : false,
-            showOnlineStatus: data.showOnlineStatus !== undefined ? data.showOnlineStatus : true
+            showOnlineStatus: data.showOnlineStatus !== undefined ? data.showOnlineStatus : true,
+            showFatherNumber: data.showFatherNumber !== undefined ? data.showFatherNumber : false,
+            showMotherNumber: data.showMotherNumber !== undefined ? data.showMotherNumber : false
           })
         }
       } catch (error) {
@@ -270,12 +292,6 @@ export default function EditProfilePage() {
     }))
   }
   
-  const handleReligiousChange = (field: keyof ReligiousInfoForm, value: string) => {
-    setReligiousForm(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
   
   const handleEducationCareerChange = (field: keyof EducationCareerForm, value: string) => {
     setEducationCareerForm(prev => ({
@@ -283,12 +299,34 @@ export default function EditProfilePage() {
       [field]: value
     }))
   }
-  
-  const handleFamilyChange = (field: keyof FamilyInfoForm, value: string) => {
+    const handleFamilyChange = (field: keyof FamilyInfoForm, value: string) => {
     setFamilyForm(prev => ({
       ...prev,
       [field]: value
     }))
+  }
+    const handleSiblingChange = (index: number, field: keyof SiblingInfo, value: string) => {
+    setFamilyForm(prev => {
+      const siblings = [...prev.siblings];
+      siblings[index] = { ...siblings[index], [field]: value };
+      return { ...prev, siblings };
+    });
+  }
+    const addSibling = () => {
+    setFamilyForm(prev => ({
+      ...prev,
+      siblings: [
+        ...prev.siblings,
+        { name: "", siblingType: "", maritalStatus: "", occupation: "" }
+      ]
+    }));
+  }
+  
+  const removeSibling = (index: number) => {
+    setFamilyForm(prev => ({
+      ...prev,
+      siblings: prev.siblings.filter((_, i) => i !== index)
+    }));
   }
   
   const handlePartnerChange = (field: keyof PartnerPreferencesForm, value: string) => {
@@ -350,16 +388,10 @@ export default function EditProfilePage() {
       setSavingTab(null)
     }
   }
-  
-  // Tab-specific form submission handlers
+    // Tab-specific form submission handlers
   const handleBasicSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     await updateProfile(basicForm, "basic")
-  }
-  
-  const handleReligiousSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await updateProfile(religiousForm, "religious")
   }
   
   const handleEducationCareerSubmit = async (e: React.FormEvent) => {
@@ -521,17 +553,14 @@ export default function EditProfilePage() {
           value={activeTab}
           onValueChange={setActiveTab}
           className="space-y-4"
-        >
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+        >          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="religious">Religious Info</TabsTrigger>
             <TabsTrigger value="education">Education & Career</TabsTrigger>
             <TabsTrigger value="family">Family Info</TabsTrigger>
             <TabsTrigger value="preferences">Partner Preferences</TabsTrigger>
             <TabsTrigger value="privacy">Privacy Settings</TabsTrigger>
           </TabsList>
-          
-          {/* Basic Info Tab */}
+            {/* Basic Info Tab */}
           <TabsContent value="basic" className="space-y-4">
             <Card>
               <CardHeader>
@@ -578,19 +607,93 @@ export default function EditProfilePage() {
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="male">Male (Groom)</SelectItem>
+                          <SelectItem value="female">Female (Bride)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="location">Location</Label>
+                      <Label htmlFor="country">Country</Label>
+                      <Select 
+                        value={basicForm.country} 
+                        onValueChange={(value) => handleBasicChange('country', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {/* Popular countries first */}
+                          <SelectItem value="india">India</SelectItem>                      
+                          <SelectItem value="uae">United Arab Emirates</SelectItem>
+                          <SelectItem value="saudi-arabia">Saudi Arabia</SelectItem>
+                          <SelectItem value="qatar">Qatar</SelectItem>
+                          <SelectItem value="kuwait">Kuwait</SelectItem>
+                          <SelectItem value="oman">Oman</SelectItem>
+                          <SelectItem value="bahrain">Bahrain</SelectItem>
+                          
+                          {/* Western countries */}
+                          <SelectItem value="usa">United States</SelectItem>
+                          <SelectItem value="canada">Canada</SelectItem>
+                          <SelectItem value="australia">Australia</SelectItem>
+                          <SelectItem value="uk">United Kingdom</SelectItem>
+                          <SelectItem value="new-zealand">New Zealand</SelectItem>
+                          <SelectItem value="germany">Germany</SelectItem>
+                          <SelectItem value="france">France</SelectItem>
+                          
+                          {/* Other countries */}
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="city">City</Label>
                       <Input 
-                        id="location"
-                        value={basicForm.location}
-                        onChange={(e) => handleBasicChange('location', e.target.value)}
-                        placeholder="City, Country"
+                        id="city"
+                        value={basicForm.city}
+                        onChange={(e) => handleBasicChange('city', e.target.value)}
+                        placeholder="Your city"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="height">Height</Label>
+                      <Input 
+                        id="height"
+                        value={basicForm.height}
+                        onChange={(e) => handleBasicChange('height', e.target.value)}
+                        placeholder="e.g., 5'6''"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="complexion">Complexion</Label>
+                      <Select 
+                        value={basicForm.complexion} 
+                        onValueChange={(value) => handleBasicChange('complexion', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select complexion" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="very-fair">Very Fair</SelectItem>
+                          <SelectItem value="fair">Fair</SelectItem>
+                          <SelectItem value="wheatish">Wheatish</SelectItem>
+                          <SelectItem value="wheatish-brown">Wheatish Brown</SelectItem>
+                          <SelectItem value="brown">Brown</SelectItem>
+                          <SelectItem value="dark">Dark</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="motherTongue">Mother Tongue</Label>
+                      <Input 
+                        id="motherTongue"
+                        value={basicForm.motherTongue}
+                        onChange={(e) => handleBasicChange('motherTongue', e.target.value)}
+                        placeholder="Your mother tongue"
                       />
                     </div>
                     
@@ -633,18 +736,23 @@ export default function EditProfilePage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="sect">Islamic Sect</Label>
+                      <Label htmlFor="sect">Maslak / Islamic Sect</Label>
                       <Select 
                         value={basicForm.sect} 
                         onValueChange={(value) => handleBasicChange('sect', value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select sect" />
+                          <SelectValue placeholder="Select Maslak" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="sunni">Sunni</SelectItem>
+                          <SelectItem value="shafii">Shafi'i</SelectItem>
+                          <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
+                          <SelectItem value="deobandi">Deobandi</SelectItem>
                           <SelectItem value="shia">Shia</SelectItem>
+                          <SelectItem value="revert">Revert Muslim</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="no-preference">No Preference</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -669,102 +777,8 @@ export default function EditProfilePage() {
               </CardContent>
             </Card>
           </TabsContent>
-          
-          {/* Religious Info Tab */}
-          <TabsContent value="religious" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Book className="mr-2 h-5 w-5" /> Religious Information
-                </CardTitle>
-                <CardDescription>
-                  Share your religious practices and values
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleReligiousSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="prayerLevel">Prayer Practice</Label>
-                      <Select 
-                        value={religiousForm.prayerLevel} 
-                        onValueChange={(value) => handleReligiousChange('prayerLevel', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="five-times">All five prayers</SelectItem>
-                          <SelectItem value="sometimes">Sometimes</SelectItem>
-                          <SelectItem value="occasionally">Occasionally</SelectItem>
-                          <SelectItem value="learning">Learning</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {basicForm.gender === 'female' && (
-                      <div className="space-y-2">
-                        <Label htmlFor="hijabLevel">Hijab Observance</Label>
-                        <Select 
-                          value={religiousForm.hijabLevel} 
-                          onValueChange={(value) => handleReligiousChange('hijabLevel', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select level" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="full">Full Hijab</SelectItem>
-                            <SelectItem value="partial">Partial Hijab</SelectItem>
-                            <SelectItem value="sometimes">Sometimes</SelectItem>
-                            <SelectItem value="planning">Planning to Wear</SelectItem>
-                            <SelectItem value="none">Don't Wear</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    
-                    {basicForm.gender === 'male' && (
-                      <div className="space-y-2">
-                        <Label htmlFor="beardLevel">Beard</Label>
-                        <Select 
-                          value={religiousForm.beardLevel} 
-                          onValueChange={(value) => handleReligiousChange('beardLevel', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select option" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="full">Full Beard</SelectItem>
-                            <SelectItem value="short">Short/Trimmed Beard</SelectItem>
-                            <SelectItem value="planning">Planning to Grow</SelectItem>
-                            <SelectItem value="none">No Beard</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="religiousInclination">Religious Values and Practices</Label>
-                    <Textarea 
-                      id="religiousInclination"
-                      value={religiousForm.religiousInclination}
-                      onChange={(e) => handleReligiousChange('religiousInclination', e.target.value)}
-                      className="min-h-[100px]"
-                      placeholder="Share your religious values, practices, and beliefs..."
-                    />
-                  </div>
-                  
-                  <Button type="submit" className="w-full" disabled={savingTab === 'religious'}>
-                    {savingTab === 'religious' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Religious Information
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Education & Career Tab */}
+  
+            {/* Education & Career Tab */}
           <TabsContent value="education" className="space-y-4">
             <Card>
               <CardHeader>
@@ -848,17 +862,6 @@ export default function EditProfilePage() {
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="workExperience">Work Experience</Label>
-                    <Textarea 
-                      id="workExperience"
-                      value={educationCareerForm.workExperience}
-                      onChange={(e) => handleEducationCareerChange('workExperience', e.target.value)}
-                      placeholder="Brief description of your work experience..."
-                      className="min-h-[100px]"
-                    />
-                  </div>
-                  
                   <Button type="submit" className="w-full" disabled={savingTab === 'education'}>
                     {savingTab === 'education' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Save Education & Career Information
@@ -867,8 +870,7 @@ export default function EditProfilePage() {
               </CardContent>
             </Card>
           </TabsContent>
-          
-          {/* Family Info Tab */}
+            {/* Family Info Tab */}
           <TabsContent value="family" className="space-y-4">
             <Card>
               <CardHeader>
@@ -882,6 +884,26 @@ export default function EditProfilePage() {
               <CardContent>
                 <form onSubmit={handleFamilySubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fatherName">Father's Name</Label>
+                      <Input 
+                        id="fatherName"
+                        value={familyForm.fatherName}
+                        onChange={(e) => handleFamilyChange('fatherName', e.target.value)}
+                        placeholder="Your father's name"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="motherName">Mother's Name</Label>
+                      <Input 
+                        id="motherName"
+                        value={familyForm.motherName}
+                        onChange={(e) => handleFamilyChange('motherName', e.target.value)}
+                        placeholder="Your mother's name"
+                      />
+                    </div>
+                    
                     <div className="space-y-2">
                       <Label htmlFor="familyType">Family Type</Label>
                       <Select 
@@ -897,16 +919,6 @@ export default function EditProfilePage() {
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="siblings">Siblings</Label>
-                      <Input 
-                        id="siblings"
-                        value={familyForm.siblings}
-                        onChange={(e) => handleFamilyChange('siblings', e.target.value)}
-                        placeholder="Number and details of siblings"
-                      />
                     </div>
                     
                     <div className="space-y-2">
@@ -927,21 +939,124 @@ export default function EditProfilePage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="familyValues">Family Values</Label>
+                      <Label htmlFor="housingStatus">Housing Status</Label>
                       <Select 
-                        value={familyForm.familyValues} 
-                        onValueChange={(value) => handleFamilyChange('familyValues', value)}
+                        value={familyForm.housingStatus} 
+                        onValueChange={(value) => handleFamilyChange('housingStatus', value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select values" />
+                          <SelectValue placeholder="Select housing status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="traditional">Traditional</SelectItem>
-                          <SelectItem value="moderate">Moderate</SelectItem>
-                          <SelectItem value="liberal">Liberal</SelectItem>
+                          <SelectItem value="owned">Own House/Flat</SelectItem>
+                          <SelectItem value="rented">Rented</SelectItem>
+                          <SelectItem value="family-owned">Family Owned Property</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label>Siblings</Label>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={addSibling}
+                      >
+                        Add Sibling
+                      </Button>
+                    </div>
+                    
+                    {familyForm.siblings.length > 0 ? (
+                      <div className="border rounded-md overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted/50">
+                            <tr>
+                              <th className="p-2 text-left">Name</th>
+                              <th className="p-2 text-left">Brother/Sister</th>
+                              <th className="p-2 text-left">Marital Status</th>
+                              <th className="p-2 text-left">Occupation</th>
+                              <th className="p-2 text-left">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {familyForm.siblings.map((sibling, index) => (
+                              <tr key={index} className="border-t">
+                                <td className="p-2">
+                                  <Input 
+                                    value={sibling.name} 
+                                    onChange={(e) => handleSiblingChange(index, 'name', e.target.value)} 
+                                    placeholder="Name"
+                                    className="h-8"
+                                  />
+                                </td>
+                                <td className="p-2">
+                                  <Select
+                                    value={sibling.siblingType}
+                                    onValueChange={(value) => handleSiblingChange(index, 'siblingType', value)}
+                                  >
+                                    <SelectTrigger className="h-8">
+                                      <SelectValue placeholder="Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="brother">Brother</SelectItem>
+                                      <SelectItem value="sister">Sister</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                                <td className="p-2">
+                                  <Select
+                                    value={sibling.maritalStatus}
+                                    onValueChange={(value) => handleSiblingChange(index, 'maritalStatus', value)}
+                                  >
+                                    <SelectTrigger className="h-8">
+                                      <SelectValue placeholder="Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="married">Married</SelectItem>
+                                      <SelectItem value="unmarried">Unmarried</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </td>
+                                <td className="p-2">
+                                  <Input 
+                                    value={sibling.occupation} 
+                                    onChange={(e) => handleSiblingChange(index, 'occupation', e.target.value)} 
+                                    placeholder="Occupation"
+                                    className="h-8"
+                                  />
+                                </td>
+                                <td className="p-2">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => removeSibling(index)}
+                                  >
+                                    Remove
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center p-4 border rounded-md bg-muted/10">
+                        <p className="text-sm text-muted-foreground">No siblings added yet</p>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                          onClick={addSibling}
+                        >
+                          Add Sibling
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
@@ -963,8 +1078,7 @@ export default function EditProfilePage() {
               </CardContent>
             </Card>
           </TabsContent>
-          
-          {/* Partner Preferences Tab */}
+            {/* Partner Preferences Tab */}
           <TabsContent value="preferences" className="space-y-4">
             <Card>
               <CardHeader>
@@ -1000,6 +1114,28 @@ export default function EditProfilePage() {
                         placeholder="Maximum age"
                         min="18"
                       />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="preferredMaslak">Preferred Maslak / Sect</Label>
+                      <Select 
+                        value={partnerForm.preferredMaslak} 
+                        onValueChange={(value) => handlePartnerChange('preferredMaslak', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select preferred Maslak" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sunni">Sunni</SelectItem>
+                          <SelectItem value="shafii">Shafi'i</SelectItem>
+                          <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
+                          <SelectItem value="deobandi">Deobandi</SelectItem>
+                          <SelectItem value="shia">Shia</SelectItem>
+                          <SelectItem value="revert">Revert Muslim</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="no-preference">No Preference</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     
                     <div className="space-y-2">
@@ -1052,8 +1188,7 @@ export default function EditProfilePage() {
               </CardContent>
             </Card>
           </TabsContent>
-          
-          {/* Privacy Settings Tab */}
+            {/* Privacy Settings Tab */}
           <TabsContent value="privacy" className="space-y-4">
             <Card>
               <CardHeader>
@@ -1112,11 +1247,51 @@ export default function EditProfilePage() {
                     </div>
                   </div>
                   
+                  <div className="border p-4 rounded-md bg-yellow-50/30 space-y-4">
+                    <h3 className="font-medium text-amber-800 flex items-center">
+                      <span className="mr-2">💎</span> Premium Features
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <input
+                            type="checkbox"
+                            id="showFatherNumber"
+                            checked={privacyForm.showFatherNumber}
+                            onChange={(e) => handlePrivacyChange('showFatherNumber', e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 focus:ring-primary"
+                          />
+                          <Label htmlFor="showFatherNumber">Show Father's Number (Premium Only)</Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground ml-6">
+                          Only premium members will be able to see this information
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <input
+                            type="checkbox"
+                            id="showMotherNumber"
+                            checked={privacyForm.showMotherNumber}
+                            onChange={(e) => handlePrivacyChange('showMotherNumber', e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 focus:ring-primary"
+                          />
+                          <Label htmlFor="showMotherNumber">Show Mother's Number (Premium Only)</Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground ml-6">
+                          Only premium members will be able to see this information
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="pt-4">
                     <Alert>
                       <AlertDescription>
                         Privacy settings control what information is visible to other users. 
-                        Premium members have additional privacy controls.
+                        Premium members have additional privacy controls and can view protected information.
                       </AlertDescription>
                     </Alert>
                   </div>
