@@ -1,0 +1,20 @@
+{
+  "version": "7", 
+  "dialect": "postgresql",
+  "id": "94db8e39-1ecc-4a77-8f9a-9403c7bde5eb",
+  "prevId": "f1c3a981-e552-4d65-90e9-64c74abcbfea",
+  "tables": {
+    "users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "height": {
+          "name": "height",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      }
+    }
+  }
+}

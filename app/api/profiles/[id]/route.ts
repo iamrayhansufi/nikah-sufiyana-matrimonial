@@ -5,6 +5,11 @@ import { db } from "@/src/db"
 import { users } from "@/src/db/schema"
 import { authOptions } from "@/lib/auth-options"
 
+// Add error handling for database connection
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 type Props = {
   params: Promise<{ id: string }>
 }
@@ -155,11 +160,17 @@ export async function GET(
     // Debug information
     console.log(`Serving profile ${id}`);
     
-    return NextResponse.json(profileData);
-  } catch (error) {
+    return NextResponse.json(profileData);  } catch (error: unknown) {
     console.error("Get profile error:", error);
+    
+    // Return more detailed error information in development
+    const isDev = process.env.NODE_ENV === 'development';
+    const errorMessage = isDev ? 
+      `Failed to get profile: ${error instanceof Error ? error.message : "Unknown error"}` : 
+      "Failed to get profile";
+    
     return NextResponse.json(
-      { error: "Failed to get profile" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -271,11 +282,17 @@ export async function PATCH(
       );
     }
     
-    return NextResponse.json(updatedProfile[0]);
-  } catch (error) {
+    return NextResponse.json(updatedProfile[0]);  } catch (error: unknown) {
     console.error("Update profile error:", error);
+    
+    // Return more detailed error information in development
+    const isDev = process.env.NODE_ENV === 'development';
+    const errorMessage = isDev ? 
+      `Failed to update profile: ${error instanceof Error ? error.message : "Unknown error"}` : 
+      "Failed to update profile";
+      
     return NextResponse.json(
-      { error: "Failed to update profile" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

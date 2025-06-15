@@ -1,17 +1,28 @@
 import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+import { neon, NeonQueryFunction } from "@neondatabase/serverless";
 import { config } from "dotenv";
 import * as schema from "./schema";
 
 config({ path: ".env" });
 
-// Check if DATABASE_URL is defined
-if (!process.env.POSTGRES_URL) {
-  throw new Error("DATABASE_URL is not defined in environment variables");
+// Check database connection configuration
+// Use DATABASE_URL as fallback if POSTGRES_URL is not defined
+const dbUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+if (!dbUrl) {
+  throw new Error("No database URL defined in environment variables (POSTGRES_URL or DATABASE_URL)");
 }
 
-// Configure Neon
-const sql = neon(process.env.POSTGRES_URL);
+// Configure Neon with error handling
+let sql: NeonQueryFunction<any, any>;
+try {
+  sql = neon(dbUrl);
+  console.log("Database connection initialized");
+} catch (error) {
+  console.error("Failed to initialize database connection:", error);
+  // Provide fallback connection
+  throw error;
+}
 
 // Initialize Drizzle with the SQL client and schema
 export const db = drizzle(sql, { schema });

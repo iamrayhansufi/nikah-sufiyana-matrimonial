@@ -201,13 +201,26 @@ export default function EditProfilePage() {
       }
 
       try {
+        console.log("Fetching profile with ID:", session.user.id);
+        
+        // Test database connection first
+        const testResponse = await fetch('/api/test/db')
+        if (!testResponse.ok) {
+          console.error("Database connection test failed");
+          throw new Error("Database connection error. Please try again later.")
+        }
+        
         const response = await fetch(`/api/profiles/${session.user.id}`)
         
         if (!response.ok) {
-          throw new Error(`Failed to fetch profile: ${response.status}`)
+          console.error("Failed to fetch profile:", response.status);
+          // Try to get error details
+          const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+          throw new Error(`Failed to fetch profile: ${errorData.error || response.status}`)
         }
         
         const data = await response.json()
+        console.log("Profile data received:", Object.keys(data).length, "fields");
         
         if (isMounted) {
           setProfileData(data)

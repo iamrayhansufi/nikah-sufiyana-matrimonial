@@ -1,0 +1,20 @@
+{
+  "version": "7", 
+  "dialect": "postgresql",
+  "id": "f1c3a981-e552-4d65-90e9-64c74abcbfea",
+  "prevId": "7a570ff2-f915-4ef3-8d44-e277064599ff",
+  "tables": {
+    "users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "mother_tongue": {
+          "name": "mother_tongue",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      }
+    }
+  }
+}
