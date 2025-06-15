@@ -448,6 +448,14 @@ export default function ProfilePage({
                             <p className="font-medium mb-1">Islamic Sect</p>
                             <p className="text-sm text-muted-foreground">{profile.sect}</p>
                           </div>
+                          <div>
+                            <p className="font-medium mb-1">Religious Inclination</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.religiousInclination && profile.religiousInclination.trim() !== "" 
+                                ? profile.religiousInclination 
+                                : "Not specified"}
+                            </p>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -469,7 +477,9 @@ export default function ProfilePage({
                           </div>
                           <div>
                             <p className="font-medium mb-1">Preferred Height</p>
-                            <p className="text-sm text-muted-foreground">{profile.preferredHeight || "Not specified"}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.preferredHeight && profile.preferredHeight.trim() !== "" ? profile.preferredHeight : "Not specified"}
+                            </p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Preferred Complexion</p>
@@ -523,7 +533,9 @@ export default function ProfilePage({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <p className="font-medium mb-1">Height</p>
-                            <p className="text-sm text-muted-foreground">{profile.height || "Not specified"}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.height && profile.height.trim() !== "" ? profile.height : "Not specified"}
+                            </p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Complexion</p>
@@ -560,8 +572,8 @@ export default function ProfilePage({
                             <p className="text-sm text-muted-foreground">{profile.profession}</p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Company</p>
-                            <p className="text-sm text-muted-foreground">{profile.company}</p>
+                            <p className="font-medium mb-1">Income</p>
+                            <p className="text-sm text-muted-foreground">{profile.income || "Not specified"}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Education</p>

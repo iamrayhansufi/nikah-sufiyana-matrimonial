@@ -471,11 +471,14 @@ export default function EditProfilePage() {
     
     try {      // Process the tabData to avoid sending empty strings that would overwrite existing values
       const cleanedData = Object.entries(tabData).reduce((acc: Record<string, any>, [key, value]) => {
-        // Only include values that aren't empty strings
-        // Special handling for height, complexion, preferredHeight, and preferredComplexion
-        if (value !== "" || 
-            (key !== "height" && key !== "complexion" && 
-             key !== "preferredHeight" && key !== "preferredComplexion")) {
+        // Always include height, complexion, preferredHeight, preferredComplexion even if empty
+        // This ensures we explicitly set them to empty when user clears them
+        if (key === "height" || key === "complexion" || 
+            key === "preferredHeight" || key === "preferredComplexion") {
+          acc[key] = value; // Always include these fields
+        }
+        // For other fields, only include if they're not empty
+        else if (value !== "") {
           acc[key] = value;
         }
         return acc;

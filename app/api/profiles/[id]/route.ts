@@ -226,8 +226,8 @@ export async function PATCH(
         profession: body.profession || undefined,
         maritalStatus: body.maritalStatus || undefined,
         maritalStatusOther: body.maritalStatusOther || undefined,        sect: body.sect || undefined,
-        height: body.height !== "" ? body.height : undefined,
-        complexion: body.complexion !== "" ? body.complexion : undefined,
+        height: body.height !== undefined ? body.height : undefined, // Allow empty string to clear value
+        complexion: body.complexion !== undefined ? body.complexion : undefined, // Allow empty string to clear value
         aboutMe: body.aboutMe || undefined,
         city: body.city || undefined,
         country: body.country || undefined,
@@ -257,8 +257,8 @@ export async function PATCH(
         preferredAgeMax: body.preferredAgeMax !== undefined ? parseInt(body.preferredAgeMax) : undefined,
         preferredEducation: body.preferredEducation || undefined,        preferredLocation: body.preferredLocation || undefined,
         preferredOccupation: body.preferredOccupation || undefined,
-        preferredHeight: body.preferredHeight !== "" ? body.preferredHeight : undefined,
-        preferredComplexion: body.preferredComplexion !== "" ? body.preferredComplexion : undefined,
+        preferredHeight: body.preferredHeight !== undefined ? body.preferredHeight : undefined, // Allow empty string to clear value
+        preferredComplexion: body.preferredComplexion !== undefined ? body.preferredComplexion : undefined, // Allow empty string to clear value
         preferredMaslak: body.preferredMaslak || undefined,
         expectations: body.expectations || undefined,
         
