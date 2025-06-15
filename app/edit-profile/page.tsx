@@ -456,8 +456,7 @@ export default function EditProfilePage() {
       ...prev,
       [field]: value
     }))
-  }
-    // Generic update function for all tabs
+  }    // Generic update function for all tabs
   const updateProfile = async (tabData: object, tabName: string) => {
     if (!session?.user?.id) {
       toast({
@@ -470,9 +469,20 @@ export default function EditProfilePage() {
     
     setSavingTab(tabName)
     
-    try {
+    try {      // Process the tabData to avoid sending empty strings that would overwrite existing values
+      const cleanedData = Object.entries(tabData).reduce((acc: Record<string, any>, [key, value]) => {
+        // Only include values that aren't empty strings
+        // Special handling for height, complexion, preferredHeight, and preferredComplexion
+        if (value !== "" || 
+            (key !== "height" && key !== "complexion" && 
+             key !== "preferredHeight" && key !== "preferredComplexion")) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+      
       // Log the data we're sending for debugging
-      console.log(`Updating ${tabName} with data:`, JSON.stringify(tabData, null, 2));
+      console.log(`Updating ${tabName} with data:`, JSON.stringify(cleanedData, null, 2));
       
       const response = await fetch(`/api/profiles/${session.user.id}`, {
         method: "PATCH",
@@ -480,7 +490,7 @@ export default function EditProfilePage() {
           "Content-Type": "application/json",
           "Cache-Control": "no-cache"
         },
-        body: JSON.stringify(tabData)
+        body: JSON.stringify(cleanedData)
       })
       
       if (!response.ok) {
