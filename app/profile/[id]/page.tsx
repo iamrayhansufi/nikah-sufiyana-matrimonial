@@ -489,7 +489,8 @@ export default function ProfilePage({
                                profile.preferredComplexion === "wheatish" ? "Wheatish" :
                                profile.preferredComplexion === "wheatish-brown" ? "Wheatish Brown" :
                                profile.preferredComplexion === "brown" ? "Brown" :
-                               profile.preferredComplexion === "dark" ? "Dark" : "Not specified"}
+                               profile.preferredComplexion === "dark" ? "Dark" : 
+                               profile.preferredComplexion ? profile.preferredComplexion : "Not specified"}
                             </p>
                           </div>
                           <div>
@@ -543,7 +544,8 @@ export default function ProfilePage({
                                profile.complexion === "wheatish" ? "Wheatish" :
                                profile.complexion === "wheatish-brown" ? "Wheatish Brown" :
                                profile.complexion === "brown" ? "Brown" :
-                               profile.complexion === "dark" ? "Dark" : "Not specified"}
+                               profile.complexion === "dark" ? "Dark" : 
+                               profile.complexion ? profile.complexion : "Not specified"}
                             </p>
                           </div>
                           <div>

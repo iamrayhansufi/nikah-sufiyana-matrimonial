@@ -470,12 +470,12 @@ export default function EditProfilePage() {
     setSavingTab(tabName)
     
     try {      // Process the tabData to avoid sending empty strings that would overwrite existing values
-      const cleanedData = Object.entries(tabData).reduce((acc: Record<string, any>, [key, value]) => {
-        // Always include height, complexion, preferredHeight, preferredComplexion even if empty
+      const cleanedData = Object.entries(tabData).reduce((acc: Record<string, any>, [key, value]) => {        // Always include height, complexion, preferredHeight, preferredComplexion even if empty
         // This ensures we explicitly set them to empty when user clears them
         if (key === "height" || key === "complexion" || 
             key === "preferredHeight" || key === "preferredComplexion") {
-          acc[key] = value; // Always include these fields
+          // Explicitly include these fields, even with empty values
+          acc[key] = value; 
         }
         // For other fields, only include if they're not empty
         else if (value !== "") {
@@ -483,9 +483,22 @@ export default function EditProfilePage() {
         }
         return acc;
       }, {});
-      
-      // Log the data we're sending for debugging
+        // Log the data we're sending for debugging
       console.log(`Updating ${tabName} with data:`, JSON.stringify(cleanedData, null, 2));
+      
+      // Special logging for height and complexion fields
+      if (cleanedData.height !== undefined) {
+        console.log(`Height being sent: '${cleanedData.height}'`);
+      }
+      if (cleanedData.complexion !== undefined) {
+        console.log(`Complexion being sent: '${cleanedData.complexion}'`);
+      }
+      if (cleanedData.preferredHeight !== undefined) {
+        console.log(`Preferred Height being sent: '${cleanedData.preferredHeight}'`);
+      }
+      if (cleanedData.preferredComplexion !== undefined) {
+        console.log(`Preferred Complexion being sent: '${cleanedData.preferredComplexion}'`);
+      }
       
       const response = await fetch(`/api/profiles/${session.user.id}`, {
         method: "PATCH",

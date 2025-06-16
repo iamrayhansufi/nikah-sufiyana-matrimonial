@@ -146,14 +146,26 @@ export async function GET(
       hobbies: ['Not specified'],
       fatherOccupation: 'Not specified',
       motherOccupation: 'Not specified',
-      siblings: 'Not specified',
-      familyType: 'Not specified',
-      height: 'Not specified',
+      siblings: 'Not specified',      familyType: 'Not specified',
+      // Log raw values for debugging
+      height: (() => {
+        console.log(`Raw DB height value: '${profile[0].height}'`);
+        return profile[0].height || ''; // Use empty string instead of "Not specified"
+      })(),
       weight: 'Not specified',
-      complexion: 'Not specified',
+      complexion: (() => {
+        console.log(`Raw DB complexion value: '${profile[0].complexion}'`);
+        return profile[0].complexion || ''; // Use empty string instead of "Not specified"
+      })(),
       bodyType: 'Not specified',
-      motherTongue: 'Not specified',
-      preferredHeight: 'Not specified',
+      motherTongue: 'Not specified', // Keep this as is since the field might not exist
+      preferredHeight: (() => {
+        console.log(`Raw DB preferredHeight value: '${profile[0].preferredHeight}'`);
+        return profile[0].preferredHeight || ''; // Use empty string instead of "Not specified"
+      })(),      preferredComplexion: (() => {
+        console.log(`Raw DB preferredComplexion value: '${profile[0].preferredComplexion}'`);
+        return profile[0].preferredComplexion || ''; // Use empty string instead of "Not specified"
+      })(),
       preferredAge: profile[0].preferredAgeMin && profile[0].preferredAgeMax ? 
         `${profile[0].preferredAgeMin} - ${profile[0].preferredAgeMax} years` : 'Not specified',
     };
@@ -200,10 +212,9 @@ export async function PATCH(
         { error: "Invalid profile ID" },
         { status: 400 }
       )
-    }
-    
-    console.log(`User ${session?.user?.id || 'anonymous'} is fetching profile ${id}`);
-      // Only allow users to update their own profile
+    }    console.log(`User ${session?.user?.id || 'anonymous'} is fetching profile ${id}`);
+      
+    // Only allow users to update their own profile
     if (session && session.user && parseInt(session.user.id) !== id) {
       return NextResponse.json(
         { error: "You can only update your own profile" },
@@ -213,11 +224,24 @@ export async function PATCH(
     
     const body = await request.json()
     
+    // Log incoming height and complexion values for debugging
+    if (body.height !== undefined) {
+      console.log(`Received height: '${body.height}'`);
+    }
+    if (body.complexion !== undefined) {
+      console.log(`Received complexion: '${body.complexion}'`);
+    }
+    if (body.preferredHeight !== undefined) {
+      console.log(`Received preferredHeight: '${body.preferredHeight}'`);
+    }
+    if (body.preferredComplexion !== undefined) {
+      console.log(`Received preferredComplexion: '${body.preferredComplexion}'`);
+    }
+    
     // Update user profile in database
     const updatedProfile = await db
       .update(users)
-      .set({
-        // Basic Info
+      .set({        // Basic Info
         fullName: body.fullName || undefined,
         age: body.age !== undefined ? parseInt(body.age) : undefined,
         gender: body.gender || undefined,
@@ -225,9 +249,8 @@ export async function PATCH(
         education: body.education || undefined,
         profession: body.profession || undefined,
         maritalStatus: body.maritalStatus || undefined,
-        maritalStatusOther: body.maritalStatusOther || undefined,        sect: body.sect || undefined,
-        height: body.height !== undefined ? (body.height === "" ? null : body.height) : undefined, // Set to null if empty
-        complexion: body.complexion !== undefined ? (body.complexion === "" ? null : body.complexion) : undefined, // Set to null if empty
+        maritalStatusOther: body.maritalStatusOther || undefined,        sect: body.sect || undefined,        height: body.height !== undefined ? (body.height === '' ? null : body.height) : undefined, // Set empty string to null 
+        complexion: body.complexion !== undefined ? (body.complexion === '' ? null : body.complexion) : undefined, // Set empty string to null
         aboutMe: body.aboutMe || undefined,
         city: body.city || undefined,
         country: body.country || undefined,
@@ -256,9 +279,8 @@ export async function PATCH(
         preferredAgeMin: body.preferredAgeMin !== undefined ? parseInt(body.preferredAgeMin) : undefined,
         preferredAgeMax: body.preferredAgeMax !== undefined ? parseInt(body.preferredAgeMax) : undefined,
         preferredEducation: body.preferredEducation || undefined,        preferredLocation: body.preferredLocation || undefined,
-        preferredOccupation: body.preferredOccupation || undefined,
-        preferredHeight: body.preferredHeight !== undefined ? (body.preferredHeight === "" ? null : body.preferredHeight) : undefined, // Set to null if empty
-        preferredComplexion: body.preferredComplexion !== undefined ? (body.preferredComplexion === "" ? null : body.preferredComplexion) : undefined, // Set to null if empty
+        preferredOccupation: body.preferredOccupation || undefined,        preferredHeight: body.preferredHeight !== undefined ? (body.preferredHeight === '' ? null : body.preferredHeight) : undefined, // Set empty string to null
+        preferredComplexion: body.preferredComplexion !== undefined ? (body.preferredComplexion === '' ? null : body.preferredComplexion) : undefined, // Set empty string to null
         preferredMaslak: body.preferredMaslak || undefined,
         expectations: body.expectations || undefined,
         
