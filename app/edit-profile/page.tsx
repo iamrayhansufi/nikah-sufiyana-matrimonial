@@ -79,9 +79,10 @@ interface MaternalPaternal {
 interface FamilyInfoForm {
   familyDetails: string;
   fatherName: string;
-  fatherMobile: string;
+  fatherOccupation: string;
   motherName: string;
-  motherMobile: string;
+  motherOccupation: string;
+  motherOccupationOther?: string;
   siblings: SiblingInfo[];
   brotherInLaws: SiblingBrotherInLaw[];
   maternalPaternal: MaternalPaternal[];
@@ -106,7 +107,9 @@ interface PrivacySettingsForm {
   hideProfile: boolean;
   showOnlineStatus: boolean;
   showFatherNumber: boolean;
+  fatherMobile: string;
   showMotherNumber: boolean;
+  motherMobile: string;
   mobileNumber: string;
 }
 
@@ -144,12 +147,14 @@ export default function EditProfilePage() {
     income: "",
     jobTitle: ""
   })
-    const [familyForm, setFamilyForm] = useState<FamilyInfoForm>({
+  
+  const [familyForm, setFamilyForm] = useState<FamilyInfoForm>({
     familyDetails: "",
     fatherName: "",
-    fatherMobile: "",
+    fatherOccupation: "",
     motherName: "",
-    motherMobile: "",
+    motherOccupation: "Home Queen",
+    motherOccupationOther: "",
     siblings: [],
     brotherInLaws: [],
     maternalPaternal: [],
@@ -166,13 +171,15 @@ export default function EditProfilePage() {
     preferredMaslak: "",
     expectations: ""
   })
-    const [privacyForm, setPrivacyForm] = useState<PrivacySettingsForm>({
+  const [privacyForm, setPrivacyForm] = useState<PrivacySettingsForm>({
     showContactInfo: true,
     showPhotos: true,
     hideProfile: false,
     showOnlineStatus: true,
     showFatherNumber: false,
+    fatherMobile: "",
     showMotherNumber: false,
+    motherMobile: "",
     mobileNumber: ""
   })
 
@@ -286,17 +293,17 @@ export default function EditProfilePage() {
               }
             } else if (Array.isArray(data.maternalPaternal)) {
               maternalPaternalArray = data.maternalPaternal;
-            }
-          } catch (e) {
+            }          } catch (e) {
             console.warn("Could not parse maternal/paternal data:", e);
           }
           
           setFamilyForm({
             familyDetails: data.familyDetails || "",
             fatherName: data.fatherName || "",
-            fatherMobile: data.fatherMobile || "",
+            fatherOccupation: data.fatherOccupation || "",
             motherName: data.motherName || "",
-            motherMobile: data.motherMobile || "",
+            motherOccupation: data.motherOccupation || "Home Queen",
+            motherOccupationOther: data.motherOccupation !== "Home Queen" && data.motherOccupation !== "" ? data.motherOccupation : "",
             siblings: siblingsArray || [],
             brotherInLaws: brotherInLawsArray || [],
             maternalPaternal: maternalPaternalArray || [],
@@ -319,7 +326,9 @@ export default function EditProfilePage() {
             hideProfile: data.hideProfile !== undefined ? data.hideProfile : false,
             showOnlineStatus: data.showOnlineStatus !== undefined ? data.showOnlineStatus : true,
             showFatherNumber: data.showFatherNumber !== undefined ? data.showFatherNumber : false,
+            fatherMobile: data.fatherMobile || "",
             showMotherNumber: data.showMotherNumber !== undefined ? data.showMotherNumber : false,
+            motherMobile: data.motherMobile || "",
             mobileNumber: data.mobileNumber || ""
           })
         }
@@ -450,13 +459,12 @@ export default function EditProfilePage() {
       [field]: value
     }))
   }
-  
-  const handlePrivacyChange = (field: keyof PrivacySettingsForm, value: boolean) => {
+    const handlePrivacyChange = (field: keyof PrivacySettingsForm, value: boolean | string) => {
     setPrivacyForm(prev => ({
       ...prev,
       [field]: value
     }))
-  }    // Generic update function for all tabs
+  }// Generic update function for all tabs
   const updateProfile = async (tabData: object, tabName: string) => {
     if (!session?.user?.id) {
       toast({
@@ -636,14 +644,14 @@ export default function EditProfilePage() {
         income: data.income || "",
         jobTitle: data.jobTitle || ""
       });
-      
-      // Family form data
+        // Family form data
       setFamilyForm({
         familyDetails: data.familyDetails || "",
         fatherName: data.fatherName || "",
-        fatherMobile: data.fatherMobile || "",
+        fatherOccupation: data.fatherOccupation || "",
         motherName: data.motherName || "",
-        motherMobile: data.motherMobile || "",
+        motherOccupation: data.motherOccupation || "Home Queen",
+        motherOccupationOther: data.motherOccupation !== "Home Queen" && data.motherOccupation !== "" ? data.motherOccupation : "",
         siblings: siblingsArray || [],
         brotherInLaws: brotherInLawsArray || [],
         maternalPaternal: maternalPaternalArray || [],
@@ -662,15 +670,16 @@ export default function EditProfilePage() {
         preferredMaslak: data.preferredMaslak || "",
         expectations: data.expectations || ""
       });
-      
-      // Privacy settings form data
+        // Privacy settings form data
       setPrivacyForm({
         showContactInfo: data.showContactInfo !== undefined ? data.showContactInfo : true,
         showPhotos: data.showPhotos !== undefined ? data.showPhotos : true,
         hideProfile: data.hideProfile !== undefined ? data.hideProfile : false,
         showOnlineStatus: data.showOnlineStatus !== undefined ? data.showOnlineStatus : true,
         showFatherNumber: data.showFatherNumber !== undefined ? data.showFatherNumber : false,
+        fatherMobile: data.fatherMobile || "",
         showMotherNumber: data.showMotherNumber !== undefined ? data.showMotherNumber : false,
+        motherMobile: data.motherMobile || "",
         mobileNumber: data.mobileNumber || ""
       });
       
@@ -689,21 +698,40 @@ export default function EditProfilePage() {
     e.preventDefault()
     await updateProfile(educationCareerForm, "education and career")
   }
-  
-  const handleFamilySubmit = async (e: React.FormEvent) => {
+    const handleFamilySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await updateProfile(familyForm, "family")
+    
+    // Handle mother's occupation for "other" selection
+    let finalMotherOccupation = familyForm.motherOccupation;
+    if (familyForm.motherOccupation === "other" && familyForm.motherOccupationOther) {
+      finalMotherOccupation = familyForm.motherOccupationOther;
+    }
+    
+    // Create a copy of the family form data with additional occupation fields
+    const formData = {
+      ...familyForm,
+      motherOccupation: finalMotherOccupation
+    };
+    
+    await updateProfile(formData, "family");
   }
   
   const handlePartnerSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     await updateProfile(partnerForm, "partner preferences")
   }
-  
-  const handlePrivacySubmit = async (e: React.FormEvent) => {
+    const handlePrivacySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await updateProfile(privacyForm, "privacy settings")
-  }  // Handle photo upload
+    
+    // Only send parent mobile numbers if the corresponding checkbox is checked
+    const formData = {
+      ...privacyForm,
+      fatherMobile: privacyForm.showFatherNumber ? privacyForm.fatherMobile : "",
+      motherMobile: privacyForm.showMotherNumber ? privacyForm.motherMobile : ""
+    };
+    
+    await updateProfile(formData, "privacy settings")
+  }// Handle photo upload
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
@@ -1133,11 +1161,10 @@ export default function EditProfilePage() {
                   Details about your education and professional life
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={handleEducationCareerSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                    <div className="space-y-2">
-                      <Label htmlFor="education">Highest Qualification</Label>
-                      <Select 
+              <CardContent>                <form onSubmit={handleEducationCareerSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="education">Highest Qualification</Label>                      <Select 
                         value={educationCareerForm.education} 
                         onValueChange={(value) => handleEducationCareerChange('education', value)}
                       >
@@ -1239,14 +1266,13 @@ export default function EditProfilePage() {
                         placeholder="Your father's name"
                       />
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="fatherMobile">Father's Mobile Number</Label>
+                      <div className="space-y-2">
+                      <Label htmlFor="fatherOccupation">Father's Occupation</Label>
                       <Input 
-                        id="fatherMobile"
-                        value={familyForm.fatherMobile}
-                        onChange={(e) => handleFamilyChange('fatherMobile', e.target.value)}
-                        placeholder="Father's mobile number"
+                        id="fatherOccupation"
+                        value={familyForm.fatherOccupation}
+                        onChange={(e) => handleFamilyChange('fatherOccupation', e.target.value)}
+                        placeholder="Father's occupation"
                       />
                     </div>
                     
@@ -1259,16 +1285,39 @@ export default function EditProfilePage() {
                         placeholder="Your mother's name"
                       />
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="motherMobile">Mother's Mobile Number</Label>
-                      <Input 
-                        id="motherMobile"
-                        value={familyForm.motherMobile}
-                        onChange={(e) => handleFamilyChange('motherMobile', e.target.value)}
-                        placeholder="Mother's mobile number"
-                      />
+                      <div className="space-y-2">
+                      <Label htmlFor="motherOccupation">Mother's Occupation</Label>
+                      <Select 
+                        value={familyForm.motherOccupation} 
+                        onValueChange={(value) => {
+                          handleFamilyChange('motherOccupation', value);
+                          // Reset the 'other' field if this is not 'other'
+                          if (value !== "other" && familyForm.motherOccupationOther) {
+                            handleFamilyChange('motherOccupationOther', '');
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select mother's occupation" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Home Queen">Home Queen</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
+                    
+                    {familyForm.motherOccupation === "other" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="motherOccupationOther">Specify Mother's Occupation</Label>
+                        <Input 
+                          id="motherOccupationOther"
+                          value={familyForm.motherOccupationOther || ""}
+                          onChange={(e) => handleFamilyChange('motherOccupationOther', e.target.value)}
+                          placeholder="Please specify"
+                        />
+                      </div>
+                    )}
                     
                     <div className="space-y-2">
                       <Label htmlFor="housingStatus">Housing Status</Label>
@@ -1582,7 +1631,8 @@ export default function EditProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handlePartnerSubmit} className="space-y-4">                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form onSubmit={handlePartnerSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="preferredAgeMin">Preferred Age Range (Min)</Label>
                       <Input 
@@ -1656,9 +1706,7 @@ export default function EditProfilePage() {
                         onChange={(e) => handlePartnerChange('preferredLocation', e.target.value)}
                         placeholder="City, country or region"
                       />
-                    </div>
-                    
-                    <div className="space-y-2">
+                    </div>                    <div className="space-y-2">
                       <Label htmlFor="preferredOccupation">Preferred Occupation</Label>
                       <Input 
                         id="preferredOccupation"
@@ -1667,12 +1715,12 @@ export default function EditProfilePage() {
                         placeholder="Occupation preference"
                       />
                     </div>
-                  </div>
+                    
                     <div className="space-y-2">
-                    <Label htmlFor="preferredMaslak">Preferred Maslak / Sect</Label>
-                    <Select 
-                      value={partnerForm.preferredMaslak} 
-                      onValueChange={(value) => handlePartnerChange('preferredMaslak', value)}
+                      <Label htmlFor="preferredMaslak">Preferred Maslak / Sect</Label>
+                      <Select 
+                        value={partnerForm.preferredMaslak} 
+                        onValueChange={(value) => handlePartnerChange('preferredMaslak', value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select preferred Maslak" />
@@ -1683,11 +1731,11 @@ export default function EditProfilePage() {
                         <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
                         <SelectItem value="deobandi">Deobandi</SelectItem>
                         <SelectItem value="shia">Shia</SelectItem>
-                        <SelectItem value="revert">Revert Muslim</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="revert">Revert Muslim</SelectItem>                        <SelectItem value="other">Other</SelectItem>
                         <SelectItem value="no-preference">No Preference</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
                   </div>
                   
                   <div className="space-y-2">
@@ -1767,40 +1815,62 @@ export default function EditProfilePage() {
                       <Label htmlFor="showOnlineStatus">Show Online Status</Label>
                     </div>
                   </div>                    <div className="border p-4 rounded-md bg-yellow-50/30 space-y-4">
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                      <div>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <input
-                            type="checkbox"
-                            id="showFatherNumber"
-                            checked={privacyForm.showFatherNumber}
-                            onChange={(e) => handlePrivacyChange('showFatherNumber', e.target.checked)}
-                            className="h-4 w-4 rounded border-gray-300 focus:ring-primary"
-                          />
-                          <Label htmlFor="showFatherNumber">Show Father's Number (Premium Only)</Label>
-                        </div>
-                        <p className="text-xs text-muted-foreground ml-6">
-                          Father's number from Family Info tab: {familyForm.fatherMobile || "Not provided"}
-                        </p>
-                      </div>
+                      <h3 className="font-medium text-sm mb-2">Parent Contact Information (Premium Only)</h3>
                       
-                      <div>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <input
-                            type="checkbox"
-                            id="showMotherNumber"
-                            checked={privacyForm.showMotherNumber}
-                            onChange={(e) => handlePrivacyChange('showMotherNumber', e.target.checked)}
-                            className="h-4 w-4 rounded border-gray-300 focus:ring-primary"
-                          />
-                          <Label htmlFor="showMotherNumber">Show Mother's Number (Premium Only)</Label>
+                      <div className="grid grid-cols-1 gap-4">
+                        <div>
+                          <div className="flex items-center space-x-2 mb-2">
+                            <input
+                              type="checkbox"
+                              id="showFatherNumber"
+                              checked={privacyForm.showFatherNumber}
+                              onChange={(e) => handlePrivacyChange('showFatherNumber', e.target.checked)}
+                              className="h-4 w-4 rounded border-gray-300 focus:ring-primary"
+                            />
+                            <Label htmlFor="showFatherNumber">Show Father's Contact Number</Label>
+                          </div>
+                          
+                          {privacyForm.showFatherNumber && (
+                            <div className="pl-6 mt-2">
+                              <Label htmlFor="fatherMobile" className="text-sm mb-1 block">Father's Mobile Number</Label>
+                              <Input 
+                                id="fatherMobile"
+                                value={privacyForm.fatherMobile}
+                                onChange={(e) => handlePrivacyChange('fatherMobile', e.target.value)}
+                                placeholder="Enter father's mobile number"
+                                className="max-w-md"
+                              />
+                            </div>
+                          )}
                         </div>
-                        <p className="text-xs text-muted-foreground ml-6">
-                          Mother's number from Family Info tab: {familyForm.motherMobile || "Not provided"}
-                        </p>
+                        
+                        <div className="mt-2">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <input
+                              type="checkbox"
+                              id="showMotherNumber"
+                              checked={privacyForm.showMotherNumber}
+                              onChange={(e) => handlePrivacyChange('showMotherNumber', e.target.checked)}
+                              className="h-4 w-4 rounded border-gray-300 focus:ring-primary"
+                            />
+                            <Label htmlFor="showMotherNumber">Show Mother's Contact Number</Label>
+                          </div>
+                          
+                          {privacyForm.showMotherNumber && (
+                            <div className="pl-6 mt-2">
+                              <Label htmlFor="motherMobile" className="text-sm mb-1 block">Mother's Mobile Number</Label>
+                              <Input 
+                                id="motherMobile"
+                                value={privacyForm.motherMobile}
+                                onChange={(e) => handlePrivacyChange('motherMobile', e.target.value)}
+                                placeholder="Enter mother's mobile number"
+                                className="max-w-md"
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
                   
                   <div className="pt-4">
                     <Alert>

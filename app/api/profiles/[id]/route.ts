@@ -134,8 +134,7 @@ export async function GET(
       // Default fields for display
       showContactInfo: false,
       showFullPhotos: false,
-      gallery: [],
-      prayerHabit: 'Not specified',
+      gallery: [],      prayerHabit: 'Not specified',
       hijab: 'Not specified',
       quranReading: 'Not specified',
       islamicEducation: 'Not specified',
@@ -143,10 +142,9 @@ export async function GET(
       smoking: 'Not specified',
       drinking: 'Not specified',
       languages: ['Not specified'],
-      hobbies: ['Not specified'],
-      fatherOccupation: 'Not specified',
-      motherOccupation: 'Not specified',
-      siblings: 'Not specified',      familyType: 'Not specified',
+      hobbies: ['Not specified'],      fatherOccupation: 'Not specified',
+      motherOccupation: 'Home Queen',
+      siblings: 'Not specified',familyType: 'Not specified',
       // Log raw values for debugging
       height: (() => {
         console.log(`Raw DB height value: '${profile[0].height}'`);
@@ -257,14 +255,10 @@ export async function PATCH(
         address: body.address || undefined,
         
         // Religious info
-        religiousInclination: body.religiousInclination || undefined,
-        
-        // Family info
+        religiousInclination: body.religiousInclination || undefined,        // Family info
         familyDetails: body.familyDetails || undefined,
         fatherName: body.fatherName || undefined,
-        fatherMobile: body.fatherMobile || undefined,
         motherName: body.motherName || undefined,
-        motherMobile: body.motherMobile || undefined,
         siblings: body.siblings ? JSON.stringify(body.siblings) : undefined,
         brotherInLaws: body.brotherInLaws ? JSON.stringify(body.brotherInLaws) : undefined,
         maternalPaternal: body.maternalPaternal ? JSON.stringify(body.maternalPaternal) : undefined,
@@ -283,14 +277,15 @@ export async function PATCH(
         preferredComplexion: body.preferredComplexion !== undefined ? (body.preferredComplexion === '' ? null : body.preferredComplexion) : undefined, // Set empty string to null
         preferredMaslak: body.preferredMaslak || undefined,
         expectations: body.expectations || undefined,
-        
-        // Privacy settings
+          // Privacy settings
         showContactInfo: body.showContactInfo !== undefined ? body.showContactInfo : undefined,
         showPhotos: body.showPhotos !== undefined ? body.showPhotos : undefined,
         hideProfile: body.hideProfile !== undefined ? body.hideProfile : undefined,
         showOnlineStatus: body.showOnlineStatus !== undefined ? body.showOnlineStatus : undefined,
         showFatherNumber: body.showFatherNumber !== undefined ? body.showFatherNumber : undefined,
         showMotherNumber: body.showMotherNumber !== undefined ? body.showMotherNumber : undefined,
+        fatherMobile: body.fatherMobile || undefined,
+        motherMobile: body.motherMobile || undefined,
         mobileNumber: body.mobileNumber || undefined,
         
         // Update timestamp

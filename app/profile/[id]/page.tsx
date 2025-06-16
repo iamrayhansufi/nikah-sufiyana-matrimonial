@@ -339,7 +339,7 @@ export default function ProfilePage({
                           <div className="space-y-4">
                             <div className="flex items-center gap-3">
                               <Phone className="h-5 w-5 text-primary" />
-                              <span>{profile.phone}</span>
+                              <span>{profile.phone || profile.mobileNumber}</span>
                             </div>
                             <div className="flex items-center gap-3">
                               <Mail className="h-5 w-5 text-primary" />
@@ -347,8 +347,49 @@ export default function ProfilePage({
                             </div>
                             <div className="flex items-center gap-3">
                               <MessageSquare className="h-5 w-5 text-primary" />
-                              <span>{profile.whatsapp}</span>
-                            </div>
+                              <span>{profile.whatsapp || profile.mobileNumber}</span>
+                            </div>                                {profile.premium && (
+                              <>
+                                <Separator />
+                                <h3 className="font-medium text-md">Parent Contact Information</h3>
+                                
+                                {profile.fatherOccupation && (
+                                  <div className="flex items-center gap-3 mt-2">
+                                    <Briefcase className="h-5 w-5 text-primary" />
+                                    <span>Father's Occupation: {profile.fatherOccupation}</span>
+                                  </div>
+                                )}
+                                
+                                {profile.motherOccupation && (
+                                  <div className="flex items-center gap-3">
+                                    <Briefcase className="h-5 w-5 text-primary" />
+                                    <span>Mother's Occupation: {profile.motherOccupation}</span>
+                                  </div>
+                                )}
+                                
+                                <Separator className="my-2" />
+                                
+                                {profile.showFatherNumber && profile.fatherMobile && (
+                                  <div className="flex items-center gap-3">
+                                    <Phone className="h-5 w-5 text-primary" />
+                                    <span>Father: {profile.fatherMobile}</span>
+                                  </div>
+                                )}
+                                
+                                {profile.showMotherNumber && profile.motherMobile && (
+                                  <div className="flex items-center gap-3">
+                                    <Phone className="h-5 w-5 text-primary" />
+                                    <span>Mother: {profile.motherMobile}</span>
+                                  </div>
+                                )}
+                                
+                                {!profile.showFatherNumber && !profile.showMotherNumber && (
+                                  <p className="text-sm text-muted-foreground">
+                                    No parent contact numbers have been shared.
+                                  </p>
+                                )}
+                              </>
+                            )}
                           </div>
                         ) : (
                           <div className="text-center py-6">
@@ -443,18 +484,10 @@ export default function ProfilePage({
                         <CardTitle>Religious Information</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                           <div>
                             <p className="font-medium mb-1">Islamic Sect</p>
                             <p className="text-sm text-muted-foreground">{profile.sect}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Religious Inclination</p>
-                            <p className="text-sm text-muted-foreground">
-                              {profile.religiousInclination && profile.religiousInclination.trim() !== "" 
-                                ? profile.religiousInclination 
-                                : "Not specified"}
-                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -490,7 +523,10 @@ export default function ProfilePage({
                                profile.preferredComplexion === "wheatish-brown" ? "Wheatish Brown" :
                                profile.preferredComplexion === "brown" ? "Brown" :
                                profile.preferredComplexion === "dark" ? "Dark" : 
-                               profile.preferredComplexion ? profile.preferredComplexion : "Not specified"}
+                               profile.preferredComplexion ? profile.preferredComplexion
+                                .split('-')
+                                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' ') : "Not Specified"}
                             </p>
                           </div>
                           <div>
@@ -545,7 +581,10 @@ export default function ProfilePage({
                                profile.complexion === "wheatish-brown" ? "Wheatish Brown" :
                                profile.complexion === "brown" ? "Brown" :
                                profile.complexion === "dark" ? "Dark" : 
-                               profile.complexion ? profile.complexion : "Not specified"}
+                               profile.complexion ? profile.complexion
+                                .split('-')
+                                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' ') : "Not Specified"}
                             </p>
                           </div>
                           <div>
@@ -615,16 +654,16 @@ export default function ProfilePage({
                             <p className="text-sm text-muted-foreground">{profile.fatherName || "Not specified"}</p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Father's Mobile</p>
-                            <p className="text-sm text-muted-foreground">{profile.fatherMobile || "Not specified"}</p>
+                            <p className="font-medium mb-1">Father's Occupation</p>
+                            <p className="text-sm text-muted-foreground">{profile.fatherOccupation || "Not Specified"}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Mother's Name</p>
-                            <p className="text-sm text-muted-foreground">{profile.motherName || "Not specified"}</p>
+                            <p className="text-sm text-muted-foreground">{profile.motherName || "Not Specified"}</p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Mother's Mobile</p>
-                            <p className="text-sm text-muted-foreground">{profile.motherMobile || "Not specified"}</p>
+                            <p className="font-medium mb-1">Mother's Occupation</p>
+                            <p className="text-sm text-muted-foreground">{profile.motherOccupation || "Home Queen"}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -650,19 +689,14 @@ export default function ProfilePage({
                             <p className="font-medium mb-1">Mother's Name</p>
                             <p className="text-sm text-muted-foreground">{profile.motherName || "Not specified"}</p>
                           </div>
-                          {/* Contact info is only shown to premium users */}
-                          {profile.showFatherNumber && profile.premium && (
-                            <div>
-                              <p className="font-medium mb-1">Father's Contact</p>
-                              <p className="text-sm text-muted-foreground">{profile.fatherMobile || "Not provided"}</p>
-                            </div>
-                          )}
-                          {profile.showMotherNumber && profile.premium && (
-                            <div>
-                              <p className="font-medium mb-1">Mother's Contact</p>
-                              <p className="text-sm text-muted-foreground">{profile.motherMobile || "Not provided"}</p>
-                            </div>
-                          )}
+                          <div>
+                            <p className="font-medium mb-1">Father's Occupation</p>
+                            <p className="text-sm text-muted-foreground">{profile.fatherOccupation || "Not Specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Mother's Occupation</p>
+                            <p className="text-sm text-muted-foreground">{profile.motherOccupation || "Home Queen"}</p>
+                          </div>
                           <div>
                             <p className="font-medium mb-1">Housing Status</p>
                             <p className="text-sm text-muted-foreground">{profile.housingStatus || "Not specified"}</p>
