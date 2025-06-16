@@ -706,11 +706,13 @@ export default function EditProfilePage() {
     if (familyForm.motherOccupation === "other" && familyForm.motherOccupationOther) {
       finalMotherOccupation = familyForm.motherOccupationOther;
     }
-    
-    // Create a copy of the family form data with additional occupation fields
+      // Create a copy of the family form data with processed occupation fields
     const formData = {
       ...familyForm,
-      motherOccupation: finalMotherOccupation
+      // Set final mother occupation based on selection
+      motherOccupation: finalMotherOccupation,
+      // Remove the temporary field used for UI only
+      motherOccupationOther: undefined
     };
     
     await updateProfile(formData, "family");
