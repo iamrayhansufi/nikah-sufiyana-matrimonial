@@ -31,6 +31,7 @@ import {
 import Link from "next/link"
 import { playfair } from "../../lib/fonts"
 import { useSession, signIn } from "next-auth/react"
+import { useToast } from "@/hooks/use-toast"
 
 // Helper function to safely parse JSON arrays
 const safeJsonParse = (jsonString: string | null | undefined): any[] => {
@@ -53,14 +54,28 @@ const safeJsonParse = (jsonString: string | null | undefined): any[] => {
   return [];
 };
 
-// Function to format kebab-case to Title Case
+// Function to format text to Title Case
 const formatToTitleCase = (text: string): string => {
   if (!text) return "Not Specified";
   
-  return text
-    .split('-')
-    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  // First handle kebab-case
+  if (text.includes('-')) {
+    return text
+      .split('-')
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+  
+  // Handle space-separated words
+  if (text.includes(' ')) {
+    return text
+      .split(' ')
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+  
+  // Single word
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
 };
 
 // Simple ProfilePage Component that doesn't rely on complex URL handling
@@ -68,9 +83,9 @@ export default function ProfilePage({
   params
 }: { 
   params: { id: string } 
-}) {
-  const router = useRouter()
+}) {  const router = useRouter()
   const { data: session, status } = useSession()
+  const { toast } = useToast()
   const [profile, setProfile] = useState<any>(null)
   const [isShortlisted, setIsShortlisted] = useState(false)
   const [isInterestSent, setIsInterestSent] = useState(false)
@@ -215,16 +230,91 @@ export default function ProfilePage({
         </div>
       </div>
     );
+  }  const handleSendInterest = async () => {
+    // Don't allow sending interest if already sent
+    if (isInterestSent) return
+    
+    try {
+      setIsInterestSent(true)
+      
+      // Send API request to send interest
+      const response = await fetch(`/api/profiles/send-interest`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          profileId: id, // The profile receiving interest
+          message: `${session?.user?.name || 'Someone'} has shown interest in your profile`
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to send interest')
+      }
+      
+      // Show success toast or message
+      toast({
+        title: "Interest Sent",
+        description: "Your interest has been sent to this member",
+        variant: "default"
+      })
+      
+    } catch (error) {
+      console.error("Failed to send interest:", error)
+      setIsInterestSent(false)
+      
+      // Show error toast or message
+      toast({
+        title: "Failed to Send Interest",
+        description: "There was a problem sending your interest. Please try again.",        variant: "destructive"
+      })
+    }
   }
-
-  const handleSendInterest = () => {
-    setIsInterestSent(true)
-    // Handle send interest logic
-  }
-
-  const handleShortlist = () => {
-    setIsShortlisted(!isShortlisted)
-    // Handle shortlist logic
+  
+  const handleShortlist = async () => {
+    try {
+      // Toggle the UI state immediately for better user experience
+      setIsShortlisted(!isShortlisted)
+      
+      // Send API request to add/remove from shortlist
+      const response = await fetch(`/api/profiles/shortlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          shortlistedUserId: id
+        })
+      })
+      
+      if (!response.ok) {
+        // Revert UI state if request failed
+        setIsShortlisted(isShortlisted)
+        throw new Error('Failed to update shortlist')
+      }
+      
+      const data = await response.json()
+      
+      // Show success toast or message
+      toast({
+        title: data.action === 'removed' ? "Removed from Shortlist" : "Added to Shortlist",
+        description: data.action === 'removed' ? 
+          "Profile has been removed from your shortlist" : 
+          "Profile has been added to your shortlist",
+        variant: "default"
+      })
+      
+    } catch (error) {
+      console.error("Failed to update shortlist:", error)
+      
+      // Show error toast or message
+      toast({
+        title: "Failed to Update Shortlist",
+        description: "There was a problem updating your shortlist. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
 
   const handleShare = () => {
@@ -433,15 +523,11 @@ export default function ProfilePage({
 
             {/* Right Column - Detailed Information */}
             <div className="lg:col-span-2">
-              <Tabs defaultValue="about" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
+              <Tabs defaultValue="about" className="space-y-6">                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="about">About</TabsTrigger>
-                  <TabsTrigger value="details">Details</TabsTrigger>
                   <TabsTrigger value="family">Family</TabsTrigger>
                   <TabsTrigger value="gallery">Gallery</TabsTrigger>
-                </TabsList>
-
-                {/* About Tab */}
+                </TabsList>                {/* About Tab */}
                 <TabsContent value="about">
                   <div className="space-y-6">
                     {/* About Me */}
@@ -451,6 +537,84 @@ export default function ProfilePage({
                       </CardHeader>
                       <CardContent>
                         <p className="text-muted-foreground leading-relaxed">{profile.aboutMe}</p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Personal Details */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Personal Details</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="font-medium mb-1">Height</p>
+                            <p className="text-sm text-muted-foreground">{profile.height && profile.height.trim() !== "" ? profile.height : "Not Specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Complexion</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.complexion === "very-fair" ? "Very Fair" : 
+                               profile.complexion === "fair" ? "Fair" :
+                               profile.complexion === "wheatish" ? "Wheatish" :
+                               profile.complexion === "wheatish-brown" ? "Wheatish Brown" :
+                               profile.complexion === "brown" ? "Brown" :
+                               profile.complexion === "dark" ? "Dark" : 
+                               profile.complexion ? formatToTitleCase(profile.complexion) : "Not Specified"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Marital Status</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.maritalStatus ? formatToTitleCase(profile.maritalStatus) : "Not Specified"}
+                            </p>
+                          </div>
+                          {profile.maritalStatus === 'other' && (
+                            <div>
+                              <p className="font-medium mb-1">Other Marital Status</p>
+                              <p className="text-sm text-muted-foreground">{profile.maritalStatusOther || "Not Specified"}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-medium mb-1">Islamic Sect</p>
+                            <p className="text-sm text-muted-foreground">{profile.sect ? formatToTitleCase(profile.sect) : "Not Specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Address</p>
+                            <p className="text-sm text-muted-foreground">{profile.address || "Not Specified"}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Education & Career */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Education & Career</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="font-medium mb-1">Education</p>
+                            <p className="text-sm text-muted-foreground">{profile.education || "Not Specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Education Details</p>
+                            <p className="text-sm text-muted-foreground">{profile.educationDetails || "Not Specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Profession</p>
+                            <p className="text-sm text-muted-foreground">{profile.profession || "Not Specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Job Title</p>
+                            <p className="text-sm text-muted-foreground">{profile.jobTitle || "Not Specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Income</p>
+                            <p className="text-sm text-muted-foreground">{profile.income || "Not Specified"}</p>
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
 
@@ -491,21 +655,6 @@ export default function ProfilePage({
                               <p className="font-medium">{profile.sect}</p>
                               <p className="text-sm text-muted-foreground">Islamic Sect</p>
                             </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Additional Info about Islamic sect */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Religious Information</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 gap-4">
-                          <div>
-                            <p className="font-medium mb-1">Islamic Sect</p>
-                            <p className="text-sm text-muted-foreground">{profile.sect}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -570,87 +719,7 @@ export default function ProfilePage({
                         )}
                       </CardContent>
                     </Card>
-                  </div>
-                </TabsContent>
-
-                {/* Details Tab */}
-                <TabsContent value="details">
-                  <div className="space-y-6">
-                    {/* Personal Details */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Personal Details</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <p className="font-medium mb-1">Height</p>
-                            <p className="text-sm text-muted-foreground">{profile.height && profile.height.trim() !== "" ? profile.height : "Not specified"}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Complexion</p>
-                            <p className="text-sm text-muted-foreground">
-                              {profile.complexion === "very-fair" ? "Very Fair" : 
-                               profile.complexion === "fair" ? "Fair" :
-                               profile.complexion === "wheatish" ? "Wheatish" :
-                               profile.complexion === "wheatish-brown" ? "Wheatish Brown" :
-                               profile.complexion === "brown" ? "Brown" :
-                               profile.complexion === "dark" ? "Dark" : 
-                               profile.complexion ? formatToTitleCase(profile.complexion) : "Not Specified"}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Marital Status</p>
-                            <p className="text-sm text-muted-foreground">
-                              {profile.maritalStatus ? formatToTitleCase(profile.maritalStatus) : "Not specified"}
-                            </p>
-                          </div>
-                          {profile.maritalStatus === 'other' && (
-                            <div>
-                              <p className="font-medium mb-1">Other Marital Status</p>
-                              <p className="text-sm text-muted-foreground">{profile.maritalStatusOther || "Not specified"}</p>
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-medium mb-1">Address</p>
-                            <p className="text-sm text-muted-foreground">{profile.address || "Not specified"}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Education & Career */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Education & Career</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <p className="font-medium mb-1">Education</p>
-                            <p className="text-sm text-muted-foreground">{profile.education}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Education Details</p>
-                            <p className="text-sm text-muted-foreground">{profile.educationDetails || "Not specified"}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Profession</p>
-                            <p className="text-sm text-muted-foreground">{profile.profession}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Job Title</p>
-                            <p className="text-sm text-muted-foreground">{profile.jobTitle || "Not specified"}</p>
-                          </div>
-                          <div>
-                            <p className="font-medium mb-1">Income</p>
-                            <p className="text-sm text-muted-foreground">{profile.income || "Not specified"}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
+                  </div>                </TabsContent>
 
                 {/* Family Tab */}
                 <TabsContent value="family">
@@ -661,18 +730,21 @@ export default function ProfilePage({
                         <CardTitle>Family Information</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                          <div>
                             <p className="font-medium mb-1">Father's Name</p>
-                            <p className="text-sm text-muted-foreground">{profile.fatherName || "Not specified"}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.fatherName ? formatToTitleCase(profile.fatherName) : "Not Specified"}
+                            </p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Mother's Name</p>
                             <p className="text-sm text-muted-foreground">{profile.motherName || "Not specified"}</p>
-                          </div>
-                          <div>
+                          </div>                          <div>
                             <p className="font-medium mb-1">Father's Occupation</p>
-                            <p className="text-sm text-muted-foreground">{profile.fatherOccupation || "Not specified"}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.fatherOccupation && profile.fatherOccupation.trim() !== "" ? 
+                               formatToTitleCase(profile.fatherOccupation) : "Not Specified"}
+                            </p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Mother's Occupation</p>
@@ -794,9 +866,7 @@ export default function ProfilePage({
                       ) : null;
                     })()}
                   </div>
-                </TabsContent>
-
-                {/* Gallery Tab */}
+                </TabsContent>                {/* Gallery Tab */}
                 <TabsContent value="gallery">
                   <Card>
                     <CardHeader>
@@ -804,16 +874,39 @@ export default function ProfilePage({
                     </CardHeader>
                     <CardContent>
                       {profile.showPhotos ? (
-                        <div className="text-center">
-                          <div className="aspect-square w-64 h-64 mx-auto rounded-lg overflow-hidden bg-gray-100 mb-4">
-                            <img 
-                              src={profile.profilePhoto || "/placeholder.svg"} 
-                              alt={`${profile.name}'s profile photo`}
-                              className="w-full h-full object-cover"
-                            />
+                        <div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                            {/* Main Profile Photo */}
+                            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+                              <img 
+                                src={profile.profilePhoto || "/placeholder.svg"} 
+                                alt={`${profile.name}'s profile photo`}
+                                className="w-full h-full object-cover"
+                              />
+                              <Badge className="absolute top-2 left-2 bg-primary">Main Photo</Badge>
+                            </div>
+                            
+                            {/* Additional Photos */}
+                            {profile.profilePhotos && profile.profilePhotos.length > 0 ? (
+                              safeJsonParse(profile.profilePhotos).map((photo: string, index: number) => (
+                                <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                                  <img 
+                                    src={photo} 
+                                    alt={`${profile.name}'s photo ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ))
+                            ) : (
+                              <div className="col-span-full text-center">
+                                <p className="text-sm text-muted-foreground mt-4">
+                                  {profile.profilePhoto ? "No additional photos available" : "No photos available"}
+                                </p>
+                              </div>
+                            )}
                           </div>
-                          <p className="text-muted-foreground">
-                            Profile photo is visible to all members
+                          <p className="text-sm text-muted-foreground text-center">
+                            Photos are visible to all members
                           </p>
                         </div>
                       ) : (

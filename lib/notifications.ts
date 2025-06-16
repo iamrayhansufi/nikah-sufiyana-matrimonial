@@ -70,3 +70,93 @@ export async function sendUserNotification(userId: string, message: string) {
   // Implementation with email service
   // You should implement the actual email sending logic here
 }
+
+// In-app notification functions
+
+interface NotificationData {
+  userId: string;
+  type: string;
+  message: string;
+  link?: string;
+  metadata?: Record<string, any>;
+  read?: boolean;
+}
+
+export async function createNotification(data: NotificationData) {
+  const { userId, type, message, link, metadata = {}, read = false } = data;
+  
+  try {
+    // This is where you'd normally use your database
+    // For now, we'll just log the notification to console
+    console.log(`Creating notification for user ${userId}:`, {
+      type,
+      message,
+      link,
+      metadata,
+      read,
+      timestamp: new Date()
+    });
+    
+    // In a real implementation, you'd do something like:
+    /*
+    await db.insert(notifications).values({
+      userId,
+      type,
+      message,
+      link,
+      metadata: JSON.stringify(metadata),
+      read,
+      createdAt: new Date()
+    });
+    */
+    
+    // Optionally trigger real-time notification via WebSockets if implemented
+    
+    return true;
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    return false;
+  }
+}
+
+export async function markNotificationAsRead(notificationId: string) {
+  try {
+    // This is where you'd update the notification read status in the database
+    console.log(`Marking notification ${notificationId} as read`);
+    
+    // In a real implementation:
+    /*
+    await db.update(notifications)
+      .set({ read: true })
+      .where(eq(notifications.id, notificationId));
+    */
+    
+    return true;
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    return false;
+  }
+}
+
+export async function getUserNotifications(userId: string) {
+  try {
+    // This is where you'd get the user's notifications from the database
+    console.log(`Getting notifications for user ${userId}`);
+    
+    // In a real implementation:
+    /*
+    const userNotifications = await db.query.notifications.findMany({
+      where: eq(notifications.userId, userId),
+      orderBy: [desc(notifications.createdAt)]
+    });
+    
+    return userNotifications;
+    */
+    
+    // For now, return an empty array
+    return [];
+  } catch (error) {
+    console.error("Error getting user notifications:", error);
+    return [];
+  }
+}

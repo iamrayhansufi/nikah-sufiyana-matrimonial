@@ -28,7 +28,9 @@ import {
   Home,
   Settings,
   Upload,
-  Image
+  Image,
+  X,
+  Plus
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
@@ -111,6 +113,7 @@ interface PrivacySettingsForm {
   showMotherNumber: boolean;
   motherMobile: string;
   mobileNumber: string;
+  profilePhotos?: string[];
 }
 
 export default function EditProfilePage() {
@@ -168,9 +171,9 @@ export default function EditProfilePage() {
     preferredOccupation: "",
     preferredHeight: "",
     preferredComplexion: "",
-    preferredMaslak: "",
-    expectations: ""
+    preferredMaslak: "",    expectations: ""
   })
+  
   const [privacyForm, setPrivacyForm] = useState<PrivacySettingsForm>({
     showContactInfo: true,
     showPhotos: true,
@@ -180,7 +183,8 @@ export default function EditProfilePage() {
     fatherMobile: "",
     showMotherNumber: false,
     motherMobile: "",
-    mobileNumber: ""
+    mobileNumber: "",
+    profilePhotos: []
   })
 
   // Fetch profile data on component mount
@@ -836,6 +840,97 @@ export default function EditProfilePage() {
     }
   }
   
+  // Handle multiple photo uploads
+  const handleMultiplePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    
+    // Convert FileList to Array for easier processing
+    const filesArray = Array.from(files);
+    console.log("Selected files:", filesArray);
+    
+    // Check total size client-side (limit to 15MB for 3 photos)
+    const maxTotalSize = 15 * 1024 * 1024; // 15MB
+    const totalSize = filesArray.reduce((sum, file) => sum + file.size, 0);
+    if (totalSize > maxTotalSize) {
+      toast({
+        title: "Files Too Large",
+        description: "The selected image files are too large. Please select images smaller than 15MB in total.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check file types client-side
+    const invalidFiles = filesArray.filter(file => !file.type.startsWith('image/'));
+    if (invalidFiles.length > 0) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please select only image files (JPG, PNG, GIF, etc.)",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const formData = new FormData();
+    filesArray.forEach(file => {
+      formData.append('photos', file); // Using 'photos' as the key to match the API
+    });
+    
+    try {
+      setSavingTab('photos')
+      
+      // Add user ID to request
+      if (session?.user?.id) {
+        formData.append('userId', session.user.id);
+      }
+      
+      console.log("Sending multiple photo upload request...");
+      
+      const response = await fetch('/api/profiles/upload-photos', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
+      
+      const responseData = await response.json();
+      
+      if (!response.ok) {
+        console.error("Upload failed with response:", responseData);
+        throw new Error(responseData.error || 'Failed to upload profile photos')
+      }
+      
+      console.log("Upload successful:", responseData);
+        // Update the profile data with the new photo URLs
+      const newPhotoUrls = responseData.urls.map((url: string) => `${url}?t=${new Date().getTime()}`);
+      console.log("Setting new photo URLs:", newPhotoUrls);
+      setProfileData((prev: any) => ({
+        ...prev,
+        profilePhotos: [...(prev.profilePhotos || []), ...newPhotoUrls]
+      }))
+      
+      // Optionally, you can refetch the profile or update the state to reflect the new photos
+      await refetchProfile();
+      
+      toast({
+        title: "Photos Updated",
+        description: "Your profile photos have been successfully uploaded and saved",
+        variant: "default"
+      })
+    } catch (error) {
+      console.error("Multiple photo upload error:", error)
+      toast({
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Failed to upload your photos. Please try again with smaller images (less than 15MB in total).",
+        variant: "destructive"
+      })
+    } finally {
+      setSavingTab(null)
+    }
+  }
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
@@ -1267,8 +1362,7 @@ export default function EditProfilePage() {
                         onChange={(e) => handleFamilyChange('fatherName', e.target.value)}
                         placeholder="Your father's name"
                       />
-                    </div>
-                      <div className="space-y-2">
+                    </div>                      <div className="space-y-2">
                       <Label htmlFor="fatherOccupation">Father's Occupation</Label>
                       <Input 
                         id="fatherOccupation"
@@ -1276,6 +1370,9 @@ export default function EditProfilePage() {
                         onChange={(e) => handleFamilyChange('fatherOccupation', e.target.value)}
                         placeholder="Father's occupation"
                       />
+                      {!familyForm.fatherOccupation && (
+                        <p className="text-xs text-muted-foreground">Will display as "Not Specified" if left empty</p>
+                      )}
                     </div>
                     
                     <div className="space-y-2">
@@ -1816,7 +1913,7 @@ export default function EditProfilePage() {
                       />
                       <Label htmlFor="showOnlineStatus">Show Online Status</Label>
                     </div>
-                  </div>                    <div className="border p-4 rounded-md bg-yellow-50/30 space-y-4">
+                  </div>                    <div className="border p-4 rounded-md bg-yellow-50/30">
                       <h3 className="font-medium text-sm mb-2">Parent Contact Information (Premium Only)</h3>
                       
                       <div className="grid grid-cols-1 gap-4">
@@ -1870,6 +1967,92 @@ export default function EditProfilePage() {
                               />
                             </div>
                           )}
+                        </div>
+                      </div>
+                    </div>
+                  
+                    <div className="border p-4 rounded-md bg-blue-50/30 mt-4 space-y-4">
+                      <h3 className="font-medium text-md mb-2">Photo Gallery</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Upload additional photos to showcase in your profile gallery. You can add up to 5 photos.
+                      </p>
+                      
+                      {/* Multiple Photo Upload */}
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap gap-4">
+                          {/* Main Profile Photo */}
+                          <div className="relative">
+                            <div className="h-32 w-32 rounded-md border-2 border-primary overflow-hidden bg-slate-200">
+                              {profileData?.profilePhoto ? (
+                                <img 
+                                  src={profileData.profilePhoto} 
+                                  alt="Profile" 
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-slate-400">
+                                  <User size={24} />
+                                </div>
+                              )}
+                            </div>
+                            <Badge className="absolute -top-2 -right-2 bg-primary">Main</Badge>
+                          </div>
+                          
+                          {/* Additional Photos */}
+                          {profileData?.profilePhotos && profileData.profilePhotos.map((photo: string, index: number) => (
+                            <div key={index} className="relative">
+                              <div className="h-32 w-32 rounded-md border border-gray-200 overflow-hidden">
+                                <img 
+                                  src={photo} 
+                                  alt={`Photo ${index + 1}`} 
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  // Add functionality to remove photo
+                                  const updatedPhotos = [...profileData.profilePhotos];
+                                  updatedPhotos.splice(index, 1);
+                                  setProfileData({...profileData, profilePhotos: updatedPhotos});
+                                }}
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                          
+                          {/* Add More Photos Button */}
+                          {(!profileData?.profilePhotos || profileData.profilePhotos.length < 5) && (
+                            <label 
+                              htmlFor="additional-photos" 
+                              className="h-32 w-32 rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+                            >
+                              {savingTab === 'photos' ? (
+                                <Loader2 className="h-8 w-8 mb-2 animate-spin text-primary" />
+                              ) : (
+                                <>
+                                  <Plus className="h-8 w-8 mb-2 text-gray-400" />
+                                  <span className="text-xs text-gray-500">Add Photos</span>
+                                </>
+                              )}
+                              <input 
+                                id="additional-photos" 
+                                type="file" 
+                                accept="image/*"
+                                multiple 
+                                onChange={handleMultiplePhotoUpload} 
+                                className="hidden" 
+                              />
+                            </label>
+                          )}
+                        </div>
+                        
+                        <div className="text-sm text-muted-foreground">
+                          <p>
+                            <strong>Note:</strong> Each photo should be less than 5MB. For best results, use square images.
+                          </p>
                         </div>
                       </div>
                     </div>
