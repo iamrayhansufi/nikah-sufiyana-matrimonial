@@ -30,7 +30,8 @@ import {
   Upload,
   Image,
   X,
-  Plus
+  Plus,
+  CheckCircle
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
@@ -89,6 +90,7 @@ interface FamilyInfoForm {
   brotherInLaws: SiblingBrotherInLaw[];
   maternalPaternal: MaternalPaternal[];
   housingStatus: string;
+  housingStatusOther?: string;
 }
 
 interface PartnerPreferencesForm {
@@ -115,6 +117,27 @@ interface PrivacySettingsForm {
   mobileNumber: string;
   profilePhotos?: string[];
 }
+
+// Helper component for form fields with validation
+interface FormFieldProps {
+  label: string;
+  filled: boolean;
+  children: React.ReactNode;
+}
+
+const FormField = ({ label, filled, children }: FormFieldProps) => {
+  return (
+    <div className="space-y-2 relative">
+      <div className="flex justify-between items-center">
+        <Label>{label}</Label>
+        {filled && (
+          <CheckCircle className="h-4 w-4 text-green-500" />
+        )}
+      </div>
+      {children}
+    </div>
+  );
+};
 
 export default function EditProfilePage() {
   const { data: session, status } = useSession()
@@ -150,8 +173,7 @@ export default function EditProfilePage() {
     income: "",
     jobTitle: ""
   })
-  
-  const [familyForm, setFamilyForm] = useState<FamilyInfoForm>({
+    const [familyForm, setFamilyForm] = useState<FamilyInfoForm>({
     familyDetails: "",
     fatherName: "",
     fatherOccupation: "",
@@ -161,7 +183,8 @@ export default function EditProfilePage() {
     siblings: [],
     brotherInLaws: [],
     maternalPaternal: [],
-    housingStatus: ""
+    housingStatus: "",
+    housingStatusOther: ""
   })
     const [partnerForm, setPartnerForm] = useState<PartnerPreferencesForm>({
     preferredAgeMin: "",
@@ -476,12 +499,13 @@ export default function EditProfilePage() {
       [field]: value
     }))
   }
-    const handlePrivacyChange = (field: keyof PrivacySettingsForm, value: boolean | string) => {
+  
+  const handlePrivacyChange = (field: keyof PrivacySettingsForm, value: boolean | string) => {
     setPrivacyForm(prev => ({
       ...prev,
-      [field]: value
-    }))
-  }// Generic update function for all tabs
+      [field]: value    }))
+  }
+  // Generic update function for all tabs
   const updateProfile = async (tabData: object, tabName: string) => {
     if (!session?.user?.id) {
       toast({
@@ -494,13 +518,27 @@ export default function EditProfilePage() {
     
     setSavingTab(tabName)
     
-    try {      // Process the tabData to avoid sending empty strings that would overwrite existing values
-      const cleanedData = Object.entries(tabData).reduce((acc: Record<string, any>, [key, value]) => {        // Always include height, complexion, preferredHeight, preferredComplexion even if empty
-        // This ensures we explicitly set them to empty when user clears them
+    try {    // Process the tabData to avoid sending empty strings that would overwrite existing values
+      const cleanedData = Object.entries(tabData).reduce((acc: Record<string, any>, [key, value]) => {
+        // Handle special cases first
         if (key === "height" || key === "complexion" || 
             key === "preferredHeight" || key === "preferredComplexion") {
           // Explicitly include these fields, even with empty values
           acc[key] = value; 
+        }
+        // Special handling for siblings, brothers-in-law, and other arrays
+        else if (key === "siblings" || key === "brotherInLaws" || key === "maternalPaternal") {
+          // Always include arrays even if empty to ensure proper updating
+          acc[key] = Array.isArray(value) ? value : [];
+          // Log sibling data specifically for debugging
+          if (key === "siblings") {
+            console.log("Siblings data being sent:", JSON.stringify(acc[key]));
+          }
+        }
+        // Handle fatherOccupation specifically to ensure it saves properly
+        else if (key === "fatherOccupation") {
+          // Ensure we're sending a string value even if it's empty
+          acc[key] = typeof value === 'string' ? value : '';
         }
         // For other fields, only include if they're not empty
         else if (value !== "") {
@@ -1081,21 +1119,36 @@ export default function EditProfilePage() {
                   Your main profile details that will be visible to others
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={handleBasicSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName">Full Name</Label>
+              <CardContent>                <form onSubmit={handleBasicSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                    {/* 1. Full Name */}
+                    <FormField label="Full Name" filled={!!basicForm.fullName}>
                       <Input 
                         id="fullName"
                         value={basicForm.fullName}
                         onChange={(e) => handleBasicChange('fullName', e.target.value)}
                         placeholder="Your full name"
+                        className={basicForm.fullName ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
+                    </FormField>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="age">Age</Label>
+                    {/* 2. Gender */}
+                    <FormField label="Gender" filled={!!basicForm.gender}>
+                      <Select 
+                        value={basicForm.gender} 
+                        onValueChange={(value) => handleBasicChange('gender', value)}
+                      >
+                        <SelectTrigger className={basicForm.gender ? "border-green-200" : ""}>
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male (Groom)</SelectItem>
+                          <SelectItem value="female">Female (Bride)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormField>
+                    
+                    {/* 3. Age */}
+                    <FormField label="Age" filled={!!basicForm.age}>
                       <Input 
                         id="age"
                         type="number"
@@ -1104,32 +1157,99 @@ export default function EditProfilePage() {
                         placeholder="Your age"
                         min="18"
                         max="80"
+                        className={basicForm.age ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
+                    </FormField>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="gender">Gender</Label>
+                    {/* 4. Height */}
+                    <FormField label="Height" filled={!!basicForm.height}>
+                      <Input 
+                        id="height"
+                        value={basicForm.height}
+                        onChange={(e) => handleBasicChange('height', e.target.value)}
+                        placeholder="e.g., 5'6''"
+                        className={basicForm.height ? "border-green-200 focus:border-green-300" : ""}
+                      />
+                    </FormField>
+                    
+                    {/* 5. Complexion */}
+                    <FormField label="Complexion" filled={!!basicForm.complexion}>
                       <Select 
-                        value={basicForm.gender} 
-                        onValueChange={(value) => handleBasicChange('gender', value)}
+                        value={basicForm.complexion} 
+                        onValueChange={(value) => handleBasicChange('complexion', value)}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select gender" />
+                        <SelectTrigger className={basicForm.complexion ? "border-green-200" : ""}>
+                          <SelectValue placeholder="Select complexion" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="male">Male (Groom)</SelectItem>
-                          <SelectItem value="female">Female (Bride)</SelectItem>
+                          <SelectItem value="very-fair">Very Fair</SelectItem>
+                          <SelectItem value="fair">Fair</SelectItem>
+                          <SelectItem value="wheatish">Wheatish</SelectItem>
+                          <SelectItem value="wheatish-brown">Wheatish Brown</SelectItem>
+                          <SelectItem value="brown">Brown</SelectItem>
+                          <SelectItem value="dark">Dark</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
+                    </FormField>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="country">Country</Label>
+                    {/* 6. Marital Status */}
+                    <FormField label="Marital Status" filled={!!basicForm.maritalStatus}>
+                      <Select 
+                        value={basicForm.maritalStatus} 
+                        onValueChange={(value) => handleBasicChange('maritalStatus', value)}
+                      >
+                        <SelectTrigger className={basicForm.maritalStatus ? "border-green-200" : ""}>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="never-married">Never Married</SelectItem>
+                          <SelectItem value="divorced">Divorced</SelectItem>
+                          <SelectItem value="widowed">Widowed</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormField>
+                      {basicForm.maritalStatus === 'other' && (
+                      <FormField label="Please Specify" filled={!!basicForm.maritalStatusOther}>
+                        <Input 
+                          id="maritalStatusOther"
+                          value={basicForm.maritalStatusOther || ''}
+                          onChange={(e) => handleBasicChange('maritalStatusOther', e.target.value)}
+                          placeholder="Please specify your marital status"
+                          className={basicForm.maritalStatusOther ? "border-green-200 focus:border-green-300" : ""}
+                        />
+                      </FormField>
+                    )}
+                    
+                    {/* 7. Maslak */}
+                    <FormField label="Maslak" filled={!!basicForm.sect}>
+                      <Select 
+                        value={basicForm.sect} 
+                        onValueChange={(value) => handleBasicChange('sect', value)}
+                      >
+                        <SelectTrigger className={basicForm.sect ? "border-green-200" : ""}>
+                          <SelectValue placeholder="Select Maslak" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sunni">Sunni</SelectItem>
+                          <SelectItem value="ahl-e-hadees">Ahl-E-Hadees</SelectItem>
+                          <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
+                          <SelectItem value="deobandi">Deobandi</SelectItem>
+                          <SelectItem value="shia">Shia</SelectItem>
+                          <SelectItem value="revert">Revert Muslim</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="no-preference">No Preference</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormField>
+                    
+                    {/* 8. Country */}
+                    <FormField label="Country" filled={!!basicForm.country}>
                       <Select 
                         value={basicForm.country} 
                         onValueChange={(value) => handleBasicChange('country', value)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={basicForm.country ? "border-green-200" : ""}>
                           <SelectValue placeholder="Select country" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1155,112 +1275,34 @@ export default function EditProfilePage() {
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                      <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
+                    </FormField>
+                    
+                    {/* 9. City */}
+                    <FormField label="City" filled={!!basicForm.city}>
                       <Input 
                         id="city"
                         value={basicForm.city}
                         onChange={(e) => handleBasicChange('city', e.target.value)}
                         placeholder="Your city"
+                        className={basicForm.city ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
+                    </FormField>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Address</Label>
+                    {/* 10. Address */}
+                    <FormField label="Address" filled={!!basicForm.address}>
                       <Input 
                         id="address"
                         value={basicForm.address}
                         onChange={(e) => handleBasicChange('address', e.target.value)}
                         placeholder="Your complete address"
+                        className={basicForm.address ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="height">Height</Label>
-                      <Input 
-                        id="height"
-                        value={basicForm.height}
-                        onChange={(e) => handleBasicChange('height', e.target.value)}
-                        placeholder="e.g., 5'6''"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="complexion">Complexion</Label>
-                      <Select 
-                        value={basicForm.complexion} 
-                        onValueChange={(value) => handleBasicChange('complexion', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select complexion" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="very-fair">Very Fair</SelectItem>
-                          <SelectItem value="fair">Fair</SelectItem>
-                          <SelectItem value="wheatish">Wheatish</SelectItem>
-                          <SelectItem value="wheatish-brown">Wheatish Brown</SelectItem>
-                          <SelectItem value="brown">Brown</SelectItem>
-                          <SelectItem value="dark">Dark</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>                      {/* Education and Profession fields moved to Education & Career tab */}
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="maritalStatus">Marital Status</Label>
-                      <Select 
-                        value={basicForm.maritalStatus} 
-                        onValueChange={(value) => handleBasicChange('maritalStatus', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="never-married">Never Married</SelectItem>
-                          <SelectItem value="divorced">Divorced</SelectItem>
-                          <SelectItem value="widowed">Widowed</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {basicForm.maritalStatus === 'other' && (
-                      <div className="space-y-2">
-                        <Label htmlFor="maritalStatusOther">Please Specify</Label>
-                        <Input 
-                          id="maritalStatusOther"
-                          value={basicForm.maritalStatusOther || ''}
-                          onChange={(e) => handleBasicChange('maritalStatusOther', e.target.value)}
-                          placeholder="Please specify your marital status"
-                        />
-                      </div>
-                    )}
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="sect">Maslak / Islamic Sect</Label>
-                      <Select 
-                        value={basicForm.sect} 
-                        onValueChange={(value) => handleBasicChange('sect', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Maslak" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="sunni">Sunni</SelectItem>
-                          <SelectItem value="ahl-e-hadees">Ahl-E-Hadees</SelectItem>
-                          <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
-                          <SelectItem value="deobandi">Deobandi</SelectItem>
-                          <SelectItem value="shia">Shia</SelectItem>
-                          <SelectItem value="revert">Revert Muslim</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                          <SelectItem value="no-preference">No Preference</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    </FormField>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="aboutMe">About Me</Label>
+                    <div className="space-y-2">
+                    <Label htmlFor="aboutMe">
+                      {basicForm.gender === 'male' ? 'About Groom' : basicForm.gender === 'female' ? 'About Bride' : 'About Me'}
+                    </Label>
                     <Textarea 
                       id="aboutMe"
                       value={basicForm.aboutMe}
@@ -1291,12 +1333,13 @@ export default function EditProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>                <form onSubmit={handleEducationCareerSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                    <div className="space-y-2">
-                      <Label htmlFor="education">Qualification</Label>                      <Select 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField label="Qualification" filled={!!educationCareerForm.education}>
+                      <Select 
                         value={educationCareerForm.education} 
                         onValueChange={(value) => handleEducationCareerChange('education', value)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={educationCareerForm.education ? "border-green-200" : ""}>
                           <SelectValue placeholder="Select your qualification" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1307,45 +1350,43 @@ export default function EditProfilePage() {
                           <SelectItem value="other">Other (Please Specify)</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
+                    </FormField>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="educationDetails">Educational Details</Label>
+                    <FormField label="Educational Details" filled={!!educationCareerForm.educationDetails}>
                       <Input 
                         id="educationDetails"
                         value={educationCareerForm.educationDetails}
                         onChange={(e) => handleEducationCareerChange('educationDetails', e.target.value)}
                         placeholder="University/institution, field of study"
+                        className={educationCareerForm.educationDetails ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
+                    </FormField>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="profession">Profession</Label>
+                    <FormField label="Profession" filled={!!educationCareerForm.profession}>
                       <Input 
                         id="profession"
                         value={educationCareerForm.profession}
                         onChange={(e) => handleEducationCareerChange('profession', e.target.value)}
                         placeholder="Your profession"
+                        className={educationCareerForm.profession ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
+                    </FormField>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="jobTitle">Job Title</Label>
+                    <FormField label="Job Title" filled={!!educationCareerForm.jobTitle}>
                       <Input 
                         id="jobTitle"
                         value={educationCareerForm.jobTitle}
                         onChange={(e) => handleEducationCareerChange('jobTitle', e.target.value)}
                         placeholder="Your current position"
+                        className={educationCareerForm.jobTitle ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="income">Income Range (Optional)</Label>
+                    </FormField>
+                      <FormField label="Income Range (Optional)" filled={!!educationCareerForm.income}>
                       <Select 
                         value={educationCareerForm.income} 
                         onValueChange={(value) => handleEducationCareerChange('income', value)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={educationCareerForm.income ? "border-green-200" : ""}>
                           <SelectValue placeholder="Select range (optional)" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1356,7 +1397,7 @@ export default function EditProfilePage() {
                           <SelectItem value="above-100k">Above ₹1,00,000 monthly</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
+                    </FormField>
                   </div>
                   
                   <Button type="submit" className="w-full" disabled={savingTab === 'education'}>
@@ -1379,38 +1420,42 @@ export default function EditProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleFamilySubmit} className="space-y-4">                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                    <div className="space-y-2">
-                      <Label htmlFor="fatherName">Father's Name</Label>
+                <form onSubmit={handleFamilySubmit} className="space-y-4">                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                    <FormField label="Father's Name" filled={!!familyForm.fatherName}>
                       <Input 
                         id="fatherName"
                         value={familyForm.fatherName}
                         onChange={(e) => handleFamilyChange('fatherName', e.target.value)}
                         placeholder="Your father's name"
+                        className={familyForm.fatherName ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>                      <div className="space-y-2">
-                      <Label htmlFor="fatherOccupation">Father's Occupation</Label>
+                    </FormField>
+                    
+                    <FormField label="Father's Occupation" filled={!!familyForm.fatherOccupation}>
                       <Input 
                         id="fatherOccupation"
-                        value={familyForm.fatherOccupation}
+                        value={familyForm.fatherOccupation || ""}
                         onChange={(e) => handleFamilyChange('fatherOccupation', e.target.value)}
                         placeholder="Father's occupation"
+                        className={familyForm.fatherOccupation ? "border-green-200 focus:border-green-300" : ""}
                       />
-                      {!familyForm.fatherOccupation && (
-                        <p className="text-xs text-muted-foreground">Will display as "Not Specified" if left empty</p>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="motherName">Mother's Name</Label>
+                      {/* Changed to show the default value if empty */}
+                      <p className="text-xs text-muted-foreground">
+                        {!familyForm.fatherOccupation ? 
+                          "Will display as \"Not Specified\" if left empty" : 
+                          `Current value: ${familyForm.fatherOccupation}`}
+                      </p>
+                    </FormField>
+                      <FormField label="Mother's Name" filled={!!familyForm.motherName}>
                       <Input 
                         id="motherName"
                         value={familyForm.motherName}
                         onChange={(e) => handleFamilyChange('motherName', e.target.value)}
                         placeholder="Your mother's name"
+                        className={familyForm.motherName ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
-                      <div className="space-y-2">
-                      <Label htmlFor="motherOccupation">Mother's Occupation</Label>
+                    </FormField>
+                    
+                    <FormField label="Mother's Occupation" filled={!!familyForm.motherOccupation}>
                       <Select 
                         value={familyForm.motherOccupation} 
                         onValueChange={(value) => {
@@ -1421,7 +1466,7 @@ export default function EditProfilePage() {
                           }
                         }}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={familyForm.motherOccupation ? "border-green-200" : ""}>
                           <SelectValue placeholder="Select mother's occupation" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1429,27 +1474,23 @@ export default function EditProfilePage() {
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    
-                    {familyForm.motherOccupation === "other" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="motherOccupationOther">Specify Mother's Occupation</Label>
+                    </FormField>
+                      {familyForm.motherOccupation === "other" && (
+                      <FormField label="Specify Mother's Occupation" filled={!!familyForm.motherOccupationOther}>
                         <Input 
                           id="motherOccupationOther"
                           value={familyForm.motherOccupationOther || ""}
                           onChange={(e) => handleFamilyChange('motherOccupationOther', e.target.value)}
                           placeholder="Please specify"
+                          className={familyForm.motherOccupationOther ? "border-green-200 focus:border-green-300" : ""}
                         />
-                      </div>
-                    )}
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="housingStatus">Housing Status</Label>
+                      </FormField>
+                    )}                      <FormField label="Housing Status" filled={!!familyForm.housingStatus}>
                       <Select 
                         value={familyForm.housingStatus} 
                         onValueChange={(value) => handleFamilyChange('housingStatus', value)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={familyForm.housingStatus ? "border-green-200" : ""}>
                           <SelectValue placeholder="Select housing status" />
                         </SelectTrigger>                        <SelectContent>
                           <SelectItem value="owned">Own House</SelectItem>
@@ -1457,17 +1498,27 @@ export default function EditProfilePage() {
                           <SelectItem value="other">Other (Please specify)</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
+                    </FormField>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="familyDetails">Family Details</Label>
+                    {familyForm.housingStatus === 'other' && (
+                      <FormField label="Please Specify" filled={!!familyForm.housingStatusOther}>
+                        <Input 
+                          id="housingStatusOther"
+                          value={familyForm.housingStatusOther || ''}
+                          onChange={(e) => handleFamilyChange('housingStatusOther', e.target.value)}
+                          placeholder="Please specify your housing status"
+                          className={familyForm.housingStatusOther ? "border-green-200 focus:border-green-300" : ""}
+                        />
+                      </FormField>
+                    )}                      <FormField label="Family Details" filled={!!familyForm.familyDetails}>
                       <Textarea
                         id="familyDetails"
+                        className={familyForm.familyDetails ? "border-green-200 focus:border-green-300" : ""}
                         value={familyForm.familyDetails}
                         onChange={(e) => handleFamilyChange('familyDetails', e.target.value)}
                         placeholder="Additional details about your family..."
                       />
-                    </div>
+                    </FormField>
                   </div>
                   
                   <div className="space-y-4">
@@ -1575,7 +1626,7 @@ export default function EditProfilePage() {
                   {/* Brother-in-Law Section */}
                   <div className="space-y-4 mt-6">
                     <div className="flex items-center justify-between">
-                      <Label>Brothers-in-Law (For Married Sisters)</Label>
+                      <Label>Brothers-in-Law</Label>
                       <Button 
                         type="button" 
                         variant="outline" 
@@ -1754,9 +1805,7 @@ export default function EditProfilePage() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handlePartnerSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="preferredAgeMin">Preferred Age Range (Min)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                    <FormField label="Preferred Age Range (Min)" filled={!!partnerForm.preferredAgeMin}>
                       <Input 
                         id="preferredAgeMin"
                         type="number"
@@ -1764,11 +1813,11 @@ export default function EditProfilePage() {
                         onChange={(e) => handlePartnerChange('preferredAgeMin', e.target.value)}
                         placeholder="Minimum age"
                         min="18"
+                        className={partnerForm.preferredAgeMin ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
+                    </FormField>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="preferredAgeMax">Preferred Age Range (Max)</Label>
+                    <FormField label="Preferred Age Range (Max)" filled={!!partnerForm.preferredAgeMax}>
                       <Input 
                         id="preferredAgeMax"
                         type="number"
@@ -1776,29 +1825,27 @@ export default function EditProfilePage() {
                         onChange={(e) => handlePartnerChange('preferredAgeMax', e.target.value)}
                         placeholder="Maximum age"
                         min="18"
+                        className={partnerForm.preferredAgeMax ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="preferredHeight">Preferred Height</Label>
+                    </FormField>
+                      <FormField label="Preferred Height" filled={!!partnerForm.preferredHeight}>
                       <Input 
                         id="preferredHeight"
                         value={partnerForm.preferredHeight}
                         onChange={(e) => handlePartnerChange('preferredHeight', e.target.value)}
                         placeholder="e.g., 5'6'' or above"
+                        className={partnerForm.preferredHeight ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
+                    </FormField>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="preferredComplexion">Preferred Complexion</Label>
+                    <FormField label="Preferred Complexion" filled={!!partnerForm.preferredComplexion}>
                       <Select 
                         value={partnerForm.preferredComplexion} 
                         onValueChange={(value) => handlePartnerChange('preferredComplexion', value)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className={partnerForm.preferredComplexion ? "border-green-200" : ""}>
                           <SelectValue placeholder="Select preferred complexion" />
-                        </SelectTrigger>
-                        <SelectContent>
+                        </SelectTrigger>                        <SelectContent>
                           <SelectItem value="very-fair">Very Fair</SelectItem>
                           <SelectItem value="fair">Fair</SelectItem>
                           <SelectItem value="wheatish">Wheatish</SelectItem>
@@ -1808,43 +1855,41 @@ export default function EditProfilePage() {
                           <SelectItem value="no-preference">No Preference</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="preferredEducation">Preferred Education Level</Label>
+                    </FormField>
+                      <FormField label="Preferred Education Level" filled={!!partnerForm.preferredEducation}>
                       <Input 
                         id="preferredEducation"
                         value={partnerForm.preferredEducation}
                         onChange={(e) => handlePartnerChange('preferredEducation', e.target.value)}
                         placeholder="Education preference"
+                        className={partnerForm.preferredEducation ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="preferredLocation">Preferred Location</Label>
+                    </FormField>
+                      <FormField label="Preferred Location" filled={!!partnerForm.preferredLocation}>
                       <Input 
                         id="preferredLocation"
                         value={partnerForm.preferredLocation}
                         onChange={(e) => handlePartnerChange('preferredLocation', e.target.value)}
                         placeholder="City, country or region"
+                        className={partnerForm.preferredLocation ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>                    <div className="space-y-2">
-                      <Label htmlFor="preferredOccupation">Preferred Occupation</Label>
+                    </FormField>
+                    
+                    <FormField label="Preferred Occupation" filled={!!partnerForm.preferredOccupation}>
                       <Input 
                         id="preferredOccupation"
                         value={partnerForm.preferredOccupation}
                         onChange={(e) => handlePartnerChange('preferredOccupation', e.target.value)}
                         placeholder="Occupation preference"
+                        className={partnerForm.preferredOccupation ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="preferredMaslak">Preferred Maslak / Sect</Label>
+                    </FormField>
+                      <FormField label="Preferred Maslak / Sect" filled={!!partnerForm.preferredMaslak}>
                       <Select 
                         value={partnerForm.preferredMaslak} 
                         onValueChange={(value) => handlePartnerChange('preferredMaslak', value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={partnerForm.preferredMaslak ? "border-green-200" : ""}>
                         <SelectValue placeholder="Select preferred Maslak" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1854,21 +1899,21 @@ export default function EditProfilePage() {
                         <SelectItem value="deobandi">Deobandi</SelectItem>
                         <SelectItem value="shia">Shia</SelectItem>
                         <SelectItem value="revert">Revert Muslim</SelectItem>                        <SelectItem value="other">Other</SelectItem>
-                        <SelectItem value="no-preference">No Preference</SelectItem>
-                      </SelectContent>
+                        <SelectItem value="no-preference">No Preference</SelectItem>                      </SelectContent>
                     </Select>
-                  </div>
+                  </FormField>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="expectations">Expectations & Requirements</Label>
-                    <Textarea 
-                      id="expectations"
-                      value={partnerForm.expectations}
-                      onChange={(e) => handlePartnerChange('expectations', e.target.value)}
-                      className="min-h-[100px]"
-                      placeholder="Describe your expectations from a potential spouse..."
-                    />
+                    <FormField label="Expectations & Requirements" filled={!!partnerForm.expectations}>
+                      <Textarea 
+                        id="expectations"
+                        value={partnerForm.expectations}
+                        onChange={(e) => handlePartnerChange('expectations', e.target.value)}
+                        className={`min-h-[100px] ${partnerForm.expectations ? "border-green-200 focus:border-green-300" : ""}`}
+                        placeholder="Describe your expectations from a potential spouse..."
+                      />
+                    </FormField>
                   </div>
                   
                   <Button type="submit" className="w-full" disabled={savingTab === 'preferences'}>
@@ -1954,14 +1999,18 @@ export default function EditProfilePage() {
                           
                           {privacyForm.showFatherNumber && (
                             <div className="pl-6 mt-2">
-                              <Label htmlFor="fatherMobile" className="text-sm mb-1 block">Father's Mobile Number</Label>
-                              <Input 
+                              <Label htmlFor="fatherMobile" className="text-sm mb-1 block">Father's Mobile Number</Label>                              <Input 
                                 id="fatherMobile"
                                 value={privacyForm.fatherMobile}
                                 onChange={(e) => handlePrivacyChange('fatherMobile', e.target.value)}
                                 placeholder="Enter father's mobile number"
-                                className="max-w-md"
+                                className={`max-w-md ${privacyForm.fatherMobile ? "border-green-200 focus:border-green-300" : ""}`}
                               />
+                              {privacyForm.fatherMobile && (
+                                <div className="flex items-center text-xs text-green-600 mt-1">
+                                  <CheckCircle className="mr-1 h-3 w-3" /> Mobile number saved
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1980,14 +2029,18 @@ export default function EditProfilePage() {
                           
                           {privacyForm.showMotherNumber && (
                             <div className="pl-6 mt-2">
-                              <Label htmlFor="motherMobile" className="text-sm mb-1 block">Mother's Mobile Number</Label>
-                              <Input 
+                              <Label htmlFor="motherMobile" className="text-sm mb-1 block">Mother's Mobile Number</Label>                              <Input 
                                 id="motherMobile"
                                 value={privacyForm.motherMobile}
                                 onChange={(e) => handlePrivacyChange('motherMobile', e.target.value)}
                                 placeholder="Enter mother's mobile number"
-                                className="max-w-md"
+                                className={`max-w-md ${privacyForm.motherMobile ? "border-green-200 focus:border-green-300" : ""}`}
                               />
+                              {privacyForm.motherMobile && (
+                                <div className="flex items-center text-xs text-green-600 mt-1">
+                                  <CheckCircle className="mr-1 h-3 w-3" /> Mobile number saved
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

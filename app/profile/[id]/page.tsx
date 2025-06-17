@@ -54,15 +54,23 @@ const safeJsonParse = (jsonString: string | null | undefined): any[] => {
   return [];
 };
 
-// Function to format text to Title Case
+// Function to format text to Title Case - improved for better capitalization
 const formatToTitleCase = (text: string): string => {
   if (!text) return "Not Specified";
+  
+  // List of words that should not be capitalized unless they're the first word
+  const exceptions = ['a', 'an', 'the', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'with', 'in', 'of'];
   
   // First handle kebab-case
   if (text.includes('-')) {
     return text
       .split('-')
-      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word: string, index: number) => {
+        if (index === 0 || !exceptions.includes(word.toLowerCase())) {
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }
+        return word.toLowerCase();
+      })
       .join(' ');
   }
   
@@ -70,7 +78,12 @@ const formatToTitleCase = (text: string): string => {
   if (text.includes(' ')) {
     return text
       .split(' ')
-      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .map((word: string, index: number) => {
+        if (index === 0 || !exceptions.includes(word.toLowerCase())) {
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }
+        return word.toLowerCase();
+      })
       .join(' ');
   }
   
@@ -89,10 +102,12 @@ export default function ProfilePage({
   const [profile, setProfile] = useState<any>(null)
   const [isShortlisted, setIsShortlisted] = useState(false)
   const [isInterestSent, setIsInterestSent] = useState(false)
+  const [interestMutual, setInterestMutual] = useState(false)
   const [showContactDialog, setShowContactDialog] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [shouldBlurPhoto, setShouldBlurPhoto] = useState(false)
   
   // Get the profile ID from params
   const { id } = params
@@ -104,8 +119,7 @@ export default function ProfilePage({
     // Redirect to login
     router.push('/login')
   }
-  
-  useEffect(() => {
+    useEffect(() => {
     const fetchProfile = async () => {
       if (!id) {
         setError("Invalid profile ID")
@@ -144,6 +158,44 @@ export default function ProfilePage({
         
         const data = await res.json()
         setProfile(data)
+        
+        // Check interest status for this profile
+        if (session?.user?.id) {
+          // Check if current user sent interest to this profile
+          const interestRes = await fetch(`/api/profiles/interests?profileId=${id}`, {
+            credentials: 'include'
+          })
+          
+          if (interestRes.ok) {
+            const interestData = await interestRes.json()
+            
+            // Set interest sent status
+            if (interestData.sentInterests?.length > 0) {
+              setIsInterestSent(true)
+            }
+            
+            // Check if mutual interest exists
+            if (interestData.receivedInterests?.length > 0) {
+              setInterestMutual(true)
+            }
+            
+            // Determine if photo should be blurred - for female profiles only when no mutual interest
+            if (data.gender === 'female' && !interestData.receivedInterests?.length) {
+              setShouldBlurPhoto(true)
+            }
+          }
+          
+          // Check if profile is shortlisted
+          const shortlistRes = await fetch(`/api/profiles/shortlist?shortlistedId=${id}`, {
+            credentials: 'include'
+          })
+          
+          if (shortlistRes.ok) {
+            const shortlistData = await shortlistRes.json()
+            setIsShortlisted(shortlistData.isShortlisted)
+          }
+        }
+        
         setLoading(false)
       } catch (error) {
         console.error('Error fetching profile:', error)
@@ -160,7 +212,7 @@ export default function ProfilePage({
       setError("Please log in to view profiles")
       setLoading(false)
     }
-  }, [id, status])
+  }, [id, status, session?.user?.id])
 
   // Loading state
   if (loading) {
@@ -253,6 +305,24 @@ export default function ProfilePage({
         throw new Error('Failed to send interest')
       }
       
+      // For female profiles, check if this makes the interest mutual
+      if (profile?.gender === 'female') {
+        // Check if the other user has already sent interest to current user
+        const interestRes = await fetch(`/api/profiles/interests?profileId=${id}`, {
+          credentials: 'include'
+        })
+        
+        if (interestRes.ok) {
+          const interestData = await interestRes.json()
+          
+          // If mutual interest exists, remove photo blur
+          if (interestData.receivedInterests?.length > 0) {
+            setInterestMutual(true)
+            setShouldBlurPhoto(false)
+          }
+        }
+      }
+      
       // Show success toast or message
       toast({
         title: "Interest Sent",
@@ -267,7 +337,8 @@ export default function ProfilePage({
       // Show error toast or message
       toast({
         title: "Failed to Send Interest",
-        description: "There was a problem sending your interest. Please try again.",        variant: "destructive"
+        description: "There was a problem sending your interest. Please try again.",        
+        variant: "destructive"
       })
     }
   }
@@ -350,14 +421,13 @@ export default function ProfilePage({
             {/* Left Column - Profile Photo & Actions */}
             <div className="lg:col-span-1">
               <Card className="sticky top-24">
-                <CardContent className="p-6">
-                  {/* Profile Photo */}
+                <CardContent className="p-6">                  {/* Profile Photo */}
                   <div className="relative mb-6">
                     <Avatar className="w-full h-80 rounded-lg">
                       <AvatarImage
                         src={profile.profilePhoto || "/placeholder.svg"}
                         alt={profile.name}
-                        className="object-cover"
+                        className={`object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
                       />
                       <AvatarFallback className="text-4xl h-80 rounded-lg">
                         {profile.name && typeof profile.name === 'string' 
@@ -368,6 +438,31 @@ export default function ProfilePage({
                           : "U"}
                       </AvatarFallback>
                     </Avatar>
+
+                    {/* Blur notice overlay for female profiles */}
+                    {shouldBlurPhoto && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
+                        <EyeOff className="h-12 w-12 mb-2" />
+                        <p className="font-semibold text-lg mb-1">Photo Privacy Protection</p>
+                        <p className="text-sm mb-4">Send interest and wait for acceptance to view photos</p>
+                        {!isInterestSent && (
+                          <Button 
+                            variant="secondary" 
+                            className="bg-white text-black hover:bg-white/90"
+                            onClick={handleSendInterest}
+                          >
+                            <Heart className="h-4 w-4 mr-2 text-red-500" />
+                            Send Interest
+                          </Button>
+                        )}
+                        {isInterestSent && (
+                          <Button variant="secondary" disabled className="bg-white/80 text-black">
+                            <Heart className="h-4 w-4 mr-2 text-red-500 fill-red-500" />
+                            Interest Sent
+                          </Button>
+                        )}
+                      </div>
+                    )}
 
                     {/* Badges */}
                     <div className="absolute top-2 left-2 flex flex-col gap-2">
@@ -535,10 +630,9 @@ export default function ProfilePage({
                         <CardTitle>Basic Information</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                          <div>
                             <p className="font-medium mb-1">Full Name</p>
-                            <p className="text-sm text-muted-foreground">{profile.fullName || profile.name || "Not Specified"}</p>
+                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.fullName || profile.name || "Not Specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Gender</p>
@@ -548,7 +642,7 @@ export default function ProfilePage({
                           </div>
                           <div>
                             <p className="font-medium mb-1">Age</p>
-                            <p className="text-sm text-muted-foreground">{profile.age ? `${profile.age} years` : "Not Specified"}</p>
+                            <p className="text-sm text-muted-foreground">{profile.age ? `${profile.age} Years` : "Not Specified"}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Height</p>
@@ -575,7 +669,7 @@ export default function ProfilePage({
                           {profile.maritalStatus === 'other' && (
                             <div>
                               <p className="font-medium mb-1">Other Marital Status</p>
-                              <p className="text-sm text-muted-foreground">{profile.maritalStatusOther || "Not Specified"}</p>
+                              <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.maritalStatusOther || "Not Specified")}</p>
                             </div>
                           )}
                           <div>
@@ -584,15 +678,15 @@ export default function ProfilePage({
                           </div>
                           <div>
                             <p className="font-medium mb-1">Country</p>
-                            <p className="text-sm text-muted-foreground">{profile.country || "Not Specified"}</p>
+                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.country || "Not Specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">City</p>
-                            <p className="text-sm text-muted-foreground">{profile.city || "Not Specified"}</p>
+                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.city || "Not Specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Address</p>
-                            <p className="text-sm text-muted-foreground">{profile.address || "Not Specified"}</p>
+                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.address || "Not Specified")}</p>
                           </div>
                           <div className="col-span-1 md:col-span-2">
                             <p className="font-medium mb-1">About {profile.gender === 'male' ? 'Groom' : 'Bride'}</p>

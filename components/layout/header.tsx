@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
-import { Menu, Moon, Sun, Heart, MessageCircle, User, Home, Search, Globe } from "lucide-react"
+import { Menu, Moon, Sun, Heart, MessageCircle, User, Home, Search, Globe, Bell, Star } from "lucide-react"
 import { useTheme } from "next-themes"
 import { MarqueeBanner } from "@/components/marquee-banner"
 import Image from "next/image"
@@ -18,18 +18,22 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [language, setLanguage] = useState("en")
   const [mounted, setMounted] = useState(false)
+  const [notificationCount, setNotificationCount] = useState(0)
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { data: session, status } = useSession()
   const { theme, setTheme } = useTheme()
   const router = useRouter()
 
   const isLoggedIn = status === "authenticated" && !!session
   const user = session?.user
-
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -44,6 +48,40 @@ export function Header() {
       document.documentElement.classList.remove("rtl")
     }
   }, [language])
+  
+  // Fetch notifications when user is logged in
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!isLoggedIn || !session?.user?.id) return;
+      
+      try {
+        const response = await fetch('/api/notifications', {
+          credentials: 'include',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Filter only unread notifications
+          const unreadNotifications = data.filter((notification: any) => !notification.read);
+          setNotificationCount(unreadNotifications.length);
+          setNotifications(data.slice(0, 10)); // Show only latest 10 notifications
+        }
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+      }
+    };
+    
+    if (isLoggedIn) {
+      fetchNotifications();
+      
+      // Set up interval to check notifications every minute
+      const intervalId = setInterval(fetchNotifications, 60000);
+      return () => clearInterval(intervalId);
+    }
+  }, [isLoggedIn, session?.user?.id]);
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -57,9 +95,49 @@ export function Header() {
   const handleLanguageChange = (value: string) => {
     setLanguage(value)
   }
-
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/' })
+  }
+  
+  // Handle opening notifications and marking them as read
+  const handleOpenNotifications = async () => {
+    setNotificationsOpen(true);
+    
+    if (notificationCount > 0) {
+      try {
+        // Mark notifications as read
+        const response = await fetch('/api/notifications/mark-read', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          // Update local state
+          setNotificationCount(0);
+          setNotifications(notifications.map(notification => ({...notification, read: true})));
+        }
+      } catch (error) {
+        console.error('Failed to mark notifications as read:', error);
+      }
+    }
+  }
+  
+  const handleNotificationClick = (notification: any) => {
+    // Handle different notification types
+    if (notification.type === 'interest_received') {
+      router.push('/interests');
+    } else if (notification.type === 'interest_accepted') {
+      router.push(`/profile/${notification.fromUserId}`);
+    } else if (notification.type === 'premium_upgrade') {
+      router.push('/premium');
+    } else {
+      router.push('/notifications');
+    }
+    
+    setNotificationsOpen(false);
   }
 
   if (!mounted) return null
@@ -116,9 +194,7 @@ export function Header() {
                   <SelectItem value="en">🇺🇸 English</SelectItem>
                   <SelectItem value="ur">Urdu اردو</SelectItem>
                 </SelectContent>
-              </Select>
-
-              <Button
+              </Select>              <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -128,6 +204,68 @@ export function Header() {
                 <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                 <span className="sr-only">Toggle theme</span>
               </Button>
+
+              {/* Notifications */}
+              {isLoggedIn && (
+                <Popover open={notificationsOpen} onOpenChange={handleOpenNotifications}>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative">
+                      <Bell className="h-5 w-5" />
+                      {notificationCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+                          {notificationCount > 9 ? '9+' : notificationCount}
+                        </span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-80 p-0">
+                    <div className="p-3 border-b">
+                      <h4 className="font-medium">Notifications</h4>
+                    </div>
+                    <div className="max-h-[300px] overflow-auto">
+                      {notifications.length > 0 ? (
+                        notifications.map((notification, index) => (
+                          <div 
+                            key={notification.id || index}
+                            className={`p-3 border-b text-sm cursor-pointer hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
+                            onClick={() => handleNotificationClick(notification)}
+                          >
+                            <div className="flex items-start">
+                              {notification.type === 'interest_received' && (
+                                <Heart className="h-4 w-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" />
+                              )}
+                              {notification.type === 'interest_accepted' && (
+                                <div className="text-green-500 mt-0.5 mr-2 flex-shrink-0">
+                                  <Heart className="h-4 w-4 fill-green-500" />
+                                </div>
+                              )}
+                              {notification.type === 'premium_upgrade' && (
+                                <Star className="h-4 w-4 text-yellow-500 mt-0.5 mr-2 fill-yellow-500 flex-shrink-0" />
+                              )}
+                              <div>
+                                <p className="font-medium">{notification.title}</p>
+                                <p className="text-muted-foreground">{notification.message}</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {new Date(notification.createdAt).toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-6 text-center">
+                          <p className="text-muted-foreground">No notifications</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-2 border-t text-center">
+                      <Link href="/notifications" className="text-xs text-primary hover:underline" onClick={() => setNotificationsOpen(false)}>
+                        View all notifications
+                      </Link>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
 
               {isLoggedIn ? (
                 <DropdownMenu>
@@ -204,11 +342,21 @@ export function Header() {
                           <SelectItem value="en">🇺🇸 English</SelectItem>
                           <SelectItem value="ur">🇵🇰 اردو</SelectItem>
                         </SelectContent>
-                      </Select>
-                      <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                      </Select>                      <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
                         <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                         <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                       </Button>
+                      
+                      {isLoggedIn && (
+                        <Button variant="ghost" size="icon" className="relative" onClick={() => router.push('/notifications')}>
+                          <Bell className="h-5 w-5" />
+                          {notificationCount > 0 && (
+                            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+                              {notificationCount > 9 ? '9+' : notificationCount}
+                            </span>
+                          )}
+                        </Button>
+                      )}
                     </div>
                     {isLoggedIn ? (
                       <div className="flex flex-col space-y-2">
