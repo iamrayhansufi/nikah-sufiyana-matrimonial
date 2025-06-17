@@ -34,7 +34,6 @@ export function Header() {
 
   const isLoggedIn = status === "authenticated" && !!session
   const user = session?.user
-  
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -83,26 +82,24 @@ export function Header() {
       return () => clearInterval(intervalId);
     }
   }, [isLoggedIn, session?.user?.id]);
-  
-  const navigation = [
-    { name: "Home", href: "/" },
-    { name: "Browse Profiles", href: "/browse" },
-    { name: "Our Services", href: "/services" },
-    { name: "Premium", href: "/premium" },
-    { name: "About Us", href: "/about" },
-    { name: "Contact", href: "/contact" },
-  ]
-
-  const handleLanguageChange = (value: string) => {
-    setLanguage(value)
-  }
-  
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: '/' })
-  }
-  
   const handleOpenNotifications = (open: boolean) => {
     setNotificationsOpen(open);
+    
+    // When opening notifications, try to mark them as read
+    if (open) {
+      try {
+        // Mark all notifications as read when opened
+        const unreadNotifications = notifications.filter(notification => !notification.read);
+        
+        if (unreadNotifications.length > 0) {
+          // Update the UI immediately (optimistic update)
+          setNotificationCount(0);
+          setNotifications(notifications.map(notification => ({...notification, read: true})));
+        }
+      } catch (error) {
+        console.error('Failed to mark notifications as read:', error);
+      }
+    }
   };
   
   const handleNotificationClick = async (notification: any) => {
@@ -136,7 +133,42 @@ export function Header() {
     }
   };
 
-  if (!mounted) return null
+  const navigation = [
+    { name: "Home", href: "/" },
+    { name: "Browse Profiles", href: "/browse" },
+    { name: "Our Services", href: "/services" },
+    { name: "Premium", href: "/premium" },
+    { name: "About Us", href: "/about" },
+    { name: "Contact", href: "/contact" },
+  ]
+
+  const handleLanguageChange = (value: string) => {
+    setLanguage(value)
+  }
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' })
+  }
+    
+    if (notificationCount > 0) {
+      try {
+        // Mark notifications as read
+        const response = await fetch('/api/notifications/mark-read', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          // Update local state
+          setNotificationCount(0);
+          setNotifications(notifications.map(notification => ({...notification, read: true})));
+        }
+      } catch (error) {
+        console.error('Failed to mark notifications as read:', error);
+      }
+    }  }
 
   return (
     <>
@@ -227,16 +259,19 @@ export function Header() {
                             onClick={() => handleNotificationClick(notification)}
                           >
                             <div className="flex items-start">
-                              {notification.type === 'interest' && (
+                              {notification.type === 'interest_received' && (
                                 <Heart className="h-4 w-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" />
                               )}
-                              {notification.type === 'message' && (
-                                <MessageCircle className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                              {notification.type === 'interest_accepted' && (
+                                <div className="text-green-500 mt-0.5 mr-2 flex-shrink-0">
+                                  <Heart className="h-4 w-4 fill-green-500" />
+                                </div>
                               )}
-                              {notification.type === 'premium' && (
+                              {notification.type === 'premium_upgrade' && (
                                 <Star className="h-4 w-4 text-yellow-500 mt-0.5 mr-2 fill-yellow-500 flex-shrink-0" />
                               )}
                               <div>
+                                <p className="font-medium">{notification.title}</p>
                                 <p className="text-muted-foreground">{notification.message}</p>
                                 <p className="text-xs text-muted-foreground mt-1">
                                   {new Date(notification.createdAt).toLocaleString()}
@@ -295,127 +330,114 @@ export function Header() {
               )}
             </div>
 
-            {/* Mobile Toggle */}
-            <div className="md:hidden">
-              <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Toggle menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-[280px] sm:w-[350px]">
-                  <div className="py-4 flex flex-col h-full">
-                    <div className="flex items-center mb-6">
-                      <Image 
-                        src="/Nikah Sufiyana Logo.svg" 
-                        alt="Nikah Sufiyana" 
-                        width={120} 
-                        height={35}
-                        className="h-8 w-auto"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2 mb-6">
-                      {navigation.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className="block px-2 py-2 text-base font-medium rounded-md hover:bg-muted transition-colors"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          {language === "en" ? item.name : (
-                            <span className="font-arabic" style={{ fontFamily: "Jameel Noori Nastaleeq, serif" }}>
-                              {item.name === "Home" ? "ہوم" : 
-                              item.name === "Browse Profiles" ? "پروفائل دیکھیں" :
-                              item.name === "Our Services" ? "ہماری خدمات" : 
-                              item.name === "Premium" ? "پریمیم" :
-                              item.name === "About Us" ? "ہمارے بارے میں" : "رابطہ کریں"}
-                            </span>
-                          )}
-                        </Link>
-                      ))}
-                    </div>
-                    
-                    {/* Language Selector */}
-                    <div className="mb-6 px-2">
-                      <p className="text-sm mb-2 font-medium">Language</p>
+            {/* Mobile Menu */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <div className="flex flex-col space-y-4 mt-6">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="text-lg font-medium transition-colors hover:text-primary font-body"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {language === "en" ? item.name : (
+                        <span className="font-arabic" style={{ fontFamily: "Jameel Noori Nastaleeq, serif" }}>
+                          {item.name === "Home" ? "ہوم" : 
+                           item.name === "Browse Profiles" ? "پروفائل دیکھیں" :
+                           item.name === "Our Services" ? "ہماری خدمات" : 
+                           item.name === "Premium" ? "پریمیم" :
+                           item.name === "About Us" ? "ہمارے بارے میں" : "رابطہ کریں"}
+                        </span>
+                      )}
+                    </Link>
+                  ))}
+                  <div className="border-t pt-4 space-y-2">
+                    <div className="flex items-center justify-between mb-4">
                       <Select value={language} onValueChange={handleLanguageChange}>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-32">
                           <div className="flex items-center gap-2">
                             <Globe className="h-4 w-4" />
-                            <span>{language === "en" ? "English" : "اردو"}</span>
+                            <span className="text-xs">{language === "en" ? "English" : "اردو"}</span>
                           </div>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="en">🇺🇸 English</SelectItem>
-                          <SelectItem value="ur">Urdu اردو</SelectItem>
+                          <SelectItem value="ur">🇵🇰 اردو</SelectItem>
                         </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {/* Theme Toggle */}
-                    <div className="mb-6 px-2">
-                      <p className="text-sm mb-2 font-medium">Theme</p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start gap-2"
-                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                      >
-                        {theme === "dark" ? (
-                          <>
-                            <Sun className="h-4 w-4" />
-                            <span>Light Mode</span>
-                          </>
-                        ) : (
-                          <>
-                            <Moon className="h-4 w-4" />
-                            <span>Dark Mode</span>
-                          </>
-                        )}
+                      </Select>                      <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                        <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                        <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                       </Button>
-                    </div>
-                    
-                    {/* Authentication */}
-                    <div className="mt-auto px-2">
-                      {isLoggedIn ? (
-                        <div className="space-y-3">
-                          <Link href="/dashboard" onClick={() => setIsOpen(false)}>
-                            <Button variant="outline" className="w-full justify-start gap-2">
-                              <User className="h-4 w-4" />
-                              Dashboard
-                            </Button>
-                          </Link>
-                          <Button 
-                            variant="default" 
-                            className="w-full gradient-primary text-white" 
-                            onClick={handleLogout}
-                          >
-                            Logout
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <Link href="/login" onClick={() => setIsOpen(false)}>
-                            <Button variant="outline" className="w-full font-body">
-                              {language === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
-                            </Button>
-                          </Link>
-                          <Link href="/register" onClick={() => setIsOpen(false)}>
-                            <Button className="w-full gradient-primary text-white font-body">
-                              {language === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
-                            </Button>
-                          </Link>
-                        </div>
+                      
+                      {isLoggedIn && (
+                        <Button variant="ghost" size="icon" className="relative" onClick={() => router.push('/notifications')}>
+                          <Bell className="h-5 w-5" />
+                          {notificationCount > 0 && (
+                            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+                              {notificationCount > 9 ? '9+' : notificationCount}
+                            </span>
+                          )}
+                        </Button>
                       )}
                     </div>
+                    {isLoggedIn ? (
+                      <div className="flex flex-col space-y-2">
+                        <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                          <Button variant="outline" className="w-full font-body">
+                            {language === "en" ? "Dashboard" : <span className="font-arabic">ڈیش بورڈ</span>}
+                          </Button>
+                        </Link>
+                        <Link href="/edit-profile" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full gradient-primary text-white font-body">
+                            {language === "en" ? "Edit Profile" : <span className="font-arabic">پروفائل ایڈٹ کریں</span>}
+                          </Button>
+                        </Link>
+                        <button onClick={handleLogout} className="w-full text-left px-4 py-2 hover:bg-muted">
+                          {language === "en" ? "Logout" : <span className="font-arabic">لاگ آؤٹ</span>}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col space-y-2">
+                        <Link href="/login" onClick={() => setIsOpen(false)}>
+                          <Button variant="outline" className="w-full font-body">
+                            {language === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
+                          </Button>
+                        </Link>
+                        <Link href="/register" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full gradient-primary text-white font-body">
+                            {language === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
                   </div>
-                </SheetContent>
-              </Sheet>
-            </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
+        {/* Mobile Bottom Navigation - Optional, uncomment if needed */}
+        {/* <div className="md:hidden border-t">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between py-3">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="flex-1 text-center text-sm font-medium transition-colors hover:text-primary font-body"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div> */}
       </header>
     </>
   )

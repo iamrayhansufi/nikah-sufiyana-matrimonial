@@ -1,14 +1,129 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Heart, MessageSquare, Eye, Bell, Star } from "lucide-react"
+import { Heart, MessageSquare, Eye, Bell, Star, AlertCircle, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { playfair } from "../lib/fonts"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { format, isToday, isYesterday, formatDistanceToNow } from "date-fns"
+
+interface Notification {
+  id: number
+  userId: number
+  type: string
+  message: string
+  link?: string
+  metadata?: any
+  read: boolean
+  createdAt: string
+}
+
+// Group notifications by day
+function groupNotificationsByDate(notifications: Notification[]) {
+  const groups: Record<string, Notification[]> = {
+    today: [],
+    yesterday: [],
+    older: []
+  };
+
+  notifications.forEach(notification => {
+    const date = new Date(notification.createdAt);
+    if (isToday(date)) {
+      groups.today.push(notification);
+    } else if (isYesterday(date)) {
+      groups.yesterday.push(notification);
+    } else {
+      groups.older.push(notification);
+    }
+  });
+
+  return groups;
+}
 
 export default function NotificationsPage() {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (status !== "authenticated") return;
+      
+      try {
+        setLoading(true);
+        const response = await fetch('/api/notifications', {
+          credentials: 'include',
+          headers: { 'Cache-Control': 'no-cache' }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchNotifications();
+  }, [status]);
+
+  const handleMarkAsRead = async (notificationId: number) => {
+    try {
+      await fetch('/api/notifications/mark-as-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId })
+      });
+      
+      // Update local state
+      setNotifications(prevNotifications => 
+        prevNotifications.map(n => 
+          n.id === notificationId ? { ...n, read: true } : n
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.read) {
+      await handleMarkAsRead(notification.id);
+    }
+    
+    if (notification.link) {
+      router.push(notification.link);
+    }
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'interest':
+        return <Heart className="h-5 w-5 text-red-500" />;
+      case 'message':
+        return <MessageSquare className="h-5 w-5 text-blue-500" />;
+      case 'profile_view':
+        return <Eye className="h-5 w-5 text-purple-500" />;
+      case 'premium':
+        return <Star className="h-5 w-5 text-yellow-500" />;
+      case 'system':
+        return <Bell className="h-5 w-5 text-primary" />;
+      default:
+        return <AlertCircle className="h-5 w-5 text-primary" />;
+    }
+  };
+
+  const groupedNotifications = groupNotificationsByDate(notifications);
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />
@@ -18,125 +133,174 @@ export default function NotificationsPage() {
           
           <Card>
             <CardContent className="p-6">
-              <div className="space-y-6">
-                {/* Today */}
-                <div>
-                  <h2 className={`${playfair.className} text-lg font-semibold mb-4`}>Today</h2>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <Heart className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className={`${playfair.className} font-medium`}>New Interest Received</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Aisha Khan has shown interest in your profile
-                        </p>
-                        <div className="flex items-center gap-4 mt-2">
-                          <Button size="sm">Accept</Button>
-                          <Button size="sm" variant="outline">View Profile</Button>
-                        </div>
-                      </div>
-                      <div className="text-xs text-muted-foreground">2h ago</div>
-                    </div>
-
-                    <div className="flex items-start gap-4">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <MessageSquare className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className={`${playfair.className} font-medium`}>New Message</h3>
-                        <p className="text-sm text-muted-foreground">
-                          You have a new message from Zainab Ali
-                        </p>
-                        <Button size="sm" variant="outline" className="mt-2">
-                          Read Message
-                        </Button>
-                      </div>
-                      <div className="text-xs text-muted-foreground">5h ago</div>
-                    </div>
-                  </div>
+              {loading ? (
+                <div className="py-20 text-center">
+                  <div className="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent text-primary rounded-full mb-4" />
+                  <p>Loading notifications...</p>
                 </div>
-
-                {/* Yesterday */}
-                <div>
-                  <h2 className={`${playfair.className} text-lg font-semibold mb-4`}>Yesterday</h2>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <Eye className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className={`${playfair.className} font-medium`}>Profile Views</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Your profile was viewed by 5 new people
-                        </p>
-                        <Button size="sm" variant="outline" className="mt-2">
-                          View Details
-                        </Button>
-                      </div>
-                      <div className="text-xs text-muted-foreground">1d ago</div>
-                    </div>
-
-                    <div className="flex items-start gap-4">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <Star className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className={`${playfair.className} font-medium`}>Premium Feature</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Upgrade to Premium to unlock advanced search filters
-                        </p>
-                        <Button size="sm" variant="outline" className="mt-2">
-                          Upgrade Now
-                        </Button>
-                      </div>
-                      <div className="text-xs text-muted-foreground">1d ago</div>
-                    </div>
-                  </div>
+              ) : notifications.length === 0 ? (
+                <div className="py-20 text-center">
+                  <Bell className="w-12 h-12 mx-auto text-muted-foreground opacity-20 mb-4" />
+                  <p className="text-lg text-muted-foreground">No notifications yet</p>
                 </div>
-
-                {/* Earlier */}
-                <div>
-                  <h2 className={`${playfair.className} text-lg font-semibold mb-4`}>Earlier</h2>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <Bell className="h-5 w-5 text-primary" />
+              ) : (
+                <div className="space-y-6">
+                  {/* Today */}
+                  {groupedNotifications.today.length > 0 && (
+                    <div>
+                      <h2 className={`${playfair.className} text-lg font-semibold mb-4`}>Today</h2>
+                      <div className="space-y-4">
+                        {groupedNotifications.today.map((notification) => (
+                          <div 
+                            key={notification.id} 
+                            className={`flex items-start gap-4 p-3 rounded-lg transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
+                          >
+                            <div className="bg-primary/10 p-2 rounded-full">
+                              {getNotificationIcon(notification.type)}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className={`${playfair.className} font-medium`}>
+                                {notification.type === 'interest' && 'New Interest'}
+                                {notification.type === 'message' && 'New Message'}
+                                {notification.type === 'profile_view' && 'Profile View'}
+                                {notification.type === 'premium' && 'Premium Feature'}
+                                {notification.type === 'system' && 'System Notification'}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {notification.message}
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                {notification.link && (
+                                  <Button size="sm" onClick={() => handleNotificationClick(notification)}>
+                                    View
+                                  </Button>
+                                )}
+                                {!notification.read && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={() => handleMarkAsRead(notification.id)}
+                                  >
+                                    Mark as Read
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex-1">
-                        <h3 className={`${playfair.className} font-medium`}>Profile Match</h3>
-                        <p className="text-sm text-muted-foreground">
-                          We found 3 new matches based on your preferences
-                        </p>
-                        <Button size="sm" variant="outline" className="mt-2">
-                          View Matches
-                        </Button>
-                      </div>
-                      <div className="text-xs text-muted-foreground">3d ago</div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Yesterday */}
+                  {groupedNotifications.yesterday.length > 0 && (
+                    <div>
+                      <h2 className={`${playfair.className} text-lg font-semibold mb-4`}>Yesterday</h2>
+                      <div className="space-y-4">
+                        {groupedNotifications.yesterday.map((notification) => (
+                          <div 
+                            key={notification.id} 
+                            className={`flex items-start gap-4 p-3 rounded-lg transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
+                          >
+                            <div className="bg-primary/10 p-2 rounded-full">
+                              {getNotificationIcon(notification.type)}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className={`${playfair.className} font-medium`}>
+                                {notification.type === 'interest' && 'New Interest'}
+                                {notification.type === 'message' && 'New Message'}
+                                {notification.type === 'profile_view' && 'Profile View'}
+                                {notification.type === 'premium' && 'Premium Feature'}
+                                {notification.type === 'system' && 'System Notification'}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {notification.message}
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                {notification.link && (
+                                  <Button size="sm" onClick={() => handleNotificationClick(notification)}>
+                                    View
+                                  </Button>
+                                )}
+                                {!notification.read && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={() => handleMarkAsRead(notification.id)}
+                                  >
+                                    Mark as Read
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Older */}
+                  {groupedNotifications.older.length > 0 && (
+                    <div>
+                      <h2 className={`${playfair.className} text-lg font-semibold mb-4`}>Earlier</h2>
+                      <div className="space-y-4">
+                        {groupedNotifications.older.map((notification) => (
+                          <div 
+                            key={notification.id} 
+                            className={`flex items-start gap-4 p-3 rounded-lg transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
+                          >
+                            <div className="bg-primary/10 p-2 rounded-full">
+                              {getNotificationIcon(notification.type)}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className={`${playfair.className} font-medium`}>
+                                {notification.type === 'interest' && 'New Interest'}
+                                {notification.type === 'message' && 'New Message'}
+                                {notification.type === 'profile_view' && 'Profile View'}
+                                {notification.type === 'premium' && 'Premium Feature'}
+                                {notification.type === 'system' && 'System Notification'}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {notification.message}
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                {notification.link && (
+                                  <Button size="sm" onClick={() => handleNotificationClick(notification)}>
+                                    View
+                                  </Button>
+                                )}
+                                {!notification.read && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={() => handleMarkAsRead(notification.id)}
+                                  >
+                                    Mark as Read
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {format(new Date(notification.createdAt), 'MMM d')}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
-
-          {/* Empty State */}
-          {false && (
-            <div className="text-center py-12">
-              <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h2 className={`${playfair.className} text-xl font-semibold mb-2`}>No Notifications</h2>
-              <p className="text-muted-foreground mb-6">
-                You're all caught up! Check back later for new updates.
-              </p>
-              <Link href="/browse">
-                <Button>Browse Profiles</Button>
-              </Link>
-            </div>
-          )}
         </div>
       </div>
       <Footer />
     </div>
-  )
-} 
+  );
+}

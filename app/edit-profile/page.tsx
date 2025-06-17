@@ -287,7 +287,7 @@ export default function EditProfilePage() {
           try {
             if (data.siblings && typeof data.siblings === 'string') {
               // Skip parsing if it's "Not specified" or not valid JSON
-              if (data.siblings !== "Not specified" && data.siblings.startsWith('[')) {
+              if (data.siblings !== "Not specified" && data.siblings.charAt(0) === '[') {
                 // Try to parse if it's a JSON string
                 siblingsArray = JSON.parse(data.siblings);
                 console.log("Successfully parsed siblings from JSON string:", siblingsArray);
@@ -315,7 +315,7 @@ export default function EditProfilePage() {
           try {
             if (data.brotherInLaws && typeof data.brotherInLaws === 'string') {
               // Skip parsing if it's "Not specified" or not valid JSON
-              if (data.brotherInLaws !== "Not specified" && data.brotherInLaws.startsWith('[')) {
+              if (data.brotherInLaws !== "Not specified" && data.brotherInLaws.charAt(0) === '[') {
                 brotherInLawsArray = JSON.parse(data.brotherInLaws);
               }
             } else if (Array.isArray(data.brotherInLaws)) {
@@ -328,7 +328,7 @@ export default function EditProfilePage() {
           try {
             if (data.maternalPaternal && typeof data.maternalPaternal === 'string') {
               // Skip parsing if it's "Not specified" or not valid JSON
-              if (data.maternalPaternal !== "Not specified" && data.maternalPaternal.startsWith('[')) {
+              if (data.maternalPaternal !== "Not specified" && data.maternalPaternal.charAt(0) === '[') {
                 maternalPaternalArray = JSON.parse(data.maternalPaternal);
               }
             } else if (Array.isArray(data.maternalPaternal)) {
@@ -525,20 +525,33 @@ export default function EditProfilePage() {
             key === "preferredHeight" || key === "preferredComplexion") {
           // Explicitly include these fields, even with empty values
           acc[key] = value; 
-        }
-        // Special handling for siblings, brothers-in-law, and other arrays
+        }        // Special handling for siblings, brothers-in-law, and other arrays
         else if (key === "siblings" || key === "brotherInLaws" || key === "maternalPaternal") {
           // Always include arrays even if empty to ensure proper updating
-          acc[key] = Array.isArray(value) ? value : [];
+          // Make sure we send a properly formatted array
+          if (Array.isArray(value)) {
+            acc[key] = value;          } else if (typeof value === 'string') {
+            try {
+              // Try to parse if it's a JSON string
+              acc[key] = value && value.charAt(0) === '[' ? JSON.parse(value) : [];
+            } catch (e) {
+              console.error(`Error parsing ${key} JSON:`, e);
+              acc[key] = []; // Fallback to empty array
+            }
+          } else {
+            acc[key] = []; // Default to empty array for other cases
+          }
+          
           // Log sibling data specifically for debugging
           if (key === "siblings") {
-            console.log("Siblings data being sent:", JSON.stringify(acc[key]));
+            console.log(`${key} data being sent (${typeof acc[key]}, length: ${Array.isArray(acc[key]) ? acc[key].length : 'not array'}):`);
+            console.log(JSON.stringify(acc[key]));
           }
-        }
-        // Handle fatherOccupation specifically to ensure it saves properly
+        }// Handle fatherOccupation specifically to ensure it saves properly
         else if (key === "fatherOccupation") {
-          // Ensure we're sending a string value even if it's empty
-          acc[key] = typeof value === 'string' ? value : '';
+          // Always include fatherOccupation in the update, even if it's empty or null
+          acc[key] = value === null || value === undefined ? '' : String(value);
+          console.log(`fatherOccupation being sent: '${acc[key]}'`);
         }
         // For other fields, only include if they're not empty
         else if (value !== "") {
@@ -634,7 +647,7 @@ export default function EditProfilePage() {
       try {
         if (data.siblings && typeof data.siblings === 'string') {
           // Skip parsing if it's "Not specified" or not valid JSON
-          if (data.siblings !== "Not specified" && data.siblings.startsWith('[')) {
+          if (data.siblings !== "Not specified" && data.siblings.charAt(0) === '[') {
             siblingsArray = JSON.parse(data.siblings);
           }
         } else if (Array.isArray(data.siblings)) {
@@ -648,7 +661,7 @@ export default function EditProfilePage() {
       try {
         if (data.brotherInLaws && typeof data.brotherInLaws === 'string') {
           // Skip parsing if it's "Not specified" or not valid JSON
-          if (data.brotherInLaws !== "Not specified" && data.brotherInLaws.startsWith('[')) {
+          if (data.brotherInLaws !== "Not specified" && data.brotherInLaws.charAt(0) === '[') {
             brotherInLawsArray = JSON.parse(data.brotherInLaws);
           }
         } else if (Array.isArray(data.brotherInLaws)) {
@@ -663,7 +676,7 @@ export default function EditProfilePage() {
       try {
         if (data.maternalPaternal && typeof data.maternalPaternal === 'string') {
           // Skip parsing if it's "Not specified" or not valid JSON
-          if (data.maternalPaternal !== "Not specified" && data.maternalPaternal.startsWith('[')) {
+          if (data.maternalPaternal !== "Not specified" && data.maternalPaternal.charAt(0) === '[') {
             maternalPaternalArray = JSON.parse(data.maternalPaternal);
           }
         } else if (Array.isArray(data.maternalPaternal)) {
@@ -773,21 +786,43 @@ export default function EditProfilePage() {
     };
     
     // Ensure siblings data is properly formatted as an array
-    console.log("Siblings before submit:", JSON.stringify(formData.siblings));
-    
-    // Make sure siblings is an array before updating
+    console.log("Siblings before submit:", JSON.stringify(formData.siblings));    // Make sure siblings is an array before updating
     if (!Array.isArray(formData.siblings)) {
-      formData.siblings = [];
-      console.log("Siblings was not an array, fixed to empty array");
+      try {
+        // Try to parse if it's a JSON string (first check and cast the type)
+        const siblingsData = formData.siblings as unknown;
+        if (typeof siblingsData === 'string' && 
+            siblingsData && 
+            siblingsData.charAt(0) === '[') {
+          formData.siblings = JSON.parse(siblingsData);
+          console.log("Parsed siblings from JSON string");
+        } else {
+          formData.siblings = [];
+          console.log("Siblings was not an array or valid JSON, fixed to empty array");
+        }
+      } catch (e) {
+        console.error("Error parsing siblings data:", e);
+        formData.siblings = [];
+      }
+    }
+    
+    // Ensure all siblings have the required properties
+    if (Array.isArray(formData.siblings)) {
+      formData.siblings = formData.siblings.map(sibling => ({
+        name: sibling.name || '',
+        siblingType: sibling.siblingType || '',
+        maritalStatus: sibling.maritalStatus || '',
+        occupation: sibling.occupation || ''
+      }));
     }
     
     // Remove any empty sibling entries
     formData.siblings = formData.siblings.filter(sibling => 
-      sibling.name?.trim() !== '' || 
-      sibling.occupation?.trim() !== ''
+      (sibling.name && sibling.name.trim() !== '') || 
+      (sibling.occupation && sibling.occupation.trim() !== '')
     );
     
-    console.log("Siblings after filtering:", JSON.stringify(formData.siblings));
+    console.log("Siblings after processing:", JSON.stringify(formData.siblings));
     
     await updateProfile(formData, "family");
   }
@@ -860,17 +895,34 @@ export default function EditProfilePage() {
           'Cache-Control': 'no-cache'
         }
       })
+        console.log("Upload response status:", response.status);
       
-      console.log("Upload response status:", response.status);
-      
-      const responseData = await response.json();
+      let responseData;
+      try {
+        // Check if there's actually content before trying to parse
+        const text = await response.text();
+        if (text) {
+          responseData = JSON.parse(text);
+          console.log("Successfully parsed response JSON");
+        } else {
+          console.error("Empty response from server");
+          throw new Error("Server returned an empty response");
+        }      } catch (parseError) {
+        console.error("Error parsing response:", parseError);
+        throw new Error(`Failed to parse server response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
       
       if (!response.ok) {
         console.error("Upload failed with response:", responseData);
-        throw new Error(responseData.error || 'Failed to upload profile photo')
+        throw new Error(responseData?.error || 'Failed to upload profile photo')
       }
+        console.log("Upload successful:", responseData);
       
-      console.log("Upload successful:", responseData);
+      // Ensure responseData contains a URL
+      if (!responseData || !responseData.url) {
+        console.error("Missing URL in response data:", responseData);
+        throw new Error("Server response is missing the photo URL");
+      }
       
       // Update the profile data with the new photo URL and add a timestamp to force refresh
       const photoUrl = `${responseData.url}?t=${new Date().getTime()}`;
@@ -956,8 +1008,7 @@ export default function EditProfilePage() {
       }
       
       console.log("Sending multiple photo upload request...");
-      
-      const response = await fetch('/api/profiles/upload-photos', {
+        const response = await fetch('/api/profiles/upload-photos', {
         method: 'POST',
         body: formData,
         headers: {
@@ -965,21 +1016,50 @@ export default function EditProfilePage() {
         }
       })
       
-      const responseData = await response.json();
+      let responseData;
+      try {
+        // Check if there's actually content before trying to parse
+        const text = await response.text();
+        if (!text) {
+          console.error("Empty response from server");
+          throw new Error("Server returned an empty response");
+        }
+          try {
+          responseData = JSON.parse(text);
+          console.log("Successfully parsed response JSON for multiple photos");
+        } catch (jsonError) {
+          console.error("Error parsing JSON response:", jsonError, "Response text:", text);
+          throw new Error(`Failed to parse JSON response: ${jsonError instanceof Error ? jsonError.message : 'Unknown JSON parsing error'}`);
+        }
+      } catch (parseError) {
+        console.error("Error processing response:", parseError);
+        throw new Error(`Failed to process server response: ${parseError instanceof Error ? parseError.message : 'Unknown processing error'}`);
+      }
       
       if (!response.ok) {
         console.error("Upload failed with response:", responseData);
-        throw new Error(responseData.error || 'Failed to upload profile photos')
+        throw new Error(responseData?.error || 'Failed to upload profile photos')
       }
+        console.log("Upload successful:", responseData);
       
-      console.log("Upload successful:", responseData);
-        // Update the profile data with the new photo URLs
+      // Check if the response has the expected structure
+      if (!responseData || !responseData.urls || !Array.isArray(responseData.urls)) {
+        console.error("Invalid response structure:", responseData);
+        throw new Error("Server response doesn't contain photo URLs in the expected format");
+      }
+        
+      // Update the profile data with the new photo URLs
       const newPhotoUrls = responseData.urls.map((url: string) => `${url}?t=${new Date().getTime()}`);
       console.log("Setting new photo URLs:", newPhotoUrls);
-      setProfileData((prev: any) => ({
-        ...prev,
-        profilePhotos: [...(prev.profilePhotos || []), ...newPhotoUrls]
-      }))
+      
+      // Safely update the profile data
+      setProfileData((prev: any) => {
+        const currentPhotos = Array.isArray(prev.profilePhotos) ? prev.profilePhotos : [];
+        return {
+          ...prev,
+          profilePhotos: [...currentPhotos, ...newPhotoUrls]
+        };
+      });
       
       // Optionally, you can refetch the profile or update the state to reflect the new photos
       await refetchProfile();

@@ -164,3 +164,14 @@ export const shortlist = pgTable('shortlist', {
   shortlistedUserId: integer('shortlisted_user_id').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
+
+export const notifications = pgTable('notifications', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull(),
+  type: varchar('type', { length: 50 }).notNull(),
+  message: text('message').notNull(),
+  link: text('link'),
+  metadata: json('metadata'),
+  read: boolean('read').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
