@@ -31,4 +31,20 @@ else
     exit 1
 fi
 
+# Deploy to Vercel if environment variables are available
+if command -v vercel &> /dev/null; then
+    echo "Deploying to Vercel..."
+    vercel deploy --prod \
+      -e DATABASE_URL="postgres://neondb_owner:npg_nmcDAIqd5tv6@ep-nameless-feather-a4nvzzdp-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require" \
+      -e JWT_SECRET="88d29539104ca3f556fd3058cc9189b7955fe4dec13823362381a611d63bede3" \
+      -e NEXTAUTH_SECRET="35d21696e87e903f783560bf300f50d58e19cdd005360a2f95b857ab06b94276" \
+      -e NEXTAUTH_URL="https://nikahsufiyana.com" \
+      -e NEXTAUTH_URL_INTERNAL="https://nikahsufiyana.com" \
+      -e VERCEL_URL="\${NEXTAUTH_URL}" \
+      -e NEXTAUTH_PREVIEW_URLS="https://nikah-sufiyana-matrimonial-git-main-iamrayhansufis-projects.vercel.app" \
+      -e NEXTAUTH_COOKIE_DOMAIN=".nikahsufiyana.com"
+else
+    echo "Vercel CLI not found. Install it with 'npm install -g vercel' to deploy directly."
+fi
+
 echo "Deployment preparation complete!"
