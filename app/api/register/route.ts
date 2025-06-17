@@ -16,22 +16,30 @@ const registerSchema = z.object({
   age: z.string().min(1, "Age is required").or(z.number()),
   country: z.string().min(1, "Country is required"),
   city: z.string().min(1, "City is required"),
-  location: z.string().min(1, "Location is required"),
+  // Make location optional or derive from preferredLocation if available
+  location: z.string().optional().default(""),
+  // Also accept preferredLocation as a potential location value
+  preferredLocation: z.string().optional(),
   education: z.string().min(1, "Education is required"),
   sect: z.string().min(1, "Sect is required"),
   // Add other required fields as needed
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    // Parse and validate request body
+  try {    // Parse and validate request body
     const body = await request.json();
     
     // Log request for debugging
     console.log('Registration request received:', {
       email: body.email,
       phone: body.phone,
-      // Don't log password or full body for security
+      // Safe fields to log for debugging
+      fields: Object.keys(body),
+      location: body.location,
+      preferredLocation: body.preferredLocation,
+      city: body.city,
+      country: body.country,
+      // Don't log password or sensitive data
     });
     
     const validation = registerSchema.safeParse(body);
@@ -79,7 +87,10 @@ export async function POST(request: NextRequest) {
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(userData.password, salt);    // Create user record
+    const hashedPassword = await bcrypt.hash(userData.password, salt);    // Use preferredLocation as location if location is not provided
+    const locationValue = userData.location || userData.preferredLocation || userData.city || "";
+    
+    // Create user record
     await db.insert(users).values({
       fullName: userData.fullName,
       email: userData.email,
@@ -89,12 +100,12 @@ export async function POST(request: NextRequest) {
       age: typeof userData.age === 'string' ? parseInt(userData.age, 10) : userData.age,
       country: userData.country,
       city: userData.city,
-      location: userData.location,
+      location: locationValue,
       education: userData.education,
       sect: userData.sect,
       // Add other fields from userData
       profileStatus: "pending_verification", // User needs email verification
-    });    // Generate and send verification OTP
+    });// Generate and send verification OTP
     try {
       await createVerificationOTP(userData.email, "registration");
       console.log(`Verification OTP sent to ${userData.email}`);

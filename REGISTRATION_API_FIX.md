@@ -1,6 +1,19 @@
 # Registration API Troubleshooting Guide
 
-## Recent Fixes Applied
+## Latest Fixes (June 17, 2025)
+
+We've fixed the specific 400 (Bad Request) error related to the `location` field validation. The following updates were made:
+
+1. **Modified Location Validation**:
+   - Made the `location` field optional in the validation schema
+   - Added support for `preferredLocation` as an alternative field
+   - Implemented fallback logic: If `location` is missing, use `preferredLocation` or `city`
+
+2. **Enhanced Request Logging**:
+   - Added more detailed logging for form field submission
+   - Included mapping of fields present in the request
+
+## Previous Fixes Applied
 
 We've addressed the 400 (Bad Request) error that occurred when trying to register on www.nikahsufiyana.com after the domain migration. The following fixes were applied:
 
@@ -56,6 +69,19 @@ Common validation issues:
 - Password: Must be at least 8 characters
 - Required fields: Ensure all required fields are being submitted
 
+#### Field Dependencies and Fallbacks
+
+The following fields have special handling:
+
+- **Location**: 
+  - Uses a fallback chain: `location` → `preferredLocation` → `city`
+  - At least one of these fields must be provided
+  - The API now maps these fields automatically for compatibility
+
+- **Age**:
+  - Accepts both string and number formats
+  - Will be converted to number for database storage
+
 ### 4. Cross-Origin Issues
 
 If you're experiencing CORS issues:
@@ -82,3 +108,27 @@ If you encounter any issues even after these fixes:
 2. Verify all environment variables are correctly set in Vercel
 3. Test in an incognito browser window to rule out cookie/cache issues
 4. Try different user information to rule out specific data validation issues
+
+## Testing with Sample Data
+
+To test the registration with valid data, use this sample JSON structure:
+
+```json
+{
+  "fullName": "Test User",
+  "gender": "male",
+  "email": "test@example.com",
+  "phone": "+919876543210",
+  "countryCode": "+91",
+  "age": "25",
+  "education": "Graduate",
+  "profession": "it-software",
+  "country": "india",
+  "city": "hyderabad",
+  "preferredLocation": "hyderabad", 
+  "sect": "sunni",
+  "password": "Test@12345"
+}
+```
+
+Notice that even without an explicit `location` field, the registration should now work correctly by using the `preferredLocation` value.

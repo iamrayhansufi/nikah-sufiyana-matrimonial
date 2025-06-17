@@ -314,11 +314,12 @@ export default function RegisterPage() {
       setIsSubmittingForm(true);
       // Convert form data to JSON format, omitting optional fields
       const { confirmPassword, profilePhotoPreview, bioDataFile, profilePhoto, ...formDataRest } = formData;
-      
-      const jsonData = {
+        const jsonData = {
         ...formDataRest,
         age: formData.age, // Keep as string to match schema validation
         phone: `${formData.countryCode}${formData.phone.replace(/\D/g, '')}`, // Combine country code with cleaned phone number
+        // Make sure location field is properly set - use preferredLocation as fallback
+        location: formData.location || formData.preferredLocation || formData.city || "",
       };
       
       console.log('Submitting registration data:', JSON.stringify(jsonData));
