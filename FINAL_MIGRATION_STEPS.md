@@ -37,8 +37,8 @@ This document provides the final steps needed to complete the migration to the n
    ```
    JWT_SECRET=7fd9ee85c62492c3176f40e673b5a7f62346aa1ff54ff3d9f79d80d70e3e6118
    NEXTAUTH_SECRET=9e75e99e82f19098e2ba7b06b843de0d210a0523bc8021c8e92f52888c4909aa
-   NEXTAUTH_URL=https://nikahsufiyana.com
-   NEXTAUTH_URL_INTERNAL=https://nikahsufiyana.com
+   NEXTAUTH_URL=https://www.nikahsufiyana.com
+   NEXTAUTH_URL_INTERNAL=https://www.nikahsufiyana.com
    VERCEL_URL=${NEXTAUTH_URL}
    NEXTAUTH_PREVIEW_URLS=https://nikah-sufiyana-matrimonial-git-main-iamrayhansufis-projects.vercel.app
    NEXTAUTH_COOKIE_DOMAIN=.nikahsufiyana.com
@@ -65,7 +65,7 @@ This document provides the final steps needed to complete the migration to the n
    SMTP_PASS=28qAN4x6mFVxeaew
    FROM_EMAIL=rishta@nikahsufiyana.com
    
-   NEXT_PUBLIC_APP_URL=https://nikahsufiyana.com
+   NEXT_PUBLIC_APP_URL=https://www.nikahsufiyana.com
    ```
 
 5. Remove any old preview URLs from environment variables if they exist

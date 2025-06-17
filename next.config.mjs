@@ -19,7 +19,7 @@ const nextConfig = {
             value: 'nikah-sufiyana-matrimonial-git-main-iamrayhansufis-projects.vercel.app',
           },
         ],
-        destination: 'https://nikahsufiyana.com/:path*',
+        destination: 'https://www.nikahsufiyana.com/:path*',
         permanent: true,
       },
       // Do not redirect between www and non-www versions - this prevents redirect loops

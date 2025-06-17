@@ -7,7 +7,7 @@
 
 const https = require('https');
 
-const SITE_URL = 'https://nikahsufiyana.com';
+const SITE_URL = 'https://www.nikahsufiyana.com';
 
 console.log('🔍 Testing Nikah Sufiyana Authentication...\n');
 

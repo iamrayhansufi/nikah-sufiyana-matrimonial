@@ -50,7 +50,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo -e "\n${YELLOW}Step 4: Deploying to Vercel${NC}"
-echo -e "${BLUE}This will deploy the application to production at https://nikahsufiyana.com${NC}"
+echo -e "${BLUE}This will deploy the application to production at https://www.nikahsufiyana.com${NC}"
 read -p "Do you want to continue with deployment? (y/n) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then

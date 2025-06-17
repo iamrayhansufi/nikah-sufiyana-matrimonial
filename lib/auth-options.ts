@@ -120,7 +120,7 @@ export const authOptions: NextAuthOptions = {
           url = new URL(url, baseUrl).toString()
         }
           // Create allowlist of permitted origins/urls
-        const siteUrl = process.env.NEXTAUTH_URL || 'https://nikahsufiyana.com'
+        const siteUrl = process.env.NEXTAUTH_URL || 'https://www.nikahsufiyana.com'
         const allowedOrigins = [
           new URL(baseUrl).origin, 
           siteUrl,

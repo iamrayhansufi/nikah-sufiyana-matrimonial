@@ -1,6 +1,6 @@
 # Nikah Sufiyana Migration Steps
 
-This document outlines the remaining steps to complete the migration of Nikah Sufiyana from the Vercel preview domain to the primary domain (https://nikahsufiyana.com).
+This document outlines the remaining steps to complete the migration of Nikah Sufiyana from the Vercel preview domain to the primary domain (https://www.nikahsufiyana.com).
 
 ## 1. Update External Services with New Credentials
 
@@ -76,7 +76,7 @@ This document outlines the remaining steps to complete the migration of Nikah Su
 
 ## Important URLs and Resources
 
-- Production site: https://nikahsufiyana.com
+- Production site: https://www.nikahsufiyana.com
 - GitHub repository: [REPO_URL]
 - Vercel dashboard: [VERCEL_URL]
 - NeonDB dashboard: [NEON_DB_URL]

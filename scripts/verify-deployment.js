@@ -111,7 +111,7 @@ async function verifyDeployment() {
     console.log('🔍 Starting deployment verification process...');
     
     // 1. Check if the website is accessible
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nikahsufiyana.com';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.nikahsufiyana.com';
     console.log(`Using base URL: ${baseUrl}`);
     
     const websiteAccessible = await checkWebsite(baseUrl);

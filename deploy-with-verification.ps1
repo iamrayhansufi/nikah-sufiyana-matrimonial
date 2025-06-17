@@ -49,7 +49,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`nStep 4: Deploying to Vercel" @Yellow
-Write-Host "This will deploy the application to production at https://nikahsufiyana.com" @Blue
+Write-Host "This will deploy the application to production at https://www.nikahsufiyana.com" @Blue
 $confirmation = Read-Host "Do you want to continue with deployment? (y/n)"
 if ($confirmation -ne "y") {
     Write-Host "Deployment canceled." @Yellow

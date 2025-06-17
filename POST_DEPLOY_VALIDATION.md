@@ -4,7 +4,7 @@ This document provides step-by-step instructions for manually validating critica
 
 ## Pre-Validation Setup
 
-1. Open the website at https://nikahsufiyana.com in an incognito/private browser window
+1. Open the website at https://www.nikahsufiyana.com in an incognito/private browser window
 2. Clear browser cache and cookies if needed
 
 ## 1. Public Access
@@ -79,7 +79,7 @@ This document provides step-by-step instructions for manually validating critica
 
 - [ ] Verify all emails are sent from rishta@nikahsufiyana.com
 - [ ] Check that no references to preview domains exist in emails or site content
-- [ ] Verify all URLs in the site are using https://nikahsufiyana.com
+- [ ] Verify all URLs in the site are using https://www.nikahsufiyana.com
 
 ## Problems Encountered
 

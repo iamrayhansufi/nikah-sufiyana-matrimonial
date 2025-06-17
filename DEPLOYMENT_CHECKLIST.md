@@ -1,6 +1,6 @@
 # Nikah Sufiyana Domain Migration Checklist
 
-This document provides a step-by-step checklist for completing the migration from the Vercel preview domain to the primary domain (https://nikahsufiyana.com).
+This document provides a step-by-step checklist for completing the migration from the Vercel preview domain to the primary domain (https://www.nikahsufiyana.com).
 
 ## 1. Credential Rotation
 
@@ -46,7 +46,7 @@ This document provides a step-by-step checklist for completing the migration fro
 
 ## 3. Post-Deployment Verification
 
-- [ ] Verify the website loads properly at https://nikahsufiyana.com
+- [ ] Verify the website loads properly at https://www.nikahsufiyana.com
 - [ ] Test user registration and login
 - [ ] Test email verification flow
 - [ ] Test profile creation and editing

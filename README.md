@@ -1,6 +1,6 @@
 # Nikah Sufiyana Matrimonial
 
-This repository contains the full source code and infrastructure for the Nikah Sufiyana Matrimonial website, now running at [https://nikahsufiyana.com](https://nikahsufiyana.com).
+This repository contains the full source code and infrastructure for the Nikah Sufiyana Matrimonial website, now running at [https://www.nikahsufiyana.com](https://www.nikahsufiyana.com).
 
 ## Project Structure
 

@@ -38,7 +38,7 @@ Make sure your Vercel environment variables include:
 
 ## Testing After Fix
 
-1. Test both `https://nikahsufiyana.com` and `https://www.nikahsufiyana.com`
+1. Test both `https://www.nikahsufiyana.com` and `https://www.nikahsufiyana.com`
 2. Verify both domains work without redirect loops
 3. Test login/authentication on both domains
 4. Ensure cookies are properly set and recognized

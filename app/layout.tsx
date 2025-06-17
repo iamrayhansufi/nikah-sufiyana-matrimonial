@@ -32,11 +32,11 @@ export const metadata: Metadata = {
     title: "Nikah Sufiyana - Find Your Perfect Islamic Match",
     description: "Premium Muslim matrimonial platform for finding halal relationships.",
     type: "website",
-    url: "https://nikahsufiyana.com",
+    url: "https://www.nikahsufiyana.com",
     siteName: "Nikah Sufiyana",
     images: [
       {
-        url: "https://nikahsufiyana.com/Nikah-Sufiyana-Logo.svg",
+        url: "https://www.nikahsufiyana.com/Nikah-Sufiyana-Logo.svg",
         width: 1200,
         height: 630,
       }
