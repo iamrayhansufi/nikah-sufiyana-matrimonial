@@ -309,8 +309,7 @@ export default function RegisterPage() {
   const handlePrevious = () => {
     if (step > 1) setStep(step - 1)
   }
-  
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     try {
       setIsSubmittingForm(true);
       // Convert form data to JSON format, omitting optional fields
@@ -318,9 +317,11 @@ export default function RegisterPage() {
       
       const jsonData = {
         ...formDataRest,
-        age: parseInt(formData.age, 10), // Convert age to number
+        age: formData.age, // Keep as string to match schema validation
         phone: `${formData.countryCode}${formData.phone.replace(/\D/g, '')}`, // Combine country code with cleaned phone number
       };
+      
+      console.log('Submitting registration data:', JSON.stringify(jsonData));
 
       const response = await fetch('/api/register', {
         method: 'POST',
@@ -330,9 +331,10 @@ export default function RegisterPage() {
         body: JSON.stringify(jsonData),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      const data = await response.json();      if (!response.ok) {
+        // Log the error response for debugging
+        console.error('Registration error:', response.status, data);
+        
         if (response.status === 409) {
           const errorMessage = data.error || "An account with these details already exists.";
           toast({
@@ -354,16 +356,26 @@ export default function RegisterPage() {
             }
           }
         } else if (response.status === 400 && data.details) {
-          // Handle validation errors
+          // Handle validation errors from updated API format
           const fieldErrs: FieldErrors = {};
           (data.details as ValidationError[]).forEach((err: ValidationError) => {
             if (err.field) fieldErrs[err.field] = err.message;
           });
           setFieldErrors(fieldErrs);
-          // Show all messages in toast as well
-          const errorMessage = (data.details as ValidationError[])
-            .map((err: ValidationError) => err.message)
-            .join("\n");
+          
+          // Show meaningful errors to the user
+          let errorMessage: string;
+          
+          if (Array.isArray(data.details) && data.details.length > 0) {
+            errorMessage = data.details
+              .map((err: ValidationError) => err.message)
+              .join("\n");
+          } else if (typeof data.error === 'string') {
+            errorMessage = data.error;
+          } else {
+            errorMessage = "Please check your form for errors and try again.";
+          }
+          
           toast({
             title: "Validation Error",
             description: errorMessage,
