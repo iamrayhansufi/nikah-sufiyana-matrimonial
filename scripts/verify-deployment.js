@@ -2,8 +2,38 @@
 // This script runs various checks to verify the deployment and connections are working
 
 const https = require('https');
-const { db, testDatabaseConnection } = require('../src/db');
-const { users } = require('../src/db/schema');
+// Use direct database connection from the check-db script
+const { neon } = require('@neondatabase/serverless');
+const { drizzle } = require('drizzle-orm/neon-http');
+require('dotenv').config();
+
+// Get database URL from environment variables
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  console.error("DATABASE_URL is not defined in environment variables");
+  process.exit(1);
+}
+
+// Create database connection
+const sql = neon(databaseUrl);
+const db = drizzle(sql);
+
+// Function to test database connection
+async function testDatabaseConnection() {
+  try {
+    await sql`SELECT 1`;
+    return true;
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    throw error;
+  }
+}
+
+// Since we're not importing schema directly, define minimal users schema
+const users = {
+  id: 'id',
+  premium: 'premium'
+};
 
 // Function to check if a website is accessible
 function checkWebsite(url) {
@@ -33,13 +63,16 @@ async function verifyDatabase() {
     console.log('Database connection successful!');
     
     // Check if users table exists and has data
-    const userCount = await db.select({ count: users.id }).from(users);
-    console.log(`Users table exists with ${userCount[0]?.count || 0} records`);
-      // Check if admin users table exists and has data
-    const adminCount = await db.select({ count: users.id }).from(users).where({ premium: true });
-    console.log(`Premium users count: ${adminCount[0]?.count || 0}`);
+    const userCountResult = await sql`SELECT COUNT(*) FROM users`;
+    const userCount = parseInt(userCountResult[0]?.count || '0');
+    console.log(`Users table exists with ${userCount} records`);
     
-    return { success: true, userCount: userCount[0]?.count || 0, premiumCount: adminCount[0]?.count || 0 };
+    // Check if premium users exist
+    const premiumCountResult = await sql`SELECT COUNT(*) FROM users WHERE premium = true`;
+    const premiumCount = parseInt(premiumCountResult[0]?.count || '0');
+    console.log(`Premium users count: ${premiumCount}`);
+    
+    return { success: true, userCount, premiumCount };
   } catch (error) {
     console.error('Database verification failed:', error.message);
     return { success: false, error: error.message };
