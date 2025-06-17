@@ -1,16 +1,45 @@
 import nodemailer from "nodemailer"
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.hostinger.com",
-  port: parseInt(process.env.SMTP_PORT || "465"),
-  secure: true, // use SSL
-  auth: {
-    user: process.env.SMTP_USER || "rishta@nikahsufiyana.com",
-    pass: process.env.SMTP_PASS || "BANikah@321#",
-  },
-})
+// Email configuration
+function createTransporter() {
+  // Verify required environment variables
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.error("Missing SMTP configuration. Emails will not be sent.");
+    return null;
+  }
+  
+  // Create transporter with environment variables only, never hardcode credentials
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || "465"),
+    secure: true, // use SSL
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+}
 
-export async function sendWelcomeEmail(userEmail: string, userName: string) {
+// Create the transporter lazily
+const transporter = createTransporter();
+
+// Helper function to safely send emails
+async function sendEmail(mailOptions: nodemailer.SendMailOptions): Promise<boolean> {
+  if (!transporter) {
+    console.warn("Email not sent: SMTP configuration missing");
+    return false;
+  }
+  
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Failed to send email:", error);
+    return false;
+  }
+}
+
+export async function sendWelcomeEmail(userEmail: string, userName: string): Promise<boolean> {
   const mailOptions = {
     from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
     to: userEmail,
@@ -40,10 +69,10 @@ export async function sendWelcomeEmail(userEmail: string, userName: string) {
     `,
   }
 
-  await transporter.sendMail(mailOptions)
+  return await sendEmail(mailOptions);
 }
 
-export async function sendProfileApprovalEmail(userEmail: string, userName: string) {
+export async function sendProfileApprovalEmail(userEmail: string, userName: string): Promise<boolean> {
   const mailOptions = {
     from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
     to: userEmail,
@@ -69,10 +98,10 @@ export async function sendProfileApprovalEmail(userEmail: string, userName: stri
     `,
   }
 
-  await transporter.sendMail(mailOptions)
+  return await sendEmail(mailOptions);
 }
 
-export async function sendProfileRejectionEmail(userEmail: string, userName: string, reason: string) {
+export async function sendProfileRejectionEmail(userEmail: string, userName: string, reason: string): Promise<boolean> {
   const mailOptions = {
     from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
     to: userEmail,
@@ -100,12 +129,12 @@ export async function sendProfileRejectionEmail(userEmail: string, userName: str
     `,
   }
 
-  await transporter.sendMail(mailOptions)
+  return await sendEmail(mailOptions);
 }
 
-export async function sendOTPVerificationEmail(userEmail: string, otp: string) {
+export async function sendOTPVerificationEmail(userEmail: string, otp: string): Promise<boolean> {
   const mailOptions = {
-    from: process.env.FROM_EMAIL || "rishta@nikahsufiyana.com",
+    from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com", // Changed from hardcoded email
     to: userEmail,
     subject: "Verify Your Email - Nikah Sufiyana",
     html: `
@@ -131,12 +160,5 @@ export async function sendOTPVerificationEmail(userEmail: string, otp: string) {
     `,
   }
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log(`OTP verification email sent to ${userEmail}`);
-    return true;
-  } catch (error) {
-    console.error("Failed to send OTP verification email:", error);
-    throw error;
-  }
+  return await sendEmail(mailOptions);
 }

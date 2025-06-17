@@ -10,11 +10,17 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:drop": "drizzle-kit drop",    "deploy": "npm run build && npm run start",
+    "db:drop": "drizzle-kit drop",
+    "deploy": "vercel deploy --prod",
+    "deploy:verify": "powershell -ExecutionPolicy Bypass -File .\\deploy-with-verification.ps1",
     "postinstall": "npm run db:push || echo 'Database push failed, continuing...'",
-    "vercel-build": "npm run db:migrate && npm run build",
+    "vercel-build": "node scripts/vercel-db-check.js && npm run db:migrate && npm run build",
     "git:sync": "node scripts/git-sync.js",
-    "migrate": "tsx scripts/migrate.ts"
+    "migrate": "tsx scripts/migrate.ts",    "db:check": "node scripts/vercel-db-check.js",
+    "security:check": "tsx scripts/security-check.ts",
+    "rotate:credentials": "node scripts/rotate-credentials.js",
+    "generate:credentials": "node scripts/generate-credentials.js",
+    "verify:deployment": "node scripts/verify-deployment.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

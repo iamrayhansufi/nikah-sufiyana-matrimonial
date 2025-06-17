@@ -1,12 +1,23 @@
-// Usage: node scripts/insert-admin-user.js
+// Usage: node scripts/insert-admin-user.js [password]
+// If password is not provided as command line argument, a secure random one will be generated
 const bcrypt = require('bcryptjs');
 const { db } = require('../src/db');
 const { adminUsers } = require('../src/db/schema');
 const { eq } = require('drizzle-orm');
+const { randomBytes } = require('crypto');
+
+// Function to generate a secure random password
+const generateSecurePassword = (length = 16) => {
+  return randomBytes(Math.ceil(length * 3/4))
+    .toString('base64')
+    .replace(/[+/=]/g, '')
+    .slice(0, length);
+};
 
 async function insertAdmin() {
   const email = 'nikahsufiyana@gmail.com';
-  const password = 'Rayhan@786';
+  // Use command line argument if provided, otherwise generate a secure password
+  const password = process.argv[2] || generateSecurePassword();
   const role = 'superadmin';
   const hashed = await bcrypt.hash(password, 10);
 
@@ -23,7 +34,10 @@ async function insertAdmin() {
     role,
     createdAt: new Date(),
   });
-  console.log('Admin user inserted.');
+  console.log('Admin user inserted successfully.');
+  console.log(`Email: ${email}`);
+  console.log(`Password: ${password}`);
+  console.log('IMPORTANT: Save this password securely. It will not be shown again.');
 }
 
 insertAdmin().then(() => process.exit()).catch(e => { console.error(e); process.exit(1); });
