@@ -22,8 +22,7 @@ export default withAuth(
     } catch (error) {
       console.error('Error parsing NEXTAUTH_URL:', error)
     }
-    
-    // Parse preview URLs safely
+      // Parse preview URLs safely
     const previewUrls = (process.env.NEXTAUTH_PREVIEW_URLS || '').split(',')
       .map(url => url.trim())
       .filter(Boolean)
@@ -39,10 +38,14 @@ export default withAuth(
     // Always allow Vercel preview domains
     const isVercelPreview = hostname.includes('vercel.app') && hostname !== mainDomain
     
+    // Treat both www and non-www versions of the domain as valid
+    const isWwwVersion = hostname === `www.${mainDomain}`
+    
     // Allow known domains in development and preview environments
     if (process.env.NODE_ENV !== 'production' || 
         previewUrls.includes(hostname) || 
-        isVercelPreview) {
+        isVercelPreview ||
+        isWwwVersion) {
       // Continue with auth checks - no redirect needed
     } else if (hostname !== mainDomain && process.env.NODE_ENV === 'production') {
       // Redirect non-main domains to main domain in production

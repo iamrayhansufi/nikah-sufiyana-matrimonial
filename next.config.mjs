@@ -22,6 +22,8 @@ const nextConfig = {
         destination: 'https://nikahsufiyana.com/:path*',
         permanent: true,
       },
+      // Do not redirect between www and non-www versions - this prevents redirect loops
+      // Let the middleware handle both domains as valid
     ]
   },
 }
