@@ -1,8 +1,23 @@
 # Registration API Troubleshooting Guide
 
-## Latest Fixes (June 17, 2025)
+## Latest Fixes (June 17, 2025) - Database Error Fix
 
-We've fixed the specific 400 (Bad Request) error related to the `location` field validation. The following updates were made:
+We've fixed the 500 (Internal Server Error) related to database queries when checking for existing users. The following updates were made:
+
+1. **Improved Database Query Handling**:
+   - Replaced problematic query.users.findFirst approach with explicit select queries
+   - Added robust error handling around all database operations
+   - Added type checking and validation for database insertions
+
+2. **Enhanced Error Handling**:
+   - Added specific error detection for common database issues
+   - Improved error messages with more actionable information
+   - Implemented better logging throughout the registration process
+   - Added stack trace information in development environment
+
+## Previous Fix (June 17, 2025) - Location Field Fix
+
+We fixed the specific 400 (Bad Request) error related to the `location` field validation. The following updates were made:
 
 1. **Modified Location Validation**:
    - Made the `location` field optional in the validation schema
@@ -59,6 +74,20 @@ If registration fails with database errors:
 - Check database connection string in environment variables
 - Ensure the database server is accessible from your deployment environment
 - Check for any database constraints that might be failing
+
+#### Specific Database Issues Fixed:
+
+1. **Query Method Change**:
+   - Changed from using `db.query.users.findFirst()` to `db.select().from(users).where().limit(1).execute()`
+   - This provides better error handling and compatibility with Neon database in serverless environments
+
+2. **Connection Pooling**:
+   - Added better handling of database connections for serverless environments
+   - Improved error detection for database connection issues
+
+3. **Type Safety**:
+   - Added explicit type checking for database operations
+   - Ensures all inserted values match the database schema requirements
 
 ### 3. Registration Field Validation
 

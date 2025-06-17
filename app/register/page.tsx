@@ -56,6 +56,7 @@ interface FormData {
   income: string;
   religion: string;
   sect: string;
+  location?: string; // Add optional location property
   hijabNiqab: string;
   beard: string;
   height: string;
@@ -119,7 +120,7 @@ export default function RegisterPage() {
     data: null,
     showDialog: false,
   })
-  const { toast } = useToast()
+  const { toast } = useToast();
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     gender: "",
@@ -142,6 +143,7 @@ export default function RegisterPage() {
     preferredEducation: "",
     preferredProfession: "",
     preferredLocation: "",
+    location: "", // Added location field
     housing: "",
     aboutMe: "",
     familyDetails: "",

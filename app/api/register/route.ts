@@ -60,52 +60,88 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const userData = validation.data;
+    const userData = validation.data;    // Check if user already exists - with robust error handling
+    try {
+      // Check for existing email
+      const existingUserByEmail = await db.select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, userData.email))
+        .limit(1)
+        .execute();
 
-    // Check if user already exists
-    const existingUserByEmail = await db.query.users.findFirst({
-      where: eq(users.email, userData.email),
-    });
+      if (existingUserByEmail && existingUserByEmail.length > 0) {
+        return NextResponse.json(
+          { error: "Email already registered" },
+          { status: 409 }
+        );
+      }
 
-    if (existingUserByEmail) {
+      // Check for existing phone
+      const existingUserByPhone = await db.select({ id: users.id })
+        .from(users)
+        .where(eq(users.phone, userData.phone))
+        .limit(1)
+        .execute();
+
+      if (existingUserByPhone && existingUserByPhone.length > 0) {
+        return NextResponse.json(
+          { error: "Phone number already registered" },
+          { status: 409 }
+        );
+      }
+    } catch (dbError) {
+      console.error("Database error checking for existing user:", dbError);
       return NextResponse.json(
-        { error: "Email already registered" },
-        { status: 409 }
+        { 
+          error: "Failed to verify account availability", 
+          details: dbError instanceof Error ? dbError.message : "Unknown database error"
+        },
+        { status: 500 }
       );
-    }
-
-    const existingUserByPhone = await db.query.users.findFirst({
-      where: eq(users.phone, userData.phone),
-    });
-
-    if (existingUserByPhone) {
-      return NextResponse.json(
-        { error: "Phone number already registered" },
-        { status: 409 }
-      );
-    }
-
-    // Hash password
+    }    // Hash password
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(userData.password, salt);    // Use preferredLocation as location if location is not provided
+    const hashedPassword = await bcrypt.hash(userData.password, salt);
+    
+    // Use preferredLocation as location if location is not provided
     const locationValue = userData.location || userData.preferredLocation || userData.city || "";
     
-    // Create user record
-    await db.insert(users).values({
-      fullName: userData.fullName,
-      email: userData.email,
-      phone: userData.phone,
-      password: hashedPassword,
-      gender: userData.gender,
-      age: typeof userData.age === 'string' ? parseInt(userData.age, 10) : userData.age,
-      country: userData.country,
-      city: userData.city,
-      location: locationValue,
-      education: userData.education,
-      sect: userData.sect,
-      // Add other fields from userData
-      profileStatus: "pending_verification", // User needs email verification
-    });// Generate and send verification OTP
+    try {
+      // Clean and prepare data object with proper types
+      const userInsertData = {
+        fullName: userData.fullName,
+        email: userData.email,
+        phone: userData.phone,
+        password: hashedPassword,
+        gender: userData.gender,
+        age: typeof userData.age === 'string' ? parseInt(userData.age, 10) : userData.age,
+        country: userData.country,
+        city: userData.city,
+        location: locationValue,
+        education: userData.education,
+        sect: userData.sect,
+        // Add other fields from userData
+        profileStatus: "pending_verification", // User needs email verification
+      };
+      
+      console.log("Preparing to insert user with data:", {
+        ...userInsertData,
+        password: "[REDACTED]" // Don't log the password
+      });
+      
+      // Create user record - with explicit error handling
+      await db.insert(users).values(userInsertData).execute();
+      
+      console.log(`User created successfully with email: ${userData.email}`);
+    } catch (dbInsertError) {
+      console.error("Failed to insert user:", dbInsertError);
+      return NextResponse.json(
+        { 
+          error: "Failed to create user account", 
+          details: dbInsertError instanceof Error ? dbInsertError.message : "Database insert failed"
+        },
+        { status: 500 }
+      );
+    }// Generate and send verification OTP
     try {
       await createVerificationOTP(userData.email, "registration");
       console.log(`Verification OTP sent to ${userData.email}`);
@@ -121,20 +157,44 @@ export async function POST(request: NextRequest) {
         email: userData.email,
       },
       { status: 201 }
-    );
-  } catch (error) {
+    );  } catch (error) {
     console.error("Error registering user:", error);
     
-    // Provide more detailed error information
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    const errorName = error instanceof Error ? error.name : "Error";
+    // Provide more detailed error information based on error type
+    let errorDetails = "Unknown error occurred";
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      // Format the error message
+      errorDetails = `${error.name}: ${error.message}`;
+      
+      // Check for specific types of errors
+      if (error.message.includes("duplicate key") || error.message.includes("unique constraint")) {
+        statusCode = 409;
+        if (error.message.includes("email")) {
+          errorDetails = "Email already registered";
+        } else if (error.message.includes("phone")) {
+          errorDetails = "Phone number already registered";
+        } else {
+          errorDetails = "This account already exists";
+        }
+      } else if (error.message.includes("database") || error.message.includes("connection")) {
+        errorDetails = "Database connection error. Please try again later.";
+      }
+    }
+    
+    // Add stack trace in development environment only
+    const devDetails = process.env.NODE_ENV === 'development' && error instanceof Error 
+      ? { stack: error.stack } 
+      : {};
     
     return NextResponse.json(
       { 
         error: "Failed to register user", 
-        details: `${errorName}: ${errorMessage}`,
+        details: errorDetails,
+        ...devDetails
       },
-      { status: 500 }
+      { status: statusCode }
     );
   }
 }
