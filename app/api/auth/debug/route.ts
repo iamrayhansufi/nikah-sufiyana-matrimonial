@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth-options"
 
+export const dynamic = 'force-dynamic'; // Never cache this endpoint
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -16,12 +18,24 @@ export async function GET(request: NextRequest) {
         allCookies[cookie.name] = cookie.value;
       }
     });
+    
+    // Get all important headers
+    const host = request.headers.get('host') || 'unknown';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+    const referer = request.headers.get('referer') || 'unknown';
 
     // Collect domain info for debugging
     let parsedNextAuthUrl = null;
+    let rawNextAuthUrl = process.env.NEXTAUTH_URL || 'Not set';
     try {
       if (process.env.NEXTAUTH_URL) {
-        parsedNextAuthUrl = new URL(process.env.NEXTAUTH_URL).hostname;
+        const url = new URL(process.env.NEXTAUTH_URL);
+        parsedNextAuthUrl = {
+          protocol: url.protocol,
+          hostname: url.hostname,
+          pathname: url.pathname,
+          fullUrl: process.env.NEXTAUTH_URL
+        };
       }
     } catch (e) {
       parsedNextAuthUrl = `Error parsing: ${e instanceof Error ? e.message : 'unknown'}`;

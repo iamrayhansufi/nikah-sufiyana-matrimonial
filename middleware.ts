@@ -12,17 +12,17 @@ export default withAuth(
                           req.nextUrl.pathname.startsWith('/edit-profile/') ||
                           req.nextUrl.pathname.startsWith('/settings')// Handle domain check
     const hostname = req.headers.get('host') || ''
-    
-    // Avoid URL parsing errors by providing a fallback
-    let mainDomain = 'nikahsufiyana.com'
+      // Avoid URL parsing errors by providing a fallback
+    let expectedDomain = 'www.nikahsufiyana.com'
     try {
       if (process.env.NEXTAUTH_URL) {
-        mainDomain = new URL(process.env.NEXTAUTH_URL).hostname
+        expectedDomain = new URL(process.env.NEXTAUTH_URL).hostname
       }
     } catch (error) {
       console.error('Error parsing NEXTAUTH_URL:', error)
     }
-      // Parse preview URLs safely
+    
+    // Parse preview URLs safely
     const previewUrls = (process.env.NEXTAUTH_PREVIEW_URLS || '').split(',')
       .map(url => url.trim())
       .filter(Boolean)
@@ -36,20 +36,19 @@ export default withAuth(
       .filter(Boolean)
 
     // Always allow Vercel preview domains
-    const isVercelPreview = hostname.includes('vercel.app') && hostname !== mainDomain
+    const isVercelPreview = hostname.includes('vercel.app')
     
-    // Treat both www and non-www versions of the domain as valid
-    const isWwwVersion = hostname === `www.${mainDomain}`
-    
-    // Allow known domains in development and preview environments
+    // Just allow the current hostname to continue - don't do any redirects
+    // This completely disables domain redirects to prevent loops
     if (process.env.NODE_ENV !== 'production' || 
         previewUrls.includes(hostname) || 
         isVercelPreview ||
-        isWwwVersion) {
+        hostname === expectedDomain) {
       // Continue with auth checks - no redirect needed
-    } else if (hostname !== mainDomain && process.env.NODE_ENV === 'production') {
-      // Redirect non-main domains to main domain in production
-      return NextResponse.redirect(new URL(req.url, process.env.NEXTAUTH_URL || `https://${mainDomain}`))
+    } else if (process.env.NODE_ENV === 'production') {
+      // Don't attempt domain redirects in production for now - disable this code
+      // Uncomment this after the redirect loop issue is fixed
+      // return NextResponse.redirect(new URL(req.url, process.env.NEXTAUTH_URL))
     }
 
     // Redirect authenticated users from auth pages to dashboard
