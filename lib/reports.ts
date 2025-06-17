@@ -2,12 +2,12 @@ import { connectToDatabase, getUsers, type User } from "./database"
 
 export interface UserReportEntry {
   name: string
-  email: string
+  email: string | null | undefined
   phone: string
   age: number
   location: string
   education: string
-  profession: string
+  profession: string | null | undefined
   subscription: string
   status: string
   joinedDate: string

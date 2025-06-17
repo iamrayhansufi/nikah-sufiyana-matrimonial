@@ -7,7 +7,7 @@
 
 const https = require('https');
 
-const SITE_URL = 'https://nikah-sufiyana-matrimonial.vercel.app';
+const SITE_URL = 'https://nikahsufiyana.com';
 
 console.log('🔍 Testing Nikah Sufiyana Authentication...\n');
 

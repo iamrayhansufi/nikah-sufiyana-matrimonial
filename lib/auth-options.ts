@@ -119,12 +119,11 @@ export const authOptions: NextAuthOptions = {
         if (url.startsWith('/')) {
           url = new URL(url, baseUrl).toString()
         }
-        
-        // Create allowlist of permitted origins/urls
-        const vercelAppUrl = 'https://nikah-sufiyana-matrimonial.vercel.app'
+          // Create allowlist of permitted origins/urls
+        const siteUrl = process.env.NEXTAUTH_URL || 'https://nikahsufiyana.com'
         const allowedOrigins = [
           new URL(baseUrl).origin, 
-          vercelAppUrl,
+          siteUrl,
           ...(process.env.NEXTAUTH_PREVIEW_URLS || '').split(',')
             .filter(Boolean)
             .map(previewUrl => {

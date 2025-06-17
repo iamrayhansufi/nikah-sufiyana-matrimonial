@@ -104,6 +104,11 @@ export async function sendBulkNotifications(
         if (!notificationData.subject) {
           throw new Error("Email subject is required")
         }
+        // Skip users without email
+        if (!user.email) {
+          continue;
+        }
+        
         await sendEmail({
           to: user.email,
           subject: notificationData.subject,

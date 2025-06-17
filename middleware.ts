@@ -14,7 +14,7 @@ export default withAuth(
     const hostname = req.headers.get('host') || ''
     
     // Avoid URL parsing errors by providing a fallback
-    let mainDomain = 'nikah-sufiyana-matrimonial.vercel.app'
+    let mainDomain = 'nikahsufiyana.com'
     try {
       if (process.env.NEXTAUTH_URL) {
         mainDomain = new URL(process.env.NEXTAUTH_URL).hostname

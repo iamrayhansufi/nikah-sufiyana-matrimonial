@@ -3,6 +3,7 @@ import { neon, NeonQueryFunction } from "@neondatabase/serverless";
 import { config } from "dotenv";
 import * as schema from "./schema";
 
+// Load environment variables
 config({ path: ".env" });
 
 // Check database connection configuration
@@ -13,14 +14,21 @@ if (!dbUrl) {
   throw new Error("No database URL defined in environment variables (POSTGRES_URL or DATABASE_URL)");
 }
 
+// Configure connection options for Neon
+// Note: Neon's HTTP client doesn't support the same options as other clients
+// So we're using the standard options for Neon
+
 // Configure Neon with error handling
 let sql: NeonQueryFunction<any, any>;
 try {
   sql = neon(dbUrl);
-  console.log("Database connection initialized");
+  
+  // Only log in development to avoid logging credentials in production
+  if (process.env.NODE_ENV === 'development') {
+    console.log("Database connection initialized");
+  }
 } catch (error) {
   console.error("Failed to initialize database connection:", error);
-  // Provide fallback connection
   throw error;
 }
 
