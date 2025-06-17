@@ -529,24 +529,27 @@ export default function ProfilePage({
                   <TabsTrigger value="gallery">Gallery</TabsTrigger>
                 </TabsList>                {/* About Tab */}
                 <TabsContent value="about">
-                  <div className="space-y-6">
-                    {/* About Me */}
+                  <div className="space-y-6">                    {/* Basic Information */}
                     <Card>
                       <CardHeader>
-                        <CardTitle>About Me</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground leading-relaxed">{profile.aboutMe}</p>
-                      </CardContent>
-                    </Card>
-
-                    {/* Personal Details */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Personal Details</CardTitle>
+                        <CardTitle>Basic Information</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="font-medium mb-1">Full Name</p>
+                            <p className="text-sm text-muted-foreground">{profile.fullName || profile.name || "Not Specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Gender</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.gender ? formatToTitleCase(profile.gender) : "Not Specified"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Age</p>
+                            <p className="text-sm text-muted-foreground">{profile.age ? `${profile.age} years` : "Not Specified"}</p>
+                          </div>
                           <div>
                             <p className="font-medium mb-1">Height</p>
                             <p className="text-sm text-muted-foreground">{profile.height && profile.height.trim() !== "" ? profile.height : "Not Specified"}</p>
@@ -576,12 +579,24 @@ export default function ProfilePage({
                             </div>
                           )}
                           <div>
-                            <p className="font-medium mb-1">Islamic Sect</p>
+                            <p className="font-medium mb-1">Maslak</p>
                             <p className="text-sm text-muted-foreground">{profile.sect ? formatToTitleCase(profile.sect) : "Not Specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">Country</p>
+                            <p className="text-sm text-muted-foreground">{profile.country || "Not Specified"}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium mb-1">City</p>
+                            <p className="text-sm text-muted-foreground">{profile.city || "Not Specified"}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Address</p>
                             <p className="text-sm text-muted-foreground">{profile.address || "Not Specified"}</p>
+                          </div>
+                          <div className="col-span-1 md:col-span-2">
+                            <p className="font-medium mb-1">About {profile.gender === 'male' ? 'Groom' : 'Bride'}</p>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{profile.aboutMe || "Not Specified"}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -593,9 +608,8 @@ export default function ProfilePage({
                         <CardTitle>Education & Career</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <p className="font-medium mb-1">Education</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                          <div>
+                            <p className="font-medium mb-1">Qualification</p>
                             <p className="text-sm text-muted-foreground">{profile.education || "Not Specified"}</p>
                           </div>
                           <div>
@@ -757,11 +771,9 @@ export default function ProfilePage({
                             </p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Housing Status</p>
-                            <p className="text-sm text-muted-foreground">
-                              {profile.housingStatus === "owned" ? "Own House/Flat" :
+                            <p className="font-medium mb-1">Housing Status</p>                            <p className="text-sm text-muted-foreground">
+                              {profile.housingStatus === "owned" ? "Own House" :
                                profile.housingStatus === "rented" ? "Rented" :
-                               profile.housingStatus === "family-owned" ? "Family Owned Property" :
                                profile.housingStatus === "other" ? "Other" :
                                profile.housingStatus ? formatToTitleCase(profile.housingStatus) : 
                                "Not specified"}

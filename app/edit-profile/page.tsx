@@ -259,8 +259,7 @@ export default function EditProfilePage() {
             profession: data.profession || "",
             income: data.income || "",
             jobTitle: data.jobTitle || ""
-          })
-            // Process siblings data if it exists
+          })          // Process siblings data if it exists
           let siblingsArray: SiblingInfo[] = [];
           try {
             if (data.siblings && typeof data.siblings === 'string') {
@@ -268,13 +267,27 @@ export default function EditProfilePage() {
               if (data.siblings !== "Not specified" && data.siblings.startsWith('[')) {
                 // Try to parse if it's a JSON string
                 siblingsArray = JSON.parse(data.siblings);
+                console.log("Successfully parsed siblings from JSON string:", siblingsArray);
               }
             } else if (Array.isArray(data.siblings)) {
               siblingsArray = data.siblings;
+              console.log("Siblings was already an array:", siblingsArray);
             }
+            
+            // Ensure each sibling has all required properties
+            siblingsArray = siblingsArray.map(sibling => ({
+              name: sibling.name || '',
+              siblingType: sibling.siblingType || 'brother',
+              maritalStatus: sibling.maritalStatus || 'unmarried',
+              occupation: sibling.occupation || ''
+            }));
+            
           } catch (e) {
             console.warn("Could not parse siblings data:", e);
-          }          // Process brother-in-law data if it exists
+            console.error(e);
+          }
+          
+          console.log("Final siblings array for form:", siblingsArray);// Process brother-in-law data if it exists
           let brotherInLawsArray: SiblingBrotherInLaw[] = [];
           try {
             if (data.brotherInLaws && typeof data.brotherInLaws === 'string') {
@@ -702,7 +715,8 @@ export default function EditProfilePage() {
     e.preventDefault()
     await updateProfile(educationCareerForm, "education and career")
   }
-    const handleFamilySubmit = async (e: React.FormEvent) => {
+  
+  const handleFamilySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Handle mother's occupation for "other" selection
@@ -710,7 +724,8 @@ export default function EditProfilePage() {
     if (familyForm.motherOccupation === "other" && familyForm.motherOccupationOther) {
       finalMotherOccupation = familyForm.motherOccupationOther;
     }
-      // Create a copy of the family form data with processed occupation fields
+      
+    // Create a copy of the family form data with processed occupation fields
     const formData = {
       ...familyForm,
       // Set final mother occupation based on selection
@@ -718,6 +733,23 @@ export default function EditProfilePage() {
       // Remove the temporary field used for UI only
       motherOccupationOther: undefined
     };
+    
+    // Ensure siblings data is properly formatted as an array
+    console.log("Siblings before submit:", JSON.stringify(formData.siblings));
+    
+    // Make sure siblings is an array before updating
+    if (!Array.isArray(formData.siblings)) {
+      formData.siblings = [];
+      console.log("Siblings was not an array, fixed to empty array");
+    }
+    
+    // Remove any empty sibling entries
+    formData.siblings = formData.siblings.filter(sibling => 
+      sibling.name?.trim() !== '' || 
+      sibling.occupation?.trim() !== ''
+    );
+    
+    console.log("Siblings after filtering:", JSON.stringify(formData.siblings));
     
     await updateProfile(formData, "family");
   }
@@ -1259,27 +1291,20 @@ export default function EditProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>                <form onSubmit={handleEducationCareerSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="education">Highest Qualification</Label>                      <Select 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                    <div className="space-y-2">
+                      <Label htmlFor="education">Qualification</Label>                      <Select 
                         value={educationCareerForm.education} 
                         onValueChange={(value) => handleEducationCareerChange('education', value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select your highest qualification" />
+                          <SelectValue placeholder="Select your qualification" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="secondary">Secondary School (10th)</SelectItem>
-                          <SelectItem value="higher-secondary">Higher Secondary (12th)</SelectItem>
-                          <SelectItem value="diploma">Diploma</SelectItem>
-                          <SelectItem value="undergraduate">Undergraduate (Pursuing)</SelectItem>
+                          <SelectItem value="undergraduate">Undergraduate</SelectItem>
                           <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
-                          <SelectItem value="postgraduate">Postgraduate (Pursuing)</SelectItem>
                           <SelectItem value="master">Master's Degree</SelectItem>
-                          <SelectItem value="doctorate">PhD or Doctorate</SelectItem>
-                          <SelectItem value="professional">Professional Degree (Medical/Law/CA)</SelectItem>
-                          <SelectItem value="islamic-education">Islamic Education</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="doctorate">Doctorate</SelectItem>
+                          <SelectItem value="other">Other (Please Specify)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1426,12 +1451,10 @@ export default function EditProfilePage() {
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select housing status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="owned">Own House/Flat</SelectItem>
+                        </SelectTrigger>                        <SelectContent>
+                          <SelectItem value="owned">Own House</SelectItem>
                           <SelectItem value="rented">Rented</SelectItem>
-                          <SelectItem value="family-owned">Family Owned Property</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="other">Other (Please specify)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

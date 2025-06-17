@@ -259,9 +259,9 @@ export async function PATCH(
         familyDetails: body.familyDetails || undefined,
         fatherName: body.fatherName || undefined,
         motherName: body.motherName || undefined,
-        siblings: body.siblings ? JSON.stringify(body.siblings) : undefined,
-        brotherInLaws: body.brotherInLaws ? JSON.stringify(body.brotherInLaws) : undefined,
-        maternalPaternal: body.maternalPaternal ? JSON.stringify(body.maternalPaternal) : undefined,
+        siblings: body.siblings ? (Array.isArray(body.siblings) ? JSON.stringify(body.siblings) : body.siblings) : undefined,
+        brotherInLaws: body.brotherInLaws ? (Array.isArray(body.brotherInLaws) ? JSON.stringify(body.brotherInLaws) : body.brotherInLaws) : undefined,
+        maternalPaternal: body.maternalPaternal ? (Array.isArray(body.maternalPaternal) ? JSON.stringify(body.maternalPaternal) : body.maternalPaternal) : undefined,
         housingStatus: body.housingStatus || undefined,
         
         // Education & Career

@@ -24,6 +24,7 @@ import {
   Clock,
   AlertCircle,
   TrendingUp,
+  Check,
 } from "lucide-react"
 import { playfair } from "../lib/fonts"
 
@@ -95,6 +96,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [recentInterests, setRecentInterests] = useState<DashboardInterest[]>([])
+  const [receivedInterests, setReceivedInterests] = useState<DashboardInterest[]>([])
   const [shortlistedProfiles, setShortlistedProfiles] = useState<DashboardShortlist[]>([])
 
   useEffect(() => {
@@ -158,7 +160,21 @@ export default function DashboardPage() {
         const interestsRes = await fetch('/api/profiles/interests?type=received')
         if (interestsRes.ok) {
           const interests = await interestsRes.json()
+          
+          // Map interests for the My Interests tab (showing just 3)
           setRecentInterests(interests.slice(0, 3).map((interest: any) => ({
+            id: interest.id,
+            name: interest.fromUser.fullName,
+            age: interest.fromUser.age,
+            location: interest.fromUser.location,
+            profession: interest.fromUser.profession,
+            image: interest.fromUser.profilePhoto || "/placeholder.svg?height=60&width=60",
+            status: interest.status,
+            time: formatTimeAgo(interest.createdAt),
+          })))
+          
+          // Map all received interests for the Interests Received tab
+          setReceivedInterests(interests.map((interest: any) => ({
             id: interest.id,
             name: interest.fromUser.fullName,
             age: interest.fromUser.age,
@@ -409,7 +425,7 @@ export default function DashboardPage() {
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="interests">My Interests</TabsTrigger>
               <TabsTrigger value="shortlisted">Shortlisted</TabsTrigger>
-              <TabsTrigger value="visitors">Profile Visitors</TabsTrigger>
+              <TabsTrigger value="received_interests">Interests Received</TabsTrigger>
               <TabsTrigger value="payments">Payments</TabsTrigger>
             </TabsList>
 
@@ -511,21 +527,55 @@ export default function DashboardPage() {
               </Card>
             </TabsContent>
 
-            {/* Profile Visitors Tab */}
-            <TabsContent value="visitors">
+            {/* Interests Received Tab */}
+            <TabsContent value="received_interests">
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Profile Visitors</CardTitle>
+                  <CardTitle>Interests Received</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8">
-                    <Eye className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Upgrade to Premium</h3>
-                    <p className="text-muted-foreground mb-4">See who viewed your profile with Premium membership</p>
-                    <Link href="/premium">
-                      <Button className="gradient-gold text-white">Upgrade Now</Button>
-                    </Link>
-                  </div>
+                  {receivedInterests && receivedInterests.length > 0 ? (
+                    <div className="space-y-4">
+                      {receivedInterests.map((interest) => (
+                        <div key={interest.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center gap-4">
+                            <Avatar>
+                              <AvatarImage src={interest.image || "/placeholder.svg"} alt={interest.name} />
+                              <AvatarFallback>
+                                {interest.name && typeof interest.name === 'string'
+                                  ? interest.name.charAt(0)
+                                  : 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h3 className="font-semibold">{interest.name}</h3>
+                              <div className="text-sm text-muted-foreground">
+                                {interest.age} years • {interest.location} • {interest.profession || 'Not specified'}
+                              </div>
+                              <div className="text-xs text-muted-foreground">Interest sent {interest.time}</div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" className="gradient-emerald text-white">
+                              <Check className="h-4 w-4 mr-2" />
+                              Accept
+                            </Button>
+                            <Link href={`/profile/${interest.id}`}>
+                              <Button size="sm" variant="outline">
+                                View Profile
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Heart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Interests Yet</h3>
+                      <p className="text-muted-foreground mb-4">When someone shows interest in your profile, it will appear here</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
