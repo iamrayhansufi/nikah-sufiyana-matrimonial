@@ -39,7 +39,7 @@ export function Footer() {
                 alt="Nikah Sufiyana"
                 height="48"
                 width="215"
-                src="/Nikah Sufiyana Logo.svg"
+                src="/Nikah-Sufiyana-Logo.svg"
                 className="h-12 w-auto"
               />
             </Link>

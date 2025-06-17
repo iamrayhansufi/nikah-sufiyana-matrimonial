@@ -98,7 +98,7 @@ function LoginFormWithParams() {
             <CardHeader className="text-center">
               <div className="flex flex-col items-center justify-center mb-4">
                 <Image
-                  src="/Nikah Sufiyana Logo.svg"
+                  src="/Nikah-Sufiyana-Logo.svg"
                   alt="Nikah Sufiyana"
                   width={180}
                   height={45}

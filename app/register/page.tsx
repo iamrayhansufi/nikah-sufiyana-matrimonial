@@ -647,7 +647,7 @@ export default function RegisterPage() {
     <Card className="mb-8">      <CardHeader className="text-center">
         <div className="flex flex-col items-center justify-center mb-4">
           <Image
-            src="/Nikah Sufiyana Logo.svg"
+            src="/Nikah-Sufiyana-Logo.svg"
             alt="Nikah Sufiyana"
             width={180}
             height={45}
@@ -749,7 +749,7 @@ export default function RegisterPage() {
               <Card className="mb-8">                <CardHeader className="text-center">
                   <div className="flex flex-col items-center justify-center mb-4">
                     <Image
-                      src="/Nikah Sufiyana Logo.svg"
+                      src="/Nikah-Sufiyana-Logo.svg"
                       alt="Nikah Sufiyana"
                       width={180}
                       height={45}

@@ -25,9 +25,9 @@ export const metadata: Metadata = {
   description: "Find your perfect Muslim life partner with Nikah Sufiyana matrimonial service.",
   keywords:
     "Muslim matrimony, Islamic marriage, halal relationships, Muslim bride, Muslim groom, nikah, Islamic wedding",
-  icons: {    icon: "/Nikah Sufiyana Favicon.svg",
-    shortcut: "/Nikah Sufiyana Favicon.svg",
-    apple: "/Nikah Sufiyana Favicon.svg",
+  icons: {    icon: "/Nikah-Sufiyana-Icon.svg",
+    shortcut: "/Nikah-Sufiyana-Icon.svg",
+    apple: "/Nikah-Sufiyana-Icon.svg",
   },  openGraph: {
     title: "Nikah Sufiyana - Find Your Perfect Islamic Match",
     description: "Premium Muslim matrimonial platform for finding halal relationships.",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     siteName: "Nikah Sufiyana",
     images: [
       {
-        url: "https://nikahsufiyana.com/Nikah Sufiyana Logo.svg",
+        url: "https://nikahsufiyana.com/Nikah-Sufiyana-Logo.svg",
         width: 1200,
         height: 630,
       }
