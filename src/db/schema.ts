@@ -175,3 +175,13 @@ export const notifications = pgTable('notifications', {
   read: boolean('read').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
+
+export const verificationCodes = pgTable('verification_codes', {
+  id: serial('id').primaryKey(),
+  email: varchar('email', { length: 255 }).notNull(),
+  code: varchar('code', { length: 6 }).notNull(),
+  purpose: varchar('purpose', { length: 20 }).notNull().default('registration'), // registration, password-reset, etc.
+  expiresAt: timestamp('expires_at').notNull(),
+  isUsed: boolean('is_used').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});

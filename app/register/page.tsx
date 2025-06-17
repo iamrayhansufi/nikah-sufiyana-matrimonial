@@ -309,7 +309,7 @@ export default function RegisterPage() {
   const handlePrevious = () => {
     if (step > 1) setStep(step - 1)
   }
-
+  
   const handleSubmit = async () => {
     try {
       setIsSubmittingForm(true);
@@ -322,7 +322,7 @@ export default function RegisterPage() {
         phone: `${formData.countryCode}${formData.phone.replace(/\D/g, '')}`, // Combine country code with cleaned phone number
       };
 
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -350,18 +350,11 @@ export default function RegisterPage() {
             if (lowerErrorMessage.includes("phone") || lowerErrorMessage.includes("mobile")) {
                 setFieldErrors(prevErrors => ({ ...prevErrors, phone: errorMessage }));
             } else if (lowerErrorMessage.includes("email")) {
-                // This 'else if' ensures only one field error is set if message is ambiguous,
-                // prioritizing phone/mobile if keywords for both are present.
-                // The toast will show the full original error message.
                 setFieldErrors(prevErrors => ({ ...prevErrors, email: errorMessage }));
             }
           }
-          // If the error is generic and not tied to phone/email by keywords,
-          // user stays on current step, toast is the main feedback.
-
         } else if (response.status === 400 && data.details) {
           // Handle validation errors
-          // Map errors to fields for inline display
           const fieldErrs: FieldErrors = {};
           (data.details as ValidationError[]).forEach((err: ValidationError) => {
             if (err.field) fieldErrs[err.field] = err.message;
@@ -376,8 +369,6 @@ export default function RegisterPage() {
             description: errorMessage,
             variant: "destructive",
           });
-          // Optionally, navigate to the step containing the first error field
-          // Example: if (fieldErrs.email || fieldErrs.phone) setStep(1);
         } else {
           // Generic error for other non-ok statuses
           toast({
@@ -386,67 +377,23 @@ export default function RegisterPage() {
             variant: "destructive",
           });
         }
-        // No need to set setIsProcessing(false) here as it's not used for form submission
         setIsSubmittingForm(false);
         return;
-      } else {
-        // Registration successful - now upload profile photo if exists
-        if (profilePhoto) {
-          try {
-            const photoFormData = new FormData();
-            photoFormData.append('photo', profilePhoto);
-            photoFormData.append('userId', data.user.id); // Pass the user ID for non-authenticated upload
-            
-            const photoResponse = await fetch('/api/upload/profile-photo', {
-              method: 'POST',
-              body: photoFormData,
-            });
-            
-            if (!photoResponse.ok) {
-              console.error('Failed to upload profile photo');
-              // Continue with sign-in even if photo upload fails
-            }
-          } catch (photoError) {
-            console.error('Error uploading profile photo:', photoError);
-            // Continue with sign-in even if photo upload fails
-          }
-        }
-        
-        // Clear form data from localStorage
-        localStorage.removeItem("heroRegistrationData");
-        
-        // Registration successful - now sign in with NextAuth
-        if (data.user) {
-          toast({
-            title: "Registration Successful!",
-            description: `Welcome, ${data.user.fullName}! Signing you in...`,
-          });
-          
-          // Use NextAuth to sign in the user automatically
-          // Create a full URL for the callbackUrl to ensure absolute path redirect works correctly
-          const callbackUrl = new URL('/dashboard', window.location.origin).toString();
-          
-          const signInResult = await signIn("credentials", {
-            email: data.user.email,
-            phone: jsonData.phone,
-            password: formData.password,
-            callbackUrl: callbackUrl, // Use full URL for callback
-            redirect: true, // Let NextAuth handle the server-side redirect
-          });
-
-          // This code won't run because of the redirect above, but keeping for fallback
-          toast({
-            title: "Login Successful",
-            description: "Redirecting to your dashboard...",
-          });
-        } else {
-          toast({
-            title: "Registration Completed",
-            description: "Your profile has been created. Please log in to continue.",
-            variant: "default"
-          });
-          router.push('/login?message=registration-success');
-        }      }
+      } 
+      
+      // Registration successful
+      toast({
+        title: "Registration Successful!",
+        description: "Please check your email for a verification code.",
+        variant: "default",
+      });
+      
+      // Clear form data from localStorage
+      localStorage.removeItem("heroRegistrationData");
+      
+      // Redirect to verification page with email
+      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+      
     } catch (error) {
       console.error('Registration error:', error);
       toast({

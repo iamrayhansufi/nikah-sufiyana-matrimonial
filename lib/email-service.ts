@@ -1,12 +1,12 @@
 import nodemailer from "nodemailer"
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  host: process.env.SMTP_HOST || "smtp.hostinger.com",
+  port: parseInt(process.env.SMTP_PORT || "465"),
+  secure: true, // use SSL
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: process.env.SMTP_USER || "rishta@nikahsufiyana.com",
+    pass: process.env.SMTP_PASS || "BANikah@321#",
   },
 })
 
@@ -101,4 +101,42 @@ export async function sendProfileRejectionEmail(userEmail: string, userName: str
   }
 
   await transporter.sendMail(mailOptions)
+}
+
+export async function sendOTPVerificationEmail(userEmail: string, otp: string) {
+  const mailOptions = {
+    from: process.env.FROM_EMAIL || "rishta@nikahsufiyana.com",
+    to: userEmail,
+    subject: "Verify Your Email - Nikah Sufiyana",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #10b981, #f59e0b); padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">Verify Your Email</h1>
+        </div>
+        <div style="padding: 20px; background: #f9f9f9;">
+          <h2>Assalamu Alaikum,</h2>
+          <p>Thank you for registering with Nikah Sufiyana. To complete your registration, please verify your email address.</p>
+          <div style="background: white; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <h2>Your Verification Code</h2>
+            <div style="font-size: 32px; letter-spacing: 5px; font-weight: bold; color: #10b981; padding: 10px 0;">
+              ${otp}
+            </div>
+            <p style="color: #666;">This code is valid for 10 minutes</p>
+          </div>
+          <p>If you did not request this verification, please ignore this email or contact our support team.</p>
+          <p>May Allah bless your search for a righteous partner.</p>
+          <p>Best regards,<br>The Nikah Sufiyana Team</p>
+        </div>
+      </div>
+    `,
+  }
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`OTP verification email sent to ${userEmail}`);
+    return true;
+  } catch (error) {
+    console.error("Failed to send OTP verification email:", error);
+    throw error;
+  }
 }
