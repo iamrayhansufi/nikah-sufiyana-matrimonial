@@ -18,11 +18,13 @@ export default function EmergencyLoginPage() {
   const [email, setEmail] = useState("")
   const [secretKey, setSecretKey] = useState("")
   const [loading, setLoading] = useState(false)
+  
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
 
     try {
+      console.log('🔑 Attempting emergency login with:', { email, secretKey: '***' })
       const res = await fetch("/api/debug/emergency-login", {
         method: "POST",
         headers: {
