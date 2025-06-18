@@ -32,9 +32,18 @@ function LoginFormWithParams() {
     rememberMe: false,
   })
 
-  // Get callback URL and message from search params
+  // Get callback URL, message, and verified status from search params
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
   const message = searchParams.get('message')
+  const verified = searchParams.get('verified') === 'true'
+  const emailParam = searchParams.get('email')
+
+  // Set email from URL parameter if provided
+  useEffect(() => {
+    if (emailParam) {
+      setFormData(prev => ({ ...prev, email: emailParam }));
+    }
+  }, [emailParam]);
 
   // Show success message if coming from registration
   useEffect(() => {
@@ -42,9 +51,15 @@ function LoginFormWithParams() {
       toast({
         title: "Registration Successful!",
         description: "Please sign in to access your dashboard.",
-      })
+      });
+    } else if (verified) {
+      toast({
+        title: "Email Successfully Verified!",
+        description: "Your email has been verified. Please sign in to access your dashboard.",
+        variant: "default"
+      });
     }
-  }, [message, toast])
+  }, [message, verified, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

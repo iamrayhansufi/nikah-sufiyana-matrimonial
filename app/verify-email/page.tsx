@@ -84,19 +84,19 @@ function VerifyEmailContent() {
         })
       })
 
-      const data = await response.json()
-
-      if (data.success) {
+      const data = await response.json();
+        if (data.success) {
+        // Show success message and redirect to login
         toast({
-          title: "Success",
-          description: "Email verified successfully",
+          title: "Email Verified Successfully",
+          description: "Please log in with your credentials to continue",
           variant: "default"
-        })
+        });
         
-        // Redirect to login page
+        // Redirect to login page with indication that verification was successful
         setTimeout(() => {
-          router.push("/login")
-        }, 1500)
+          router.push(`/login?verified=true&email=${encodeURIComponent(email)}`);
+        }, 1500);
       } else {
         toast({
           title: "Verification Failed",
@@ -243,9 +243,9 @@ function VerifyEmailContent() {
               </form>
             </CardContent>
           </Card>
-        </div>
-      </div>
-      <Footer />    </div>
+        </div>      </div>
+      <Footer />
+    </div>
   )
 }
 

@@ -7,13 +7,13 @@ import { db } from "@/src/db"
 import { users } from "@/src/db/schema"
 import { eq } from "drizzle-orm"
 
-declare module "next-auth" {
-  interface User {
+declare module "next-auth" {  interface User {
     id: string
     name: string
     email: string | null
     phone?: string
     role?: string
+    verified?: boolean
   }
   
   interface Session {
@@ -23,6 +23,7 @@ declare module "next-auth" {
       email: string | null
       phone?: string
       role?: string
+      verified?: boolean
     }
   }
 
@@ -30,6 +31,7 @@ declare module "next-auth" {
     id: string
     phone?: string
     role?: string
+    verified?: boolean
   }
 }
 
@@ -98,13 +100,13 @@ export const authOptions: NextAuthOptions = {
           
           const isValid = await bcrypt.compare(credentials.password, user.password)
           if (!isValid) return null
-          
-          return {
+            return {
             id: user.id.toString(),
             name: user.fullName,
             email: user.email,
             phone: user.phone,
-            role: 'user' // Default to 'user' until the migration is applied
+            role: 'user', // Default to 'user' until the migration is applied
+            verified: user.verified || false
           }
         } catch (error) {
           console.error("Auth error:", error)
@@ -175,20 +177,20 @@ export const authOptions: NextAuthOptions = {
         // Fallback to dashboard if anything goes wrong
         return `${baseUrl}/dashboard`
       }
-    },
-    async jwt({ token, user }) {
+    },    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
         token.phone = user.phone
         token.role = user.role
+        token.verified = user.verified
       }
       return token
-    },
-    async session({ session, token }) {
+    },    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
         session.user.phone = token.phone as string | undefined
         session.user.role = token.role as string | undefined
+        session.user.verified = token.verified as boolean | undefined
       }
       return session
     }
