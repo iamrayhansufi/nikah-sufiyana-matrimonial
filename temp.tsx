@@ -48,253 +48,141 @@ const safeJsonParse = (jsonString: string | null | undefined): any[] => {
       return Array.isArray(parsed) ? parsed : [];
     }
   } catch (e) {
-    console.warn("Failed to parse JSON:", e);
+    console.error("Error parsing JSON:", e);
+    return [];
   }
   
   return [];
 };
 
-// Function to format text to Title Case - improved for better capitalization
-const formatToTitleCase = (text: string): string => {
-  if (!text) return "Not Specified";
-  
-  // List of words that should not be capitalized unless they're the first word
-  const exceptions = ['a', 'an', 'the', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'with', 'in', 'of'];
-  
-  // First handle kebab-case
-  if (text.includes('-')) {
-    return text
-      .split('-')
-      .map((word: string, index: number) => {
-        if (index === 0 || !exceptions.includes(word.toLowerCase())) {
-          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-        }
-        return word.toLowerCase();
-      })
-      .join(' ');
-  }
-  
-  // Handle space-separated words
-  if (text.includes(' ')) {
-    return text
-      .split(' ')
-      .map((word: string, index: number) => {
-        if (index === 0 || !exceptions.includes(word.toLowerCase())) {
-          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-        }
-        return word.toLowerCase();
-      })
-      .join(' ');
-  }
-  
-  // Single word
-  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
-};
-
-// Simple ProfilePage Component that doesn't rely on complex URL handling
-export default function ProfilePage({ 
-  params
-}: { 
-  params: { id: string } 
-}) {
+export default function ProfilePage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const { toast } = useToast();
-  const [profile, setProfile] = useState<any>(null);
-  const [isShortlisted, setIsShortlisted] = useState(false);
-  const [isInterestSent, setIsInterestSent] = useState(false);
+  const [profile, setProfile] = useState<any>({});
+  const [showFullBio, setShowFullBio] = useState(false);
+  const [loadingInterest, setLoadingInterest] = useState(false);
+  const [interestSent, setInterestSent] = useState(false);
   const [interestMutual, setInterestMutual] = useState(false);
-  const [showContactDialog, setShowContactDialog] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [shouldBlurPhoto, setShouldBlurPhoto] = useState(false);
   const [requestedPhotoAccess, setRequestedPhotoAccess] = useState(false);
   const [photoAccessGranted, setPhotoAccessGranted] = useState(false);
-  
-  // Get the profile ID from params
-  const { id } = params;
-  
-  // Handle login redirection
-  const handleLogin = () => {
-    // Store where the user was trying to go
-    localStorage.setItem('redirectAfterLogin', `/profile/${id}`);
-    // Redirect to login
-    router.push('/login');
-  };
-  
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!id) {
-        setError("Invalid profile ID");
-        setLoading(false);
-        return;
-      }
-      
-      setLoading(true);
-      
+    async function fetchProfile() {
       try {
-        console.log(`Fetching profile with ID: ${id}`);
+        const response = await fetch(`/api/profiles/${params.id}`);
+        const data = await response.json();
         
-        // Add public=true flag in development mode to bypass auth requirement
-        const queryParam = process.env.NODE_ENV === 'development' ? '?public=true' : '';
-        console.log("Using query param:", queryParam);
-        
-        const res = await fetch(`/api/profiles/${id}${queryParam}`, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          cache: 'no-store'
-        });
-        
-        if (!res.ok) {
-          if (res.status === 401) {
-            setError("Please log in to view profiles");
-            setLoading(false);
-            return;
-          }
-          
-          if (res.status === 403) {
-            setError("This profile is not currently available for viewing");
-            setLoading(false);
-            return;
-          }
-          
-          throw new Error(`Failed to fetch profile: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        setProfile(data);
-        
-        // Check interest status for this profile
-        if (session?.user?.id) {
-          // Check if current user has any interests with this profile
-          const interestRes = await fetch(`/api/profiles/interests`, {
-            credentials: 'include'
-          });
-          
-          if (interestRes.ok) {
-            const interestData = await interestRes.json();
-            
-            // Check for sent interests to this profile
-            const sentToThisProfile = interestData.find((interest: any) => 
-              interest.toUserId === parseInt(id) && interest.fromUserId === parseInt(session.user.id as string)
-            );
-            
-            if (sentToThisProfile) {
-              console.log("Found sent interest:", sentToThisProfile);
-              setIsInterestSent(true);
-              
-              // If interest is already accepted, it's mutual
-              if (sentToThisProfile.status === 'accepted') {
-                setInterestMutual(true);
-                setShouldBlurPhoto(false);
-              }
-            }
-            
-            // Check for received interests from this profile
-            const receivedFromThisProfile = interestData.find((interest: any) => 
-              interest.fromUserId === parseInt(id) && interest.toUserId === parseInt(session.user.id as string)
-            );
-            
-            if (receivedFromThisProfile) {
-              console.log("Found received interest:", receivedFromThisProfile);
-              
-              // If interest is accepted, it's mutual
-              if (receivedFromThisProfile.status === 'accepted') {
-                setInterestMutual(true);
-                setShouldBlurPhoto(false);
-              }
-            }
-          }
-        }
-        
-        // Check photo blur status
-        if (data.showPhotos) {
-          // If photos are set to be shown to all, don't blur
-          setShouldBlurPhoto(false);
+        if (data.profile) {
+          setProfile(data.profile);
         } else {
-          // Default to blur unless we have mutual interest
-          setShouldBlurPhoto(!interestMutual && !photoAccessGranted);
+          router.push("/browse");
+          toast({
+            title: "Profile not found",
+            description: "The requested profile could not be found.",
+            variant: "destructive",
+          });
         }
-        
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching profile:", error);
-        setError("Failed to load profile");
-        setLoading(false);
       }
-    };
-    
+    }
+
+    async function checkInterestStatus() {
+      if (!session?.user) return;
+      
+      try {
+        const response = await fetch(`/api/profiles/interests?profileId=${params.id}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          const hasInterest = data.interests.some((interest: any) => 
+            interest.senderUserId === session.user.id && interest.receiverUserId === params.id
+          );
+          const hasMutualInterest = data.interests.some((interest: any) => 
+            interest.senderUserId === session.user.id && interest.receiverUserId === params.id && interest.status === "accepted"
+          ) || data.interests.some((interest: any) => 
+            interest.receiverUserId === session.user.id && interest.senderUserId === params.id && interest.status === "accepted"
+          );
+          
+          setInterestSent(hasInterest);
+          setInterestMutual(hasMutualInterest);
+        }
+      } catch (error) {
+        console.error("Error checking interest status:", error);
+      }
+    }
+
     fetchProfile();
-    
-    // Clean up function
-    return () => {
-      console.log("Cleaning up profile page");
-    };
-  }, [id, session, photoAccessGranted, interestMutual]);
-  
-  // Handle sending an interest
+    if (session?.user) {
+      checkInterestStatus();
+    }
+  }, [params.id, router, session, toast]);
+
   const handleSendInterest = async () => {
-    if (!session?.user?.id) {
+    if (!session?.user) {
       toast({
         title: "Sign in required",
         description: "Please sign in to send interest.",
+        variant: "default",
       });
-      handleLogin();
+      signIn();
       return;
     }
+
+    setLoadingInterest(true);
     
     try {
-      const res = await fetch('/api/profiles/send-interest', {
-        method: 'POST',
+      const response = await fetch("/api/profiles/send-interest", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ receiverUserId: id }),
+        body: JSON.stringify({
+          receiverUserId: params.id,
+        }),
       });
       
-      if (!res.ok) {
-        throw new Error(`Failed to send interest: ${res.status}`);
-      }
-      
-      const data = await res.json();
+      const data = await response.json();
       
       if (data.success) {
-        setIsInterestSent(true);
-        
+        setInterestSent(true);
         toast({
-          title: "Interest sent",
+          title: "Interest sent!",
           description: "Your interest has been sent successfully.",
+          variant: "default",
         });
         
         if (data.isMutual) {
           setInterestMutual(true);
-          setShouldBlurPhoto(false);
-          
           toast({
             title: "It's a match!",
             description: "This member has also shown interest in your profile.",
+            variant: "default",
           });
         }
       } else {
         toast({
-          title: "Error",
-          description: data.message || "Failed to send interest.",
+          title: "Failed to send interest",
+          description: data.message || "Something went wrong. Please try again.",
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error sending interest:", error);
       toast({
         title: "Error",
-        description: "Failed to send interest. Please try again later.",
+        description: "Failed to send interest. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoadingInterest(false);
     }
   };
-  
+
+  // Check if we should blur photos based on privacy settings and interest status
+  const shouldBlurPhoto = !profile.showPhotos && !interestMutual && !photoAccessGranted;
+
   const handleRequestPhotoAccess = async () => {
     if (!session?.user) {
       toast({
@@ -321,7 +209,6 @@ export default function ProfilePage({
       if (process.env.NODE_ENV === 'development') {
         setTimeout(() => {
           setPhotoAccessGranted(true);
-          setShouldBlurPhoto(false);
           toast({
             title: "Access Granted",
             description: "Photo access has been granted.",
@@ -339,71 +226,7 @@ export default function ProfilePage({
       setRequestedPhotoAccess(false);
     }
   };
-  
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto text-center py-20">
-            <h2 className="text-2xl font-semibold mb-4">Loading profile...</h2>
-            <p className="text-muted-foreground">Please wait while we retrieve the profile information.</p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-  
-  // Error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto text-center py-20">
-            <h2 className="text-2xl font-semibold mb-4 text-red-600 dark:text-red-400">Error</h2>
-            <p className="text-muted-foreground mb-6">{error}</p>
-            {error.includes("log in") && (
-              <Button onClick={handleLogin} className="bg-green-600 hover:bg-green-700">
-                Sign In to Continue
-              </Button>
-            )}
-            <div className="mt-4">
-              <Button variant="outline" onClick={() => router.push('/browse')}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Return to Browse
-              </Button>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-  
-  // No profile found
-  if (!profile) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto text-center py-20">
-            <h2 className="text-2xl font-semibold mb-4">Profile Not Found</h2>
-            <p className="text-muted-foreground mb-6">The profile you're looking for doesn't exist or may have been removed.</p>
-            <Button variant="outline" onClick={() => router.push('/browse')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Return to Browse
-            </Button>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-  
-  // Main profile view
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />
@@ -446,12 +269,12 @@ export default function ProfilePage({
                             variant="secondary"
                             size="sm"
                             className="bg-white text-black hover:bg-white/90"
-                            onClick={handleLogin}
+                            onClick={() => signIn()}
                           >
                             Sign In to View
                           </Button>
                         ) : (
-                          !isInterestSent && (
+                          !interestSent && (
                             <Button
                               variant="secondary"
                               size="sm"
@@ -483,10 +306,12 @@ export default function ProfilePage({
                   <div className="space-y-3">
                     <Button
                       className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
-                      disabled={isInterestSent}
+                      disabled={interestSent || loadingInterest}
                       onClick={handleSendInterest}
                     >
-                      {isInterestSent ? (
+                      {loadingInterest ? (
+                        "Sending..."
+                      ) : interestSent ? (
                         <>
                           <Heart className="h-4 w-4 mr-2 fill-white" />
                           {interestMutual ? "Mutual Interest!" : "Interest Sent"}
@@ -517,14 +342,29 @@ export default function ProfilePage({
                           <div className="space-y-4 mt-4">
                             <p>Please select a reason for reporting this profile:</p>
                             <div className="space-y-2">
-                              {/* Report options would go here */}
+                              <div className="flex items-center">
+                                <input type="radio" id="fake" name="report-reason" className="mr-2" />
+                                <label htmlFor="fake">Fake profile</label>
+                              </div>
+                              <div className="flex items-center">
+                                <input type="radio" id="inappropriate" name="report-reason" className="mr-2" />
+                                <label htmlFor="inappropriate">Inappropriate content</label>
+                              </div>
+                              <div className="flex items-center">
+                                <input type="radio" id="harassment" name="report-reason" className="mr-2" />
+                                <label htmlFor="harassment">Harassment</label>
+                              </div>
+                              <div className="flex items-center">
+                                <input type="radio" id="other" name="report-reason" className="mr-2" />
+                                <label htmlFor="other">Other</label>
+                              </div>
                             </div>
                             <textarea
                               placeholder="Please provide additional details..."
                               className="w-full min-h-[100px] p-2 border rounded-md"
                             />
                             <div className="flex justify-end">
-                              {/* Submit button would go here */}
+                              <Button variant="destructive">Submit Report</Button>
                             </div>
                           </div>
                         </DialogContent>
@@ -552,8 +392,17 @@ export default function ProfilePage({
                       {/* Bio */}
                       <div>
                         <h3 className="text-lg font-semibold mb-2">Bio</h3>
-                        {profile.aboutMe ? (
-                          <p className="text-muted-foreground">{profile.aboutMe}</p>
+                        {profile.bio ? (
+                          <>
+                            <p className="text-muted-foreground">
+                              {showFullBio ? profile.bio : `${profile.bio.substring(0, 200)}${profile.bio.length > 200 ? "..." : ""}`}
+                            </p>
+                            {profile.bio.length > 200 && (
+                              <Button variant="link" className="p-0 h-auto" onClick={() => setShowFullBio(!showFullBio)}>
+                                {showFullBio ? "Show less" : "Show more"}
+                              </Button>
+                            )}
+                          </>
                         ) : (
                           <p className="text-muted-foreground">No bio available</p>
                         )}
@@ -598,7 +447,16 @@ export default function ProfilePage({
                             </div>
                             <div>
                               <p className="text-sm text-muted-foreground">Occupation</p>
-                              <p className="font-medium">{profile.profession || "Not specified"}</p>
+                              <p className="font-medium">{profile.occupation || "Not specified"}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="bg-emerald-100 dark:bg-emerald-900 p-2 rounded-full mr-3">
+                              <Star className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Mother Tongue</p>
+                              <p className="font-medium">{profile.motherTongue || "Not specified"}</p>
                             </div>
                           </div>
                         </div>
@@ -617,7 +475,7 @@ export default function ProfilePage({
                                 </div>
                                 <div>
                                   <p className="text-sm text-muted-foreground">Phone</p>
-                                  <p className="font-medium">{profile.mobileNumber || "Not specified"}</p>
+                                  <p className="font-medium">{profile.phone || "Not specified"}</p>
                                 </div>
                               </div>
                               <div className="flex items-center">
@@ -627,6 +485,16 @@ export default function ProfilePage({
                                 <div>
                                   <p className="text-sm text-muted-foreground">Email</p>
                                   <p className="font-medium">{profile.email || "Not specified"}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center">
+                                <div className="bg-emerald-100 dark:bg-emerald-900 p-2 rounded-full mr-3">
+                                  <MessageSquare className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
+                                </div>
+                                <div>
+                                  <Button variant="link" className="h-auto p-0">
+                                    Send a message
+                                  </Button>
                                 </div>
                               </div>
                             </div>
