@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { isEmailVerified, createVerificationOTP } from "@/lib/verification";
+import { logDbOperation, logDbError } from "@/lib/db-logger";
 
 // Input validation schema
 const registerSchema = z.object({
@@ -82,35 +83,77 @@ export async function POST(request: NextRequest) {
     
     const userData = validation.data;
 
+    // Try multiple connection approaches with better error handling
+    let isExistingUser = false;
+    let dbAuthError = false;
+    
     // Check if user already exists
     try {
       // Use direct DB module with custom retry mechanism
       const { neon } = await import("@neondatabase/serverless");
       
-      // Try direct connection without pooling
-      const unpooledUrl = process.env.DATABASE_URL_UNPOOLED || 
-                          process.env.POSTGRES_URL_NON_POOLING ||
-                          process.env.DATABASE_URL;
-                          
-      if (!unpooledUrl) {
+      // Try each connection URL in order of preference
+      const connectionUrls = [
+        process.env.DATABASE_URL_UNPOOLED,
+        process.env.POSTGRES_URL_NON_POOLING,
+        process.env.DATABASE_URL,
+        process.env.POSTGRES_URL
+      ].filter(Boolean); // Remove undefined/null values
+      
+      if (connectionUrls.length === 0) {
         throw new Error("No database URL defined in environment");
       }
       
-      console.log("Checking for existing user with direct connection");
+      // Try each connection URL until one works
+      let sql;
+      let usedUrl;
+      let existingUsers;
       
-      // Connect directly to the database
-      const sql = neon(unpooledUrl);
+      for (const url of connectionUrls) {
+        try {
+          logDbOperation("Attempting connection", { 
+            urlPrefix: url?.substring(0, 20) + '...',
+            purpose: "user existence check" 
+          });
+          
+          sql = neon(url as string);
+          
+          // Quick connection test
+          await sql`SELECT 1`;
+          
+          // If we get here, connection worked
+          logDbOperation("Connection successful", { 
+            urlPrefix: url?.substring(0, 20) + '...' 
+          });
+          usedUrl = url;
+          
+          // Now check for existing user
+          existingUsers = await sql`
+            SELECT id, email, phone FROM users 
+            WHERE email = ${userData.email} OR phone = ${userData.phone}
+            LIMIT 1
+          `;
+          
+          logDbOperation("Existing user check completed", { 
+            found: existingUsers?.length > 0,
+            email: userData.email
+          });
+          break; // Exit loop if connection and query succeed
+          
+        } catch (connErr) {
+          logDbError("Connection attempt failed", connErr, {
+            urlPrefix: url?.substring(0, 20) + '...'
+          });
+            // Continue to next URL
+          if (connErr instanceof Error && connErr.message.includes('password authentication')) {
+            dbAuthError = true;
+          }
+        }
+      }
       
-      // Check both email and phone at once
-      const existingUsers = await sql`
-        SELECT id, email, phone FROM users 
-        WHERE email = ${userData.email} OR phone = ${userData.phone}
-        LIMIT 1
-      `;
-      
-      console.log("Existing user check result:", existingUsers);
-      
-      if (Array.isArray(existingUsers) && existingUsers.length > 0) {
+      // Check if we found any user
+      if (existingUsers && Array.isArray(existingUsers) && existingUsers.length > 0) {
+        isExistingUser = true;
         const existing = existingUsers[0];
         
         if (existing.email === userData.email) {
@@ -125,6 +168,7 @@ export async function POST(request: NextRequest) {
           );
         }
       }
+      
     } catch (dbError) {
       console.error("Error during duplicate check:", dbError);
       
@@ -142,7 +186,22 @@ export async function POST(request: NextRequest) {
         );
       } else {
         console.warn("Skipping duplicate check due to authentication error, proceeding with insert");
+        dbAuthError = true;
       }
+    }
+    
+    // If we encountered authentication errors and the user didn't already exist,
+    // suggest using the fallback registration route
+    if (dbAuthError && !isExistingUser) {
+      console.warn("Database authentication issues detected, suggesting fallback registration");
+      return NextResponse.json(
+        {
+          error: "Database authentication issue",
+          details: "We're experiencing technical difficulties with our database. Please try the alternative registration method.",
+          suggestFallback: true
+        },
+        { status: 503 }
+      );
     }
 
     // Hash password
@@ -197,13 +256,19 @@ export async function POST(request: NextRequest) {
         throw new Error("No database URL defined in environment");
       }
       
-      console.log("Preparing to insert user with direct connection");
+      logDbOperation("Preparing user insertion", {
+        email: userInsertData.email,
+        urlType: unpooledUrl === process.env.DATABASE_URL_UNPOOLED ? 
+                "DATABASE_URL_UNPOOLED" : 
+                unpooledUrl === process.env.POSTGRES_URL_NON_POOLING ? 
+                "POSTGRES_URL_NON_POOLING" : "other"
+      });
       
       // Create a direct connection
       const sql = neon(unpooledUrl);
       
       // Log insert attempt
-      console.log("Inserting user:", {
+      logDbOperation("Attempting user insertion", {
         email: userInsertData.email,
         phone: userInsertData.phone,
       });
@@ -229,7 +294,9 @@ export async function POST(request: NextRequest) {
         )
       `;
       
-      console.log("Basic user data inserted successfully");
+      logDbOperation("Basic user data inserted successfully", {
+        email: userInsertData.email
+      });
       
       // Try to update with additional fields
       try {
@@ -253,9 +320,13 @@ export async function POST(request: NextRequest) {
             mother_tongue = ${userInsertData.motherTongue}
           WHERE email = ${userInsertData.email}
         `;
-        console.log("Additional user fields updated successfully");
+        logDbOperation("Additional user fields updated successfully", {
+          email: userInsertData.email
+        });
       } catch (updateError) {
-        console.error("Non-critical error updating optional fields:", updateError);
+        logDbError("Non-critical error updating optional fields", updateError, {
+          email: userInsertData.email
+        });
         // Non-critical error, continue with registration
       }
       
@@ -277,7 +348,11 @@ export async function POST(request: NextRequest) {
         { status: 201 }
       );
     } catch (dbInsertError) {
-      console.error("Failed to insert user:", dbInsertError);
+      logDbError("Failed to insert user", dbInsertError, {
+        email: userData.email,
+        operation: "user_registration"
+      });
+      
       let errorDetails = "Database insert failed";
       let statusCode = 500;
       

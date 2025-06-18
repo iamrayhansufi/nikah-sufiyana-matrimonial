@@ -15,8 +15,8 @@
     "migrate": "tsx scripts/migrate.ts",
     "db:check": "node scripts/vercel-db-check.js",
     "rotate:credentials": "node scripts/rotate-credentials.js",
-    "generate:credentials": "node scripts/generate-credentials.js" 
-   },
+    "generate:credentials": "node scripts/generate-credentials.js"
+  },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
     "@neondatabase/serverless": "^1.0.1",
@@ -67,6 +67,7 @@
     "next": "^15.3.3",
     "next-auth": "^4.24.11",
     "next-themes": "^0.2.1",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.12",
     "path": "^0.12.7",
     "pdf-parse": "^1.1.1",
