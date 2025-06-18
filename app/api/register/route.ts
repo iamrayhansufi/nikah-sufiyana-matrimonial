@@ -26,7 +26,8 @@ const registerSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  try {    // Parse and validate request body
+  try {
+    // Parse and validate request body
     const body = await request.json();
     
     // Log request for debugging
@@ -60,30 +61,25 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const userData = validation.data;    // Check if user already exists - with robust error handling
-    try {
-      // Check for existing email
-      const existingUserByEmail = await db.select({ id: users.id })
-        .from(users)
-        .where(eq(users.email, userData.email))
-        .limit(1)
-        .execute();
+    const userData = validation.data;
 
-      if (existingUserByEmail && existingUserByEmail.length > 0) {
+    // Check if user already exists - with robust error handling    
+    try {
+      // Import sqlClient directly from db module
+      const { sqlClient } = await import('@/src/db');      // Check if email exists using raw SQL for better compatibility
+      const emailCheckResult = await sqlClient`SELECT id FROM users WHERE email = ${userData.email} LIMIT 1`;
+      
+      // Access array of results with type assertion
+      if ((emailCheckResult as any[]).length > 0) {
         return NextResponse.json(
           { error: "Email already registered" },
           { status: 409 }
         );
-      }
-
-      // Check for existing phone
-      const existingUserByPhone = await db.select({ id: users.id })
-        .from(users)
-        .where(eq(users.phone, userData.phone))
-        .limit(1)
-        .execute();
-
-      if (existingUserByPhone && existingUserByPhone.length > 0) {
+      }      // Check if phone exists using raw SQL
+      const phoneCheckResult = await sqlClient`SELECT id FROM users WHERE phone = ${userData.phone} LIMIT 1`;
+      
+      // Access array of results with type assertion
+      if ((phoneCheckResult as any[]).length > 0) {
         return NextResponse.json(
           { error: "Phone number already registered" },
           { status: 409 }
@@ -98,7 +94,9 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 }
       );
-    }    // Hash password
+    }
+
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userData.password, salt);
     
@@ -127,9 +125,26 @@ export async function POST(request: NextRequest) {
         ...userInsertData,
         password: "[REDACTED]" // Don't log the password
       });
-      
-      // Create user record - with explicit error handling
-      await db.insert(users).values(userInsertData).execute();
+        // Create user record - with explicit error handling
+      const { sqlClient } = await import('@/src/db');
+      await sqlClient`
+        INSERT INTO users (
+          full_name, email, phone, password, gender, age, country, city, location, education, sect, profile_status
+        ) VALUES (
+          ${userInsertData.fullName},
+          ${userInsertData.email},
+          ${userInsertData.phone},
+          ${userInsertData.password},
+          ${userInsertData.gender},
+          ${userInsertData.age},
+          ${userInsertData.country},
+          ${userInsertData.city},
+          ${userInsertData.location},
+          ${userInsertData.education},
+          ${userInsertData.sect},
+          ${userInsertData.profileStatus}
+        )
+      `;
       
       console.log(`User created successfully with email: ${userData.email}`);
     } catch (dbInsertError) {
@@ -141,7 +156,9 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 }
       );
-    }// Generate and send verification OTP
+    }
+
+    // Generate and send verification OTP
     try {
       await createVerificationOTP(userData.email, "registration");
       console.log(`Verification OTP sent to ${userData.email}`);
@@ -157,7 +174,8 @@ export async function POST(request: NextRequest) {
         email: userData.email,
       },
       { status: 201 }
-    );  } catch (error) {
+    );
+  } catch (error) {
     console.error("Error registering user:", error);
     
     // Provide more detailed error information based on error type
