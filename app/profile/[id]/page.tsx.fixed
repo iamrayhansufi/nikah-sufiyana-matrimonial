@@ -1,0 +1,1096 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Separator } from "@/components/ui/separator"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Heart,
+  Star,
+  MapPin,
+  GraduationCap,
+  Briefcase,
+  MessageSquare,
+  Phone,
+  Mail,
+  Shield,
+  ChurchIcon as Mosque,
+  ArrowLeft,
+  Share2,
+  Flag,
+  Eye,
+  EyeOff,
+} from "lucide-react"
+import Link from "next/link"
+import { playfair } from "../../lib/fonts"
+import { useSession, signIn } from "next-auth/react"
+import { useToast } from "@/hooks/use-toast"
+
+// Helper function to safely parse JSON arrays
+const safeJsonParse = (jsonString: string | null | undefined): any[] => {
+  if (!jsonString) return [];
+  if (jsonString === "Not specified") return [];
+  
+  try {
+    // Handle case where it's already an array
+    if (Array.isArray(jsonString)) return jsonString;
+    
+    // Only attempt to parse if it looks like an array
+    if (typeof jsonString === 'string' && jsonString.charAt(0) === '[') {
+      return JSON.parse(jsonString);
+    }
+    
+    return [];
+  } catch (e) {
+    console.error("Error parsing JSON array:", e);
+    return [];
+  }
+};
+
+// Helper function to format string to title case
+const formatToTitleCase = (str: string): string => {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+// Format the age
+const formatAge = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return "Not specified";
+  
+  try {
+    const today = new Date();
+    const birthDate = new Date(dateStr);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age.toString();
+  } catch (e) {
+    return "Not specified";
+  }
+};
+
+export default function ProfilePage({ params }: { params: { id: string } }) {
+  const { id } = params
+  const router = useRouter()
+  const { data: session } = useSession()
+  const { toast } = useToast()
+  const [profile, setProfile] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [isShortlisted, setIsShortlisted] = useState(false)
+  const [isInterestSent, setIsInterestSent] = useState(false)
+  const [interestMutual, setInterestMutual] = useState(false)
+  const [shouldBlurPhoto, setShouldBlurPhoto] = useState(false)
+  const [requestedPhotoAccess, setRequestedPhotoAccess] = useState(false)
+  const [photoAccessGranted, setPhotoAccessGranted] = useState(false)
+  
+  // Fetch profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!session) {
+        // Allow a delay for session to load
+        setTimeout(() => {
+          if (!session) {
+            setLoading(false)
+          }
+        }, 1000)
+        return
+      }
+
+      try {
+        const res = await fetch(`/api/profiles/${id}`, {
+          credentials: 'include'
+        })
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch profile: ${res.status}`)
+        }
+
+        const data = await res.json()
+        
+        // Check if current user has permissions to view this profile
+        // This could be based on premium status, privacy settings, interests, etc.
+        setProfile(data)
+        
+        // Check for existing interest
+        const interestRes = await fetch(`/api/profiles/interests?profileId=${id}`, {
+          credentials: 'include'
+        })
+        
+        if (interestRes.ok) {
+          const interestData = await interestRes.json()
+          
+          // Check for sent interests to this profile
+          const sentToThisProfile = interestData.find((interest: any) => 
+            interest.toUserId === parseInt(id) && interest.fromUserId === parseInt(session.user.id as string)
+          )
+          
+          if (sentToThisProfile) {
+            console.log("Found sent interest:", sentToThisProfile)
+            setIsInterestSent(true)
+            
+            // If interest is already accepted, it's mutual
+            if (sentToThisProfile.status === 'accepted') {
+              setInterestMutual(true)
+              setShouldBlurPhoto(false)
+            }
+          }
+          
+          // Check for received interests from this profile
+          const receivedFromThisProfile = interestData.find((interest: any) => 
+            interest.fromUserId === parseInt(id) && interest.toUserId === parseInt(session.user.id as string)
+          )
+          
+          if (receivedFromThisProfile) {
+            console.log("Found received interest:", receivedFromThisProfile)
+            
+            // If interest is accepted, it's mutual
+            if (receivedFromThisProfile.status === 'accepted') {
+              setInterestMutual(true)
+              setShouldBlurPhoto(false)
+            }
+          }
+          
+          // If both sent and received interests exist, it's mutual
+          if (sentToThisProfile && receivedFromThisProfile) {
+            setInterestMutual(true)
+            setShouldBlurPhoto(false)
+          }
+          
+          // Determine if photo should be blurred based on privacy settings
+          // Photos should be blurred if:
+          // 1. User has set showPhotos to false (privacy setting)
+          // 2. AND there's no mutual interest (user hasn't been approved by the profile owner)
+          const hasApproval = interestData.receivedInterests?.some((interest: any) => 
+            interest.senderId.toString() === session?.user?.id?.toString() && interest.status === 'accepted'
+          );
+          const shouldBlurBasedOnPrivacy = !data.showPhotos && !hasApproval;
+          setShouldBlurPhoto(shouldBlurBasedOnPrivacy);
+          
+          console.log('Photo blur logic:', {
+            showPhotos: data.showPhotos,
+            hasApproval,
+            shouldBlurBasedOnPrivacy,
+            receivedInterests: interestData.receivedInterests?.length || 0
+          });
+        }
+        
+        // Check if profile is shortlisted
+        const shortlistRes = await fetch(`/api/profiles/shortlist?shortlistedId=${id}`, {
+          credentials: 'include'
+        })
+        
+        if (shortlistRes.ok) {
+          const shortlistData = await shortlistRes.json()
+          setIsShortlisted(shortlistData.isShortlisted)
+        }
+
+      } catch (error) {
+        console.error(error)
+        toast({
+          title: "Error",
+          description: "Failed to load profile",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [id, session, toast])
+  
+  const handleShortlist = async () => {
+    if (!session?.user?.id) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to shortlist profiles",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    try {
+      const res = await fetch(`/api/profiles/shortlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          shortlistedId: parseInt(id)
+        })
+      })
+      
+      if (!res.ok) {
+        throw new Error(`Failed to update shortlist: ${res.status}`)
+      }
+      
+      setIsShortlisted(!isShortlisted)
+      
+      toast({
+        title: isShortlisted ? "Removed from Shortlist" : "Added to Shortlist",
+        description: isShortlisted 
+          ? "Profile has been removed from your shortlist" 
+          : "Profile has been added to your shortlist",
+      })
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: "Error",
+        description: "Failed to update shortlist",
+        variant: "destructive"
+      })
+    }
+  }
+  
+  const handleSendMessage = () => {
+    // Redirect to messages with this user's conversation pre-selected
+    router.push(`/messages?userId=${id}`)
+  }
+  
+  const handleReport = () => {
+    toast({
+      title: "Report Submitted",
+      description: "Thank you for your feedback. We will review this profile.",
+    })
+  }
+  
+  const handleShare = () => {
+    // Copy profile URL to clipboard
+    navigator.clipboard.writeText(window.location.href)
+    toast({
+      title: "Link Copied",
+      description: "Profile link has been copied to clipboard",
+    })
+  }
+  
+  // Sign in before viewing profiles
+  if (!session) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="text-center max-w-md p-8">
+          <h1 className={`${playfair.className} text-2xl font-bold mb-4`}>
+            Please Sign In to View Profiles
+          </h1>
+          <p className="mb-4">
+            You need to sign in or register to view member profiles.
+          </p>
+          
+          <Button onClick={() => signIn()} className="mb-4 w-full">
+            Sign In
+          </Button>
+          
+          <Link href="/register">
+            <Button variant="outline" className="w-full">
+              Register
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse">
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // No profile state
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="mb-4">Profile not found or unavailable</p>
+          <Button onClick={() => router.push('/browse')}>
+            Return to Browse
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  const handleSendInterest = async () => {
+    // Don't allow sending interest if already sent
+    if (isInterestSent) return
+    
+    try {
+      const res = await fetch('/api/profiles/send-interest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          toUserId: parseInt(id),
+          fromUserId: parseInt(session?.user?.id as string),
+        }),
+      })
+      
+      if (!res.ok) {
+        throw new Error(`Failed to send interest: ${res.status}`)
+      }
+      
+      // Show success toast
+      toast({
+        title: "Interest Sent",
+        description: "Your interest has been sent to this member",
+      })
+      
+      // Update UI
+      setIsInterestSent(true)
+      
+      // Check if interest is mutual (if they already sent interest to us)
+      // For simplicity in this example, we'll update via page reload
+      // For production, you would want to check the API response and update accordingly
+      // window.location.reload()
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: "Error",
+        description: "Failed to send interest. Please try again later",
+        variant: "destructive",
+      })
+    }
+  }
+  
+  // Function to handle requesting photo access
+  const handleRequestPhotoAccess = async () => {
+    if (!session?.user?.id) return;
+    
+    try {
+      setRequestedPhotoAccess(true);
+      
+      // Send a notification to the user about the photo access request
+      const notificationRes = await fetch('/api/notifications/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          toUserId: parseInt(id as string),
+          fromUserId: parseInt(session.user.id as string),
+          type: 'photo_access_request',
+          message: `${session.user.name} has requested to view your photos`,
+          data: JSON.stringify({
+            profileId: parseInt(id as string),
+            requesterId: parseInt(session.user.id as string)
+          })
+        })
+      });
+      
+      if (notificationRes.ok) {
+        toast({
+          title: "Photo access requested",
+          description: "The user will be notified of your request to view their photos",
+        });
+        
+        // For demo purposes, auto-grant access since we don't have the implementation for acceptance yet
+        setTimeout(() => {
+          setPhotoAccessGranted(true);
+          setShouldBlurPhoto(false);
+          toast({
+            title: "Photo access granted",
+            description: "You can now view all photos of this profile",
+          });
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Error requesting photo access:", error);
+      toast({
+        title: "Error",
+        description: "Failed to request photo access. Please try again.",
+        variant: "destructive",
+      });
+      setRequestedPhotoAccess(false);
+    }
+  };
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+      <Header />
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Back Button */}
+          <div className="mb-6">
+            <Button 
+              variant="ghost" 
+              onClick={() => router.back()}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Button>
+          </div>
+
+          {/* Profile Header Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Profile Photo and Actions */}
+            <div className="space-y-6">
+              {/* Profile Photo Card */}
+              <Card className="overflow-hidden">
+                <CardContent className="p-0 relative">
+                  <div className="relative aspect-[3/4] w-full">
+                    <Avatar className="w-full h-full rounded-lg">
+                      <AvatarImage 
+                        src={profile.profilePhoto || "/placeholder.svg"}
+                        alt={`${profile.name}'s profile photo`} 
+                        className={`object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
+                      />
+                      <AvatarFallback className="text-4xl">
+                        {profile.name
+                          ? profile.name
+                              .split(" ")
+                              .map((n: string) => n[0])
+                              .join("")
+                          : "U"}
+                      </AvatarFallback>
+                    </Avatar>                    
+                    {/* Blur notice overlay for private photos */}
+                    {shouldBlurPhoto && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
+                        <Shield className="h-12 w-12 mb-2" />
+                        <p className="font-semibold text-lg mb-1">Protected Photos</p>
+                        <p className="text-sm mb-4">This member has chosen modesty for their photos. Send interest to view clearly.</p>
+                        {!isInterestSent && !interestMutual && (
+                          <Button 
+                            variant="secondary" 
+                            className="bg-white text-black hover:bg-white/90"
+                            onClick={handleSendInterest}
+                          >
+                            <Heart className="h-4 w-4 mr-2 text-red-500" />
+                            Send Interest
+                          </Button>
+                        )}
+                        {isInterestSent && !interestMutual && (
+                          <Button variant="secondary" disabled className="bg-white/80 text-black">
+                            <Heart className="h-4 w-4 mr-2 text-red-500 fill-red-500" />
+                            Interest Sent
+                          </Button>
+                        )}
+                        {interestMutual && !requestedPhotoAccess && !photoAccessGranted && (
+                          <Button 
+                            variant="secondary" 
+                            className="bg-white text-black hover:bg-white/90"
+                            onClick={handleRequestPhotoAccess}
+                          >
+                            <Eye className="h-4 w-4 mr-2 text-blue-500" />
+                            Request Photo Access
+                          </Button>
+                        )}
+                        {interestMutual && requestedPhotoAccess && !photoAccessGranted && (
+                          <Button variant="secondary" disabled className="bg-white/80 text-black">
+                            <Eye className="h-4 w-4 mr-2 text-blue-500" />
+                            Access Requested
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+                <div className="p-4">
+                  <h2 className={`${playfair.className} text-2xl font-bold text-center mb-1`}>
+                    {profile.name}
+                  </h2>
+                  <p className="text-center text-muted-foreground">
+                    ID: NS{profile.id.toString().padStart(5, '0')}
+                  </p>
+                </div>
+              </Card>
+              
+              {/* Quick Stats */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Age</p>
+                      <p className="text-sm font-medium">{formatAge(profile.dateOfBirth)}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Height</p>
+                      <p className="text-sm font-medium">{profile.height || "Not specified"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Religion</p>
+                      <p className="text-sm font-medium">{profile.religion || "Not specified"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Sect</p>
+                      <p className="text-sm font-medium">{profile.sect || "Not specified"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Marital Status</p>
+                      <p className="text-sm font-medium">{profile.maritalStatus || "Not specified"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Education</p>
+                      <p className="text-sm font-medium">
+                        {profile.education ? formatToTitleCase(profile.education) : "Not specified"}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Location</p>
+                      <p className="text-sm font-medium">{profile.city || "Not specified"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Ethnicity</p>
+                      <p className="text-sm font-medium">{profile.ethnicity || "Not specified"}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                <Button 
+                  onClick={handleSendInterest}
+                  disabled={isInterestSent}
+                  className="w-full gap-2"
+                >
+                  <Heart className={isInterestSent ? "fill-red-500 text-red-500" : ""} size={16} />
+                  {isInterestSent ? "Interest Sent" : "Send Interest"}
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  onClick={handleShortlist}
+                  className="w-full gap-2"
+                >
+                  <Star className={isShortlisted ? "fill-yellow-500 text-yellow-500" : ""} size={16} />
+                  {isShortlisted ? "Shortlisted" : "Add to Shortlist"}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={handleSendMessage}
+                  className="w-full gap-2"
+                >
+                  <MessageSquare size={16} />
+                  Message
+                </Button>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleShare}
+                    className="gap-2"
+                  >
+                    <Share2 size={16} />
+                    Share
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={handleReport}
+                    className="gap-2 text-red-500"
+                  >
+                    <Flag size={16} />
+                    Report
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right Column - Profile Details */}
+            <div className="lg:col-span-2">
+              <Tabs defaultValue="about" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="about">About</TabsTrigger>
+                  <TabsTrigger value="preferences">Preferences</TabsTrigger>
+                  <TabsTrigger value="gallery">Gallery</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="about" className="space-y-6">
+                  {/* About Me */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>About</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p>{profile.about || "No information provided."}</p>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Personal Information */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Personal Information</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Age</dt>
+                          <dd>{formatAge(profile.dateOfBirth)} years</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Height</dt>
+                          <dd>{profile.height || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Complexion</dt>
+                          <dd>{profile.complexion || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Religion</dt>
+                          <dd>{profile.religion || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Sect</dt>
+                          <dd>{profile.sect || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Marital Status</dt>
+                          <dd>{profile.maritalStatus || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Mother Tongue</dt>
+                          <dd>{profile.motherTongue || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Ethnicity</dt>
+                          <dd>{profile.ethnicity || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Disability</dt>
+                          <dd>{profile.disability || "None"}</dd>
+                        </div>
+                      </dl>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Education & Career */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Education & Career</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Education</dt>
+                          <dd>{profile.education ? formatToTitleCase(profile.education) : "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Profession</dt>
+                          <dd>{profile.profession || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Income Range</dt>
+                          <dd>{profile.incomeRange || "Not specified"}</dd>
+                        </div>
+                      </dl>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Contact Information */}
+                  {interestMutual ? (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Contact Information</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <dl className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <dt className="text-sm font-medium text-muted-foreground">Phone</dt>
+                            <dd>{profile.phone || "Not available"}</dd>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <dt className="text-sm font-medium text-muted-foreground">Email</dt>
+                            <dd>{profile.email || "Not available"}</dd>
+                          </div>
+                          {/* Show address only if they've exchanged contact */}
+                          {profile.fullAddress && (
+                            <div className="flex items-start gap-2">
+                              <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                              <dt className="text-sm font-medium text-muted-foreground">Address</dt>
+                              <dd className="flex-1">{profile.fullAddress}</dd>
+                            </div>
+                          )}
+                        </dl>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Contact Information</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-col items-center justify-center text-center p-4">
+                          <p className="mb-4">Contact details are hidden until interest is mutual</p>
+                          <Button 
+                            onClick={handleSendInterest}
+                            disabled={isInterestSent}
+                          >
+                            <Heart className="h-4 w-4 mr-2" />
+                            {isInterestSent ? "Interest Sent" : "Send Interest"}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {/* Location */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Location</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">City</dt>
+                          <dd>{profile.city || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">State</dt>
+                          <dd>{profile.state || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Country</dt>
+                          <dd>{profile.country || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Citizenship</dt>
+                          <dd>{profile.citizenship || "Not specified"}</dd>
+                        </div>
+                      </dl>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Family Information */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Family Information</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <dl className="space-y-4">
+                        {profile.fatherOccupation && (
+                          <div>
+                            <dt className="text-sm font-medium text-muted-foreground">Father's Occupation</dt>
+                            <dd>{profile.fatherOccupation}</dd>
+                          </div>
+                        )}
+                        {profile.motherOccupation && (
+                          <div>
+                            <dt className="text-sm font-medium text-muted-foreground">Mother's Occupation</dt>
+                            <dd>{profile.motherOccupation}</dd>
+                          </div>
+                        )}
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Family Type</dt>
+                          <dd>{profile.familyType || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Family Values</dt>
+                          <dd>{profile.familyValues || "Not specified"}</dd>
+                        </div>
+                      </dl>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Lifestyle */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Lifestyle</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Diet</dt>
+                          <dd>{profile.diet || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Prayer Habits</dt>
+                          <dd>{profile.prayerHabits || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Religiosity</dt>
+                          <dd>{profile.religiosity || "Not specified"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Interests</dt>
+                          <dd>{profile.hobbies || "Not specified"}</dd>
+                        </div>
+                      </dl>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Family Details (Siblings, In-Laws, etc.) */}
+                  <div className="space-y-6">
+                    {/* Siblings Information - if available */}
+                    {(() => {
+                      const siblings = safeJsonParse(profile.siblings);
+                      return siblings.length > 0 ? (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Siblings</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              {siblings.map((sibling: any, index: number) => (
+                                <div key={index} className="border-b pb-2 last:border-0">
+                                  <p className="font-medium">
+                                    {sibling.siblingType === "brother" ? "Brother" : 
+                                     sibling.siblingType === "sister" ? "Sister" : 
+                                     sibling.siblingType ? formatToTitleCase(sibling.siblingType) :
+                                     "Sibling"}
+                                  </p>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                    <p>Name: {sibling.name || "Not specified"}</p>
+                                    <p>Marital Status: {sibling.maritalStatus || "Not specified"}</p>
+                                    {sibling.occupation && <p className="md:col-span-2">Occupation: {sibling.occupation}</p>}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ) : null;
+                    })()}
+                    
+                    {/* Brother-in-law Information - if available */}
+                    {(() => {
+                      const brotherInLaws = safeJsonParse(profile.brotherInLaws);
+                      return brotherInLaws.length > 0 ? (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>In-Laws</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              {brotherInLaws.map((law: any, index: number) => (
+                                <div key={index} className="border-b pb-2 last:border-0">
+                                  <p className="font-medium">{law.relation || "In-law"}</p>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                    <p>Name: {law.name || "Not specified"}</p>
+                                    <p>Occupation: {law.occupation || "Not specified"}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ) : null;
+                    })()}
+
+                    {/* Maternal/Paternal Information - if available */}
+                    {(() => {
+                      const maternalPaternals = safeJsonParse(profile.maternalPaternal);
+                      return maternalPaternals.length > 0 ? (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Maternal & Paternal Relations</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              {maternalPaternals.map((relation: any, index: number) => (
+                                <div key={index} className="border-b pb-2 last:border-0">
+                                  <p className="font-medium">
+                                    {relation.relation === "maternal-uncle" ? "Maternal Uncle" :
+                                     relation.relation === "paternal-uncle" ? "Paternal Uncle" :
+                                     relation.relation ? formatToTitleCase(relation.relation) :
+                                     "Relative"}
+                                  </p>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                    <p>Name: {relation.name || "Not specified"}</p>
+                                    <p>Occupation: {relation.occupation || "Not specified"}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ) : null;
+                    })()}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="preferences" className="space-y-6">
+                  {/* Partner Preferences */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Partner Preferences</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Age Range</dt>
+                          <dd>{profile.preferredAgeMin && profile.preferredAgeMax ? 
+                              `${profile.preferredAgeMin} to ${profile.preferredAgeMax} years` : 
+                              "Not specified"}
+                          </dd>
+                        </div>
+                        
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Height</dt>
+                          <dd>{profile.preferredHeight || "Not specified"}</dd>
+                        </div>
+                        
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Education</dt>
+                          <dd>{profile.preferredEducation || "Not specified"}</dd>
+                        </div>
+                        
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Profession</dt>
+                          <dd>{profile.preferredProfession || "Not specified"}</dd>
+                        </div>
+                        
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Ethnicity</dt>
+                          <dd>{profile.preferredEthnicity || "Not specified"}</dd>
+                        </div>
+                        
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Sect</dt>
+                          <dd>{profile.preferredSect || "Not specified"}</dd>
+                        </div>
+                        
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Marital Status</dt>
+                          <dd>{profile.preferredMaritalStatus || "Not specified"}</dd>
+                        </div>
+                        
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">Location</dt>
+                          <dd>{profile.preferredLocation || "Not specified"}</dd>
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <dt className="text-sm font-medium text-muted-foreground">Additional Requirements</dt>
+                          <dd className="whitespace-pre-line">
+                            {profile.additionalPreferences || "No additional requirements specified."}
+                          </dd>
+                        </div>
+                      </dl>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                {/* Gallery Tab */}
+                <TabsContent value="gallery">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Photo Gallery</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div>
+                        {/* Photo Gallery Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {/* Main Profile Photo */}
+                          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+                            <img 
+                              src={profile.profilePhoto || "/placeholder.svg"} 
+                              alt={`${profile.name}'s profile photo`}
+                              className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
+                            />
+                            <Badge className="absolute top-2 left-2 bg-primary">Main Photo</Badge>
+                            {shouldBlurPhoto && (
+                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
+                                <Shield className="h-8 w-8 mb-2" />
+                                <p className="text-xs mb-2">For modesty, send interest to view</p>
+                                {interestMutual && !requestedPhotoAccess && !photoAccessGranted && (
+                                  <Button 
+                                    variant="secondary" 
+                                    size="sm"
+                                    className="bg-white text-black hover:bg-white/90 mt-1"
+                                    onClick={handleRequestPhotoAccess}
+                                  >
+                                    <Eye className="h-3 w-3 mr-1 text-blue-500" />
+                                    Request Access
+                                  </Button>
+                                )}
+                                {interestMutual && requestedPhotoAccess && !photoAccessGranted && (
+                                  <Button 
+                                    variant="secondary"
+                                    size="sm" 
+                                    disabled 
+                                    className="bg-white/80 text-black mt-1"
+                                  >
+                                    <Eye className="h-3 w-3 mr-1 text-blue-500" />
+                                    Requested
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Additional Photos */}
+                          {profile.profilePhotos && profile.profilePhotos.length > 0 ? (
+                            safeJsonParse(profile.profilePhotos).map((photo: string, index: number) => (
+                              <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+                                <img 
+                                  src={photo} 
+                                  alt={`${profile.name}'s photo ${index + 1}`}
+                                  className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
+                                />
+                                {shouldBlurPhoto && (
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
+                                    <Shield className="h-8 w-8 mb-2" />
+                                    <p className="text-xs mb-2">For modesty, send interest to view</p>
+                                    {interestMutual && !requestedPhotoAccess && !photoAccessGranted && (
+                                      <Button 
+                                        variant="secondary" 
+                                        size="sm"
+                                        className="bg-white text-black hover:bg-white/90 mt-1"
+                                        onClick={handleRequestPhotoAccess}
+                                      >
+                                        <Eye className="h-3 w-3 mr-1 text-blue-500" />
+                                        Request Access
+                                      </Button>
+                                    )}
+                                    {interestMutual && requestedPhotoAccess && !photoAccessGranted && (
+                                      <Button 
+                                        variant="secondary"
+                                        size="sm" 
+                                        disabled 
+                                        className="bg-white/80 text-black mt-1"
+                                      >
+                                        <Eye className="h-3 w-3 mr-1 text-blue-500" />
+                                        Requested
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="col-span-full text-center">
+                              <p className="text-sm text-muted-foreground text-center">
+                                {profile.profilePhoto ? "No additional photos available" : "No photos available"}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <Footer />
+    </div>
+  );
+}
