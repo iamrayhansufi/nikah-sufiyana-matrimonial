@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -22,14 +23,50 @@ function VerifyEmailContent() {
   const [isResending, setIsResending] = useState<boolean>(false)
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const [timerActive, setTimerActive] = useState<boolean>(false)
-
-  useEffect(() => {
-    // Get email from URL query params
-    const emailParam = searchParams.get("email")
-    if (emailParam) {
-      setEmail(emailParam)
+  const [checkingSession, setCheckingSession] = useState<boolean>(true)
+  // Add import statement at the top of the file
+  // import { useSession } from "next-auth/react"
+  
+  // Check session and verification status
+  const { data: session, status: sessionStatus } = useSession()
+    useEffect(() => {
+    // Debug session status
+    console.log('🔍 VerifyEmail Debug - Session status:', sessionStatus);
+    console.log('🔍 VerifyEmail Debug - Session:', {
+      exists: !!session,
+      userId: session?.user?.id,
+      verified: session?.user?.verified,
+      email: session?.user?.email
+    });
+    
+    if (sessionStatus === "loading") {
+      return;
     }
-  }, [searchParams])
+    
+    setCheckingSession(false);
+    
+    // If logged in and already verified, redirect to dashboard
+    if (session?.user?.verified === true) {
+      console.log('✅ VerifyEmail: User already verified, redirecting to dashboard');
+      toast({
+        title: "Already Verified",
+        description: "Your email has already been verified.",
+        variant: "default"
+      });
+      
+      router.push('/dashboard');
+      return;
+    }
+    
+    // Get email from URL query params or session
+    const emailParam = searchParams.get("email") || session?.user?.email || "";
+    if (emailParam) {
+      console.log(`📧 VerifyEmail: Using email from ${searchParams.has('email') ? 'query params' : 'session'}: ${emailParam}`);
+      setEmail(emailParam);
+    } else {
+      console.log('⚠️ VerifyEmail: No email found in query params or session');
+    }
+  }, [searchParams, session, sessionStatus, router, toast])
 
   useEffect(() => {
     // Handle countdown timer for resend code
@@ -171,7 +208,6 @@ function VerifyEmailContent() {
       setIsResending(false)
     }
   }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />
@@ -183,13 +219,19 @@ function VerifyEmailContent() {
               <CardDescription>Enter the 6-digit code sent to your email</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    We sent a verification code to:
-                  </p>
-                  <p className="font-medium">{email}</p>
+              {checkingSession ? (
+                <div className="flex flex-col items-center justify-center p-8 space-y-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <p>Checking verification status...</p>
                 </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      We sent a verification code to:
+                    </p>
+                    <p className="font-medium">{email}</p>
+                  </div>
 
                 <div className="space-y-2">
                   <Input
@@ -238,12 +280,13 @@ function VerifyEmailContent() {
                         "Didn't receive the code? Resend"
                       )}
                     </Button>
-                  )}
-                </div>
+                  )}                </div>
               </form>
+              )}
             </CardContent>
           </Card>
-        </div>      </div>
+        </div>
+      </div>
       <Footer />
     </div>
   )

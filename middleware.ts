@@ -2,9 +2,25 @@ import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 
 export default withAuth(
-  function middleware(req) {    const token = req.nextauth.token
+  function middleware(req) {
+    const token = req.nextauth.token
     const isAuth = !!token
-      const isAuthPage = req.nextUrl.pathname.startsWith('/login') ||
+    // Check both authentication and verification status
+    const isVerified = token?.verified === true
+    
+    // Debug middleware execution
+    console.log('🔍 Middleware Debug:', { 
+      path: req.nextUrl.pathname,
+      isAuth,
+      isVerified,
+      token: {
+        id: token?.id,
+        email: token?.email,
+        verified: token?.verified
+      }
+    })
+    
+    const isAuthPage = req.nextUrl.pathname.startsWith('/login') ||
                       req.nextUrl.pathname.startsWith('/register')
     
     const isProtectedPage = req.nextUrl.pathname.startsWith('/dashboard') ||
@@ -49,18 +65,29 @@ export default withAuth(
       // Don't attempt domain redirects in production for now - disable this code
       // Uncomment this after the redirect loop issue is fixed
       // return NextResponse.redirect(new URL(req.url, process.env.NEXTAUTH_URL))
-    }
-
-    // Redirect authenticated users from auth pages to dashboard
+    }    // Redirect authenticated users from auth pages to dashboard
     if (isAuthPage && isAuth) {
+      console.log('🔄 Middleware: Redirecting from auth page to dashboard')
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
 
-    // Allow access to protected pages for authenticated users
+    // Block access to protected pages for users who are not authenticated
     if (isProtectedPage && !isAuth) {
+      console.log('🔒 Middleware: Blocking access to protected page - user not authenticated')
       const loginUrl = new URL('/login', req.url)
       loginUrl.searchParams.set('callbackUrl', req.url)
       return NextResponse.redirect(loginUrl)
+    }
+    
+    // Ensure verified status for protected pages
+    if (isProtectedPage && isAuth && !isVerified) {
+      console.log('📧 Middleware: Redirecting to verify-email - user not verified')
+      // Redirect unverified users to verify-email with their email
+      const verifyEmailUrl = new URL('/verify-email', req.url)
+      if (token?.email) {
+        verifyEmailUrl.searchParams.set('email', token.email)
+      }
+      return NextResponse.redirect(verifyEmailUrl)
     }
 
     return NextResponse.next()

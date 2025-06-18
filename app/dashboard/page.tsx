@@ -101,9 +101,19 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      // Debug current session state
+      console.log('🔍 Dashboard Debug - Auth status:', status);
+      console.log('🔍 Dashboard Debug - Session:', {
+        exists: !!session,
+        userId: session?.user?.id,
+        verified: session?.user?.verified,
+        email: session?.user?.email
+      });
+      
       if (status === "loading") return;
       
       if (status === "unauthenticated") {
+        console.log('❌ Dashboard: User not authenticated, redirecting to login');
         setError("Please log in to access your dashboard.");
         setLoading(false);
         router.push('/login?callbackUrl=/dashboard');
@@ -111,11 +121,27 @@ export default function DashboardPage() {
       }
 
       if (!session?.user?.id) {
+        console.log('❌ Dashboard: No user ID in session, redirecting to login');
         setError("User ID not found. Please log in again.");
         setLoading(false);
         router.push('/login?callbackUrl=/dashboard');
         return;
       }
+      
+      // Check if user is verified
+      if (session?.user?.verified === false) {
+        console.log('📧 Dashboard: User not verified, redirecting to verification page');
+        setError("Please verify your email to access your dashboard.");
+        setLoading(false);
+        if (session?.user?.email) {
+          router.push(`/verify-email?email=${encodeURIComponent(session.user.email)}`);
+        } else {
+          router.push('/verify-email');
+        }
+        return;
+      }
+      
+      console.log('✅ Dashboard: User authenticated and verified, proceeding to fetch profile');
 
       try {
         // Add credentials to ensure cookies are sent

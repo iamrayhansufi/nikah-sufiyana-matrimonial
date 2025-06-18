@@ -180,9 +180,23 @@ export const authOptions: NextAuthOptions = {
     },    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.email = user.email
         token.phone = user.phone
         token.role = user.role
         token.verified = user.verified
+        
+        // Debug the token creation from user
+        console.log('🔑 JWT Debug - User to Token:', { 
+          userId: user.id,
+          userVerified: user.verified,
+          tokenVerified: token.verified 
+        })
+      } else {
+        // Debug when reusing existing token
+        console.log('🔑 JWT Debug - Existing Token:', { 
+          tokenId: token.id,
+          tokenVerified: token.verified 
+        })
       }
       return token
     },    async session({ session, token }) {
@@ -191,6 +205,13 @@ export const authOptions: NextAuthOptions = {
         session.user.phone = token.phone as string | undefined
         session.user.role = token.role as string | undefined
         session.user.verified = token.verified as boolean | undefined
+        
+        // Debug session creation
+        console.log('👤 Session Debug:', { 
+          userId: session.user.id,
+          verified: session.user.verified,
+          tokenVerified: token.verified
+        })
       }
       return session
     }

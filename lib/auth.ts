@@ -18,21 +18,47 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 }
 
 export async function getAuthSession() {
+  console.log('🔍 getAuthSession: Starting session validation');
+  
   const session = await getServerSession(authOptions);
-  if (!session) return null;
+  if (!session) {
+    console.log('❌ getAuthSession: No session found');
+    return null;
+  }
 
   // Validate session
   const userId = session?.user?.id;
-  if (!userId) return null;
+  if (!userId) {
+    console.log('❌ getAuthSession: No user ID in session');
+    return null;
+  }
 
   // Check if user still exists and is active
+  console.log(`🔍 getAuthSession: Looking up user ${userId} in database`);
   const user = await db
     .select()
     .from(users)
     .where(eq(users.id, parseInt(userId)))
     .limit(1);
 
-  if (!user || user.length === 0) return null;
+  if (!user || user.length === 0) {
+    console.log('❌ getAuthSession: User not found in database');
+    return null;
+  }
+  
+  // Update session with latest verified status from database
+  if (session.user && user[0]) {
+    const dbVerified = user[0].verified || false;
+    const sessionVerified = session.user.verified || false;
+    
+    // Log verification status discrepancies
+    if (dbVerified !== sessionVerified) {
+      console.log(`🔄 getAuthSession: Updating verified status from ${sessionVerified} to ${dbVerified}`);
+      session.user.verified = dbVerified;
+    } else {
+      console.log(`✅ getAuthSession: User verified status: ${dbVerified}`);
+    }
+  }
 
   return session;
 }

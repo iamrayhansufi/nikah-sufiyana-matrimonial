@@ -14,11 +14,20 @@ const requestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔍 verify-otp API: Request received');
+    
     // Parse and validate request body
     const body = await request.json();
+    console.log('📝 verify-otp API: Request body', { 
+      email: body.email, 
+      codeLength: body.code?.length,
+      purpose: body.purpose 
+    });
+    
     const validationResult = requestSchema.safeParse(body);
     
     if (!validationResult.success) {
+      console.log('❌ verify-otp API: Validation failed', validationResult.error.errors);
       return NextResponse.json(
         { error: validationResult.error.errors },
         { status: 400 }
@@ -28,18 +37,21 @@ export async function POST(request: NextRequest) {
     const { email, code, purpose } = validationResult.data;
     
     // Verify OTP
+    console.log(`🔄 verify-otp API: Verifying OTP for ${email}`);
     const isValid = await verifyOTP(email, code, purpose);
-    
-    if (isValid) {
+      if (isValid) {
+      console.log(`✅ verify-otp API: OTP is valid for ${email}`);
       try {
         // Update the user's verified status in the database
         if (purpose === "registration") {
+          console.log(`🔄 verify-otp API: Updating verified status for ${email}`);
           await db
             .update(users)
             .set({ verified: true })
             .where(eq(users.email, email));
           
           // Get the user to return user data needed for auto-login
+          console.log(`🔍 verify-otp API: Retrieving updated user data`);
           const userResults = await db
             .select({
               id: users.id,
@@ -53,6 +65,8 @@ export async function POST(request: NextRequest) {
             .limit(1);
           
           const user = userResults[0];
+          console.log(`✅ verify-otp API: User verified status updated to ${user?.verified}`);
+          
           
           return NextResponse.json(
             {
