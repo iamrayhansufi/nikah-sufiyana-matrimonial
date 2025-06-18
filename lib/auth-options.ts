@@ -100,17 +100,29 @@ export const authOptions: NextAuthOptions = {
           const searchValue = credentials.email || credentials.phone;
           
           console.log(`🔍 Auth Debug - Looking up user by ${searchField}: ${searchValue}`);
-          
-          try {
+            try {
             // Add full error handling around database queries
+            // Select specific columns to avoid role column issue until database is updated
+            const selectColumns = {
+              id: users.id,
+              fullName: users.fullName,
+              email: users.email,
+              phone: users.phone,
+              password: users.password,
+              verified: users.verified,
+              gender: users.gender,
+              age: users.age,
+              profileStatus: users.profileStatus
+            };
+            
             if (credentials.email) {
-              userArr = await db.select().from(users).where(eq(users.email, credentials.email)).limit(1);
+              userArr = await db.select(selectColumns).from(users).where(eq(users.email, credentials.email)).limit(1);
               console.log(`🔍 Auth Debug - Query result for email ${credentials.email}:`, {
                 found: userArr?.length > 0,
                 count: userArr?.length || 0
               });
             } else {
-              userArr = await db.select().from(users).where(eq(users.phone, credentials.phone)).limit(1);
+              userArr = await db.select(selectColumns).from(users).where(eq(users.phone, credentials.phone)).limit(1);
               console.log(`🔍 Auth Debug - Query result for phone ${credentials.phone}:`, {
                 found: userArr?.length > 0,
                 count: userArr?.length || 0
@@ -153,7 +165,7 @@ export const authOptions: NextAuthOptions = {
                   name: user.fullName,
                   email: user.email,
                   phone: user.phone,
-                  role: user.role || 'user',
+                  role: 'user', // user.role || 'user', // Default to user until role column exists
                   verified: true // Force verified for the emergency login
                 };
               }
@@ -182,11 +194,9 @@ export const authOptions: NextAuthOptions = {
             throw bcryptError; // Re-throw to be caught by the outer try/catch
           }
             console.log(`🔓 Auth Debug - Login successful for user ${user.id}, verified: ${user.verified}`);
-          
-          // TypeScript doesn't know about the 'role' column even though it exists in the database
-          // because the Drizzle schema hasn't been updated, but the migration has been run
-          // @ts-ignore - The role property exists in the database due to migration but not in the schema
-          const userRole = user.role || 'user';
+            // Since we're temporarily not selecting the role column, default to 'user'
+          // This will be fixed once the database migration adds the role column
+          const userRole = 'user'; // user.role || 'user'; // Commented out until role column exists in DB
           
           return {
             id: user.id.toString(),
