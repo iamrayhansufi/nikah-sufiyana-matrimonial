@@ -93,6 +93,42 @@ function LoginFormWithParams() {
       // Log the response
       console.log('🔐 Login Debug - Sign in response:', res);
       
+      // Handle errors
+      if (res?.error) {
+        let errorMessage = "Invalid credentials. Please check your email/phone and password.";
+        
+        if (res.error === "CredentialsSignin") {
+          console.error("Authentication failed - likely incorrect password or email not found");
+          
+          // For development/debug only - in production, use a generic error message
+          if (process.env.NODE_ENV !== 'production') {
+            errorMessage = "Authentication failed. This could be due to:";
+            errorMessage += "\n1. Incorrect email or password";
+            errorMessage += "\n2. User does not exist";
+            errorMessage += "\n3. Database connection issue";
+            
+            // Add troubleshooting steps
+            console.log("🔧 Troubleshooting steps:");
+            console.log("1. Verify the user exists in the database");
+            console.log("2. Reset the user's password using SQL");
+            console.log("3. Check the server logs for database connection errors");
+            console.log(`4. Run the SQL in fix-user.sql for ${formData.email}`);
+          } else {
+            errorMessage = "The email or password you entered is incorrect. Please try again.";
+          }
+        } else {
+          console.error(`Login error: ${res.error}`);
+        }
+        
+        toast({
+          title: "Login Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        
+        return;
+      }
+      
       // Now handle the redirect manually
       if (res?.ok && res?.url) {
         window.location.href = res.url;
