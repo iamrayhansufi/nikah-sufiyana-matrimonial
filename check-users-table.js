@@ -54,18 +54,34 @@ async function checkUsersTable() {
       console.log("\n❌ ROLE COLUMN MISSING!");
       console.log("This is likely the cause of the authentication error.");
     }
-    
-    // Check sample user data
-    console.log("\n📊 Sample user data:");
+      // Check sample user data with verification status
+    console.log("\n📊 Sample user data with verification status:");
     const sampleUsers = await sql`
-      SELECT id, full_name, email, CASE WHEN password IS NOT NULL THEN 'HAS_PASSWORD' ELSE 'NO_PASSWORD' END as password_status
+      SELECT id, full_name, email, verified, created_at,
+             CASE WHEN password IS NOT NULL THEN 'HAS_PASSWORD' ELSE 'NO_PASSWORD' END as password_status
       FROM users
-      LIMIT 3
+      ORDER BY created_at DESC
+      LIMIT 5
     `;
     
     sampleUsers.forEach(user => {
-      console.log(`- ID: ${user.id}, Name: ${user.full_name}, Email: ${user.email}, Password: ${user.password_status}`);
+      console.log(`- ID: ${user.id}, Name: ${user.full_name}, Email: ${user.email}, Verified: ${user.verified}, Password: ${user.password_status}, Created: ${user.created_at}`);
     });
+    
+    // Count verification status
+    const verificationStats = await sql`
+      SELECT 
+        COUNT(*) as total_users,
+        COUNT(CASE WHEN verified = true THEN 1 END) as verified_users,
+        COUNT(CASE WHEN verified = false OR verified IS NULL THEN 1 END) as unverified_users
+      FROM users
+    `;
+    
+    console.log("\n📈 Verification Statistics:");
+    const stats = verificationStats[0];
+    console.log(`Total Users: ${stats.total_users}`);
+    console.log(`Verified Users: ${stats.verified_users}`);
+    console.log(`Unverified Users: ${stats.unverified_users}`);
 
   } catch (error) {
     console.error("❌ Error checking users table:", error);
