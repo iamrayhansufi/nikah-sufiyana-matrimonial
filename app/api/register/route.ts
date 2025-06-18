@@ -83,38 +83,49 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const userData = validation.data;
-
-    // Check if user already exists - with robust error handling    
+    const userData = validation.data;    // Check if user already exists - with robust error handling    
     try {
-      // Check if email exists using ORM functions which are more reliable
-      const emailCheckResult = await db.select().from(users).where(eq(users.email, userData.email)).limit(1);
+      // Import database direct from index.ts for consistent connections
+      const { sqlClient } = await import('@/src/db');
       
-      if (emailCheckResult.length > 0) {
-        return NextResponse.json(
-          { error: "Email already registered" },
-          { status: 409 }
-        );
+      // Use simple SQL queries for checking existing users
+      // Added more robust error handling for debugging
+      try {
+        // Check if email exists
+        const emailCheckResult = await sqlClient`SELECT id FROM users WHERE email = ${userData.email}`;
+        console.log("Email check result:", JSON.stringify(emailCheckResult));
+        
+        if (Array.isArray(emailCheckResult) && emailCheckResult.length > 0) {
+          return NextResponse.json(
+            { error: "Email already registered" },
+            { status: 409 }
+          );
+        }
+      } catch (emailErr) {
+        console.error("Email check error:", emailErr);
+        throw emailErr; // Re-throw to be handled by outer catch
       }
       
-      // Check if phone exists using ORM functions
-      const phoneCheckResult = await db.select().from(users).where(eq(users.phone, userData.phone)).limit(1);
-      
-      if (phoneCheckResult.length > 0) {
-        return NextResponse.json(
-          { error: "Phone number already registered" },
-          { status: 409 }
-        );
+      // Check if phone exists 
+      try {
+        const phoneCheckResult = await sqlClient`SELECT id FROM users WHERE phone = ${userData.phone}`;
+        console.log("Phone check result:", JSON.stringify(phoneCheckResult));
+        
+        if (Array.isArray(phoneCheckResult) && phoneCheckResult.length > 0) {
+          return NextResponse.json(
+            { error: "Phone number already registered" },
+            { status: 409 }
+          );
+        }
+      } catch (phoneErr) {
+        console.error("Phone check error:", phoneErr);
+        throw phoneErr; // Re-throw to be handled by outer catch
       }
     } catch (dbError) {
       console.error("Database error checking for existing user:", dbError);
       
-      // Add more detailed logging for the authentication issue
-      if (dbError instanceof Error && 
-          (dbError.message.includes('authentication') || 
-           dbError.message.includes('password'))) {
-        console.error("Database authentication failed. Please check your database credentials.");
-      }
+      // Add more detailed logging with full error object
+      console.error("Full database error:", JSON.stringify(dbError, null, 2));
       
       return NextResponse.json(
         { 
@@ -169,48 +180,74 @@ export async function POST(request: NextRequest) {
         ...userInsertData,
         password: "[REDACTED]" // Don't log the password
       });
-      
-      // Create user record using ORM functions instead of raw SQL
+        // Create user record using raw SQL client for consistency
       try {
-        await db.insert(users).values({
+        const { sqlClient } = await import('@/src/db');
+        
+        // Log the insert operation for debugging
+        console.log("Attempting to insert user with data:", {
           fullName: userInsertData.fullName,
-          email: userInsertData.email,
+          email: userInsertData.email, 
           phone: userInsertData.phone,
-          password: userInsertData.password,
-          gender: userInsertData.gender,
-          age: userInsertData.age,
-          country: userInsertData.country,
-          city: userInsertData.city,
-          location: userInsertData.location,
-          education: userInsertData.education,
-          sect: userInsertData.sect,
-          profileStatus: userInsertData.profileStatus,
-          profession: userInsertData.profession,
-          income: userInsertData.income,
-          height: userInsertData.height,
-          complexion: userInsertData.complexion,
-          maritalStatus: userInsertData.maritalStatus,
-          preferredAgeMin: userInsertData.preferredAgeMin,
-          preferredAgeMax: userInsertData.preferredAgeMax,
-          preferredEducation: userInsertData.preferredEducation,
-          preferredLocation: userInsertData.preferredLocation,
-          preferredOccupation: userInsertData.preferredOccupation,
-          housingStatus: userInsertData.housingStatus,
-          aboutMe: userInsertData.aboutMe,
-          familyDetails: userInsertData.familyDetails,
-          expectations: userInsertData.expectations,
-          motherTongue: userInsertData.motherTongue
+          // Other fields omitted for log readability
         });
+        
+        // Use a simpler insertion with minimal required fields to reduce chance of errors
+        await sqlClient`
+          INSERT INTO users (
+            full_name, email, phone, password, gender, age, country, city, 
+            location, education, sect, profile_status
+          ) VALUES (
+            ${userInsertData.fullName},
+            ${userInsertData.email},
+            ${userInsertData.phone},
+            ${userInsertData.password},
+            ${userInsertData.gender},
+            ${userInsertData.age},
+            ${userInsertData.country},
+            ${userInsertData.city},
+            ${userInsertData.location},
+            ${userInsertData.education},
+            ${userInsertData.sect},
+            ${userInsertData.profileStatus}
+          )
+        `;
+        
+        // After successful insert, log success
+        console.log("Basic user data inserted successfully");
+        
+        // Now update with optional fields in a separate query
+        // This two-step approach helps isolate potential schema issues
+        try {
+          await sqlClient`
+            UPDATE users 
+            SET 
+              profession = ${userInsertData.profession},
+              income = ${userInsertData.income},
+              height = ${userInsertData.height},
+              complexion = ${userInsertData.complexion},
+              marital_status = ${userInsertData.maritalStatus},
+              preferred_age_min = ${userInsertData.preferredAgeMin},
+              preferred_age_max = ${userInsertData.preferredAgeMax},
+              preferred_education = ${userInsertData.preferredEducation},
+              preferred_location = ${userInsertData.preferredLocation},
+              preferred_occupation = ${userInsertData.preferredOccupation},
+              housing_status = ${userInsertData.housingStatus},
+              about_me = ${userInsertData.aboutMe},
+              family_details = ${userInsertData.familyDetails},
+              expectations = ${userInsertData.expectations},
+              mother_tongue = ${userInsertData.motherTongue}
+            WHERE email = ${userInsertData.email}
+          `;
+          console.log("Additional user fields updated successfully");
+        } catch (updateError) {
+          // Log but don't fail registration if optional fields can't be updated
+          console.error("Warning: Could not update optional user fields:", updateError);
+          // Continue without failing - user is created with basic info
+        }
       } catch (insertError) {
         console.error("Error during user insert:", insertError);
-        
-        // Check if it's an authentication issue
-        if (insertError instanceof Error && 
-            (insertError.message.includes('authentication') || 
-             insertError.message.includes('password'))) {
-          console.error("Database authentication failed during insert. Please check your database credentials.");
-        }
-        
+        console.error("Full insert error:", JSON.stringify(insertError, null, 2));
         throw insertError; // Re-throw to be caught by outer catch
       }
       
