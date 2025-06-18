@@ -29,7 +29,7 @@ import {
   EyeOff,
 } from "lucide-react"
 import Link from "next/link"
-import { playfair } from "@/lib/fonts"
+import { playfair } from "../../lib/fonts"
 import { useSession, signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -66,49 +66,15 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
   const [interestMutual, setInterestMutual] = useState(false);
   const [requestedPhotoAccess, setRequestedPhotoAccess] = useState(false);
   const [photoAccessGranted, setPhotoAccessGranted] = useState(false);
-  
+
   useEffect(() => {
-    const controller = new AbortController();
-    
     async function fetchProfile() {
       try {
-        // Add public=true flag in development mode to bypass auth requirement
-        const queryParam = process.env.NODE_ENV === 'development' ? '?public=true' : '';
-        const response = await fetch(`/api/profiles/${params.id}${queryParam}`, {
-          signal: controller.signal
-        });
-        
-        if (!response.ok) {
-          if (response.status === 401) {
-            // Redirect to login if unauthorized
-            signIn();
-            toast({
-              title: "Sign in required",
-              description: "Please sign in to view profiles.",
-              variant: "default",
-            });
-            return;
-          }
-          
-          throw new Error(`Failed to fetch profile: ${response.status}`);
-        }
-        
+        const response = await fetch(`/api/profiles/${params.id}`);
         const data = await response.json();
         
-        if (data.error) {
-          toast({
-            title: "Error",
-            description: data.error || "Failed to load profile",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        // Handle different API response formats
-        if (data.success && data.profile) {
+        if (data.profile) {
           setProfile(data.profile);
-        } else if (data && Object.keys(data).length > 0) {
-          setProfile(data);
         } else {
           router.push("/browse");
           toast({
@@ -117,11 +83,8 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
             variant: "destructive",
           });
         }
-      } catch (error: any) {
-        if (error.name !== 'AbortError') {
-          console.error("Error fetching profile:", error);
-          router.push("/browse");
-        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
       }
     }
 
@@ -148,19 +111,11 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
       } catch (error) {
         console.error("Error checking interest status:", error);
       }
-    }    fetchProfile();
+    }
+
+    fetchProfile();
     if (session?.user) {
       checkInterestStatus();
-    }
-    
-    // Clean up function for the AbortController
-    return () => {
-      controller.abort();
-    }
-    
-    // Clean up function for the AbortController
-    return () => {
-      controller.abort();
     }
   }, [params.id, router, session, toast]);
 

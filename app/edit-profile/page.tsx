@@ -550,8 +550,7 @@ export default function EditProfilePage() {
             debugger; // Debugging siblings
             console.log(`${key} data being sent (${typeof acc[key]}, length: ${Array.isArray(acc[key]) ? acc[key].length : 'not array'}):`);
             console.log(JSON.stringify(acc[key]));
-          }
-        }        // Handle fatherOccupation specifically to ensure it saves properly
+          }        }        // Handle fatherOccupation specifically to ensure it saves properly
         else if (key === "fatherOccupation") {
           // Always include fatherOccupation in the update
           debugger; // Debugging Father's Occupation
