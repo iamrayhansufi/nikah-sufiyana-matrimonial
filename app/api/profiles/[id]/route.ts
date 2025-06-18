@@ -170,16 +170,12 @@ export async function GET(
       preferredAge: profile[0].preferredAgeMin && profile[0].preferredAgeMax ? 
         `${profile[0].preferredAgeMin} - ${profile[0].preferredAgeMax} years` : 'Not specified',
     };
-    
-    // Allow all profiles to be viewed regardless of status
+      // Allow all profiles to be viewed regardless of status
     // Debug information
-    console.log(`Serving profile ${id}:`, profileData);
+    console.log(`Serving profile ${id}`);
     
-    // Return the data in a consistent format
-    return NextResponse.json({
-      success: true, 
-      profile: profileData
-    });} catch (error: unknown) {
+    // Return the profile data directly as before
+    return NextResponse.json(profileData);} catch (error: unknown) {
     console.error("Get profile error:", error);
     
     // Return more detailed error information in development

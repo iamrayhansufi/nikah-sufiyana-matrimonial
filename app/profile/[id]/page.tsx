@@ -65,13 +65,15 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
   const [interestSent, setInterestSent] = useState(false);
   const [interestMutual, setInterestMutual] = useState(false);
   const [requestedPhotoAccess, setRequestedPhotoAccess] = useState(false);
-  const [photoAccessGranted, setPhotoAccessGranted] = useState(false);  useEffect(() => {
-    const controller = new AbortController();    async function fetchProfile() {
+  const [photoAccessGranted, setPhotoAccessGranted] = useState(false);
+  
+  useEffect(() => {
+    const controller = new AbortController();
+    
+    async function fetchProfile() {
       try {
-        console.log("Fetching profile for ID:", params.id);
         // Add public=true flag in development mode to bypass auth requirement
         const queryParam = process.env.NODE_ENV === 'development' ? '?public=true' : '';
-        console.log("Using query param:", queryParam);
         const response = await fetch(`/api/profiles/${params.id}${queryParam}`, {
           signal: controller.signal
         });
@@ -89,8 +91,9 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
           }
           
           throw new Error(`Failed to fetch profile: ${response.status}`);
-        }        const data = await response.json();
-        console.log("API Response:", data);
+        }
+        
+        const data = await response.json();
         
         if (data.error) {
           toast({
@@ -101,34 +104,23 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
           return;
         }
         
+        // Handle different API response formats
         if (data.success && data.profile) {
-          // API now returns a success flag and profile property
-          console.log("Setting profile state with:", data.profile);
           setProfile(data.profile);
-        } else if (data && Object.keys(data).length > 0 && !data.profile) {
-          // Fallback for older API format that might return profile directly
-          console.log("Setting profile state with direct data (legacy format):", data);
+        } else if (data && Object.keys(data).length > 0) {
           setProfile(data);
         } else {
-          console.log("No profile data found, redirecting to browse");
           router.push("/browse");
           toast({
             title: "Profile not found",
             description: "The requested profile could not be found.",
             variant: "destructive",
           });
-        }      } catch (error: any) {
+        }
+      } catch (error: any) {
         if (error.name !== 'AbortError') {
           console.error("Error fetching profile:", error);
-          toast({
-            title: "Error loading profile",
-            description: error.message || "An unexpected error occurred",
-            variant: "destructive",
-          });
-          // Only redirect if we don't have any profile data yet
-          if (Object.keys(profile).length === 0) {
-            router.push("/browse");
-          }
+          router.push("/browse");
         }
       }
     }
@@ -159,6 +151,11 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
     }    fetchProfile();
     if (session?.user) {
       checkInterestStatus();
+    }
+    
+    // Clean up function for the AbortController
+    return () => {
+      controller.abort();
     }
     
     // Clean up function for the AbortController
