@@ -6,14 +6,18 @@ import { config } from "dotenv";
 // Load environment variables
 config({ path: ".env" });
 
-// Check for DATABASE_URL and assert its type
-const databaseUrl = process.env.DATABASE_URL as string | undefined;
+// Check for database URL
+// Use POSTGRES_URL as fallback if DATABASE_URL is not defined
+const databaseUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL is not defined in environment variables");
+  throw new Error("No database URL defined in environment variables (POSTGRES_URL or DATABASE_URL)");
 }
 
+// Explicitly cast to string for TypeScript
+const connectionString: string = databaseUrl;
+
 // Create the database connection
-const sql = neon(databaseUrl);
+const sql = neon(connectionString);
 const db = drizzle(sql);
 
 async function main() {

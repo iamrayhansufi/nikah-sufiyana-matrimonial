@@ -83,14 +83,21 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const userData = validation.data;    // Check if user already exists - with robust error handling    
+    const userData = validation.data;
+
+    // Check if user already exists - with robust error handling    
     try {
-      // Import database direct from index.ts for consistent connections
-      const { sqlClient } = await import('@/src/db');
+      // Import the function that creates fresh connections
+      const { getSqlClient } = await import('@/src/db');
+      
+      // Create a fresh SQL client for each query
+      const sqlClient = getSqlClient();
       
       // Use simple SQL queries for checking existing users
       // Added more robust error handling for debugging
       try {
+        console.log("Checking if email already exists:", userData.email);
+        
         // Check if email exists
         const emailCheckResult = await sqlClient`SELECT id FROM users WHERE email = ${userData.email}`;
         console.log("Email check result:", JSON.stringify(emailCheckResult));
@@ -103,12 +110,18 @@ export async function POST(request: NextRequest) {
         }
       } catch (emailErr) {
         console.error("Email check error:", emailErr);
+        console.error("Email error details:", JSON.stringify(emailErr, null, 2));
         throw emailErr; // Re-throw to be handled by outer catch
       }
       
+      // Create another fresh client for the phone check
+      const sqlClient2 = getSqlClient();
+      
       // Check if phone exists 
       try {
-        const phoneCheckResult = await sqlClient`SELECT id FROM users WHERE phone = ${userData.phone}`;
+        console.log("Checking if phone already exists:", userData.phone);
+        
+        const phoneCheckResult = await sqlClient2`SELECT id FROM users WHERE phone = ${userData.phone}`;
         console.log("Phone check result:", JSON.stringify(phoneCheckResult));
         
         if (Array.isArray(phoneCheckResult) && phoneCheckResult.length > 0) {
@@ -119,6 +132,7 @@ export async function POST(request: NextRequest) {
         }
       } catch (phoneErr) {
         console.error("Phone check error:", phoneErr);
+        console.error("Phone error details:", JSON.stringify(phoneErr, null, 2));
         throw phoneErr; // Re-throw to be handled by outer catch
       }
     } catch (dbError) {
@@ -180,20 +194,18 @@ export async function POST(request: NextRequest) {
         ...userInsertData,
         password: "[REDACTED]" // Don't log the password
       });
-        // Create user record using raw SQL client for consistency
+      
+      // Create user record using fresh connections for each operation
       try {
-        const { sqlClient } = await import('@/src/db');
+        // Import the function that creates fresh connections
+        const { getSqlClient } = await import('@/src/db');
+        const insertClient = getSqlClient();
         
         // Log the insert operation for debugging
-        console.log("Attempting to insert user with data:", {
-          fullName: userInsertData.fullName,
-          email: userInsertData.email, 
-          phone: userInsertData.phone,
-          // Other fields omitted for log readability
-        });
+        console.log("Attempting to insert user with email:", userInsertData.email);
         
         // Use a simpler insertion with minimal required fields to reduce chance of errors
-        await sqlClient`
+        await insertClient`
           INSERT INTO users (
             full_name, email, phone, password, gender, age, country, city, 
             location, education, sect, profile_status
@@ -219,7 +231,8 @@ export async function POST(request: NextRequest) {
         // Now update with optional fields in a separate query
         // This two-step approach helps isolate potential schema issues
         try {
-          await sqlClient`
+          const updateClient = getSqlClient();
+          await updateClient`
             UPDATE users 
             SET 
               profession = ${userInsertData.profession},
