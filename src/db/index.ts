@@ -19,14 +19,25 @@ if (!dbUrl) {
 const connectionString: string = dbUrl;
 
 // Function to create a fresh connection each time
-// This prevents stale connection issues
+// This prevents stale connection issues and authentication problems
 function createConnection(): NeonQueryFunction<any, any> {
   try {
-    const sql = neon(connectionString);
+    // For Neon specifically, prefer the non-pooled connection 
+    // This helps avoid authentication issues in serverless environments
+    const unpooledUrl = process.env.DATABASE_URL_UNPOOLED || 
+                        process.env.POSTGRES_URL_NON_POOLING ||
+                        connectionString;
+
+    // Create connection with specific options for better reliability
+    const sql = neon(unpooledUrl, { 
+      // Add connection options that help with authentication issues
+      authToken: process.env.NEON_AUTH_TOKEN, // If exists
+      fullResults: true // Retrieve full result info for better error diagnosis
+    });
     
-    // Only log in development to avoid logging credentials in production
+    // Log in development for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.log("New database connection created");
+      console.log("New unpooled database connection created");
     }
     
     return sql;

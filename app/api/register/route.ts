@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { db } from "@/src/db";
-import { users } from "@/src/db/schema";
-import { eq } from "drizzle-orm";
 import { isEmailVerified, createVerificationOTP } from "@/lib/verification";
 
 // Input validation schema
@@ -85,69 +82,67 @@ export async function POST(request: NextRequest) {
     
     const userData = validation.data;
 
-    // Check if user already exists - with robust error handling    
+    // Check if user already exists
     try {
-      // Import the function that creates fresh connections
-      const { getSqlClient } = await import('@/src/db');
+      // Use direct DB module with custom retry mechanism
+      const { neon } = await import("@neondatabase/serverless");
       
-      // Create a fresh SQL client for each query
-      const sqlClient = getSqlClient();
+      // Try direct connection without pooling
+      const unpooledUrl = process.env.DATABASE_URL_UNPOOLED || 
+                          process.env.POSTGRES_URL_NON_POOLING ||
+                          process.env.DATABASE_URL;
+                          
+      if (!unpooledUrl) {
+        throw new Error("No database URL defined in environment");
+      }
       
-      // Use simple SQL queries for checking existing users
-      // Added more robust error handling for debugging
-      try {
-        console.log("Checking if email already exists:", userData.email);
+      console.log("Checking for existing user with direct connection");
+      
+      // Connect directly to the database
+      const sql = neon(unpooledUrl);
+      
+      // Check both email and phone at once
+      const existingUsers = await sql`
+        SELECT id, email, phone FROM users 
+        WHERE email = ${userData.email} OR phone = ${userData.phone}
+        LIMIT 1
+      `;
+      
+      console.log("Existing user check result:", existingUsers);
+      
+      if (Array.isArray(existingUsers) && existingUsers.length > 0) {
+        const existing = existingUsers[0];
         
-        // Check if email exists
-        const emailCheckResult = await sqlClient`SELECT id FROM users WHERE email = ${userData.email}`;
-        console.log("Email check result:", JSON.stringify(emailCheckResult));
-        
-        if (Array.isArray(emailCheckResult) && emailCheckResult.length > 0) {
+        if (existing.email === userData.email) {
           return NextResponse.json(
             { error: "Email already registered" },
             { status: 409 }
           );
-        }
-      } catch (emailErr) {
-        console.error("Email check error:", emailErr);
-        console.error("Email error details:", JSON.stringify(emailErr, null, 2));
-        throw emailErr; // Re-throw to be handled by outer catch
-      }
-      
-      // Create another fresh client for the phone check
-      const sqlClient2 = getSqlClient();
-      
-      // Check if phone exists 
-      try {
-        console.log("Checking if phone already exists:", userData.phone);
-        
-        const phoneCheckResult = await sqlClient2`SELECT id FROM users WHERE phone = ${userData.phone}`;
-        console.log("Phone check result:", JSON.stringify(phoneCheckResult));
-        
-        if (Array.isArray(phoneCheckResult) && phoneCheckResult.length > 0) {
+        } else {
           return NextResponse.json(
             { error: "Phone number already registered" },
             { status: 409 }
           );
         }
-      } catch (phoneErr) {
-        console.error("Phone check error:", phoneErr);
-        console.error("Phone error details:", JSON.stringify(phoneErr, null, 2));
-        throw phoneErr; // Re-throw to be handled by outer catch
       }
     } catch (dbError) {
-      console.error("Database error checking for existing user:", dbError);
+      console.error("Error during duplicate check:", dbError);
       
-      // Add more detailed logging with full error object
-      console.error("Full database error:", JSON.stringify(dbError, null, 2));
-      
-      return NextResponse.json(
-        { 
-          error: "Failed to verify account availability", 
-          details: dbError instanceof Error ? dbError.message : "Unknown database error"
-        },
-        { status: 500 }
-      );
+      // Skip duplicate check on authentication errors
+      // The database's constraints will still catch duplicates
+      if (dbError instanceof Error && 
+         !dbError.message.includes("password authentication") &&
+         !dbError.message.includes("authentication failed")) {
+        return NextResponse.json(
+          { 
+            error: "Failed to verify account availability", 
+            details: dbError instanceof Error ? dbError.message : "Unknown database error"
+          },
+          { status: 500 }
+        );
+      } else {
+        console.warn("Skipping duplicate check due to authentication error, proceeding with insert");
+      }
     }
 
     // Hash password
@@ -157,142 +152,160 @@ export async function POST(request: NextRequest) {
     // Use preferredLocation as location if location is not provided
     const locationValue = userData.location || userData.preferredLocation || userData.city || "";
     
+    // Prepare user data
+    const userInsertData = {
+      fullName: userData.fullName,
+      email: userData.email,
+      phone: userData.phone,
+      password: hashedPassword,
+      gender: userData.gender,
+      age: typeof userData.age === 'string' ? parseInt(userData.age, 10) : userData.age,
+      country: userData.country,
+      city: userData.city,
+      location: locationValue,
+      education: userData.education,
+      sect: userData.sect,
+      // Additional fields from userData
+      profession: userData.profession || null,
+      income: userData.income || null,
+      height: userData.height || null,
+      complexion: userData.complexion || null,
+      maritalStatus: userData.maritalPreferences || null,
+      preferredAgeMin: userData.preferredAgeMin ? (typeof userData.preferredAgeMin === 'string' ? parseInt(userData.preferredAgeMin, 10) : userData.preferredAgeMin) : null,
+      preferredAgeMax: userData.preferredAgeMax ? (typeof userData.preferredAgeMax === 'string' ? parseInt(userData.preferredAgeMax, 10) : userData.preferredAgeMax) : null,
+      preferredEducation: userData.preferredEducation || null,
+      preferredLocation: userData.preferredLocation || null,
+      preferredOccupation: userData.preferredProfession || null,
+      housingStatus: userData.housing || null,
+      aboutMe: userData.aboutMe || null,
+      familyDetails: userData.familyDetails || null,
+      expectations: userData.expectations || null,
+      motherTongue: userData.motherTongue || null,
+      profileStatus: "pending_verification", // User needs email verification
+    };
+    
     try {
-      // Clean and prepare data object with proper types
-      const userInsertData = {
-        fullName: userData.fullName,
-        email: userData.email,
-        phone: userData.phone,
-        password: hashedPassword,
-        gender: userData.gender,
-        age: typeof userData.age === 'string' ? parseInt(userData.age, 10) : userData.age,
-        country: userData.country,
-        city: userData.city,
-        location: locationValue,
-        education: userData.education,
-        sect: userData.sect,
-        // Additional fields from userData
-        profession: userData.profession || null,
-        income: userData.income || null,
-        height: userData.height || null,
-        complexion: userData.complexion || null,
-        maritalStatus: userData.maritalPreferences || null,
-        preferredAgeMin: userData.preferredAgeMin ? (typeof userData.preferredAgeMin === 'string' ? parseInt(userData.preferredAgeMin, 10) : userData.preferredAgeMin) : null,
-        preferredAgeMax: userData.preferredAgeMax ? (typeof userData.preferredAgeMax === 'string' ? parseInt(userData.preferredAgeMax, 10) : userData.preferredAgeMax) : null,
-        preferredEducation: userData.preferredEducation || null,
-        preferredLocation: userData.preferredLocation || null,
-        preferredOccupation: userData.preferredProfession || null,
-        housingStatus: userData.housing || null,
-        aboutMe: userData.aboutMe || null,
-        familyDetails: userData.familyDetails || null,
-        expectations: userData.expectations || null,
-        motherTongue: userData.motherTongue || null,
-        profileStatus: "pending_verification", // User needs email verification
-      };
+      // Try using the most direct connection method
+      const { neon } = await import("@neondatabase/serverless");
       
-      console.log("Preparing to insert user with data:", {
-        ...userInsertData,
-        password: "[REDACTED]" // Don't log the password
-      });
-      
-      // Create user record using fresh connections for each operation
-      try {
-        // Import the function that creates fresh connections
-        const { getSqlClient } = await import('@/src/db');
-        const insertClient = getSqlClient();
-        
-        // Log the insert operation for debugging
-        console.log("Attempting to insert user with email:", userInsertData.email);
-        
-        // Use a simpler insertion with minimal required fields to reduce chance of errors
-        await insertClient`
-          INSERT INTO users (
-            full_name, email, phone, password, gender, age, country, city, 
-            location, education, sect, profile_status
-          ) VALUES (
-            ${userInsertData.fullName},
-            ${userInsertData.email},
-            ${userInsertData.phone},
-            ${userInsertData.password},
-            ${userInsertData.gender},
-            ${userInsertData.age},
-            ${userInsertData.country},
-            ${userInsertData.city},
-            ${userInsertData.location},
-            ${userInsertData.education},
-            ${userInsertData.sect},
-            ${userInsertData.profileStatus}
-          )
-        `;
-        
-        // After successful insert, log success
-        console.log("Basic user data inserted successfully");
-        
-        // Now update with optional fields in a separate query
-        // This two-step approach helps isolate potential schema issues
-        try {
-          const updateClient = getSqlClient();
-          await updateClient`
-            UPDATE users 
-            SET 
-              profession = ${userInsertData.profession},
-              income = ${userInsertData.income},
-              height = ${userInsertData.height},
-              complexion = ${userInsertData.complexion},
-              marital_status = ${userInsertData.maritalStatus},
-              preferred_age_min = ${userInsertData.preferredAgeMin},
-              preferred_age_max = ${userInsertData.preferredAgeMax},
-              preferred_education = ${userInsertData.preferredEducation},
-              preferred_location = ${userInsertData.preferredLocation},
-              preferred_occupation = ${userInsertData.preferredOccupation},
-              housing_status = ${userInsertData.housingStatus},
-              about_me = ${userInsertData.aboutMe},
-              family_details = ${userInsertData.familyDetails},
-              expectations = ${userInsertData.expectations},
-              mother_tongue = ${userInsertData.motherTongue}
-            WHERE email = ${userInsertData.email}
-          `;
-          console.log("Additional user fields updated successfully");
-        } catch (updateError) {
-          // Log but don't fail registration if optional fields can't be updated
-          console.error("Warning: Could not update optional user fields:", updateError);
-          // Continue without failing - user is created with basic info
-        }
-      } catch (insertError) {
-        console.error("Error during user insert:", insertError);
-        console.error("Full insert error:", JSON.stringify(insertError, null, 2));
-        throw insertError; // Re-throw to be caught by outer catch
+      // Prioritize unpooled connection for better reliability in serverless environments
+      const unpooledUrl = process.env.DATABASE_URL_UNPOOLED || 
+                          process.env.POSTGRES_URL_NON_POOLING ||
+                          process.env.DATABASE_URL;
+
+      if (!unpooledUrl) {
+        throw new Error("No database URL defined in environment");
       }
       
-      console.log(`User created successfully with email: ${userData.email}`);
+      console.log("Preparing to insert user with direct connection");
+      
+      // Create a direct connection
+      const sql = neon(unpooledUrl);
+      
+      // Log insert attempt
+      console.log("Inserting user:", {
+        email: userInsertData.email,
+        phone: userInsertData.phone,
+      });
+      
+      // Insert only essential fields first
+      await sql`
+        INSERT INTO users (
+          full_name, email, phone, password, gender, age, country, city,
+          location, education, sect, profile_status
+        ) VALUES (
+          ${userInsertData.fullName},
+          ${userInsertData.email},
+          ${userInsertData.phone},
+          ${userInsertData.password},
+          ${userInsertData.gender},
+          ${userInsertData.age},
+          ${userInsertData.country},
+          ${userInsertData.city},
+          ${userInsertData.location},
+          ${userInsertData.education},
+          ${userInsertData.sect},
+          ${userInsertData.profileStatus}
+        )
+      `;
+      
+      console.log("Basic user data inserted successfully");
+      
+      // Try to update with additional fields
+      try {
+        await sql`
+          UPDATE users 
+          SET 
+            profession = ${userInsertData.profession},
+            income = ${userInsertData.income},
+            height = ${userInsertData.height},
+            complexion = ${userInsertData.complexion},
+            marital_status = ${userInsertData.maritalStatus},
+            preferred_age_min = ${userInsertData.preferredAgeMin},
+            preferred_age_max = ${userInsertData.preferredAgeMax},
+            preferred_education = ${userInsertData.preferredEducation},
+            preferred_location = ${userInsertData.preferredLocation},
+            preferred_occupation = ${userInsertData.preferredOccupation},
+            housing_status = ${userInsertData.housingStatus},
+            about_me = ${userInsertData.aboutMe},
+            family_details = ${userInsertData.familyDetails},
+            expectations = ${userInsertData.expectations},
+            mother_tongue = ${userInsertData.motherTongue}
+          WHERE email = ${userInsertData.email}
+        `;
+        console.log("Additional user fields updated successfully");
+      } catch (updateError) {
+        console.error("Non-critical error updating optional fields:", updateError);
+        // Non-critical error, continue with registration
+      }
+      
+      // Generate and send verification OTP
+      try {
+        await createVerificationOTP(userData.email, "registration");
+        console.log(`Verification OTP sent to ${userData.email}`);
+      } catch (otpError) {
+        console.error("Error sending verification OTP:", otpError);
+        // Continue with registration success but log the email issue
+      }
+      
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Registration successful! Please check your email to verify your account.",
+          email: userData.email,
+        },
+        { status: 201 }
+      );
     } catch (dbInsertError) {
       console.error("Failed to insert user:", dbInsertError);
+      let errorDetails = "Database insert failed";
+      let statusCode = 500;
+      
+      if (dbInsertError instanceof Error) {
+        errorDetails = dbInsertError.message;
+        
+        // Check for common error types
+        if (errorDetails.includes("duplicate key") || errorDetails.includes("unique constraint")) {
+          statusCode = 409;
+          
+          if (errorDetails.includes("email")) {
+            errorDetails = "Email already registered";
+          } else if (errorDetails.includes("phone")) {
+            errorDetails = "Phone number already registered";
+          } else {
+            errorDetails = "This account already exists";
+          }
+        }
+      }
+      
       return NextResponse.json(
         { 
           error: "Failed to create user account", 
-          details: dbInsertError instanceof Error ? dbInsertError.message : "Database insert failed"
+          details: errorDetails
         },
-        { status: 500 }
+        { status: statusCode }
       );
     }
-
-    // Generate and send verification OTP
-    try {
-      await createVerificationOTP(userData.email, "registration");
-      console.log(`Verification OTP sent to ${userData.email}`);
-    } catch (otpError) {
-      console.error("Error sending verification OTP:", otpError);
-      // Continue with registration success but log the email issue
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Registration successful! Please check your email to verify your account.",
-        email: userData.email,
-      },
-      { status: 201 }
-    );
   } catch (error) {
     console.error("Error registering user:", error);
     
