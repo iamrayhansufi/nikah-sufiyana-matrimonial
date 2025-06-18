@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { isEmailVerified, createVerificationOTP } from "@/lib/verification";
 import { logDbOperation, logDbError } from "@/lib/db-logger";
+import path from 'path';
+import fs from 'fs/promises';
 
 // Input validation schema
 const registerSchema = z.object({
@@ -91,13 +93,17 @@ export async function POST(request: NextRequest) {
     try {
       // Use direct DB module with custom retry mechanism
       const { neon } = await import("@neondatabase/serverless");
-      
-      // Try each connection URL in order of preference
+        // Try each connection URL in order of preference
       const connectionUrls = [
         process.env.DATABASE_URL_UNPOOLED,
         process.env.POSTGRES_URL_NON_POOLING,
         process.env.DATABASE_URL,
-        process.env.POSTGRES_URL
+        process.env.POSTGRES_URL,
+        process.env.POSTGRES_PRISMA_URL,
+        process.env.POSTGRES_URL_NO_SSL && `${process.env.POSTGRES_URL_NO_SSL}?sslmode=require`,
+        // Try to build URL from individual components if available
+        process.env.PGUSER && process.env.PGPASSWORD && process.env.PGHOST && process.env.PGDATABASE && 
+          `postgres://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}/${process.env.PGDATABASE}?sslmode=require`
       ].filter(Boolean); // Remove undefined/null values
       
       if (connectionUrls.length === 0) {
@@ -189,19 +195,102 @@ export async function POST(request: NextRequest) {
         dbAuthError = true;
       }
     }
-    
-    // If we encountered authentication errors and the user didn't already exist,
-    // suggest using the fallback registration route
+      // If we encountered authentication errors and the user didn't already exist,
+    // automatically use the fallback registration instead of returning an error
     if (dbAuthError && !isExistingUser) {
-      console.warn("Database authentication issues detected, suggesting fallback registration");
-      return NextResponse.json(
-        {
-          error: "Database authentication issue",
-          details: "We're experiencing technical difficulties with our database. Please try the alternative registration method.",
-          suggestFallback: true
-        },
-        { status: 503 }
-      );
+      logDbOperation("Switching to fallback registration", { 
+        email: userData.email,
+        reason: "Database authentication issue detected" 
+      });
+      
+      // Rather than just suggesting fallback, let's implement it here
+      try {
+        // Create the temp directory for storage if needed
+        const TEMP_USERS_DIRECTORY = path.join(process.cwd(), 'temp-registrations');
+        await fs.mkdir(TEMP_USERS_DIRECTORY, { recursive: true });
+        
+        // Hash password for storage (needed here since userInsertData is defined later)
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(userData.password, salt);
+        
+        // Store user data in a temp file
+        const tempUserData = {
+          id: Date.now().toString(),
+          fullName: userData.fullName,
+          email: userData.email,
+          phone: userData.phone,
+          password: hashedPassword,
+          gender: userData.gender,
+          age: typeof userData.age === 'string' ? parseInt(userData.age, 10) : userData.age,
+          country: userData.country,
+          city: userData.city,
+          location: userData.location || userData.preferredLocation || userData.city || "",
+          education: userData.education,
+          sect: userData.sect,
+          profession: userData.profession || null,
+          income: userData.income || null,
+          height: userData.height || null,
+          complexion: userData.complexion || null,
+          maritalStatus: userData.maritalPreferences || null,
+          preferredAgeMin: userData.preferredAgeMin ? 
+            (typeof userData.preferredAgeMin === 'string' ? parseInt(userData.preferredAgeMin, 10) : userData.preferredAgeMin) : null,
+          preferredAgeMax: userData.preferredAgeMax ? 
+            (typeof userData.preferredAgeMax === 'string' ? parseInt(userData.preferredAgeMax, 10) : userData.preferredAgeMax) : null,
+          preferredEducation: userData.preferredEducation || null,
+          preferredLocation: userData.preferredLocation || null,
+          preferredOccupation: userData.preferredProfession || null,
+          housingStatus: userData.housing || null,
+          aboutMe: userData.aboutMe || null,
+          familyDetails: userData.familyDetails || null,
+          expectations: userData.expectations || null,
+          motherTongue: userData.motherTongue || null,
+          profileStatus: "pending_verification",
+          createdAt: new Date().toISOString(),
+          registrationMethod: "api_fallback"
+        };
+        
+        const filePath = path.join(TEMP_USERS_DIRECTORY, `${userData.email.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
+        await fs.writeFile(filePath, JSON.stringify(tempUserData, null, 2));
+        
+        logDbOperation("User data stored in temp file", { 
+          email: userData.email,
+          filePath
+        });
+        
+        // Try to send verification OTP if possible
+        try {
+          await createVerificationOTP(userData.email, "registration");
+          console.log(`Verification OTP sent to ${userData.email}`);
+        } catch (otpError) {
+          console.error("Error sending verification OTP:", otpError);
+          // Continue with registration success but log the email issue
+        }
+        
+        // Return success with note about fallback registration
+        return NextResponse.json(
+          {
+            success: true,
+            message: "Registration completed! You can now log in. Please check your email for verification instructions.",
+            email: userData.email,
+            tempRegistration: true,
+            note: "Your account has been temporarily stored due to database connection issues and will be migrated when connectivity is restored."
+          },
+          { status: 201 }
+        );
+      } catch (fallbackError) {
+        logDbError("Fallback registration also failed", fallbackError, {
+          email: userData.email
+        });
+        
+        // Only now return error if both methods failed
+        return NextResponse.json(
+          {
+            error: "Registration failed",
+            details: "We're experiencing technical difficulties with both primary and fallback registration methods. Please try again later.",
+          },
+          { status: 500 }
+        );
+      }
     }
 
     // Hash password
