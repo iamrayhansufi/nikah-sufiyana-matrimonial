@@ -173,10 +173,10 @@ export default function EditProfilePage() {
     income: "",
     jobTitle: ""
   })
-    const [familyForm, setFamilyForm] = useState<FamilyInfoForm>({
+  const [familyForm, setFamilyForm] = useState<FamilyInfoForm>({
     familyDetails: "",
     fatherName: "",
-    fatherOccupation: "",
+    fatherOccupation: "Not specified",
     motherName: "",
     motherOccupation: "Home Queen",
     motherOccupationOther: "",
@@ -338,10 +338,9 @@ export default function EditProfilePage() {
           }
           
           setFamilyForm({
-            familyDetails: data.familyDetails || "",
-            fatherName: data.fatherName || "",
-            fatherOccupation: data.fatherOccupation || "",
-            motherName: data.motherName || "",
+            familyDetails: data.familyDetails || "",        fatherName: data.fatherName || "",
+        fatherOccupation: data.fatherOccupation || "Not specified",
+        motherName: data.motherName || "",
             motherOccupation: data.motherOccupation || "Home Queen",
             motherOccupationOther: data.motherOccupation !== "Home Queen" && data.motherOccupation !== "" ? data.motherOccupation : "",
             siblings: siblingsArray || [],
@@ -530,7 +529,9 @@ export default function EditProfilePage() {
           // Always include arrays even if empty to ensure proper updating
           // Make sure we send a properly formatted array
           if (Array.isArray(value)) {
-            acc[key] = value;          } else if (typeof value === 'string') {
+            acc[key] = value;
+            console.log(`${key} is array with ${value.length} items:`, JSON.stringify(value));
+          } else if (typeof value === 'string') {
             try {
               // Try to parse if it's a JSON string
               acc[key] = value && value.charAt(0) === '[' ? JSON.parse(value) : [];
@@ -546,11 +547,10 @@ export default function EditProfilePage() {
           if (key === "siblings") {
             console.log(`${key} data being sent (${typeof acc[key]}, length: ${Array.isArray(acc[key]) ? acc[key].length : 'not array'}):`);
             console.log(JSON.stringify(acc[key]));
-          }
-        }// Handle fatherOccupation specifically to ensure it saves properly
+          }        }// Handle fatherOccupation specifically to ensure it saves properly
         else if (key === "fatherOccupation") {
-          // Always include fatherOccupation in the update, even if it's empty or null
-          acc[key] = value === null || value === undefined ? '' : String(value);
+          // Always include fatherOccupation in the update, if empty set to "Not specified"
+          acc[key] = value === null || value === undefined || value === "" ? 'Not specified' : String(value);
           console.log(`fatherOccupation being sent: '${acc[key]}'`);
         }
         // For other fields, only include if they're not empty
@@ -711,12 +711,11 @@ export default function EditProfilePage() {
         profession: data.profession || "",
         income: data.income || "",
         jobTitle: data.jobTitle || ""
-      });
-        // Family form data
+      });        // Family form data
       setFamilyForm({
         familyDetails: data.familyDetails || "",
         fatherName: data.fatherName || "",
-        fatherOccupation: data.fatherOccupation || "",
+        fatherOccupation: data.fatherOccupation || "Not specified",
         motherName: data.motherName || "",
         motherOccupation: data.motherOccupation || "Home Queen",
         motherOccupationOther: data.motherOccupation !== "Home Queen" && data.motherOccupation !== "" ? data.motherOccupation : "",
@@ -961,8 +960,7 @@ export default function EditProfilePage() {
       setSavingTab(null)
     }
   }
-  
-  // Handle multiple photo uploads
+    // Handle multiple photo uploads
   const handleMultiplePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
@@ -994,91 +992,45 @@ export default function EditProfilePage() {
       return;
     }
     
-    const formData = new FormData();
-    filesArray.forEach(file => {
-      formData.append('photos', file); // Using 'photos' as the key to match the API
+    // For now, show a message that this feature is being updated
+    toast({
+      title: "Feature Update",
+      description: "Multiple photo upload is currently being updated. Please use the main profile photo upload for now.",
+      variant: "default"
     });
     
-    try {
-      setSavingTab('photos')
+    // TODO: Implement multiple photo upload once database migration is complete
+    // const formData = new FormData();
+    // filesArray.forEach(file => {
+    //   formData.append('photos', file);
+    // });
+    
+    // setSavingTab('photos')
+    
+    // try {
+    //   if (session?.user?.id) {
+    //     formData.append('userId', session.user.id);
+    //   }
       
-      // Add user ID to request
-      if (session?.user?.id) {
-        formData.append('userId', session.user.id);
-      }
+    //   const response = await fetch('/api/profiles/upload-photos', {
+    //     method: 'POST',
+    //     body: formData,
+    //     headers: {
+    //       'Cache-Control': 'no-cache'
+    //     }
+    //   })
       
-      console.log("Sending multiple photo upload request...");
-        const response = await fetch('/api/profiles/upload-photos', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      })
-      
-      let responseData;
-      try {
-        // Check if there's actually content before trying to parse
-        const text = await response.text();
-        if (!text) {
-          console.error("Empty response from server");
-          throw new Error("Server returned an empty response");
-        }
-          try {
-          responseData = JSON.parse(text);
-          console.log("Successfully parsed response JSON for multiple photos");
-        } catch (jsonError) {
-          console.error("Error parsing JSON response:", jsonError, "Response text:", text);
-          throw new Error(`Failed to parse JSON response: ${jsonError instanceof Error ? jsonError.message : 'Unknown JSON parsing error'}`);
-        }
-      } catch (parseError) {
-        console.error("Error processing response:", parseError);
-        throw new Error(`Failed to process server response: ${parseError instanceof Error ? parseError.message : 'Unknown processing error'}`);
-      }
-      
-      if (!response.ok) {
-        console.error("Upload failed with response:", responseData);
-        throw new Error(responseData?.error || 'Failed to upload profile photos')
-      }
-        console.log("Upload successful:", responseData);
-      
-      // Check if the response has the expected structure
-      if (!responseData || !responseData.urls || !Array.isArray(responseData.urls)) {
-        console.error("Invalid response structure:", responseData);
-        throw new Error("Server response doesn't contain photo URLs in the expected format");
-      }
-        
-      // Update the profile data with the new photo URLs
-      const newPhotoUrls = responseData.urls.map((url: string) => `${url}?t=${new Date().getTime()}`);
-      console.log("Setting new photo URLs:", newPhotoUrls);
-      
-      // Safely update the profile data
-      setProfileData((prev: any) => {
-        const currentPhotos = Array.isArray(prev.profilePhotos) ? prev.profilePhotos : [];
-        return {
-          ...prev,
-          profilePhotos: [...currentPhotos, ...newPhotoUrls]
-        };
-      });
-      
-      // Optionally, you can refetch the profile or update the state to reflect the new photos
-      await refetchProfile();
-      
-      toast({
-        title: "Photos Updated",
-        description: "Your profile photos have been successfully uploaded and saved",
-        variant: "default"
-      })
-    } catch (error) {
-      console.error("Multiple photo upload error:", error)
-      toast({
-        title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Failed to upload your photos. Please try again with smaller images (less than 15MB in total).",
-        variant: "destructive"
-      })
-    } finally {
-      setSavingTab(null)
-    }
+    //   // Handle response...
+    // } catch (error) {
+    //   console.error("Multiple photo upload error:", error)
+    //   toast({
+    //     title: "Upload Failed",
+    //     description: "Failed to upload photos. Please try again.",
+    //     variant: "destructive"
+    //   })
+    // } finally {
+    //   setSavingTab(null)
+    // }
   }
   
   if (loading) {
@@ -1309,21 +1261,39 @@ export default function EditProfilePage() {
                       >
                         <SelectTrigger className={basicForm.sect ? "border-green-200" : ""}>
                           <SelectValue placeholder="Select Maslak" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="sunni">Sunni</SelectItem>
-                          <SelectItem value="ahl-e-hadees">Ahl-E-Hadees</SelectItem>
+                        </SelectTrigger>                        <SelectContent>
                           <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
-                          <SelectItem value="deobandi">Deobandi</SelectItem>
-                          <SelectItem value="shia">Shia</SelectItem>
+                          <SelectItem value="deobandi">Sunni - Deobandi</SelectItem>
+                          <SelectItem value="ahl-e-hadees">Ahl-E-Hadees</SelectItem>
                           <SelectItem value="revert">Revert Muslim</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                           <SelectItem value="no-preference">No Preference</SelectItem>
                         </SelectContent>
                       </Select>
+                    </FormField>                    
+                    {/* 8. Address */}
+                    <FormField label="Address" filled={!!basicForm.address}>
+                      <Input 
+                        id="address"
+                        value={basicForm.address}
+                        onChange={(e) => handleBasicChange('address', e.target.value)}
+                        placeholder="Your complete address"
+                        className={basicForm.address ? "border-green-200 focus:border-green-300" : ""}
+                      />
                     </FormField>
                     
-                    {/* 8. Country */}
+                    {/* 9. City */}
+                    <FormField label="City" filled={!!basicForm.city}>
+                      <Input 
+                        id="city"
+                        value={basicForm.city}
+                        onChange={(e) => handleBasicChange('city', e.target.value)}
+                        placeholder="Your city"
+                        className={basicForm.city ? "border-green-200 focus:border-green-300" : ""}
+                      />
+                    </FormField>
+                    
+                    {/* 10. Country */}
                     <FormField label="Country" filled={!!basicForm.country}>
                       <Select 
                         value={basicForm.country} 
@@ -1355,28 +1325,6 @@ export default function EditProfilePage() {
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
-                    </FormField>
-                    
-                    {/* 9. City */}
-                    <FormField label="City" filled={!!basicForm.city}>
-                      <Input 
-                        id="city"
-                        value={basicForm.city}
-                        onChange={(e) => handleBasicChange('city', e.target.value)}
-                        placeholder="Your city"
-                        className={basicForm.city ? "border-green-200 focus:border-green-300" : ""}
-                      />
-                    </FormField>
-                    
-                    {/* 10. Address */}
-                    <FormField label="Address" filled={!!basicForm.address}>
-                      <Input 
-                        id="address"
-                        value={basicForm.address}
-                        onChange={(e) => handleBasicChange('address', e.target.value)}
-                        placeholder="Your complete address"
-                        className={basicForm.address ? "border-green-200 focus:border-green-300" : ""}
-                      />
                     </FormField>
                   </div>
                     <div className="space-y-2">
@@ -1509,18 +1457,16 @@ export default function EditProfilePage() {
                         className={familyForm.fatherName ? "border-green-200 focus:border-green-300" : ""}
                       />
                     </FormField>
-                    
-                    <FormField label="Father's Occupation" filled={!!familyForm.fatherOccupation}>
+                      <FormField label="Father's Occupation" filled={!!familyForm.fatherOccupation && familyForm.fatherOccupation !== "Not specified"}>
                       <Input 
                         id="fatherOccupation"
-                        value={familyForm.fatherOccupation || ""}
-                        onChange={(e) => handleFamilyChange('fatherOccupation', e.target.value)}
-                        placeholder="Father's occupation"
-                        className={familyForm.fatherOccupation ? "border-green-200 focus:border-green-300" : ""}
+                        value={familyForm.fatherOccupation === "Not specified" ? "" : familyForm.fatherOccupation}
+                        onChange={(e) => handleFamilyChange('fatherOccupation', e.target.value || "Not specified")}
+                        placeholder="Enter father's occupation"
+                        className={familyForm.fatherOccupation && familyForm.fatherOccupation !== "Not specified" ? "border-green-200 focus:border-green-300" : ""}
                       />
-                      {/* Changed to show the default value if empty */}
                       <p className="text-xs text-muted-foreground">
-                        {!familyForm.fatherOccupation ? 
+                        {!familyForm.fatherOccupation || familyForm.fatherOccupation === "Not specified" ? 
                           "Will display as \"Not Specified\" if left empty" : 
                           `Current value: ${familyForm.fatherOccupation}`}
                       </p>
@@ -1971,13 +1917,10 @@ export default function EditProfilePage() {
                     >
                       <SelectTrigger className={partnerForm.preferredMaslak ? "border-green-200" : ""}>
                         <SelectValue placeholder="Select preferred Maslak" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sunni">Sunni</SelectItem>
-                        <SelectItem value="ahl-e-hadees">Ahl-E-Hadees</SelectItem>
+                      </SelectTrigger>                      <SelectContent>
                         <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
-                        <SelectItem value="deobandi">Deobandi</SelectItem>
-                        <SelectItem value="shia">Shia</SelectItem>
+                        <SelectItem value="deobandi">Sunni - Deobandi</SelectItem>
+                        <SelectItem value="ahl-e-hadees">Ahl-E-Hadees</SelectItem>
                         <SelectItem value="revert">Revert Muslim</SelectItem>                        <SelectItem value="other">Other</SelectItem>
                         <SelectItem value="no-preference">No Preference</SelectItem>                      </SelectContent>
                     </Select>

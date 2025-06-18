@@ -50,6 +50,13 @@
       "when": 1750111010000,
       "tag": "0007_add_mother_mobile",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1750261059603,
+      "tag": "0008_simple_shooting_star",
+      "breakpoints": true
     }
   ]
 }
