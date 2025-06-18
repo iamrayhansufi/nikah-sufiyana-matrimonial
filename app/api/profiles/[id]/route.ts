@@ -115,8 +115,7 @@ export async function GET(
         { error: "Profile not found" },
         { status: 404 }
       );
-    }    
-    // Add formatted profile info for consistent display
+    }      // Add formatted profile info for consistent display
     const profileData = {
       ...profile[0],
       name: profile[0].fullName, // Add name field from fullName for consistency
@@ -134,7 +133,8 @@ export async function GET(
       // Default fields for display
       showContactInfo: false,
       showFullPhotos: false,
-      gallery: [],      prayerHabit: 'Not specified',
+      gallery: [],      
+      prayerHabit: 'Not specified',
       hijab: 'Not specified',
       quranReading: 'Not specified',
       islamicEducation: 'Not specified',
@@ -142,9 +142,11 @@ export async function GET(
       smoking: 'Not specified',
       drinking: 'Not specified',
       languages: ['Not specified'],
-      hobbies: ['Not specified'],      fatherOccupation: 'Not specified',
+      hobbies: ['Not specified'],      
+      fatherOccupation: 'Not specified',
       motherOccupation: 'Home Queen',
-      siblings: 'Not specified',familyType: 'Not specified',
+      siblings: profile[0].siblings || 'Not specified',
+      familyType: 'Not specified',
       // Log raw values for debugging
       height: (() => {
         console.log(`Raw DB height value: '${profile[0].height}'`);
@@ -160,7 +162,8 @@ export async function GET(
       preferredHeight: (() => {
         console.log(`Raw DB preferredHeight value: '${profile[0].preferredHeight}'`);
         return profile[0].preferredHeight || ''; // Use empty string instead of "Not specified"
-      })(),      preferredComplexion: (() => {
+      })(),      
+      preferredComplexion: (() => {
         console.log(`Raw DB preferredComplexion value: '${profile[0].preferredComplexion}'`);
         return profile[0].preferredComplexion || ''; // Use empty string instead of "Not specified"
       })(),
@@ -170,9 +173,13 @@ export async function GET(
     
     // Allow all profiles to be viewed regardless of status
     // Debug information
-    console.log(`Serving profile ${id}`);
+    console.log(`Serving profile ${id}:`, profileData);
     
-    return NextResponse.json(profileData);  } catch (error: unknown) {
+    // Return the data in a consistent format
+    return NextResponse.json({
+      success: true, 
+      profile: profileData
+    });} catch (error: unknown) {
     console.error("Get profile error:", error);
     
     // Return more detailed error information in development
