@@ -22,7 +22,29 @@ const registerSchema = z.object({
   preferredLocation: z.string().optional(),
   education: z.string().min(1, "Education is required"),
   sect: z.string().min(1, "Sect is required"),
-  // Add other required fields as needed
+  // Additional fields
+  countryCode: z.string().optional(),
+  profession: z.string().optional(),
+  income: z.string().optional(),
+  religion: z.string().optional(),
+  hijabNiqab: z.string().optional(),
+  beard: z.string().optional(),
+  height: z.string().optional(),
+  complexion: z.string().optional(),
+  maritalPreferences: z.string().optional(),
+  preferredAgeMin: z.string().optional().or(z.number().optional()),
+  preferredAgeMax: z.string().optional().or(z.number().optional()),
+  preferredEducation: z.string().optional(),
+  preferredProfession: z.string().optional(),
+  housing: z.string().optional(),
+  aboutMe: z.string().optional(),
+  familyDetails: z.string().optional(),
+  expectations: z.string().optional(),
+  termsAccepted: z.boolean().optional(),
+  privacyAccepted: z.boolean().optional(),
+  profileVisibility: z.string().optional(),
+  motherTongue: z.string().optional(),
+  // Add other fields as needed
 });
 
 export async function POST(request: NextRequest) {
@@ -102,8 +124,7 @@ export async function POST(request: NextRequest) {
     
     // Use preferredLocation as location if location is not provided
     const locationValue = userData.location || userData.preferredLocation || userData.city || "";
-    
-    try {
+      try {
       // Clean and prepare data object with proper types
       const userInsertData = {
         fullName: userData.fullName,
@@ -117,7 +138,22 @@ export async function POST(request: NextRequest) {
         location: locationValue,
         education: userData.education,
         sect: userData.sect,
-        // Add other fields from userData
+        // Additional fields from userData
+        profession: userData.profession || null,
+        income: userData.income || null,
+        height: userData.height || null,
+        complexion: userData.complexion || null,
+        maritalStatus: userData.maritalPreferences || null,
+        preferredAgeMin: userData.preferredAgeMin ? (typeof userData.preferredAgeMin === 'string' ? parseInt(userData.preferredAgeMin, 10) : userData.preferredAgeMin) : null,
+        preferredAgeMax: userData.preferredAgeMax ? (typeof userData.preferredAgeMax === 'string' ? parseInt(userData.preferredAgeMax, 10) : userData.preferredAgeMax) : null,
+        preferredEducation: userData.preferredEducation || null,
+        preferredLocation: userData.preferredLocation || null,
+        preferredOccupation: userData.preferredProfession || null,
+        housingStatus: userData.housing || null,
+        aboutMe: userData.aboutMe || null,
+        familyDetails: userData.familyDetails || null,
+        expectations: userData.expectations || null,
+        motherTongue: userData.motherTongue || null,
         profileStatus: "pending_verification", // User needs email verification
       };
       
@@ -126,10 +162,12 @@ export async function POST(request: NextRequest) {
         password: "[REDACTED]" // Don't log the password
       });
         // Create user record - with explicit error handling
-      const { sqlClient } = await import('@/src/db');
-      await sqlClient`
+      const { sqlClient } = await import('@/src/db');      await sqlClient`
         INSERT INTO users (
-          full_name, email, phone, password, gender, age, country, city, location, education, sect, profile_status
+          full_name, email, phone, password, gender, age, country, city, location, education, sect, 
+          profile_status, profession, income, height, complexion, marital_status, 
+          preferred_age_min, preferred_age_max, preferred_education, preferred_location, 
+          preferred_occupation, housing_status, about_me, family_details, expectations, mother_tongue
         ) VALUES (
           ${userInsertData.fullName},
           ${userInsertData.email},
@@ -142,7 +180,22 @@ export async function POST(request: NextRequest) {
           ${userInsertData.location},
           ${userInsertData.education},
           ${userInsertData.sect},
-          ${userInsertData.profileStatus}
+          ${userInsertData.profileStatus},
+          ${userInsertData.profession},
+          ${userInsertData.income},
+          ${userInsertData.height},
+          ${userInsertData.complexion},
+          ${userInsertData.maritalStatus},
+          ${userInsertData.preferredAgeMin},
+          ${userInsertData.preferredAgeMax},
+          ${userInsertData.preferredEducation},
+          ${userInsertData.preferredLocation},
+          ${userInsertData.preferredOccupation},
+          ${userInsertData.housingStatus},
+          ${userInsertData.aboutMe},
+          ${userInsertData.familyDetails},
+          ${userInsertData.expectations},
+          ${userInsertData.motherTongue}
         )
       `;
       
