@@ -131,8 +131,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
           
           setInterestSent(hasInterest);
           setInterestMutual(hasMutualInterest);
-        }
-      } catch (error) {
+        }      } catch (error: any) {
         console.error("Error checking interest status:", error);
       }
     }
@@ -196,8 +195,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
           description: data.message || "Something went wrong. Please try again.",
           variant: "destructive",
         });
-      }
-    } catch (error) {
+      }    } catch (error: any) {
       console.error("Error sending interest:", error);
       toast({
         title: "Error",
@@ -244,8 +242,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
             variant: "default",
           });
         }, 2000);
-      }
-    } catch (error) {
+      }    } catch (error: any) {
       console.error("Error requesting photo access:", error);
       toast({
         title: "Error",
