@@ -29,7 +29,7 @@ import {
   EyeOff,
 } from "lucide-react"
 import Link from "next/link"
-import { playfair } from "../../lib/fonts"
+import { playfair } from "@/lib/fonts"
 import { useSession, signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -119,8 +119,7 @@ export default function ProfilePage({
     // Redirect to login
     router.push('/login')
   }
-  
-  useEffect(() => {
+    useEffect(() => {
     const fetchProfile = async () => {
       if (!id) {
         setError("Invalid profile ID")
@@ -133,7 +132,11 @@ export default function ProfilePage({
       try {
         console.log(`Fetching profile with ID: ${id}`)
         
-        const res = await fetch(`/api/profiles/${id}`, {
+        // Add public=true flag in development mode to bypass auth requirement
+        const queryParam = process.env.NODE_ENV === 'development' ? '?public=true' : '';
+        console.log("Using query param:", queryParam);
+        
+        const res = await fetch(`/api/profiles/${id}${queryParam}`, {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
