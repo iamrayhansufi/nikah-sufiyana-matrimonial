@@ -177,12 +177,22 @@ export default function ProfilePage({
             // Check if mutual interest exists
             if (interestData.receivedInterests?.length > 0) {
               setInterestMutual(true)
-            }
+            }              // Determine if photo should be blurred based on privacy settings
+            // Photos should be blurred if:
+            // 1. User has set showPhotos to false (privacy setting)
+            // 2. AND there's no mutual interest (user hasn't been approved by the profile owner)
+            const hasApproval = interestData.receivedInterests?.some((interest: any) => 
+              interest.senderId.toString() === session?.user?.id?.toString() && interest.status === 'accepted'
+            );
+            const shouldBlurBasedOnPrivacy = !data.showPhotos && !hasApproval;
+            setShouldBlurPhoto(shouldBlurBasedOnPrivacy);
             
-            // Determine if photo should be blurred - for female profiles only when no mutual interest
-            if (data.gender === 'female' && !interestData.receivedInterests?.length) {
-              setShouldBlurPhoto(true)
-            }
+            console.log('Photo blur logic:', {
+              showPhotos: data.showPhotos,
+              hasApproval,
+              shouldBlurBasedOnPrivacy,
+              receivedInterests: interestData.receivedInterests?.length || 0
+            });
           }
           
           // Check if profile is shortlisted
@@ -437,14 +447,12 @@ export default function ProfilePage({
                               .join("")
                           : "U"}
                       </AvatarFallback>
-                    </Avatar>
-
-                    {/* Blur notice overlay for female profiles */}
+                    </Avatar>                    {/* Blur notice overlay for private photos */}
                     {shouldBlurPhoto && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
                         <EyeOff className="h-12 w-12 mb-2" />
-                        <p className="font-semibold text-lg mb-1">Photo Privacy Protection</p>
-                        <p className="text-sm mb-4">Send interest and wait for acceptance to view photos</p>
+                        <p className="font-semibold text-lg mb-1">Private Photos</p>
+                        <p className="text-sm mb-4">This member has protected their photos. Send interest to view clearly.</p>
                         {!isInterestSent && (
                           <Button 
                             variant="secondary" 
@@ -458,6 +466,7 @@ export default function ProfilePage({
                         {isInterestSent && (
                           <Button variant="secondary" disabled className="bg-white/80 text-black">
                             <Heart className="h-4 w-4 mr-2 text-red-500 fill-red-500" />
+                            Interest Sent
                             Interest Sent
                           </Button>
                         )}
@@ -977,53 +986,59 @@ export default function ProfilePage({
                   <Card>
                     <CardHeader>
                       <CardTitle>Photo Gallery</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {profile.showPhotos ? (
-                        <div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                            {/* Main Profile Photo */}
-                            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
-                              <img 
-                                src={profile.profilePhoto || "/placeholder.svg"} 
-                                alt={`${profile.name}'s profile photo`}
-                                className="w-full h-full object-cover"
-                              />
-                              <Badge className="absolute top-2 left-2 bg-primary">Main Photo</Badge>
-                            </div>
-                            
-                            {/* Additional Photos */}
-                            {profile.profilePhotos && profile.profilePhotos.length > 0 ? (
-                              safeJsonParse(profile.profilePhotos).map((photo: string, index: number) => (
-                                <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                                  <img 
-                                    src={photo} 
-                                    alt={`${profile.name}'s photo ${index + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                              ))
-                            ) : (
-                              <div className="col-span-full text-center">
-                                <p className="text-sm text-muted-foreground mt-4">
-                                  {profile.profilePhoto ? "No additional photos available" : "No photos available"}
-                                </p>
+                    </CardHeader>                    <CardContent>
+                      <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                          {/* Main Profile Photo */}
+                          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+                            <img 
+                              src={profile.profilePhoto || "/placeholder.svg"} 
+                              alt={`${profile.name}'s profile photo`}
+                              className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
+                            />
+                            <Badge className="absolute top-2 left-2 bg-primary">Main Photo</Badge>
+                            {shouldBlurPhoto && (
+                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
+                                <EyeOff className="h-8 w-8 mb-2" />
+                                <p className="text-xs">Send interest to view</p>
                               </div>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground text-center">
-                            Photos are visible to all members
-                          </p>
+                          
+                          {/* Additional Photos */}
+                          {profile.profilePhotos && profile.profilePhotos.length > 0 ? (
+                            safeJsonParse(profile.profilePhotos).map((photo: string, index: number) => (
+                              <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+                                <img 
+                                  src={photo} 
+                                  alt={`${profile.name}'s photo ${index + 1}`}
+                                  className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
+                                />
+                                {shouldBlurPhoto && (
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
+                                    <EyeOff className="h-8 w-8 mb-2" />
+                                    <p className="text-xs">Send interest to view</p>
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="col-span-full text-center">
+                              <p className="text-sm text-muted-foreground mt-4">
+                                {profile.profilePhoto ? "No additional photos available" : "No photos available"}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                      ) : (
-                        <div className="text-center py-6">
-                          <EyeOff className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="font-semibold mb-2">Photos are Private</h3>
-                          <p className="text-sm text-muted-foreground">
-                            This member has chosen to keep their photos private
-                          </p>
-                        </div>
-                      )}
+                        <p className="text-sm text-muted-foreground text-center">
+                          {profile.showPhotos ? 
+                            "Photos are visible to all members" : 
+                            shouldBlurPhoto ? 
+                              "Photos are protected - send interest and get approval to view clearly" :
+                              "Photos are visible to approved viewers"
+                          }
+                        </p>
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>

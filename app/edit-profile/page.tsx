@@ -173,10 +173,11 @@ export default function EditProfilePage() {
     income: "",
     jobTitle: ""
   })
+  
   const [familyForm, setFamilyForm] = useState<FamilyInfoForm>({
     familyDetails: "",
     fatherName: "",
-    fatherOccupation: "Not specified",
+    fatherOccupation: "",
     motherName: "",
     motherOccupation: "Home Queen",
     motherOccupationOther: "",
@@ -336,11 +337,11 @@ export default function EditProfilePage() {
             }          } catch (e) {
             console.warn("Could not parse maternal/paternal data:", e);
           }
-          
-          setFamilyForm({
-            familyDetails: data.familyDetails || "",        fatherName: data.fatherName || "",
-        fatherOccupation: data.fatherOccupation || "Not specified",
-        motherName: data.motherName || "",
+            setFamilyForm({
+            familyDetails: data.familyDetails || "",
+            fatherName: data.fatherName || "",
+            fatherOccupation: data.fatherOccupation || "",
+            motherName: data.motherName || "",
             motherOccupation: data.motherOccupation || "Home Queen",
             motherOccupationOther: data.motherOccupation !== "Home Queen" && data.motherOccupation !== "" ? data.motherOccupation : "",
             siblings: siblingsArray || [],
@@ -368,7 +369,9 @@ export default function EditProfilePage() {
             fatherMobile: data.fatherMobile || "",
             showMotherNumber: data.showMotherNumber !== undefined ? data.showMotherNumber : false,
             motherMobile: data.motherMobile || "",
-            mobileNumber: data.mobileNumber || ""
+            mobileNumber: data.mobileNumber || "",
+            profilePhotos: Array.isArray(data.profilePhotos) ? data.profilePhotos : 
+                          typeof data.profilePhotos === 'string' ? JSON.parse(data.profilePhotos || '[]') : []
           })
         }
       } catch (error) {
@@ -542,15 +545,16 @@ export default function EditProfilePage() {
           } else {
             acc[key] = []; // Default to empty array for other cases
           }
-          
-          // Log sibling data specifically for debugging
+            // Log sibling data specifically for debugging
           if (key === "siblings") {
             console.log(`${key} data being sent (${typeof acc[key]}, length: ${Array.isArray(acc[key]) ? acc[key].length : 'not array'}):`);
             console.log(JSON.stringify(acc[key]));
-          }        }// Handle fatherOccupation specifically to ensure it saves properly
+          }
+        }
+        // Handle fatherOccupation specifically to ensure it saves properly
         else if (key === "fatherOccupation") {
-          // Always include fatherOccupation in the update, if empty set to "Not specified"
-          acc[key] = value === null || value === undefined || value === "" ? 'Not specified' : String(value);
+          // Always include fatherOccupation in the update
+          acc[key] = value || 'Not specified';
           console.log(`fatherOccupation being sent: '${acc[key]}'`);
         }
         // For other fields, only include if they're not empty
@@ -747,7 +751,9 @@ export default function EditProfilePage() {
         fatherMobile: data.fatherMobile || "",
         showMotherNumber: data.showMotherNumber !== undefined ? data.showMotherNumber : false,
         motherMobile: data.motherMobile || "",
-        mobileNumber: data.mobileNumber || ""
+        mobileNumber: data.mobileNumber || "",
+        profilePhotos: Array.isArray(data.profilePhotos) ? data.profilePhotos : 
+                          typeof data.profilePhotos === 'string' ? JSON.parse(data.profilePhotos || '[]') : []
       });
       
       // And similarly for other form sections
@@ -783,9 +789,10 @@ export default function EditProfilePage() {
       // Remove the temporary field used for UI only
       motherOccupationOther: undefined
     };
+      // Ensure siblings data is properly formatted as an array
+    console.log("Siblings before submit:", JSON.stringify(formData.siblings));
     
-    // Ensure siblings data is properly formatted as an array
-    console.log("Siblings before submit:", JSON.stringify(formData.siblings));    // Make sure siblings is an array before updating
+    // Make sure siblings is an array before updating
     if (!Array.isArray(formData.siblings)) {
       try {
         // Try to parse if it's a JSON string (first check and cast the type)
@@ -805,21 +812,21 @@ export default function EditProfilePage() {
       }
     }
     
-    // Ensure all siblings have the required properties
+    // Ensure all siblings have the required properties and clean empty entries
     if (Array.isArray(formData.siblings)) {
-      formData.siblings = formData.siblings.map(sibling => ({
-        name: sibling.name || '',
-        siblingType: sibling.siblingType || '',
-        maritalStatus: sibling.maritalStatus || '',
-        occupation: sibling.occupation || ''
-      }));
+      formData.siblings = formData.siblings
+        .map(sibling => ({
+          name: sibling.name || '',
+          siblingType: sibling.siblingType || 'brother',
+          maritalStatus: sibling.maritalStatus || 'unmarried',
+          occupation: sibling.occupation || ''
+        }))
+        .filter(sibling => 
+          // Keep sibling if they have at least a name OR occupation
+          (sibling.name && sibling.name.trim() !== '') || 
+          (sibling.occupation && sibling.occupation.trim() !== '')
+        );
     }
-    
-    // Remove any empty sibling entries
-    formData.siblings = formData.siblings.filter(sibling => 
-      (sibling.name && sibling.name.trim() !== '') || 
-      (sibling.occupation && sibling.occupation.trim() !== '')
-    );
     
     console.log("Siblings after processing:", JSON.stringify(formData.siblings));
     
@@ -960,7 +967,7 @@ export default function EditProfilePage() {
       setSavingTab(null)
     }
   }
-    // Handle multiple photo uploads
+  // Handle multiple photo uploads
   const handleMultiplePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
@@ -992,45 +999,99 @@ export default function EditProfilePage() {
       return;
     }
     
-    // For now, show a message that this feature is being updated
-    toast({
-      title: "Feature Update",
-      description: "Multiple photo upload is currently being updated. Please use the main profile photo upload for now.",
-      variant: "default"
+    const formData = new FormData();
+    filesArray.forEach(file => {
+      formData.append('photos', file); // Using 'photos' as the key to match the API
     });
     
-    // TODO: Implement multiple photo upload once database migration is complete
-    // const formData = new FormData();
-    // filesArray.forEach(file => {
-    //   formData.append('photos', file);
-    // });
-    
-    // setSavingTab('photos')
-    
-    // try {
-    //   if (session?.user?.id) {
-    //     formData.append('userId', session.user.id);
-    //   }
+    try {
+      setSavingTab('photos')
       
-    //   const response = await fetch('/api/profiles/upload-photos', {
-    //     method: 'POST',
-    //     body: formData,
-    //     headers: {
-    //       'Cache-Control': 'no-cache'
-    //     }
-    //   })
+      // Add user ID to request
+      if (session?.user?.id) {
+        formData.append('userId', session.user.id);
+      }
       
-    //   // Handle response...
-    // } catch (error) {
-    //   console.error("Multiple photo upload error:", error)
-    //   toast({
-    //     title: "Upload Failed",
-    //     description: "Failed to upload photos. Please try again.",
-    //     variant: "destructive"
-    //   })
-    // } finally {
-    //   setSavingTab(null)
-    // }
+      console.log("Sending multiple photo upload request...");
+      
+      const response = await fetch('/api/profiles/upload-photos', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
+      
+      let responseData;
+      try {
+        // Check if there's actually content before trying to parse
+        const text = await response.text();
+        if (!text) {
+          console.error("Empty response from server");
+          throw new Error("Server returned an empty response");
+        }
+        
+        try {
+          responseData = JSON.parse(text);
+          console.log("Successfully parsed response JSON for multiple photos");
+        } catch (jsonError) {
+          console.error("Error parsing JSON response:", jsonError, "Response text:", text);
+          throw new Error(`Failed to parse JSON response: ${jsonError instanceof Error ? jsonError.message : 'Unknown JSON parsing error'}`);
+        }
+      } catch (parseError) {
+        console.error("Error processing response:", parseError);
+        throw new Error(`Failed to process server response: ${parseError instanceof Error ? parseError.message : 'Unknown processing error'}`);
+      }
+      
+      if (!response.ok) {
+        console.error("Upload failed with response:", responseData);
+        throw new Error(responseData?.error || 'Failed to upload profile photos')
+      }
+      
+      console.log("Upload successful:", responseData);
+      
+      // Check if the response has the expected structure
+      if (!responseData || !responseData.urls || !Array.isArray(responseData.urls)) {
+        console.error("Invalid response structure:", responseData);
+        throw new Error("Server response doesn't contain photo URLs in the expected format");
+      }
+      
+      // Update the profile data with the new photo URLs
+      const newPhotoUrls = responseData.urls.map((url: string) => `${url}?t=${new Date().getTime()}`);
+      console.log("Setting new photo URLs:", newPhotoUrls);
+        // Safely update the profile data
+      setProfileData((prev: any) => {
+        const currentPhotos = Array.isArray(prev?.profilePhotos) ? prev.profilePhotos : [];
+        return {
+          ...prev,
+          profilePhotos: [...currentPhotos, ...newPhotoUrls]
+        };
+      });
+      
+      // Update the privacy form to include the new photos
+      setPrivacyForm(prev => ({
+        ...prev,
+        profilePhotos: [...(prev.profilePhotos || []), ...newPhotoUrls]
+      }));
+      
+      // Refresh the profile data
+      await refetchProfile();
+      
+      toast({
+        title: "Photos Updated",
+        description: "Your profile photos have been successfully uploaded and saved",
+        variant: "default"
+      })
+    } catch (error) {
+      console.error("Multiple photo upload error:", error)
+      toast({
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Failed to upload your photos. Please try again with smaller images (less than 15MB in total).",
+        variant: "destructive"
+      })
+    } finally {
+      setSavingTab(null)
+    }
   }
   
   if (loading) {
@@ -1456,18 +1517,17 @@ export default function EditProfilePage() {
                         placeholder="Your father's name"
                         className={familyForm.fatherName ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </FormField>
-                      <FormField label="Father's Occupation" filled={!!familyForm.fatherOccupation && familyForm.fatherOccupation !== "Not specified"}>
+                    </FormField>                    <FormField label="Father's Occupation" filled={!!familyForm.fatherOccupation}>
                       <Input 
                         id="fatherOccupation"
-                        value={familyForm.fatherOccupation === "Not specified" ? "" : familyForm.fatherOccupation}
-                        onChange={(e) => handleFamilyChange('fatherOccupation', e.target.value || "Not specified")}
+                        value={familyForm.fatherOccupation}
+                        onChange={(e) => handleFamilyChange('fatherOccupation', e.target.value)}
                         placeholder="Enter father's occupation"
-                        className={familyForm.fatherOccupation && familyForm.fatherOccupation !== "Not specified" ? "border-green-200 focus:border-green-300" : ""}
+                        className={familyForm.fatherOccupation ? "border-green-200 focus:border-green-300" : ""}
                       />
                       <p className="text-xs text-muted-foreground">
-                        {!familyForm.fatherOccupation || familyForm.fatherOccupation === "Not specified" ? 
-                          "Will display as \"Not Specified\" if left empty" : 
+                        {!familyForm.fatherOccupation ? 
+                          "Will display as \"Not specified\" if left empty" : 
                           `Current value: ${familyForm.fatherOccupation}`}
                       </p>
                     </FormField>
