@@ -119,7 +119,8 @@ export default function ProfilePage({
     // Redirect to login
     router.push('/login')
   }
-    useEffect(() => {
+  
+  useEffect(() => {
     const fetchProfile = async () => {
       if (!id) {
         setError("Invalid profile ID")
@@ -161,23 +162,50 @@ export default function ProfilePage({
         
         // Check interest status for this profile
         if (session?.user?.id) {
-          // Check if current user sent interest to this profile
-          const interestRes = await fetch(`/api/profiles/interests?profileId=${id}`, {
+          // Check if current user has any interests with this profile
+          const interestRes = await fetch(`/api/profiles/interests`, {
             credentials: 'include'
           })
           
           if (interestRes.ok) {
             const interestData = await interestRes.json()
             
-            // Set interest sent status
-            if (interestData.sentInterests?.length > 0) {
+            // Check for sent interests to this profile
+            const sentToThisProfile = interestData.find((interest: any) => 
+              interest.toUserId === parseInt(id) && interest.fromUserId === parseInt(session.user.id as string)
+            )
+            
+            if (sentToThisProfile) {
+              console.log("Found sent interest:", sentToThisProfile)
               setIsInterestSent(true)
+              
+              // If interest is already accepted, it's mutual
+              if (sentToThisProfile.status === 'accepted') {
+                setInterestMutual(true)
+                setShouldBlurPhoto(false)
+              }
             }
             
-            // Check if mutual interest exists
-            if (interestData.receivedInterests?.length > 0) {
+            // Check for received interests from this profile
+            const receivedFromThisProfile = interestData.find((interest: any) => 
+              interest.fromUserId === parseInt(id) && interest.toUserId === parseInt(session.user.id as string)
+            )
+            
+            if (receivedFromThisProfile) {
+              console.log("Found received interest:", receivedFromThisProfile)
+              
+              // If interest is accepted, it's mutual
+              if (receivedFromThisProfile.status === 'accepted') {
+                setInterestMutual(true)
+                setShouldBlurPhoto(false)
+              }
+            }
+            
+            // If both sent and received interests exist, it's mutual
+            if (sentToThisProfile && receivedFromThisProfile) {
               setInterestMutual(true)
-            }              // Determine if photo should be blurred based on privacy settings
+              setShouldBlurPhoto(false)
+            }// Determine if photo should be blurred based on privacy settings
             // Photos should be blurred if:
             // 1. User has set showPhotos to false (privacy setting)
             // 2. AND there's no mutual interest (user hasn't been approved by the profile owner)
@@ -291,8 +319,8 @@ export default function ProfilePage({
           </Button>
         </div>
       </div>
-    );
-  }  const handleSendInterest = async () => {
+    );  }
+    const handleSendInterest = async () => {
     // Don't allow sending interest if already sent
     if (isInterestSent) return
     
@@ -315,31 +343,28 @@ export default function ProfilePage({
         throw new Error('Failed to send interest')
       }
       
-      // For female profiles, check if this makes the interest mutual
-      if (profile?.gender === 'female') {
-        // Check if the other user has already sent interest to current user
-        const interestRes = await fetch(`/api/profiles/interests?profileId=${id}`, {
-          credentials: 'include'
-        })
+      // Get response data
+      const data = await response.json()
+      console.log("Interest response:", data)
+      
+      // If interest is mutual (already approved), update the UI
+      if (data.isMutual) {
+        setInterestMutual(true)
+        setShouldBlurPhoto(false)
         
-        if (interestRes.ok) {
-          const interestData = await interestRes.json()
-          
-          // If mutual interest exists, remove photo blur
-          if (interestData.receivedInterests?.length > 0) {
-            setInterestMutual(true)
-            setShouldBlurPhoto(false)
-          }
-        }
+        toast({
+          title: "Match Found!",
+          description: "You have a mutual interest with this member",
+          variant: "default"
+        })
+      } else {
+        // Show success toast or message
+        toast({
+          title: "Interest Sent",
+          description: "Your interest has been sent to this member",
+          variant: "default"
+        })
       }
-      
-      // Show success toast or message
-      toast({
-        title: "Interest Sent",
-        description: "Your interest has been sent to this member",
-        variant: "default"
-      })
-      
     } catch (error) {
       console.error("Failed to send interest:", error)
       setIsInterestSent(false)

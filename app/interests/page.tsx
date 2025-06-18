@@ -5,11 +5,201 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Heart, MessageSquare, Eye } from "lucide-react"
+import { Heart, MessageSquare, Eye, X, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { playfair } from "../lib/fonts"
+import { useEffect, useState } from "react"
+import Image from "next/image"
+import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
+
+interface InterestItem {
+  id: number
+  fromUserId: number
+  toUserId: number
+  status: "pending" | "accepted" | "declined"
+  createdAt: string
+  fromUser: {
+    id: number
+    fullName: string
+    age: number
+    location: string
+    profession: string
+    profilePhoto: string | null
+  }
+}
 
 export default function InterestsPage() {
+  const [receivedInterests, setReceivedInterests] = useState<InterestItem[]>([])
+  const [sentInterests, setSentInterests] = useState<InterestItem[]>([])
+  const [acceptedInterests, setAcceptedInterests] = useState<InterestItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const { toast } = useToast()
+  const router = useRouter()
+
+  // Fetch all interests
+  useEffect(() => {
+    const fetchInterests = async () => {
+      try {
+        // Fetch received interests
+        const receivedRes = await fetch('/api/profiles/interests?type=received')
+        if (receivedRes.ok) {
+          const receivedData = await receivedRes.json()
+          setReceivedInterests(receivedData.filter((interest: InterestItem) => interest.status === 'pending'))
+          
+          // Also add the accepted ones to the accepted list
+          const acceptedFromReceived = receivedData.filter((interest: InterestItem) => interest.status === 'accepted')
+          setAcceptedInterests(prevAccepted => [...prevAccepted, ...acceptedFromReceived])
+        }
+        
+        // Fetch sent interests
+        const sentRes = await fetch('/api/profiles/interests?type=sent')
+        if (sentRes.ok) {
+          const sentData = await sentRes.json()
+          setSentInterests(sentData.filter((interest: InterestItem) => interest.status === 'pending'))
+          
+          // Also add the accepted ones to the accepted list
+          const acceptedFromSent = sentData.filter((interest: InterestItem) => interest.status === 'accepted')
+          setAcceptedInterests(prevAccepted => [...prevAccepted, ...acceptedFromSent])
+        }
+        
+      } catch (error) {
+        console.error('Failed to fetch interests:', error)
+        toast({
+          title: "Failed to load interests",
+          description: "Please try again later",
+          variant: "destructive"
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchInterests()
+  }, [toast])
+  
+  // Handle accepting an interest
+  const handleAcceptInterest = async (interestId: number) => {
+    try {
+      setUpdatingId(interestId)
+      
+      const response = await fetch('/api/profiles/interests/update-status', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          interestId,
+          status: 'accepted'
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to accept interest')
+      }
+      
+      // Update the UI - move the interest from received to accepted
+      const acceptedInterest = receivedInterests.find(interest => interest.id === interestId)
+      if (acceptedInterest) {
+        acceptedInterest.status = 'accepted'
+        setAcceptedInterests(prev => [...prev, acceptedInterest])
+        setReceivedInterests(prev => prev.filter(interest => interest.id !== interestId))
+        
+        toast({
+          title: "Interest Accepted",
+          description: "You can now view this member's photos and contact info",
+          variant: "default"
+        })
+      }
+      
+    } catch (error) {
+      console.error('Failed to accept interest:', error)
+      toast({
+        title: "Failed to accept interest",
+        description: "Please try again later",
+        variant: "destructive"
+      })
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+  
+  // Handle declining an interest
+  const handleDeclineInterest = async (interestId: number) => {
+    try {
+      setUpdatingId(interestId)
+      
+      const response = await fetch('/api/profiles/interests/update-status', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          interestId,
+          status: 'declined'
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to decline interest')
+      }
+      
+      // Update the UI - remove from received list
+      setReceivedInterests(prev => prev.filter(interest => interest.id !== interestId))
+      
+      toast({
+        title: "Interest Declined",
+        description: "The member will not be notified",
+        variant: "default"
+      })
+      
+    } catch (error) {
+      console.error('Failed to decline interest:', error)
+      toast({
+        title: "Failed to decline interest",
+        description: "Please try again later",
+        variant: "destructive"
+      })
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+  
+  // Handle viewing a profile
+  const handleViewProfile = (userId: number) => {
+    router.push(`/profile/${userId}`)
+  }
+  
+  // Handle messaging a user
+  const handleMessage = (userId: number) => {
+    router.push(`/messages?userId=${userId}`)
+  }
+  
+  // Function to format age and location
+  const formatProfileInfo = (age: number, location: string, profession: string) => {
+    const parts = []
+    if (age) parts.push(`${age} yrs`)
+    if (location) parts.push(location)
+    if (profession) parts.push(profession)
+    return parts.join(' • ')
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+        <Header />
+        <div className="container mx-auto px-4 py-16 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4" />
+            <p>Loading your interests...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />
@@ -19,100 +209,154 @@ export default function InterestsPage() {
           
           <Tabs defaultValue="received" className="space-y-6">
             <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto">
-              <TabsTrigger value="received">Received</TabsTrigger>
-              <TabsTrigger value="sent">Sent</TabsTrigger>
-              <TabsTrigger value="accepted">Accepted</TabsTrigger>
+              <TabsTrigger value="received">Received{receivedInterests.length > 0 ? ` (${receivedInterests.length})` : ''}</TabsTrigger>
+              <TabsTrigger value="sent">Sent{sentInterests.length > 0 ? ` (${sentInterests.length})` : ''}</TabsTrigger>
+              <TabsTrigger value="accepted">Matched{acceptedInterests.length > 0 ? ` (${acceptedInterests.length})` : ''}</TabsTrigger>
             </TabsList>
 
             {/* Received Interests */}
             <TabsContent value="received">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3].map((i) => (
-                  <Card key={i}>
-                    <CardContent className="p-6">
-                      <div className="relative mb-4">
-                        <img
-                          src="/placeholder.svg?height=200&width=300"
-                          alt="Profile"
-                          className="w-full aspect-[4/3] object-cover rounded-lg"
-                        />
-                      </div>
-                      <h2 className={`${playfair.className} text-lg font-semibold mb-2`}>Zainab Ali</h2>
-                      <p className="text-sm text-muted-foreground mb-4">27 yrs • Delhi • Doctor</p>
-                      <div className="flex gap-2">
-                        <Button className="flex-1">
-                          <Heart className="h-4 w-4 mr-2" />
-                          Accept
-                        </Button>
-                        <Button variant="outline">
-                          <MessageSquare className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {receivedInterests.length > 0 ? (
+                  receivedInterests.map((interest) => (
+                    <Card key={interest.id}>
+                      <CardContent className="p-6">
+                        <div className="relative mb-4">
+                          <Image
+                            src={interest.fromUser.profilePhoto || "/placeholder-user.jpg"}
+                            alt={interest.fromUser.fullName}
+                            width={300}
+                            height={200}
+                            className="w-full aspect-[4/3] object-cover rounded-lg"
+                          />
+                        </div>
+                        <h2 className={`${playfair.className} text-lg font-semibold mb-2`}>{interest.fromUser.fullName}</h2>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {formatProfileInfo(interest.fromUser.age, interest.fromUser.location, interest.fromUser.profession)}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button 
+                            className="flex-1" 
+                            onClick={() => handleAcceptInterest(interest.id)}
+                            disabled={updatingId === interest.id}
+                          >
+                            {updatingId === interest.id ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <Heart className="h-4 w-4 mr-2" />
+                            )}
+                            Accept
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            onClick={() => handleViewProfile(interest.fromUser.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => handleDeclineInterest(interest.id)}
+                            disabled={updatingId === interest.id}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-10">
+                    <p className="text-muted-foreground">No interests received yet.</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
             {/* Sent Interests */}
             <TabsContent value="sent">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3].map((i) => (
-                  <Card key={i}>
-                    <CardContent className="p-6">
-                      <div className="relative mb-4">
-                        <img
-                          src="/placeholder.svg?height=200&width=300"
-                          alt="Profile"
-                          className="w-full aspect-[4/3] object-cover rounded-lg"
-                        />
-                      </div>
-                      <h2 className={`${playfair.className} text-lg font-semibold mb-2`}>Mariam Sheikh</h2>
-                      <p className="text-sm text-muted-foreground mb-4">25 yrs • Mumbai • Engineer</p>
-                      <div className="flex gap-2">
-                        <Button variant="outline" className="flex-1">
-                          Pending
-                        </Button>
-                        <Button variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {sentInterests.length > 0 ? (
+                  sentInterests.map((interest) => (
+                    <Card key={interest.id}>
+                      <CardContent className="p-6">
+                        <div className="relative mb-4">
+                          <Image
+                            src={interest.fromUser.profilePhoto || "/placeholder-user.jpg"}
+                            alt={interest.fromUser.fullName}
+                            width={300}
+                            height={200}
+                            className="w-full aspect-[4/3] object-cover rounded-lg"
+                          />
+                        </div>
+                        <h2 className={`${playfair.className} text-lg font-semibold mb-2`}>{interest.fromUser.fullName}</h2>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {formatProfileInfo(interest.fromUser.age, interest.fromUser.location, interest.fromUser.profession)}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button variant="outline" className="flex-1" disabled>
+                            Pending
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            onClick={() => handleViewProfile(interest.fromUser.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-10">
+                    <p className="text-muted-foreground">You haven't sent any interests yet.</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
             {/* Accepted Interests */}
             <TabsContent value="accepted">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3].map((i) => (
-                  <Card key={i}>
-                    <CardContent className="p-6">
-                      <div className="relative mb-4">
-                        <img
-                          src="/placeholder.svg?height=200&width=300"
-                          alt="Profile"
-                          className="w-full aspect-[4/3] object-cover rounded-lg"
-                        />
-                      </div>
-                      <h2 className={`${playfair.className} text-lg font-semibold mb-2`}>Ayesha Patel</h2>
-                      <p className="text-sm text-muted-foreground mb-4">26 yrs • Bangalore • Teacher</p>
-                      <div className="flex gap-2">
-                        <Button className="flex-1">
-                          <MessageSquare className="h-4 w-4 mr-2" />
-                          Message
-                        </Button>
-                        <Button variant="outline">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {acceptedInterests.length > 0 ? (
+                  acceptedInterests.map((interest) => (
+                    <Card key={interest.id}>
+                      <CardContent className="p-6">
+                        <div className="relative mb-4">
+                          <Image
+                            src={interest.fromUser.profilePhoto || "/placeholder-user.jpg"}
+                            alt={interest.fromUser.fullName}
+                            width={300}
+                            height={200}
+                            className="w-full aspect-[4/3] object-cover rounded-lg"
+                          />
+                        </div>
+                        <h2 className={`${playfair.className} text-lg font-semibold mb-2`}>{interest.fromUser.fullName}</h2>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {formatProfileInfo(interest.fromUser.age, interest.fromUser.location, interest.fromUser.profession)}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button 
+                            className="flex-1"
+                            onClick={() => handleMessage(interest.fromUser.id)}
+                          >
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Message
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            onClick={() => handleViewProfile(interest.fromUser.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-10">
+                    <p className="text-muted-foreground">No matches yet.</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -121,4 +365,4 @@ export default function InterestsPage() {
       <Footer />
     </div>
   )
-} 
+}
