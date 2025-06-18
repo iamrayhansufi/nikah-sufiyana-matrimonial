@@ -64,19 +64,39 @@ function LoginFormWithParams() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      // Debug login attempt
+      console.log('🔐 Login Debug - Login attempt:', {
+        method: loginMethod,
+        email: loginMethod === "email" ? formData.email : undefined,
+        phone: loginMethod === "phone" ? formData.phone : undefined,
+        hasPassword: !!formData.password,
+        callbackUrl
+      });
+        
       // Use NextAuth credentials provider for login with proper redirect
       // Create a full URL for the callbackUrl to ensure absolute path redirect works correctly
       const absoluteCallbackUrl = callbackUrl.startsWith('http') 
         ? callbackUrl 
         : new URL(callbackUrl, window.location.origin).toString();
+      
+      console.log('🔐 Login Debug - Using callback URL:', absoluteCallbackUrl);
         
+      // Set redirect to false temporarily for debugging
       const res = await signIn("credentials", {
         email: loginMethod === "email" ? formData.email : undefined,
         phone: loginMethod === "phone" ? formData.phone : undefined,
         password: formData.password,
         callbackUrl: absoluteCallbackUrl,
-        redirect: true, // Let NextAuth handle the redirect
+        redirect: false, // Temporarily change to false to see response
       })
+      
+      // Log the response
+      console.log('🔐 Login Debug - Sign in response:', res);
+      
+      // Now handle the redirect manually
+      if (res?.ok && res?.url) {
+        window.location.href = res.url;
+      }
       
       // This code will only run if redirect: false and there's an error
       if (res?.error) {

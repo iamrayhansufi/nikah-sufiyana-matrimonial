@@ -8,7 +8,7 @@ export default withAuth(
     // Check both authentication and verification status
     const isVerified = token?.verified === true
     
-    // Debug middleware execution
+    // Debug middleware execution with more details
     console.log('🔍 Middleware Debug:', { 
       path: req.nextUrl.pathname,
       isAuth,
@@ -16,8 +16,16 @@ export default withAuth(
       token: {
         id: token?.id,
         email: token?.email,
-        verified: token?.verified
-      }
+        verified: token?.verified,
+        sub: token?.sub,
+        // Log all token properties to see what's available
+        ...Object.fromEntries(
+          Object.entries(token || {}).map(([key, value]) => 
+            [key, typeof value === 'object' ? '[Object]' : value]
+          )
+        )
+      },
+      cookies: req.cookies.getAll().map(c => c.name)
     })
     
     const isAuthPage = req.nextUrl.pathname.startsWith('/login') ||
@@ -91,10 +99,18 @@ export default withAuth(
     }
 
     return NextResponse.next()
-  },
-  {
+  },  {
     callbacks: {
       authorized: ({ req, token }) => {
+        console.log('🔑 Middleware Authorization Callback:', { 
+          path: req.nextUrl.pathname,
+          hasToken: !!token,
+          tokenId: token?.id,
+          tokenSub: token?.sub,
+          tokenEmail: token?.email,
+          tokenVerified: token?.verified,
+        });
+        
         return true // Let the middleware function handle the auth logic
       },
     },

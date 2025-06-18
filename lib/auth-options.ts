@@ -81,36 +81,62 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         phone: { label: "Phone", type: "text" },
         password: { label: "Password", type: "password" }
-      },
-      async authorize(credentials) {
+      },      async authorize(credentials) {
         try {
+          console.log('🔐 Auth Debug - Authorization attempt with:', {
+            hasEmail: !!credentials?.email,
+            hasPhone: !!credentials?.phone,
+            hasPassword: !!credentials?.password
+          });
+          
           if (!credentials?.password || (!credentials?.email && !credentials?.phone)) {
-            return null
+            console.log('❌ Auth Debug - Missing credentials');
+            return null;
           }
           
           let userArr;
+          const searchField = credentials.email ? 'email' : 'phone';
+          const searchValue = credentials.email || credentials.phone;
+          
+          console.log(`🔍 Auth Debug - Looking up user by ${searchField}: ${searchValue}`);
+          
           if (credentials.email) {
-            userArr = await db.select().from(users).where(eq(users.email, credentials.email)).limit(1)
+            userArr = await db.select().from(users).where(eq(users.email, credentials.email)).limit(1);
           } else {
-            userArr = await db.select().from(users).where(eq(users.phone, credentials.phone)).limit(1)
+            userArr = await db.select().from(users).where(eq(users.phone, credentials.phone)).limit(1);
           }
           
-          const user = userArr?.[0]
-          if (!user) return null
+          const user = userArr?.[0];
+          if (!user) {
+            console.log(`❌ Auth Debug - No user found with ${searchField}: ${searchValue}`);
+            return null;
+          }
           
-          const isValid = await bcrypt.compare(credentials.password, user.password)
-          if (!isValid) return null
-            return {
+          console.log(`✅ Auth Debug - User found: ID ${user.id}, verified: ${user.verified}`);
+          
+          const isValid = await bcrypt.compare(credentials.password, user.password);
+          if (!isValid) {
+            console.log('❌ Auth Debug - Invalid password');
+            return null;
+          }
+            console.log(`🔓 Auth Debug - Login successful for user ${user.id}, verified: ${user.verified}`);
+          
+          // TypeScript doesn't know about the 'role' column even though it exists in the database
+          // because the Drizzle schema hasn't been updated, but the migration has been run
+          // @ts-ignore - The role property exists in the database due to migration but not in the schema
+          const userRole = user.role || 'user';
+          
+          return {
             id: user.id.toString(),
             name: user.fullName,
             email: user.email,
             phone: user.phone,
-            role: 'user', // Default to 'user' until the migration is applied
+            role: userRole,
             verified: user.verified || false
-          }
+          };
         } catch (error) {
-          console.error("Auth error:", error)
-          return null
+          console.error("Auth error:", error);
+          return null;
         }
       }
     })
