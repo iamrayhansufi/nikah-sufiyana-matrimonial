@@ -87,21 +87,20 @@ export async function POST(request: NextRequest) {
 
     // Check if user already exists - with robust error handling    
     try {
-      // Import sqlClient directly from db module
-      const { sqlClient } = await import('@/src/db');      // Check if email exists using raw SQL for better compatibility
-      const emailCheckResult = await sqlClient`SELECT id FROM users WHERE email = ${userData.email} LIMIT 1`;
+      // Check if email exists using ORM functions which are more reliable
+      const emailCheckResult = await db.select().from(users).where(eq(users.email, userData.email)).limit(1);
       
-      // Access array of results with type assertion
-      if ((emailCheckResult as any[]).length > 0) {
+      if (emailCheckResult.length > 0) {
         return NextResponse.json(
           { error: "Email already registered" },
           { status: 409 }
         );
-      }      // Check if phone exists using raw SQL
-      const phoneCheckResult = await sqlClient`SELECT id FROM users WHERE phone = ${userData.phone} LIMIT 1`;
+      }
       
-      // Access array of results with type assertion
-      if ((phoneCheckResult as any[]).length > 0) {
+      // Check if phone exists using ORM functions
+      const phoneCheckResult = await db.select().from(users).where(eq(users.phone, userData.phone)).limit(1);
+      
+      if (phoneCheckResult.length > 0) {
         return NextResponse.json(
           { error: "Phone number already registered" },
           { status: 409 }
@@ -109,6 +108,14 @@ export async function POST(request: NextRequest) {
       }
     } catch (dbError) {
       console.error("Database error checking for existing user:", dbError);
+      
+      // Add more detailed logging for the authentication issue
+      if (dbError instanceof Error && 
+          (dbError.message.includes('authentication') || 
+           dbError.message.includes('password'))) {
+        console.error("Database authentication failed. Please check your database credentials.");
+      }
+      
       return NextResponse.json(
         { 
           error: "Failed to verify account availability", 
@@ -124,7 +131,8 @@ export async function POST(request: NextRequest) {
     
     // Use preferredLocation as location if location is not provided
     const locationValue = userData.location || userData.preferredLocation || userData.city || "";
-      try {
+    
+    try {
       // Clean and prepare data object with proper types
       const userInsertData = {
         fullName: userData.fullName,
@@ -161,43 +169,50 @@ export async function POST(request: NextRequest) {
         ...userInsertData,
         password: "[REDACTED]" // Don't log the password
       });
-        // Create user record - with explicit error handling
-      const { sqlClient } = await import('@/src/db');      await sqlClient`
-        INSERT INTO users (
-          full_name, email, phone, password, gender, age, country, city, location, education, sect, 
-          profile_status, profession, income, height, complexion, marital_status, 
-          preferred_age_min, preferred_age_max, preferred_education, preferred_location, 
-          preferred_occupation, housing_status, about_me, family_details, expectations, mother_tongue
-        ) VALUES (
-          ${userInsertData.fullName},
-          ${userInsertData.email},
-          ${userInsertData.phone},
-          ${userInsertData.password},
-          ${userInsertData.gender},
-          ${userInsertData.age},
-          ${userInsertData.country},
-          ${userInsertData.city},
-          ${userInsertData.location},
-          ${userInsertData.education},
-          ${userInsertData.sect},
-          ${userInsertData.profileStatus},
-          ${userInsertData.profession},
-          ${userInsertData.income},
-          ${userInsertData.height},
-          ${userInsertData.complexion},
-          ${userInsertData.maritalStatus},
-          ${userInsertData.preferredAgeMin},
-          ${userInsertData.preferredAgeMax},
-          ${userInsertData.preferredEducation},
-          ${userInsertData.preferredLocation},
-          ${userInsertData.preferredOccupation},
-          ${userInsertData.housingStatus},
-          ${userInsertData.aboutMe},
-          ${userInsertData.familyDetails},
-          ${userInsertData.expectations},
-          ${userInsertData.motherTongue}
-        )
-      `;
+      
+      // Create user record using ORM functions instead of raw SQL
+      try {
+        await db.insert(users).values({
+          fullName: userInsertData.fullName,
+          email: userInsertData.email,
+          phone: userInsertData.phone,
+          password: userInsertData.password,
+          gender: userInsertData.gender,
+          age: userInsertData.age,
+          country: userInsertData.country,
+          city: userInsertData.city,
+          location: userInsertData.location,
+          education: userInsertData.education,
+          sect: userInsertData.sect,
+          profileStatus: userInsertData.profileStatus,
+          profession: userInsertData.profession,
+          income: userInsertData.income,
+          height: userInsertData.height,
+          complexion: userInsertData.complexion,
+          maritalStatus: userInsertData.maritalStatus,
+          preferredAgeMin: userInsertData.preferredAgeMin,
+          preferredAgeMax: userInsertData.preferredAgeMax,
+          preferredEducation: userInsertData.preferredEducation,
+          preferredLocation: userInsertData.preferredLocation,
+          preferredOccupation: userInsertData.preferredOccupation,
+          housingStatus: userInsertData.housingStatus,
+          aboutMe: userInsertData.aboutMe,
+          familyDetails: userInsertData.familyDetails,
+          expectations: userInsertData.expectations,
+          motherTongue: userInsertData.motherTongue
+        });
+      } catch (insertError) {
+        console.error("Error during user insert:", insertError);
+        
+        // Check if it's an authentication issue
+        if (insertError instanceof Error && 
+            (insertError.message.includes('authentication') || 
+             insertError.message.includes('password'))) {
+          console.error("Database authentication failed during insert. Please check your database credentials.");
+        }
+        
+        throw insertError; // Re-throw to be caught by outer catch
+      }
       
       console.log(`User created successfully with email: ${userData.email}`);
     } catch (dbInsertError) {
@@ -251,6 +266,8 @@ export async function POST(request: NextRequest) {
         }
       } else if (error.message.includes("database") || error.message.includes("connection")) {
         errorDetails = "Database connection error. Please try again later.";
+      } else if (error.message.includes("authentication") || error.message.includes("password")) {
+        errorDetails = "Database authentication error. Please contact support.";
       }
     }
     
