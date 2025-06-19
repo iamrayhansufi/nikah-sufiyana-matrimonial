@@ -21,7 +21,9 @@ interface Profile {
   id: string
   name: string
   age: number
-  location: string
+  location: string // Keep for backward compatibility
+  country?: string
+  city?: string
   education: string
   profession?: string
   sect: string
@@ -34,7 +36,6 @@ interface Profile {
   premium?: boolean
   verified?: boolean
   showPhotos?: boolean  // Added showPhotos property for privacy settings
-  complexion?: string
   gender?: string
 }
 
@@ -90,11 +91,11 @@ export default function BrowseProfilesPage() {
   
   const [filters, setFilters] = useState({
     ageRange: [18, 45],
-    location: "",
+    country: "",
+    city: "",
     education: "",
     profession: "",
     sect: "",
-    complexion: "",
     ageMin: "18",
     ageMax: "45",
     heightMin: "",
@@ -129,10 +130,10 @@ export default function BrowseProfilesPage() {
     
     if (filters.ageMin) params.append("ageMin", filters.ageMin);
     if (filters.ageMax) params.append("ageMax", filters.ageMax);
-    if (filters.location) params.append("location", filters.location);
+    if (filters.country) params.append("country", filters.country);
+    if (filters.city) params.append("city", filters.city);
     if (filters.education) params.append("education", filters.education);
     if (filters.sect) params.append("sect", filters.sect);
-    if (filters.complexion) params.append("complexion", filters.complexion);
     if (filters.gender) params.append("gender", filters.gender);
     if (filters.maritalStatus) params.append("maritalStatus", filters.maritalStatus);
     if (filters.profession) params.append("profession", filters.profession);
@@ -279,10 +280,10 @@ export default function BrowseProfilesPage() {
       (!filters.heightMax || parseFloat(profile.height) <= parseFloat(filters.heightMax))
     const matchesMaritalStatus = !filters.maritalStatus || profile.maritalStatus === filters.maritalStatus
     const matchesHousing = !filters.housing || profile.housing === filters.housing
-    const matchesLocation = !filters.location || profile.location === filters.location
+    const matchesCountry = !filters.country || profile.country === filters.country
+    const matchesCity = !filters.city || profile.city === filters.city
     const matchesEducation = !filters.education || profile.education === filters.education
     const matchesSect = !filters.sect || profile.sect === filters.sect
-    const matchesComplexion = !filters.complexion || profile.complexion === filters.complexion
     const matchesGender = !filters.gender || profile.gender === filters.gender
     const matchesProfession = !filters.profession || profile.profession === filters.profession
     const matchesSearch = !searchTerm || profile.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -291,10 +292,10 @@ export default function BrowseProfilesPage() {
       matchesHeight &&
       matchesMaritalStatus &&
       matchesHousing &&
-      matchesLocation &&
+      matchesCountry &&
+      matchesCity &&
       matchesEducation &&
       matchesSect &&
-      matchesComplexion &&
       matchesGender &&
       matchesProfession &&
       matchesSearch
@@ -554,27 +555,7 @@ export default function BrowseProfilesPage() {
         </div>
       </div>
 
-      {/* Complexion Filter */}
-      <div>
-        <Label>Complexion</Label>
-        <Select
-          value={tempFilters.complexion}
-          onValueChange={(value) => handleFilterChange({ ...tempFilters, complexion: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select complexion" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="very-fair">Very Fair</SelectItem>
-            <SelectItem value="fair">Fair</SelectItem>
-            <SelectItem value="wheatish">Wheatish</SelectItem>
-            <SelectItem value="wheatish-brown">Wheatish Brown</SelectItem>
-            <SelectItem value="brown">Brown</SelectItem>
-            <SelectItem value="dark">Dark</SelectItem>
-            <SelectItem value="no-preference">No Preference</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+
 
       {/* Marital Status Filter */}
       <div>
@@ -637,15 +618,15 @@ export default function BrowseProfilesPage() {
         </Select>
       </div>
 
-      {/* Location Filter */}
+      {/* Country Filter */}
       <div>
-        <Label>Location</Label>
+        <Label>Country</Label>
         <Select
-          value={tempFilters.location}
-          onValueChange={(value) => handleFilterChange({ ...tempFilters, location: value })}
+          value={tempFilters.country}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, country: value })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select location" />
+            <SelectValue placeholder="Select country" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="india">India</SelectItem>
@@ -655,6 +636,36 @@ export default function BrowseProfilesPage() {
             <SelectItem value="kuwait">Kuwait</SelectItem>
             <SelectItem value="oman">Oman</SelectItem>
             <SelectItem value="bahrain">Bahrain</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* City Filter */}
+      <div>
+        <Label>City</Label>
+        <Select
+          value={tempFilters.city}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, city: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select city" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="mumbai">Mumbai</SelectItem>
+            <SelectItem value="delhi">Delhi</SelectItem>
+            <SelectItem value="bangalore">Bangalore</SelectItem>
+            <SelectItem value="hyderabad">Hyderabad</SelectItem>
+            <SelectItem value="chennai">Chennai</SelectItem>
+            <SelectItem value="kolkata">Kolkata</SelectItem>
+            <SelectItem value="dubai">Dubai</SelectItem>
+            <SelectItem value="abu-dhabi">Abu Dhabi</SelectItem>
+            <SelectItem value="riyadh">Riyadh</SelectItem>
+            <SelectItem value="jeddah">Jeddah</SelectItem>
+            <SelectItem value="doha">Doha</SelectItem>
+            <SelectItem value="kuwait-city">Kuwait City</SelectItem>
+            <SelectItem value="muscat">Muscat</SelectItem>
+            <SelectItem value="manama">Manama</SelectItem>
             <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
@@ -704,11 +715,11 @@ export default function BrowseProfilesPage() {
             onClick={() => {
             const defaultFilters = {
               ageRange: [18, 45],
-              location: "",
+              country: "",
+              city: "",
               education: "",
               profession: "",
               sect: "",
-              complexion: "",
               ageMin: "18",
               ageMax: "45",
               heightMin: "",
@@ -831,7 +842,7 @@ export default function BrowseProfilesPage() {
                         className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"}`}
                       />
                       
-                      {/* Conditional rendering of overlays - privacy overlay takes precedence over premium */}
+                      {/* Conditional rendering of privacy overlay only if photos are protected */}
                       {blurredPhotoIds.has(profile.id) ? (
                         // Islamic-themed privacy overlay
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">
@@ -860,14 +871,6 @@ export default function BrowseProfilesPage() {
                             <p className="text-sm text-emerald-100 leading-relaxed max-w-xs mx-auto">
                               This member follows Islamic principles of modesty and privacy.
                             </p>
-                          </div>
-                        </div>
-                      ) : !profile.premium ? (
-                        // Premium upgrade overlay - only shown if privacy overlay is not active
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <div className="text-white text-center">
-                            <Eye className="h-8 w-8 mx-auto mb-2" />
-                            <p className="text-sm">Upgrade to view</p>
                           </div>
                         </div>
                       ) : null}
@@ -974,11 +977,11 @@ export default function BrowseProfilesPage() {
                   onClick={() =>
                     setFilters({
                       ageRange: [18, 45],
-                      location: "",
+                      country: "",
+                      city: "",
                       education: "",
                       profession: "",
                       sect: "",
-                      complexion: "",
                       ageMin: "18",
                       ageMax: "45",
                       heightMin: "",
