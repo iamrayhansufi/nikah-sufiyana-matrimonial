@@ -192,20 +192,22 @@ export default function ProfilePage({
             if (interestData.sentInterests?.length > 0) {
               setIsInterestSent(true)
             }
-              // Check if mutual interest exists
+            
+            // Check if mutual interest exists
             if (interestData.receivedInterests?.length > 0) {
               setInterestMutual(true)
             }
+
+            // Check for incoming interest request (profile owner sent interest to viewing user)
+            const incomingInterest = interestData.receivedInterests?.find((interest: any) => 
+              interest.senderId.toString() === id && interest.status === 'pending'
+            )
             
-            // Check if this profile has sent an interest request to the current user
-            // that is still pending (for accept/decline UI)
-            const pendingRequestFromThisProfile = interestData.receivedInterests?.find(
-              (interest: any) => interest.fromUserId === parseInt(id) && interest.status === 'pending'
-            );
+            if (incomingInterest) {
+              setIncomingInterestRequest(incomingInterest)
+            }
             
-            if (pendingRequestFromThisProfile) {
-              setIncomingInterestRequest(pendingRequestFromThisProfile);
-            }// Determine if photo should be blurred based on privacy settings
+            // Determine if photo should be blurred based on privacy settings
             // Photos should be blurred if:
             // 1. User has set showPhotos to false (privacy setting)
             // 2. AND the current user's interest hasn't been accepted by the profile owner
@@ -479,9 +481,18 @@ export default function ProfilePage({
     }
   }
 
+  // Handle image click for lightbox
+  const handleImageClick = (imageSrc: string) => {
+    if (!shouldBlurPhoto) {
+      setLightboxImage(imageSrc)
+      setShowLightbox(true)
+    }
+  }
+
+  // Handle accept/decline interest request
   const handleRespondToInterest = async (action: 'accept' | 'decline') => {
-    if (!incomingInterestRequest) return;
-    
+    if (!incomingInterestRequest) return
+
     try {
       const response = await fetch('/api/profiles/respond-interest', {
         method: 'POST',
@@ -490,54 +501,50 @@ export default function ProfilePage({
         },
         body: JSON.stringify({
           interestId: incomingInterestRequest.id,
-          action: action
+          action,
+          profileId: incomingInterestRequest.senderId
         })
-      });
-      
+      })
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to ${action} interest`);
+        throw new Error('Failed to respond to interest')
       }
-      
-      // Update UI state
-      setIncomingInterestRequest(null);
-      
+
+      const result = await response.json()
+
       if (action === 'accept') {
-        setInterestMutual(true);
-        setShouldBlurPhoto(false);
+        setInterestMutual(true)
+        setShouldBlurPhoto(false)
         toast({
           title: "Interest Accepted! 🎉",
-          description: "You can now view each other's photos clearly.",
+          description: "You've accepted their interest. Photos are now visible.",
           variant: "default"
-        });
+        })
       } else {
         toast({
           title: "Interest Declined",
-          description: "The interest request has been declined.",
+          description: "You've declined their interest request.",
           variant: "default"
-        });
+        })
       }
+
+      // Remove the incoming request
+      setIncomingInterestRequest(null)
       
-      // Refresh notifications to update the count
-      refreshNotifications();
-      
+      // Refresh notifications
+      refreshNotifications()
+
     } catch (error) {
-      console.error(`Failed to ${action} interest:`, error);
+      console.error("Failed to respond to interest:", error)
       toast({
-        title: `Failed to ${action.charAt(0).toUpperCase() + action.slice(1)} Interest`,
-        description: error instanceof Error ? error.message : "Please try again.",
+        title: "Failed to Respond",
+        description: "There was a problem responding to the interest request.",
         variant: "destructive"
-      });
+      })
     }
-  };
+  }
 
-  const handleImageClick = (imageSrc: string) => {
-    if (!shouldBlurPhoto) {
-      setLightboxImage(imageSrc);
-      setShowLightbox(true);
-    }
-  };
-
+  // ...existing useEffect and handlers...
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />
@@ -577,27 +584,61 @@ export default function ProfilePage({
                               .join("")
                           : "U"}
                       </AvatarFallback>
-                    </Avatar>{/* Blur notice overlay for private photos */}
+                    </Avatar>                    {/* Islamic-themed blur notice overlay for private photos */}
                     {shouldBlurPhoto && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
-                        <EyeOff className="h-12 w-12 mb-2" />
-                        <p className="font-semibold text-lg mb-1">Private Photos</p>
-                        <p className="text-sm mb-4">This member has protected their photos. Send interest to view clearly.</p>
-                        {!isInterestSent && (
-                          <Button 
-                            variant="secondary" 
-                            className="bg-white text-black hover:bg-white/90"
-                            onClick={handleSendInterest}
-                          >
-                            <Heart className="h-4 w-4 mr-2 text-red-500" />
-                            Send Interest
-                          </Button>
-                        )}                        {isInterestSent && (
-                          <Button variant="secondary" disabled className="bg-white/80 text-black">
-                            <Heart className="h-4 w-4 mr-2 text-red-500 fill-red-500" />
-                            Interest Sent
-                          </Button>
-                        )}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">
+                        {/* Islamic geometric pattern background */}
+                        <div className="absolute inset-0 opacity-10">
+                          <div className="w-full h-full islamic-pattern"></div>
+                        </div>
+                        
+                        {/* Main icon with Islamic crescent and star */}
+                        <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-4 rounded-full mb-4 backdrop-blur-sm border border-amber-300/30 relative z-10">
+                          <div className="relative">
+                            <svg className="h-12 w-12 text-amber-200" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M9.822 17.904c-.736 0-1.454-.113-2.138-.34a8.466 8.466 0 0 1-1.925-.964 8.536 8.536 0 0 1-1.564-1.564 8.477 8.477 0 0 1-.964-1.925 8.343 8.343 0 0 1-.34-2.138c0-.736.113-1.454.34-2.138.227-.684.548-1.33.964-1.925a8.536 8.536 0 0 1 1.564-1.564 8.477 8.477 0 0 1 1.925-.964 8.343 8.343 0 0 1 2.138-.34c1.736 0 3.374.516 4.747 1.408-.368.08-.724.194-1.065.34a6.477 6.477 0 0 0-1.467.74 6.536 6.536 0 0 0-1.194 1.194 6.477 6.477 0 0 0-.74 1.467 6.343 6.343 0 0 0-.26 1.65c0 .568.087 1.128.26 1.65.173.522.427.997.74 1.467.313.47.686.843 1.194 1.194.508.351.997.605 1.467.74.47.135.997.26 1.065.34-1.373.892-3.011 1.408-4.747 1.408z"/>
+                              <circle cx="18" cy="6" r="2" fill="currentColor"/>
+                            </svg>
+                          </div>
+                        </div>
+                        
+                        {/* Updated Islamic text */}
+                        <div className="text-center mb-4 relative z-10">
+                          <h3 className="font-bold text-xl mb-2 text-amber-100 font-arabic">
+                            صور محفوظة بالحشمة
+                          </h3>
+                          <p className="font-semibold text-lg mb-1 text-white">Photos Protected with Haya</p>
+                          <p className="text-sm text-emerald-100 leading-relaxed max-w-xs mx-auto">
+                            This member follows Islamic principles of modesty and privacy. Express your interest to connect respectfully according to Islamic guidelines.
+                          </p>
+                        </div>
+                        
+                        {/* Action buttons */}
+                        <div className="relative z-10">
+                          {!isInterestSent && (
+                            <Button 
+                              variant="secondary" 
+                              className="bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 hover:from-amber-300 hover:to-amber-400 font-medium border border-amber-300 shadow-lg transition-all duration-300"
+                              onClick={handleSendInterest}
+                            >
+                              <Heart className="h-4 w-4 mr-2 text-red-600" />
+                              Express Interest
+                            </Button>
+                          )}
+                          
+                          {isInterestSent && (
+                            <Button variant="secondary" disabled className="bg-emerald-400/90 text-emerald-900 font-medium border border-emerald-300">
+                              <Heart className="h-4 w-4 mr-2 text-red-600 fill-red-600" />
+                              Interest Expressed
+                            </Button>
+                          )}
+                        </div>
+                        
+                        {/* Islamic values footer */}
+                        <div className="mt-4 flex items-center text-xs text-amber-200/90 relative z-10">
+                          <Mosque className="h-3 w-3 mr-1" />
+                          <span>Following Sunnah Values • حشمة و عفاف</span>
+                        </div>
                       </div>
                     )}
 
@@ -1156,12 +1197,17 @@ export default function ProfilePage({
                               src={profile.profilePhoto || "/placeholder.svg"} 
                               alt={`${profile.name}'s profile photo`}
                               className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
-                            />
-                            <Badge className="absolute top-2 left-2 bg-primary">Main Photo</Badge>
+                            />                            <Badge className="absolute top-2 left-2 bg-primary">Main Photo</Badge>
                             {shouldBlurPhoto && (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
-                                <EyeOff className="h-8 w-8 mb-2" />
-                                <p className="text-xs">Send interest to view</p>
+                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">
+                                <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-3 rounded-full mb-3 backdrop-blur-sm border border-amber-300/30">
+                                  <svg className="h-8 w-8 text-amber-200" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9.822 17.904c-.736 0-1.454-.113-2.138-.34a8.466 8.466 0 0 1-1.925-.964 8.536 8.536 0 0 1-1.564-1.564 8.477 8.477 0 0 1-.964-1.925 8.343 8.343 0 0 1-.34-2.138c0-.736.113-1.454.34-2.138.227-.684.548-1.33.964-1.925a8.536 8.536 0 0 1 1.564-1.564 8.477 8.477 0 0 1 1.925-.964 8.343 8.343 0 0 1 2.138-.34c1.736 0 3.374.516 4.747 1.408-.368.08-.724.194-1.065.34a6.477 6.477 0 0 0-1.467.74 6.536 6.536 0 0 0-1.194 1.194 6.477 6.477 0 0 0-.74 1.467 6.343 6.343 0 0 0-.26 1.65c0 .568.087 1.128.26 1.65.173.522.427.997.74 1.467.313.47.686.843 1.194 1.194.508.351.997.605 1.467.74.47.135.997.26 1.065.34-1.373.892-3.011 1.408-4.747 1.408z"/>
+                                    <circle cx="18" cy="6" r="2" fill="currentColor"/>
+                                  </svg>
+                                </div>
+                                <p className="text-sm font-medium text-amber-100 mb-1">Protected with Haya</p>
+                                <p className="text-xs text-emerald-200">Express interest to view</p>
                               </div>
                             )}
                           </div>
@@ -1173,16 +1219,21 @@ export default function ProfilePage({
                                 key={index} 
                                 className={`aspect-square rounded-lg overflow-hidden bg-gray-100 relative ${!shouldBlurPhoto ? 'cursor-pointer' : ''}`}
                                 onClick={() => handleImageClick(photo)}
-                              >
-                                <img 
+                              >                                <img 
                                   src={photo} 
                                   alt={`${profile.name}'s photo ${index + 1}`}
                                   className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
                                 />
                                 {shouldBlurPhoto && (
-                                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
-                                    <EyeOff className="h-8 w-8 mb-2" />
-                                    <p className="text-xs">Send interest to view</p>
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-3 text-center backdrop-blur-sm border border-amber-400/20">
+                                    <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-2 rounded-full mb-2 backdrop-blur-sm border border-amber-300/30">
+                                      <svg className="h-6 w-6 text-amber-200" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M9.822 17.904c-.736 0-1.454-.113-2.138-.34a8.466 8.466 0 0 1-1.925-.964 8.536 8.536 0 0 1-1.564-1.564 8.477 8.477 0 0 1-.964-1.925 8.343 8.343 0 0 1-.34-2.138c0-.736.113-1.454.34-2.138.227-.684.548-1.33.964-1.925a8.536 8.536 0 0 1 1.564-1.564 8.477 8.477 0 0 1 1.925-.964 8.343 8.343 0 0 1 2.138-.34c1.736 0 3.374.516 4.747 1.408-.368.08-.724.194-1.065.34a6.477 6.477 0 0 0-1.467.74 6.536 6.536 0 0 0-1.194 1.194 6.477 6.477 0 0 0-.74 1.467 6.343 6.343 0 0 0-.26 1.65c0 .568.087 1.128.26 1.65.173.522.427.997.74 1.467.313.47.686.843 1.194 1.194.508.351.997.605 1.467.74.47.135.997.26 1.065.34-1.373.892-3.011 1.408-4.747 1.408z"/>
+                                        <circle cx="18" cy="6" r="2" fill="currentColor"/>
+                                      </svg>
+                                    </div>
+                                    <p className="text-xs font-medium text-amber-100 mb-1">Protected</p>
+                                    <p className="text-xs text-emerald-200">Express interest to view</p>
                                   </div>
                                 )}
                               </div>
@@ -1194,12 +1245,11 @@ export default function ProfilePage({
                               </p>
                             </div>
                           )}
-                        </div>
-                        <p className="text-sm text-muted-foreground text-center">
+                        </div>                        <p className="text-sm text-muted-foreground text-center">
                           {profile.showPhotos ? 
                             "Photos are visible to all members" : 
                             shouldBlurPhoto ? 
-                              "Photos are protected - send interest and get approval to view clearly" :
+                              "Photos are protected with Islamic modesty (Haya) - express interest and receive approval to view clearly" :
                               "Photos are visible to approved viewers"
                           }
                         </p>
