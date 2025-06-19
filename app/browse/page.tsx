@@ -34,6 +34,8 @@ interface Profile {
   premium?: boolean
   verified?: boolean
   showPhotos?: boolean  // Added showPhotos property for privacy settings
+  complexion?: string
+  gender?: string
 }
 
 export default function BrowseProfilesPage() {
@@ -92,14 +94,14 @@ export default function BrowseProfilesPage() {
     education: "",
     profession: "",
     sect: "",
-    prayer: "",
-    hijab: "",
+    complexion: "",
     ageMin: "18",
     ageMax: "45",
     heightMin: "",
     heightMax: "",
     maritalStatus: "",
     housing: "",
+    gender: ""
   })
   const [searchTerm, setSearchTerm] = useState("")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -130,6 +132,13 @@ export default function BrowseProfilesPage() {
     if (filters.location) params.append("location", filters.location);
     if (filters.education) params.append("education", filters.education);
     if (filters.sect) params.append("sect", filters.sect);
+    if (filters.complexion) params.append("complexion", filters.complexion);
+    if (filters.gender) params.append("gender", filters.gender);
+    if (filters.maritalStatus) params.append("maritalStatus", filters.maritalStatus);
+    if (filters.profession) params.append("profession", filters.profession);
+    if (filters.housing) params.append("housing", filters.housing);
+    if (filters.heightMin) params.append("heightMin", filters.heightMin);
+    if (filters.heightMax) params.append("heightMax", filters.heightMax);
     
     // Only use dummy data as fallback if there are no real users
     // params.append("useDummy", "true");
@@ -273,6 +282,9 @@ export default function BrowseProfilesPage() {
     const matchesLocation = !filters.location || profile.location === filters.location
     const matchesEducation = !filters.education || profile.education === filters.education
     const matchesSect = !filters.sect || profile.sect === filters.sect
+    const matchesComplexion = !filters.complexion || profile.complexion === filters.complexion
+    const matchesGender = !filters.gender || profile.gender === filters.gender
+    const matchesProfession = !filters.profession || profile.profession === filters.profession
     const matchesSearch = !searchTerm || profile.name.toLowerCase().includes(searchTerm.toLowerCase())
     return (
       matchesAge &&
@@ -282,6 +294,9 @@ export default function BrowseProfilesPage() {
       matchesLocation &&
       matchesEducation &&
       matchesSect &&
+      matchesComplexion &&
+      matchesGender &&
+      matchesProfession &&
       matchesSearch
     )
   })
@@ -409,6 +424,24 @@ export default function BrowseProfilesPage() {
 
   const FilterContent = () => (
     <div className="space-y-6 p-4">
+      {/* Gender Filter */}
+      <div>
+        <Label>Gender</Label>
+        <Select
+          value={tempFilters.gender}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, gender: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select Gender" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Age Range Filter */}
       <div className="bg-primary/5 p-4 rounded-md border border-primary/20">
         <Label className="text-base font-semibold mb-3 block text-primary">Age Range</Label>
         <div className="mt-2">
@@ -446,6 +479,7 @@ export default function BrowseProfilesPage() {
         </div>
       </div>
 
+      {/* Height Filter */}
       <div>
         <Label>Height</Label>
         <div className="flex space-x-2">
@@ -520,6 +554,29 @@ export default function BrowseProfilesPage() {
         </div>
       </div>
 
+      {/* Complexion Filter */}
+      <div>
+        <Label>Complexion</Label>
+        <Select
+          value={tempFilters.complexion}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, complexion: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select complexion" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="very-fair">Very Fair</SelectItem>
+            <SelectItem value="fair">Fair</SelectItem>
+            <SelectItem value="wheatish">Wheatish</SelectItem>
+            <SelectItem value="wheatish-brown">Wheatish Brown</SelectItem>
+            <SelectItem value="brown">Brown</SelectItem>
+            <SelectItem value="dark">Dark</SelectItem>
+            <SelectItem value="no-preference">No Preference</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Marital Status Filter */}
       <div>
         <Label>Marital Status</Label>
         <Select
@@ -538,24 +595,7 @@ export default function BrowseProfilesPage() {
         </Select>
       </div>
 
-      <div>
-        <Label>Housing Status</Label>
-        <Select
-          value={tempFilters.housing}
-          onValueChange={(value) => handleFilterChange({ ...tempFilters, housing: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select housing status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="own">Own House</SelectItem>
-            <SelectItem value="rental">Rental</SelectItem>
-            <SelectItem value="family">Living with Family</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
+      {/* Education Level Filter */}
       <div>
         <Label>Education Level</Label>
         <Select
@@ -575,6 +615,29 @@ export default function BrowseProfilesPage() {
         </Select>
       </div>
 
+      {/* Profession/Occupation Filter */}
+      <div>
+        <Label>Profession</Label>
+        <Select
+          value={tempFilters.profession}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, profession: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select profession" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="doctor">Doctor</SelectItem>
+            <SelectItem value="engineer">Engineer</SelectItem>
+            <SelectItem value="teacher">Teacher</SelectItem>
+            <SelectItem value="business">Business</SelectItem>
+            <SelectItem value="it-professional">IT Professional</SelectItem>
+            <SelectItem value="government-employee">Government Employee</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Location Filter */}
       <div>
         <Label>Location</Label>
         <Select
@@ -597,6 +660,26 @@ export default function BrowseProfilesPage() {
         </Select>
       </div>
 
+      {/* Housing Status Filter */}
+      <div>
+        <Label>Housing Status</Label>
+        <Select
+          value={tempFilters.housing}
+          onValueChange={(value) => handleFilterChange({ ...tempFilters, housing: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select housing status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="own">Own House</SelectItem>
+            <SelectItem value="rental">Rental</SelectItem>
+            <SelectItem value="family">Living with Family</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Maslak/Sect Filter */}
       <div>
         <Label>Maslak/Sect</Label>
         <Select
@@ -607,11 +690,9 @@ export default function BrowseProfilesPage() {
             <SelectValue placeholder="Select Maslak/Sect" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="sunni">Sunni</SelectItem>
-            <SelectItem value="shafii">Shafi'i</SelectItem>
             <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
-            <SelectItem value="deobandi">Deobandi</SelectItem>
-            <SelectItem value="shia">Shia</SelectItem>
+            <SelectItem value="deobandi">Sunni - Deobandi</SelectItem>
+            <SelectItem value="ahl-e-hadees">Ahl-E-Hadees</SelectItem>
             <SelectItem value="revert">Revert Muslim</SelectItem>
             <SelectItem value="other">Other</SelectItem>
             <SelectItem value="no-preference">No Preference</SelectItem>
@@ -627,14 +708,14 @@ export default function BrowseProfilesPage() {
               education: "",
               profession: "",
               sect: "",
-              prayer: "",
-              hijab: "",
+              complexion: "",
               ageMin: "18",
               ageMax: "45",
               heightMin: "",
               heightMax: "",
               maritalStatus: "",
               housing: "",
+              gender: ""
             };
             setTempFilters(defaultFilters);
             setFilters(defaultFilters);
@@ -747,18 +828,12 @@ export default function BrowseProfilesPage() {
                       <img
                         src={profile.profilePhoto || "/placeholder-user.jpg"}
                         alt={profile.name}
-                        className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"} ${blurredPhotoIds.has(profile.id) ? 'blur-md' : ''}`}
+                        className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"}`}
                       />
-                      {!profile.premium && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <div className="text-white text-center">
-                            <Eye className="h-8 w-8 mx-auto mb-2" />
-                            <p className="text-sm">Upgrade to view</p>
-                          </div>
-                        </div>
-                      )}
-                      {/* Islamic-themed blur overlay for private photos */}
-                      {blurredPhotoIds.has(profile.id) && (
+                      
+                      {/* Conditional rendering of overlays - privacy overlay takes precedence over premium */}
+                      {blurredPhotoIds.has(profile.id) ? (
+                        // Islamic-themed privacy overlay
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">
                           {/* Islamic geometric pattern background */}
                           <div className="absolute inset-0 opacity-10">
@@ -786,10 +861,16 @@ export default function BrowseProfilesPage() {
                               This member follows Islamic principles of modesty and privacy.
                             </p>
                           </div>
-                          
-                          {/* Removed express interest button as requested */}
                         </div>
-                      )}
+                      ) : !profile.premium ? (
+                        // Premium upgrade overlay - only shown if privacy overlay is not active
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <div className="text-white text-center">
+                            <Eye className="h-8 w-8 mx-auto mb-2" />
+                            <p className="text-sm">Upgrade to view</p>
+                          </div>
+                        </div>
+                      ) : null}
                       <div className="absolute top-2 left-2 flex gap-2">
                         <Badge className="bg-yellow-500 text-white">⭐ Premium</Badge>
                       </div>
@@ -892,19 +973,19 @@ export default function BrowseProfilesPage() {
                 <Button
                   onClick={() =>
                     setFilters({
-                      ageRange: [22, 35],
+                      ageRange: [18, 45],
                       location: "",
                       education: "",
                       profession: "",
                       sect: "",
-                      prayer: "",
-                      hijab: "",
-                      ageMin: "",
-                      ageMax: "",
+                      complexion: "",
+                      ageMin: "18",
+                      ageMax: "45",
                       heightMin: "",
                       heightMax: "",
                       maritalStatus: "",
                       housing: "",
+                      gender: ""
                     })
                   }
                 >
