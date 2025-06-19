@@ -34,11 +34,12 @@ export const users = pgTable('users', {
   // Additional profile fields
   religiousInclination: text('religious_inclination'),
   expectations: text('expectations'),
-  aboutMe: text('about_me'),
-  familyDetails: text('family_details'),
+  aboutMe: text('about_me'),  familyDetails: text('family_details'),
   fatherName: varchar('father_name', { length: 255 }),
+  fatherOccupation: varchar('father_occupation', { length: 255 }),
   fatherMobile: varchar('father_mobile', { length: 20 }),
   motherName: varchar('mother_name', { length: 255 }),
+  motherOccupation: varchar('mother_occupation', { length: 255 }),
   motherMobile: varchar('mother_mobile', { length: 20 }),
   housingStatus: varchar('housing_status', { length: 100 }),
   

@@ -1524,11 +1524,6 @@ export default function EditProfilePage() {
                         placeholder="Enter father's occupation"
                         className={familyForm.fatherOccupation ? "border-green-200 focus:border-green-300" : ""}
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {!familyForm.fatherOccupation ? 
-                          "Will display as \"Not specified\" if left empty" : 
-                          `Current value: ${familyForm.fatherOccupation}`}
-                      </p>
                     </FormField>
                       <FormField label="Mother's Name" filled={!!familyForm.motherName}>
                       <Input 

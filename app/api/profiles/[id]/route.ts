@@ -77,11 +77,12 @@ export async function GET(
         maritalStatus: users.maritalStatus,
         maritalStatusOther: users.maritalStatusOther,
         profilePhoto: users.profilePhoto,
-        aboutMe: users.aboutMe,
-        familyDetails: users.familyDetails,
+        aboutMe: users.aboutMe,        familyDetails: users.familyDetails,
         fatherName: users.fatherName,
+        fatherOccupation: users.fatherOccupation,
         fatherMobile: users.fatherMobile,
         motherName: users.motherName,
+        motherOccupation: users.motherOccupation,
         motherMobile: users.motherMobile,
         housingStatus: users.housingStatus,
         siblings: users.siblings,
@@ -140,11 +141,10 @@ export async function GET(
       islamicEducation: 'Not specified',
       diet: 'Not specified',
       smoking: 'Not specified',
-      drinking: 'Not specified',
-      languages: ['Not specified'],
+      drinking: 'Not specified',      languages: ['Not specified'],
       hobbies: ['Not specified'],      
-      fatherOccupation: 'Not specified',
-      motherOccupation: 'Home Queen',
+      fatherOccupation: profile[0].fatherOccupation || '',
+      motherOccupation: profile[0].motherOccupation || 'Home Queen',
       siblings: profile[0].siblings || 'Not specified',
       familyType: 'Not specified',
       // Log raw values for debugging
@@ -238,6 +238,9 @@ export async function PATCH(
     if (body.preferredComplexion !== undefined) {
       console.log(`Received preferredComplexion: '${body.preferredComplexion}'`);
     }
+    if (body.fatherOccupation !== undefined) {
+      console.log(`Received fatherOccupation: '${body.fatherOccupation}'`);
+    }
     
     // Update user profile in database
     const updatedProfile = await db
@@ -259,9 +262,9 @@ export async function PATCH(
         
         // Religious info
         religiousInclination: body.religiousInclination || undefined,        // Family info
-        familyDetails: body.familyDetails || undefined,
-        fatherName: body.fatherName || undefined,
+        familyDetails: body.familyDetails || undefined,        fatherName: body.fatherName || undefined,        fatherOccupation: body.fatherOccupation !== undefined ? body.fatherOccupation : undefined,
         motherName: body.motherName || undefined,
+        motherOccupation: body.motherOccupation !== undefined ? body.motherOccupation : undefined,
         siblings: body.siblings ? (Array.isArray(body.siblings) ? JSON.stringify(body.siblings) : body.siblings) : undefined,
         brotherInLaws: body.brotherInLaws ? (Array.isArray(body.brotherInLaws) ? JSON.stringify(body.brotherInLaws) : body.brotherInLaws) : undefined,
         maternalPaternal: body.maternalPaternal ? (Array.isArray(body.maternalPaternal) ? JSON.stringify(body.maternalPaternal) : body.maternalPaternal) : undefined,
