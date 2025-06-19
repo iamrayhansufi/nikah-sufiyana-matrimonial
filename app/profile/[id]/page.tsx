@@ -315,30 +315,25 @@ export default function ProfilePage({
         throw new Error('Failed to send interest')
       }
       
-      // For female profiles, check if this makes the interest mutual
-      if (profile?.gender === 'female') {
-        // Check if the other user has already sent interest to current user
-        const interestRes = await fetch(`/api/profiles/interests?profileId=${id}`, {
-          credentials: 'include'
-        })
-        
-        if (interestRes.ok) {
-          const interestData = await interestRes.json()
-          
-          // If mutual interest exists, remove photo blur
-          if (interestData.receivedInterests?.length > 0) {
-            setInterestMutual(true)
-            setShouldBlurPhoto(false)
-          }
-        }
-      }
+      const result = await response.json()
       
-      // Show success toast or message
-      toast({
-        title: "Interest Sent",
-        description: "Your interest has been sent to this member",
-        variant: "default"
-      })
+      // Check if it resulted in a mutual match
+      if (result.isMutual) {
+        setInterestMutual(true)
+        setShouldBlurPhoto(false)
+        toast({
+          title: "It's a Match! 🎉",
+          description: "You both have shown interest in each other! Photos are now visible.",
+          variant: "default"
+        })
+      } else {
+        // Show success toast or message
+        toast({
+          title: "Interest Sent",
+          description: "Your interest has been sent to this member",
+          variant: "default"
+        })
+      }
       
     } catch (error) {
       console.error("Failed to send interest:", error)
@@ -348,6 +343,48 @@ export default function ProfilePage({
       toast({
         title: "Failed to Send Interest",
         description: "There was a problem sending your interest. Please try again.",        
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleUndoInterest = async () => {
+    try {
+      // Send API request to undo interest
+      const response = await fetch(`/api/profiles/undo-interest`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          profileId: id
+        })
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to undo interest')
+      }
+      
+      // Update UI state
+      setIsInterestSent(false)
+      setInterestMutual(false)
+      setShouldBlurPhoto(true) // Re-blur photos if they were visible
+      
+      // Show success message
+      toast({
+        title: "Interest Removed",
+        description: "Your interest has been successfully removed",
+        variant: "default"
+      })
+      
+    } catch (error) {
+      console.error("Failed to undo interest:", error)
+      
+      // Show error toast
+      toast({
+        title: "Failed to Remove Interest",
+        description: error instanceof Error ? error.message : "There was a problem removing your interest. Please try again.",
         variant: "destructive"
       })
     }
@@ -502,18 +539,37 @@ export default function ProfilePage({
                       {profile.location}
                     </div>
                     <p className="text-sm text-muted-foreground">Member since {profile.joinedDate}</p>
-                  </div>
-
-                  {/* Action Buttons */}
+                  </div>                  {/* Action Buttons */}
                   <div className="space-y-3">
-                    <Button
-                      className="w-full gradient-emerald text-white"
-                      onClick={handleSendInterest}
-                      disabled={isInterestSent}
-                    >
-                      <Heart className="h-4 w-4 mr-2" />
-                      {isInterestSent ? "Interest Sent" : "Send Interest"}
-                    </Button>
+                    {!isInterestSent ? (
+                      <Button
+                        className="w-full gradient-emerald text-white"
+                        onClick={handleSendInterest}
+                      >
+                        <Heart className="h-4 w-4 mr-2" />
+                        Send Interest
+                      </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          className="w-full border-emerald-200 text-emerald-600 bg-emerald-50"
+                          disabled
+                        >
+                          <Heart className="h-4 w-4 mr-2 fill-emerald-600" />
+                          Interest Sent
+                          {interestMutual && " ✓ Match"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleUndoInterest}
+                          className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          Undo Interest
+                        </Button>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-2">
                       <Button

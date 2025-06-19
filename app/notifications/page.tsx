@@ -105,6 +105,38 @@ export default function NotificationsPage() {
     }
   };
 
+  const handleInterestResponse = async (interestId: string, action: 'accept' | 'decline', notificationId: number) => {
+    try {
+      const response = await fetch('/api/profiles/respond-interest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          interestId: parseInt(interestId),
+          action: action
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to ${action} interest`);
+      }
+      
+      // Mark notification as read
+      await handleMarkAsRead(notificationId);
+      
+      // Show success message based on action
+      alert(action === 'accept' 
+        ? 'Interest accepted! They can now view your photos.' 
+        : 'Interest declined.');
+      
+    } catch (error) {
+      console.error(`Failed to ${action} interest:`, error);
+      alert(`Failed to ${action} interest. Please try again.`);
+    }
+  };
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'interest':
@@ -120,6 +152,49 @@ export default function NotificationsPage() {
       default:
         return <AlertCircle className="h-5 w-5 text-primary" />;
     }
+  };
+
+  const renderNotificationActions = (notification: Notification) => {
+    if (notification.type === 'interest' && notification.metadata?.interestId) {
+      return (
+        <>
+          <Button 
+            size="sm" 
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={() => handleInterestResponse(
+              notification.metadata.interestId, 
+              'accept', 
+              notification.id
+            )}
+          >
+            <CheckCircle className="h-4 w-4 mr-1" />
+            Allow Photos
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline"
+            className="text-red-600 border-red-200 hover:bg-red-50"
+            onClick={() => handleInterestResponse(
+              notification.metadata.interestId, 
+              'decline', 
+              notification.id
+            )}
+          >
+            Decline
+          </Button>
+        </>
+      );
+    }
+    
+    if (notification.link) {
+      return (
+        <Button size="sm" onClick={() => handleNotificationClick(notification)}>
+          View
+        </Button>
+      );
+    }
+    
+    return null;
   };
 
   const groupedNotifications = groupNotificationsByDate(notifications);
@@ -170,11 +245,7 @@ export default function NotificationsPage() {
                                 {notification.message}
                               </p>
                               <div className="flex items-center gap-2 mt-2">
-                                {notification.link && (
-                                  <Button size="sm" onClick={() => handleNotificationClick(notification)}>
-                                    View
-                                  </Button>
-                                )}
+                                {renderNotificationActions(notification)}
                                 {!notification.read && (
                                   <Button 
                                     size="sm" 
@@ -220,11 +291,7 @@ export default function NotificationsPage() {
                                 {notification.message}
                               </p>
                               <div className="flex items-center gap-2 mt-2">
-                                {notification.link && (
-                                  <Button size="sm" onClick={() => handleNotificationClick(notification)}>
-                                    View
-                                  </Button>
-                                )}
+                                {renderNotificationActions(notification)}
                                 {!notification.read && (
                                   <Button 
                                     size="sm" 
@@ -270,11 +337,7 @@ export default function NotificationsPage() {
                                 {notification.message}
                               </p>
                               <div className="flex items-center gap-2 mt-2">
-                                {notification.link && (
-                                  <Button size="sm" onClick={() => handleNotificationClick(notification)}>
-                                    View
-                                  </Button>
-                                )}
+                                {renderNotificationActions(notification)}
                                 {!notification.read && (
                                   <Button 
                                     size="sm" 

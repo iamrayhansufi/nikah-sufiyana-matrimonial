@@ -321,6 +321,38 @@ export default function DashboardPage() {
     return Math.round((filled / fields.length) * 100)
   }
 
+  const handleInterestResponse = async (interestId: number, action: 'accept' | 'decline') => {
+    try {
+      const response = await fetch('/api/profiles/respond-interest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          interestId: interestId,
+          action: action
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to ${action} interest`);
+      }
+      
+      // Remove the interest from the list since it's been handled
+      setReceivedInterests(prev => prev.filter(interest => interest.id !== interestId));
+      
+      // Show success message
+      alert(action === 'accept' 
+        ? 'Interest accepted! They can now view your photos.' 
+        : 'Interest declined.');
+      
+    } catch (error) {
+      console.error(`Failed to ${action} interest:`, error);
+      alert(`Failed to ${action} interest. Please try again.`);
+    }
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><span>Loading your dashboard...</span></div>
   }
@@ -582,9 +614,21 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <Button size="sm" className="gradient-emerald text-white">
+                            <Button 
+                              size="sm" 
+                              className="gradient-emerald text-white"
+                              onClick={() => handleInterestResponse(interest.id, 'accept')}
+                            >
                               <Check className="h-4 w-4 mr-2" />
-                              Accept
+                              Allow Photos
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={() => handleInterestResponse(interest.id, 'decline')}
+                            >
+                              Decline
                             </Button>
                             <Link href={`/profile/${interest.id}`}>
                               <Button size="sm" variant="outline">

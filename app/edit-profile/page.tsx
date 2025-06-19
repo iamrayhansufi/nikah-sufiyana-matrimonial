@@ -1096,6 +1096,66 @@ export default function EditProfilePage() {
     }
   }
   
+  // Handle photo deletion
+  const handleDeletePhoto = async (photoUrl: string, index: number) => {
+    try {
+      setSavingTab('photos')
+      console.log("Deleting photo:", photoUrl, "at index:", index);
+      
+      const response = await fetch('/api/profiles/delete-photo', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        body: JSON.stringify({ photoUrl })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData?.error || 'Failed to delete photo');
+      }
+      
+      const result = await response.json();
+      console.log("Photo deleted successfully:", result);
+      
+      // Update local state immediately for better UX
+      setProfileData((prev: any) => {
+        if (!prev?.profilePhotos) return prev;
+        const updatedPhotos = [...prev.profilePhotos];
+        updatedPhotos.splice(index, 1);
+        return {
+          ...prev,
+          profilePhotos: updatedPhotos
+        };
+      });
+      
+      // Update privacy form state as well
+      setPrivacyForm(prev => ({
+        ...prev,
+        profilePhotos: prev.profilePhotos?.filter((_, i) => i !== index) || []
+      }));
+      
+      // Refresh the profile data to ensure consistency
+      await refetchProfile();
+      
+      toast({
+        title: "Photo Deleted",
+        description: "Your photo has been successfully deleted",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error("Delete photo error:", error);
+      toast({
+        title: "Delete Failed",
+        description: error instanceof Error ? error.message : "Failed to delete photo. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingTab(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
@@ -1839,6 +1899,7 @@ export default function EditProfilePage() {
                                 </td>
                                 <td className="p-2">
                                   <Button 
+ 
                                     variant="ghost" 
                                     size="sm"
                                     onClick={() => removeMaternalPaternal(index)}
@@ -2163,18 +2224,17 @@ export default function EditProfilePage() {
                                   alt={`Photo ${index + 1}`} 
                                   className="h-full w-full object-cover"
                                 />
-                              </div>
-                              <button 
+                              </div>                              <button 
                                 type="button"
-                                onClick={() => {
-                                  // Add functionality to remove photo
-                                  const updatedPhotos = [...profileData.profilePhotos];
-                                  updatedPhotos.splice(index, 1);
-                                  setProfileData({...profileData, profilePhotos: updatedPhotos});
-                                }}
-                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600"
+                                onClick={() => handleDeletePhoto(photo, index)}
+                                disabled={savingTab === 'photos'}
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                <X className="h-4 w-4" />
+                                {savingTab === 'photos' ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <X className="h-4 w-4" />
+                                )}
                               </button>
                             </div>
                           ))}
