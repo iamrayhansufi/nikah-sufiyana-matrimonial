@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Heart, Star, MapPin, GraduationCap, Briefcase, Filter, Eye, MessageSquare } from "lucide-react"
+import { Heart, Star, MapPin, GraduationCap, Briefcase, Filter, Eye, EyeOff, MessageSquare } from "lucide-react"
 import Link from "next/link"
 import { playfair } from "../lib/fonts"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
@@ -33,6 +33,7 @@ interface Profile {
   match?: number
   premium?: boolean
   verified?: boolean
+  showPhotos?: boolean  // Added showPhotos property for privacy settings
 }
 
 export default function BrowseProfilesPage() {
@@ -61,6 +62,10 @@ export default function BrowseProfilesPage() {
   const [isPremium, setIsPremium] = useState(false)
   const [contactInfo, setContactInfo] = useState<string | null>(null)
   const [showContactDialog, setShowContactDialog] = useState(false)
+  // New state to track interest status for each profile
+  const [sentInterests, setSentInterests] = useState<Set<string>>(new Set())
+  const [mutualInterests, setMutualInterests] = useState<Set<string>>(new Set())
+  const [blurredPhotoIds, setBlurredPhotoIds] = useState<Set<string>>(new Set())
 
   // Fetch real profiles from API
   useEffect(() => {
@@ -138,6 +143,74 @@ export default function BrowseProfilesPage() {
       setIsPremium(false)
     }
   }, [session])
+  
+  // New effect to fetch photo visibility status for all profiles based on privacy settings and interest status
+  useEffect(() => {
+    if (!session?.user?.id || profiles.length === 0) return;
+    
+    const checkPhotoVisibility = async () => {
+      try {
+        // Create new Sets to track various states
+        const newBlurredPhotoIds = new Set<string>();
+        const newSentInterests = new Set<string>();
+        const newMutualInterests = new Set<string>();
+        
+        // For each profile, check if we should blur photos
+        for (const profile of profiles) {
+          // Skip if profile doesn't have ID
+          if (!profile.id) continue;
+          
+          // Check interest status for this profile
+          const interestRes = await fetch(`/api/profiles/interests?profileId=${profile.id}`, {
+            credentials: 'include'
+          });
+          
+          if (interestRes.ok) {
+            const interestData = await interestRes.json();
+            
+            // Check if interest was sent
+            if (interestData.sentInterests?.length > 0) {
+              newSentInterests.add(profile.id);
+            }
+            
+            // Check if user's interest has been accepted by the profile owner
+            const hasApproval = interestData.sentInterests?.some((interest: any) => 
+              interest.status === 'accepted'
+            );
+            
+            // Check if there's a mutual interest (user received interest from profile as well)
+            if (interestData.receivedInterests?.length > 0 && newSentInterests.has(profile.id)) {
+              newMutualInterests.add(profile.id);
+            }
+            
+            // Determine if photos should be blurred based on privacy settings and interest status
+            // Get showPhotos value from the profile
+            const showPhotos = profile.showPhotos !== undefined ? profile.showPhotos : true;
+            
+            // Photos should be blurred if profile owner has disabled photos AND user's interest hasn't been accepted
+            if (!showPhotos && !hasApproval) {
+              newBlurredPhotoIds.add(profile.id);
+            }
+          }
+        }
+        
+        // Update states
+        setBlurredPhotoIds(newBlurredPhotoIds);
+        setSentInterests(newSentInterests);
+        setMutualInterests(newMutualInterests);
+        
+        console.log('Photo visibility status:', {
+          blurredCount: newBlurredPhotoIds.size,
+          sentInterestsCount: newSentInterests.size,
+          mutualCount: newMutualInterests.size
+        });
+      } catch (error) {
+        console.error('Error checking photo visibility:', error);
+      }
+    };
+    
+    checkPhotoVisibility();
+  }, [profiles, session?.user?.id]);
 
   // Filtering logic (update to use real profiles)
   const filteredProfiles = profiles.filter((profile) => {
@@ -190,6 +263,12 @@ export default function BrowseProfilesPage() {
   const [showApplyButton, setShowApplyButton] = useState(false);
   const [tempFilters, setTempFilters] = useState(filters);
 
+  // Add handleFilterChange function
+  const handleFilterChange = (newFilters: typeof filters) => {
+    setTempFilters(newFilters);
+    setShowApplyButton(true);
+  };
+
   const applyFilters = () => {
     setFilters(tempFilters);
     setShowApplyButton(false);
@@ -198,11 +277,86 @@ export default function BrowseProfilesPage() {
       setShowFilters(false);
     }
   };
+  
+  // Function to send interest from browse page
+  const handleSendInterest = async (profileId: string) => {
+    if (!session?.user?.id) {
+      // Redirect to login if not logged in
+      window.location.href = '/login';
+      return;
+    }
+    
+    try {
+      // Send API request to send interest
+      const response = await fetch(`/api/profiles/send-interest`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          profileId: profileId, // The profile receiving interest
+          message: `${session?.user?.name || 'Someone'} has shown interest in your profile`
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send interest');
+      }
+      
+      const result = await response.json();
+      
+      // If interest is mutual, unblur photos immediately
+      if (result.isMutual) {
+        setBlurredPhotoIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(profileId);
+          return newSet;
+        });
+      }
+      
+      // Show success notification (you can replace this with your toast system)
+      alert(result.isMutual ? "It's a match! Photos are now visible." : "Interest sent successfully");
+      
+      // Update sent interests state
+      setSentInterests(prev => {
+        const newSet = new Set(prev);
+        newSet.add(profileId);
+        return newSet;
+      });
+      
+      // If interest is mutual, add to mutual interests state
+      if (result.isMutual) {
+        setMutualInterests(prev => {
+          const newSet = new Set(prev);
+          newSet.add(profileId);
+          return newSet;
+        });
+      }
+      
+    } catch (error) {
+      console.error("Failed to send interest:", error);
+      // Show error notification
+      alert("Failed to send interest. Please try again later.");
+    }
+  };
 
-  // Function to handle filter changes and show apply button
-  const handleFilterChange = (newFilters: any) => {
-    setTempFilters(newFilters);
-    setShowApplyButton(true);
+  // Function to toggle photo visibility for a specific profile
+  const togglePhotoVisibility = (profileId: string) => {
+    // If the photo is currently blurred, unblur it
+    if (blurredPhotoIds.has(profileId)) {
+      setBlurredPhotoIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(profileId);
+        return newSet;
+      });
+    } else {
+      // Otherwise blur it
+      setBlurredPhotoIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(profileId);
+        return newSet;
+      });
+    }
   };
 
   const FilterContent = () => (
@@ -545,7 +699,7 @@ export default function BrowseProfilesPage() {
                       <img
                         src={profile.profilePhoto || "/placeholder-user.jpg"}
                         alt={profile.name}
-                        className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"}`}
+                        className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"} ${blurredPhotoIds.has(profile.id) ? 'blur-md' : ''}`}
                       />
                       {!profile.premium && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -553,6 +707,51 @@ export default function BrowseProfilesPage() {
                             <Eye className="h-8 w-8 mx-auto mb-2" />
                             <p className="text-sm">Upgrade to view</p>
                           </div>
+                        </div>
+                      )}
+                      {/* Islamic-themed blur overlay for private photos */}
+                      {blurredPhotoIds.has(profile.id) && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">
+                          {/* Islamic geometric pattern background - subtle */}
+                          <div className="absolute inset-0 opacity-10">
+                            <div className="w-full h-full islamic-pattern"></div>
+                          </div>
+                          
+                          {/* Islamic crescent moon icon */}
+                          <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-2 rounded-full mb-3 backdrop-blur-sm border border-amber-300/30 relative z-10">
+                            <div className="flex items-center justify-center">
+                              <svg className="h-7 w-7 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" opacity="0.1"/>
+                                <path d="M10 17C7.23858 17 5 14.7614 5 12C5 9.23858 7.23858 7 10 7C9.73179 7.97256 9.5 9.23744 9.5 10C9.5 13.0376 11.3795 15.5 14 15.5C14.2731 15.5 14.5418 15.4809 14.8049 15.4443C13.8186 16.4437 11.9999 17 10 17Z" fill="currentColor"/>
+                                <circle cx="17" cy="7" r="2" fill="currentColor"/>
+                              </svg>
+                            </div>
+                          </div>
+                          
+                          {/* Text and action button */}
+                          <div className="text-center mb-4 relative z-10">
+                            <h3 className="font-bold text-lg mb-1 text-amber-100 font-arabic">
+                              صور محفوظة بالحشمة
+                            </h3>
+                            <p className="font-semibold text-base text-white">Photos Protected with Haya</p>
+                            <p className="text-xs text-emerald-100 leading-relaxed mt-1">
+                              Express your interest to connect respectfully
+                            </p>
+                          </div>
+                          
+                          {/* Express Interest Button */}
+                          <Button 
+                            variant="secondary" 
+                            size="sm"
+                            className="bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 hover:from-amber-300 hover:to-amber-400 font-medium border border-amber-300 shadow-lg transition-all duration-300 relative z-10"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent navigation to profile
+                              handleSendInterest(profile.id);
+                            }}
+                          >
+                            <Heart className="h-4 w-4 mr-2 text-red-600" />
+                            Express Interest
+                          </Button>
                         </div>
                       )}
                       <div className="absolute top-2 left-2 flex gap-2">
@@ -572,8 +771,28 @@ export default function BrowseProfilesPage() {
                           <p className="text-sm text-muted-foreground">{profile.age} years old</p>
                         </div>
                         <div className="flex gap-1">
+                          {/* Photo visibility toggle button - only shown for mutual interests */}
+                          {mutualInterests.has(profile.id) && (
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              className="h-8 w-8"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePhotoVisibility(profile.id);
+                              }}
+                              title={blurredPhotoIds.has(profile.id) ? "Show Photos" : "Hide Photos"}
+                            >
+                              {blurredPhotoIds.has(profile.id) ? (
+                                <Eye className="h-4 w-4 text-emerald-500" />
+                              ) : (
+                                <EyeOff className="h-4 w-4 text-amber-500" />
+                              )}
+                            </Button>
+                          )}
+                          
                           <Button size="icon" variant="ghost" className="h-8 w-8">
-                            <Heart className="h-4 w-4" />
+                            <Heart className={`h-4 w-4 ${sentInterests.has(profile.id) ? "text-red-500 fill-red-500" : ""}`} />
                           </Button>
                           <Button size="icon" variant="ghost" className="h-8 w-8">
                             <Star className="h-4 w-4" />
@@ -610,6 +829,18 @@ export default function BrowseProfilesPage() {
                             View Profile
                           </Button>
                         </Link>
+                      </div>
+
+                      {/* New Interest Button */}
+                      <div className="mt-3">
+                        <Button
+                          onClick={() => handleSendInterest(profile.id)}
+                          variant="default"
+                          className="w-full flex items-center justify-center gap-2"
+                        >
+                          <Heart className="h-4 w-4" />
+                          Send Interest
+                        </Button>
                       </div>
 
                       {!profile.premium && (
