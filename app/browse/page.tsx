@@ -218,7 +218,26 @@ export default function BrowseProfilesPage() {
           // Skip if profile doesn't have ID
           if (!profile.id) continue;
           
-          // Check interest status for this profile
+          // First, check the profile's privacy settings directly from profile data
+          const showPhotos = profile.showPhotos !== undefined ? profile.showPhotos : true;
+          console.log(`Profile ${profile.id} (${profile.name}) privacy setting: showPhotos=${showPhotos}, profile.showPhotos=${profile.showPhotos}`);
+          
+          // TEMPORARY: Force the first profile to be blurred for testing
+          if (profile.id === profiles[0]?.id) {
+            newBlurredPhotoIds.add(profile.id);
+            console.log(`TESTING: Force blurring first profile ${profile.id} (${profile.name})`);
+            continue;
+          }
+          
+          // If photos are disabled by the profile owner, blur them immediately
+          if (!showPhotos) {
+            newBlurredPhotoIds.add(profile.id);
+            console.log(`Photos protected for profile ${profile.id} (${profile.name})`);
+            // Skip interest checking if photos are protected
+            continue;
+          }
+          
+          // Check interest status for this profile only if photos are not protected
           const interestRes = await fetch(`/api/profiles/interests?profileId=${profile.id}`, {
             credentials: 'include'
           });
@@ -241,15 +260,7 @@ export default function BrowseProfilesPage() {
               newMutualInterests.add(profile.id);
             }
             
-            // Determine if photos should be blurred based on privacy settings and interest status
-            // Get showPhotos value from the profile
-            const showPhotos = profile.showPhotos !== undefined ? profile.showPhotos : true;
-            
-            // Photos should be blurred if profile owner has disabled photos AND user's interest hasn't been accepted
-            if (!showPhotos && !hasApproval) {
-              newBlurredPhotoIds.add(profile.id);
-              console.log(`Blurring photos for profile ${profile.id} - showPhotos: ${showPhotos}, hasApproval: ${hasApproval}`);
-            }
+            console.log(`Profile ${profile.id}: showPhotos=${showPhotos}, hasApproval=${hasApproval}`);
           }
         }
         
@@ -837,20 +848,16 @@ export default function BrowseProfilesPage() {
                 {filteredProfiles.map((profile) => (
                   <Card key={profile.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="relative">
-                      {/* When photos are protected, show a completely different placeholder image */}
+                      {/* When photos are protected, show a completely different placeholder with increased height */}
                       {blurredPhotoIds.has(profile.id) ? (
-                        <div className={`w-full ${viewMode === "grid" ? "h-64" : "h-32"} bg-gradient-to-br from-slate-100 to-emerald-50 flex items-center justify-center`}>
-                          <img 
-                            src="/placeholder-user.jpg" 
-                            alt="Protected Profile" 
-                            className="w-16 h-16 opacity-40 rounded-full object-cover" 
-                          />
+                        <div className={`w-full ${viewMode === "grid" ? "h-80" : "h-40"} bg-gradient-to-br from-slate-200 to-emerald-100 flex items-start justify-center pt-16`}>
+                          {/* No actual photo should be rendered when protected */}
                         </div>
                       ) : (
                         <img
                           src={profile.profilePhoto || "/placeholder-user.jpg"}
                           alt={profile.name}
-                          className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"}`}
+                          className={`w-full object-cover object-top ${viewMode === "grid" ? "h-80" : "h-40"}`}
                         />
                       )}
                       
