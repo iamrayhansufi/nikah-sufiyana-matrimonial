@@ -115,9 +115,9 @@ export function Header() {
             <Link href="/" className="flex items-center space-x-2">              <Image 
                 src="/Nikah-Sufiyana-Logo.svg"
                 alt="Nikah Sufiyana" 
-                width={150} 
-                height={40}
-                className="h-10 w-auto"
+                width={190} 
+                height={52}
+                className="h-13 w-auto"
                 priority
               />
             </Link>
@@ -278,13 +278,12 @@ export function Header() {
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[280px] sm:w-[350px]">
                   <div className="py-4 flex flex-col h-full">
-                    <div className="flex items-center mb-6">
-                      <Image 
+                    <div className="flex items-center mb-6">                      <Image 
                         src="/Nikah-Sufiyana-Logo.svg" 
                         alt="Nikah Sufiyana" 
-                        width={120} 
-                        height={35}
-                        className="h-8 w-auto"
+                        width={156} 
+                        height={45}
+                        className="h-10 w-auto"
                       />
                     </div>
                     

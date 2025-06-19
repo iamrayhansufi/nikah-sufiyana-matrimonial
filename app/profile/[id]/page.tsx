@@ -375,10 +375,37 @@ export default function ProfilePage({
       console.error("Failed to send interest:", error)
       setIsInterestSent(false)
       
-      // Show error toast or message
+      // Show error toast
       toast({
-        title: "Failed to Send Interest",
-        description: "There was a problem sending your interest. Please try again.",        
+        title: "Error",
+        description: "Failed to send interest. Please try again later.",
+        variant: "destructive"
+      })
+    }  }
+  
+  // Function to toggle photo visibility
+  const togglePhotoVisibility = () => {
+    try {
+      // Toggle the blur state for immediate UI feedback
+      setShouldBlurPhoto(prevState => !prevState)
+      
+      // Show toast with appropriate message based on the previous state
+      toast({
+        title: shouldBlurPhoto ? "Photos Visible" : "Photos Hidden",
+        description: shouldBlurPhoto 
+          ? "You can now view this member's photos" 
+          : "Photos have been hidden for privacy",
+        variant: "default"
+      })
+      
+    } catch (error) {
+      console.error("Failed to toggle photo visibility:", error)
+      // Revert if there's an error
+      setShouldBlurPhoto(prevState => !prevState)
+      
+      toast({
+        title: "Error",
+        description: "Failed to change photo visibility. Please try again.",
         variant: "destructive"
       })
     }
@@ -604,12 +631,12 @@ export default function ProfilePage({
                         
                         {/* Updated Islamic text */}
                         <div className="text-center mb-4 relative z-10">
-                          <h3 className="font-bold text-xl mb-2 text-amber-100 font-arabic">
-                            صور محفوظة بالحشمة
+                              <h3 className="font-bold text-xl mb-2 text-amber-100 font-arabic">
+اسلامی اصولوں کے مطابق محفوظ
                           </h3>
-                          <p className="font-semibold text-lg mb-1 text-white">Photos Protected with Haya</p>
+                          <p className="font-semibold text-lg mb-1 text-white">Protected by Islamic values</p>
                           <p className="text-sm text-emerald-100 leading-relaxed max-w-xs mx-auto">
-                            This member follows Islamic principles of modesty and privacy. Express your interest to connect respectfully according to Islamic guidelines.
+                            Nikah Sufiyana ensures your journey begins with Haya.
                           </p>
                         </div>
                         
@@ -644,16 +671,48 @@ export default function ProfilePage({
                     <div className="absolute top-2 right-2">
                       <Badge variant="secondary" className="bg-primary text-white">
                         {profile.matchPercentage}% Match
-                      </Badge>
-                    </div>
+                      </Badge>                    </div>
 
-                    {/* Online Status */}
-                    <div className="absolute bottom-2 left-2">
-                      <Badge variant="outline" className="bg-white/90">
-                        Last seen: {profile.lastSeen}
-                      </Badge>
+                  </div>
+                  
+                  {/* Toggle Photo Visibility Button - only shown when photos are visible and interest is accepted */}
+                  {!shouldBlurPhoto && interestMutual && (
+                    <div className="mb-4">
+                      <Button 
+                        variant="outline" 
+                        className="w-full flex items-center justify-center gap-2 border-amber-500 text-amber-700 hover:bg-amber-50"
+                        onClick={togglePhotoVisibility}
+                      >
+                        <EyeOff className="h-4 w-4" />
+                        Hide Photos
+                      </Button>
                     </div>
-                  </div>                  {/* Basic Info */}
+                  )}                  {/* Toggle Photo Visibility Button - shown based on current visibility state */}
+                  {interestMutual && (
+                    <div className="mb-4">
+                      <Button 
+                        variant="outline" 
+                        className={`w-full flex items-center justify-center gap-2 ${shouldBlurPhoto ? 
+                          'border-emerald-500 text-emerald-700 hover:bg-emerald-50' : 
+                          'border-amber-500 text-amber-700 hover:bg-amber-50'}`}
+                        onClick={togglePhotoVisibility}
+                      >
+                        {shouldBlurPhoto ? (
+                          <>
+                            <Eye className="h-4 w-4" />
+                            Show Photos
+                          </>
+                        ) : (
+                          <>
+                            <EyeOff className="h-4 w-4" />
+                            Hide Photos
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Basic Info */}
                   <div className="text-center mb-6">
                     <h1 className={`${playfair.className} text-2xl font-semibold mb-2`}>{formatToTitleCase(profile.name)}</h1>
                     <p className="text-muted-foreground mb-1">{profile.age} years old</p>
@@ -662,7 +721,7 @@ export default function ProfilePage({
                       {formatToTitleCase(profile.location)}
                     </div>
                     <p className="text-sm text-muted-foreground">Member since {profile.joinedDate}</p>
-                  </div>                  {/* Action Buttons */}
+                  </div>{/* Action Buttons */}
                   <div className="space-y-3">
                     {/* Interest Request Response (if user received request from this profile) */}
                     {incomingInterestRequest && (
@@ -1180,7 +1239,8 @@ export default function ProfilePage({
                     <CardHeader>
                       <CardTitle>Photo Gallery</CardTitle>
                     </CardHeader>                    <CardContent>
-                      <div>                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                      <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                           {/* Main Profile Photo */}
                           <div 
                             className={`aspect-square rounded-lg overflow-hidden bg-gray-100 relative ${!shouldBlurPhoto ? 'cursor-pointer' : ''}`}
@@ -1190,9 +1250,11 @@ export default function ProfilePage({
                               src={profile.profilePhoto || "/placeholder.svg"} 
                               alt={`${profile.name}'s profile photo`}
                               className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
-                            />                            <Badge className="absolute top-2 left-2 bg-primary">Main Photo</Badge>
+                            />
+                            <Badge className="absolute top-2 left-2 bg-primary">Main Photo</Badge>
                             {shouldBlurPhoto && (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">                                <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-2 rounded-full mb-3 backdrop-blur-sm border border-amber-300/30">
+                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">
+                                <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-2 rounded-full mb-3 backdrop-blur-sm border border-amber-300/30">
                                   <div className="flex items-center justify-center">
                                     <svg className="h-7 w-7 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                       <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" opacity="0.1"/>
@@ -1214,13 +1276,15 @@ export default function ProfilePage({
                                 key={index} 
                                 className={`aspect-square rounded-lg overflow-hidden bg-gray-100 relative ${!shouldBlurPhoto ? 'cursor-pointer' : ''}`}
                                 onClick={() => handleImageClick(photo)}
-                              >                                <img 
+                              >
+                                <img 
                                   src={photo} 
                                   alt={`${profile.name}'s photo ${index + 1}`}
                                   className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
                                 />
                                 {shouldBlurPhoto && (
-                                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-3 text-center backdrop-blur-sm border border-amber-400/20">                                    <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-1.5 rounded-full mb-2 backdrop-blur-sm border border-amber-300/30">
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-3 text-center backdrop-blur-sm border border-amber-400/20">
+                                    <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-1.5 rounded-full mb-2 backdrop-blur-sm border border-amber-300/30">
                                       <div className="flex items-center justify-center">
                                         <svg className="h-5 w-5 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                           <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" opacity="0.1"/>
@@ -1242,7 +1306,8 @@ export default function ProfilePage({
                               </p>
                             </div>
                           )}
-                        </div>                        <p className="text-sm text-muted-foreground text-center">
+                        </div>
+                        <p className="text-sm text-muted-foreground text-center">
                           {profile.showPhotos ? 
                             "Photos are visible to all members" : 
                             shouldBlurPhoto ? 
