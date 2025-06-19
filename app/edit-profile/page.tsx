@@ -82,7 +82,7 @@ interface MaternalPaternal {
 interface FamilyInfoForm {
   familyDetails: string;
   fatherName: string;
-  fatherOccupation: string;
+  fatherOccupation?: string;
   motherName: string;
   motherOccupation: string;
   motherOccupationOther?: string;
@@ -719,7 +719,7 @@ export default function EditProfilePage() {
       setFamilyForm({
         familyDetails: data.familyDetails || "",
         fatherName: data.fatherName || "",
-        fatherOccupation: data.fatherOccupation || "Not specified",
+        fatherOccupation: data.fatherOccupation || "",
         motherName: data.motherName || "",
         motherOccupation: data.motherOccupation || "Home Queen",
         motherOccupationOther: data.motherOccupation !== "Home Queen" && data.motherOccupation !== "" ? data.motherOccupation : "",
@@ -1517,19 +1517,15 @@ export default function EditProfilePage() {
                         placeholder="Your father's name"
                         className={familyForm.fatherName ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </FormField>                    <FormField label="Father's Occupation" filled={!!familyForm.fatherOccupation}>
+                    </FormField>
+                    <FormField label="Father's Occupation" filled={!!familyForm.fatherOccupation}>
                       <Input 
                         id="fatherOccupation"
                         value={familyForm.fatherOccupation}
                         onChange={(e) => handleFamilyChange('fatherOccupation', e.target.value)}
                         placeholder="Enter father's occupation"
                         className={familyForm.fatherOccupation ? "border-green-200 focus:border-green-300" : ""}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        {!familyForm.fatherOccupation ? 
-                          "Will display as \"Not specified\" if left empty" : 
-                          `Current value: ${familyForm.fatherOccupation}`}
-                      </p>
+                      />                      
                     </FormField>
                       <FormField label="Mother's Name" filled={!!familyForm.motherName}>
                       <Input 
