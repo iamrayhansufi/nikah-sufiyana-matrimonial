@@ -248,6 +248,7 @@ export default function BrowseProfilesPage() {
             // Photos should be blurred if profile owner has disabled photos AND user's interest hasn't been accepted
             if (!showPhotos && !hasApproval) {
               newBlurredPhotoIds.add(profile.id);
+              console.log(`Blurring photos for profile ${profile.id} - showPhotos: ${showPhotos}, hasApproval: ${hasApproval}`);
             }
           }
         }
@@ -836,11 +837,22 @@ export default function BrowseProfilesPage() {
                 {filteredProfiles.map((profile) => (
                   <Card key={profile.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="relative">
-                      <img
-                        src={profile.profilePhoto || "/placeholder-user.jpg"}
-                        alt={profile.name}
-                        className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"}`}
-                      />
+                      {/* When photos are protected, show a completely different placeholder image */}
+                      {blurredPhotoIds.has(profile.id) ? (
+                        <div className={`w-full ${viewMode === "grid" ? "h-64" : "h-32"} bg-gradient-to-br from-slate-100 to-emerald-50 flex items-center justify-center`}>
+                          <img 
+                            src="/placeholder-user.jpg" 
+                            alt="Protected Profile" 
+                            className="w-16 h-16 opacity-40 rounded-full object-cover" 
+                          />
+                        </div>
+                      ) : (
+                        <img
+                          src={profile.profilePhoto || "/placeholder-user.jpg"}
+                          alt={profile.name}
+                          className={`w-full object-cover ${viewMode === "grid" ? "h-64" : "h-32"}`}
+                        />
+                      )}
                       
                       {/* Conditional rendering of privacy overlay only if photos are protected */}
                       {blurredPhotoIds.has(profile.id) ? (
