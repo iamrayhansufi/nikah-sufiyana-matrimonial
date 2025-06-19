@@ -90,11 +90,16 @@ export default function NotificationsPage() {
       alert(`Failed to ${action} interest. Please try again.`);
     }
   };
-
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'interest':
         return <Heart className="h-5 w-5 text-red-500" />;
+      case 'interest_accepted':
+        return <Heart className="h-5 w-5 text-green-500 fill-green-500" />;
+      case 'interest_declined':
+        return <Heart className="h-5 w-5 text-gray-500" />;
+      case 'match':
+        return <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />;
       case 'message':
         return <MessageSquare className="h-5 w-5 text-blue-500" />;
       case 'profile_view':
@@ -185,9 +190,11 @@ export default function NotificationsPage() {
                             <div className="bg-primary/10 p-2 rounded-full">
                               {getNotificationIcon(notification.type)}
                             </div>
-                            <div className="flex-1">
-                              <h3 className={`${playfair.className} font-medium`}>
+                            <div className="flex-1">                              <h3 className={`${playfair.className} font-medium`}>
                                 {notification.type === 'interest' && 'New Interest'}
+                                {notification.type === 'interest_accepted' && 'Interest Accepted! 🎉'}
+                                {notification.type === 'interest_declined' && 'Interest Declined'}
+                                {notification.type === 'match' && 'New Match! 💕'}
                                 {notification.type === 'message' && 'New Message'}
                                 {notification.type === 'profile_view' && 'Profile View'}
                                 {notification.type === 'premium' && 'Premium Feature'}
@@ -198,6 +205,16 @@ export default function NotificationsPage() {
                               </p>
                               <div className="flex items-center gap-2 mt-2">
                                 {renderNotificationActions(notification)}
+                                {notification.link && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                    onClick={() => handleNotificationClick(notification)}
+                                  >
+                                    View Profile
+                                  </Button>
+                                )}
                                 {!notification.read && (
                                   <Button 
                                     size="sm" 
@@ -230,10 +247,12 @@ export default function NotificationsPage() {
                           >
                             <div className="bg-primary/10 p-2 rounded-full">
                               {getNotificationIcon(notification.type)}
-                            </div>
-                            <div className="flex-1">
+                            </div>                            <div className="flex-1">
                               <h3 className={`${playfair.className} font-medium`}>
                                 {notification.type === 'interest' && 'New Interest'}
+                                {notification.type === 'interest_accepted' && 'Interest Accepted! 🎉'}
+                                {notification.type === 'interest_declined' && 'Interest Declined'}
+                                {notification.type === 'match' && 'New Match! 💕'}
                                 {notification.type === 'message' && 'New Message'}
                                 {notification.type === 'profile_view' && 'Profile View'}
                                 {notification.type === 'premium' && 'Premium Feature'}
@@ -243,6 +262,16 @@ export default function NotificationsPage() {
                                 {notification.message}
                               </p>                              <div className="flex items-center gap-2 mt-2">
                                 {renderNotificationActions(notification)}
+                                {notification.link && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                    onClick={() => handleNotificationClick(notification)}
+                                  >
+                                    View Profile
+                                  </Button>
+                                )}
                                 {!notification.read && (
                                   <Button 
                                     size="sm" 
@@ -275,10 +304,12 @@ export default function NotificationsPage() {
                           >
                             <div className="bg-primary/10 p-2 rounded-full">
                               {getNotificationIcon(notification.type)}
-                            </div>
-                            <div className="flex-1">
+                            </div>                            <div className="flex-1">
                               <h3 className={`${playfair.className} font-medium`}>
                                 {notification.type === 'interest' && 'New Interest'}
+                                {notification.type === 'interest_accepted' && 'Interest Accepted! 🎉'}
+                                {notification.type === 'interest_declined' && 'Interest Declined'}
+                                {notification.type === 'match' && 'New Match! 💕'}
                                 {notification.type === 'message' && 'New Message'}
                                 {notification.type === 'profile_view' && 'Profile View'}
                                 {notification.type === 'premium' && 'Premium Feature'}
@@ -288,6 +319,16 @@ export default function NotificationsPage() {
                                 {notification.message}
                               </p>                              <div className="flex items-center gap-2 mt-2">
                                 {renderNotificationActions(notification)}
+                                {notification.link && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                    onClick={() => handleNotificationClick(notification)}
+                                  >
+                                    View Profile
+                                  </Button>
+                                )}
                                 {!notification.read && (
                                   <Button 
                                     size="sm" 

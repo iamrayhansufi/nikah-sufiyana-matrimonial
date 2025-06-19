@@ -100,11 +100,10 @@ export async function POST(request: NextRequest) {
     const senderUser = await db.query.users.findFirst({
       where: eq(users.id, interest.fromUserId)
     })
-    
-    if (senderUser) {
+      if (senderUser) {
       // Create notification for the sender
       const notificationMessage = action === 'accept' 
-        ? `${receiverUser.fullName || 'Someone'} has accepted your interest and allowed you to view their photos!`
+        ? `🎉 ${receiverUser.fullName || 'Someone'} has accepted your interest! You can now view their photos. Click to visit their profile.`
         : `${receiverUser.fullName || 'Someone'} has declined your interest.`;
       
       await createNotification({

@@ -6,6 +6,8 @@ interface Notification {
   id: number;
   type: string;
   message: string;
+  link?: string;
+  metadata?: Record<string, any>;
   read: boolean;
   createdAt: string;
 }

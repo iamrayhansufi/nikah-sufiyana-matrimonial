@@ -176,10 +176,17 @@ export function Header() {
                             key={notification.id || index}
                             className={`p-3 border-b text-sm cursor-pointer hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
                             onClick={() => handleNotificationClick(notification)}
-                          >
-                            <div className="flex items-start">
+                          >                            <div className="flex items-start">
                               {notification.type === 'interest' && (
                                 <Heart className="h-4 w-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" />
+                              )}                              {notification.type === 'interest_accepted' && (
+                                <Heart className="h-4 w-4 text-green-500 mt-0.5 mr-2 fill-green-500 flex-shrink-0" />
+                              )}
+                              {notification.type === 'interest_declined' && (
+                                <Heart className="h-4 w-4 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
+                              )}
+                              {notification.type === 'match' && (
+                                <Heart className="h-4 w-4 text-pink-500 mt-0.5 mr-2 fill-pink-500 flex-shrink-0" />
                               )}
                               {notification.type === 'message' && (
                                 <MessageCircle className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
@@ -188,9 +195,9 @@ export function Header() {
                                 <Star className="h-4 w-4 text-yellow-500 mt-0.5 mr-2 fill-yellow-500 flex-shrink-0" />
                               )}
                               <div>
-                                <p className="text-muted-foreground">{notification.message}</p>
-                                <p className="text-xs text-muted-foreground mt-1">
+                                <p className="text-muted-foreground">{notification.message}</p>                                <p className="text-xs text-muted-foreground mt-1">
                                   {new Date(notification.createdAt).toLocaleString()}
+                                  {(notification as any).link && <span className="ml-2 text-blue-500">• Click to view</span>}
                                 </p>
                               </div>
                             </div>
