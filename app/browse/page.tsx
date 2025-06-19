@@ -38,6 +38,54 @@ interface Profile {
 
 export default function BrowseProfilesPage() {
   const { data: session } = useSession()
+  
+  // Helper function to capitalize first letter of words
+  const formatToTitleCase = (text: string | undefined): string => {
+    if (!text) return "Not Specified";
+    
+    // Convert to string if it's not already
+    const textStr = String(text).trim();
+    if (!textStr) return "Not Specified";
+    
+    // List of words that should not be capitalized unless they're the first word
+    const exceptions = ['a', 'an', 'the', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'with', 'in', 'of'];
+    
+    // First handle kebab-case
+    if (textStr.includes('-')) {
+      return textStr
+        .split('-')
+        .map((word: string, index: number) => {
+          if (index === 0 || !exceptions.includes(word.toLowerCase())) {
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+          }
+          return word.toLowerCase();
+        })
+        .join(' ');
+    }
+    
+    // Handle space-separated words
+    if (textStr.includes(' ')) {
+      return textStr
+        .split(' ')
+        .map((word: string, index: number) => {
+          // Don't change words that are all numbers
+          if (/^\d+$/.test(word)) return word;
+          
+          if (index === 0 || !exceptions.includes(word.toLowerCase())) {
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+          }
+          return word.toLowerCase();
+        })
+        .join(' ');
+    }
+    
+    // Single word - don't change if it's a number
+    if (/^\d+$/.test(textStr)) return textStr;
+    
+    // Single word
+    return textStr.charAt(0).toUpperCase() + textStr.slice(1).toLowerCase();
+  };
+  
   const [filters, setFilters] = useState({
     ageRange: [18, 45],
     location: "",
@@ -712,15 +760,15 @@ export default function BrowseProfilesPage() {
                       {/* Islamic-themed blur overlay for private photos */}
                       {blurredPhotoIds.has(profile.id) && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">
-                          {/* Islamic geometric pattern background - subtle */}
+                          {/* Islamic geometric pattern background */}
                           <div className="absolute inset-0 opacity-10">
                             <div className="w-full h-full islamic-pattern"></div>
                           </div>
                           
-                          {/* Islamic crescent moon icon */}
-                          <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-2 rounded-full mb-3 backdrop-blur-sm border border-amber-300/30 relative z-10">
+                          {/* Main icon with Islamic crescent and star */}
+                          <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-3 rounded-full mb-4 backdrop-blur-sm border border-amber-300/30 relative z-10">
                             <div className="flex items-center justify-center">
-                              <svg className="h-7 w-7 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <svg className="h-10 w-10 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" opacity="0.1"/>
                                 <path d="M10 17C7.23858 17 5 14.7614 5 12C5 9.23858 7.23858 7 10 7C9.73179 7.97256 9.5 9.23744 9.5 10C9.5 13.0376 11.3795 15.5 14 15.5C14.2731 15.5 14.5418 15.4809 14.8049 15.4443C13.8186 16.4437 11.9999 17 10 17Z" fill="currentColor"/>
                                 <circle cx="17" cy="7" r="2" fill="currentColor"/>
@@ -728,30 +776,18 @@ export default function BrowseProfilesPage() {
                             </div>
                           </div>
                           
-                          {/* Text and action button */}
-                          <div className="text-center mb-4 relative z-10">
-                            <h3 className="font-bold text-lg mb-1 text-amber-100 font-arabic">
+                          {/* Updated Islamic text */}
+                          <div className="text-center mb-1 relative z-10">
+                            <h3 className="font-bold text-xl mb-2 text-amber-100 font-arabic">
                               صور محفوظة بالحشمة
                             </h3>
-                            <p className="font-semibold text-base text-white">Photos Protected with Haya</p>
-                            <p className="text-xs text-emerald-100 leading-relaxed mt-1">
-                              Express your interest to connect respectfully
+                            <p className="font-semibold text-lg mb-1 text-white">Photos Protected with Haya</p>
+                            <p className="text-sm text-emerald-100 leading-relaxed max-w-xs mx-auto">
+                              This member follows Islamic principles of modesty and privacy.
                             </p>
                           </div>
                           
-                          {/* Express Interest Button */}
-                          <Button 
-                            variant="secondary" 
-                            size="sm"
-                            className="bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 hover:from-amber-300 hover:to-amber-400 font-medium border border-amber-300 shadow-lg transition-all duration-300 relative z-10"
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent navigation to profile
-                              handleSendInterest(profile.id);
-                            }}
-                          >
-                            <Heart className="h-4 w-4 mr-2 text-red-600" />
-                            Express Interest
-                          </Button>
+                          {/* Removed express interest button as requested */}
                         </div>
                       )}
                       <div className="absolute top-2 left-2 flex gap-2">
@@ -767,7 +803,7 @@ export default function BrowseProfilesPage() {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h3 className={`${playfair.className} font-semibold text-lg`}>{profile.name}</h3>
+                          <h3 className={`${playfair.className} font-semibold text-lg`}>{formatToTitleCase(profile.name)}</h3>
                           <p className="text-sm text-muted-foreground">{profile.age} years old</p>
                         </div>
                         <div className="flex gap-1">
@@ -791,32 +827,34 @@ export default function BrowseProfilesPage() {
                             </Button>
                           )}
                           
-                          <Button size="icon" variant="ghost" className="h-8 w-8">
-                            <Heart className={`h-4 w-4 ${sentInterests.has(profile.id) ? "text-red-500 fill-red-500" : ""}`} />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8">
-                            <Star className="h-4 w-4" />
-                          </Button>
+                          {/* Interest Indicator (not a button, just an icon) */}
+                          <div className="h-8 w-8 flex items-center justify-center">
+                            {sentInterests.has(profile.id) && (
+                              <Heart className="h-4 w-4 text-red-500 fill-red-500" />
+                            )}
+                          </div>
+                          
+                          {/* Removed Star button as requested */}
                         </div>
                       </div>
 
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span>{profile.location}</span>
+                          <span>{formatToTitleCase(profile.location)}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                          <span>{profile.education}</span>
+                          <span>{formatToTitleCase(profile.education)}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Briefcase className="h-4 w-4 text-muted-foreground" />
-                          <span>{profile.profession}</span>
+                          <span>{formatToTitleCase(profile.profession)}</span>
                         </div>
                       </div>
 
                       <div className="flex gap-2 mt-3">
-                        <Badge variant="outline">{profile.sect}</Badge>
+                        <Badge variant="outline">{formatToTitleCase(profile.sect)}</Badge>
                       </div>
 
                       <div className="flex gap-2 mt-4">
@@ -831,17 +869,7 @@ export default function BrowseProfilesPage() {
                         </Link>
                       </div>
 
-                      {/* New Interest Button */}
-                      <div className="mt-3">
-                        <Button
-                          onClick={() => handleSendInterest(profile.id)}
-                          variant="default"
-                          className="w-full flex items-center justify-center gap-2"
-                        >
-                          <Heart className="h-4 w-4" />
-                          Send Interest
-                        </Button>
-                      </div>
+                      {/* Removed Send Interest Button */}
 
                       {!profile.premium && (
                         <p className="text-xs text-center text-muted-foreground mt-2">
