@@ -74,9 +74,9 @@ export async function GET(
         sect: users.sect,
         height: users.height,
         complexion: users.complexion,
-        maritalStatus: users.maritalStatus,
-        maritalStatusOther: users.maritalStatusOther,
+        maritalStatus: users.maritalStatus,        maritalStatusOther: users.maritalStatusOther,
         profilePhoto: users.profilePhoto,
+        profilePhotos: users.profilePhotos,
         aboutMe: users.aboutMe,        familyDetails: users.familyDetails,
         fatherName: users.fatherName,
         fatherOccupation: users.fatherOccupation,
@@ -144,9 +144,24 @@ export async function GET(
       drinking: 'Not specified',      languages: ['Not specified'],
       hobbies: ['Not specified'],      
       fatherOccupation: profile[0].fatherOccupation || '',
-      motherOccupation: profile[0].motherOccupation || 'Home Queen',
-      siblings: profile[0].siblings || 'Not specified',
+      motherOccupation: profile[0].motherOccupation || 'Home Queen',      siblings: profile[0].siblings || 'Not specified',
       familyType: 'Not specified',
+      // Process profilePhotos field
+      profilePhotos: (() => {
+        try {
+          if (profile[0].profilePhotos) {
+            if (typeof profile[0].profilePhotos === 'string') {
+              return JSON.parse(profile[0].profilePhotos);
+            } else if (Array.isArray(profile[0].profilePhotos)) {
+              return profile[0].profilePhotos;
+            }
+          }
+          return [];
+        } catch (e) {
+          console.warn("Error parsing profilePhotos:", e);
+          return [];
+        }
+      })(),
       // Log raw values for debugging
       height: (() => {
         console.log(`Raw DB height value: '${profile[0].height}'`);

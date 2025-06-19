@@ -175,9 +175,7 @@ export async function POST(req: Request) {
     }
 
     // Combine existing photos with new ones (limit to 5 total)
-    const allPhotos = [...existingPhotos, ...photoUrls].slice(0, 5);
-
-    // Update user profile with the new photos array
+    const allPhotos = [...existingPhotos, ...photoUrls].slice(0, 5);    // Update user profile with the new photos array
     await db
       .update(users)
       .set({ 
@@ -187,11 +185,13 @@ export async function POST(req: Request) {
       .where(eq(users.id, userId));
 
     console.log("User profile updated with new photos. Total photos:", allPhotos.length);
+    console.log("All photos URLs:", allPhotos);
     
     return NextResponse.json({
       message: "Photos uploaded successfully",
       urls: photoUrls,
-      totalPhotos: allPhotos.length
+      totalPhotos: allPhotos.length,
+      allPhotos: allPhotos // Include all photos for debugging
     });
 
   } catch (error) {

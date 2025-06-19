@@ -641,9 +641,9 @@ export default function EditProfilePage() {
         console.error("Failed to fetch profile during refetch:", response.status);
         throw new Error(`Failed to fetch profile: ${response.status}`);
       }
-      
-      const data = await response.json();
+        const data = await response.json();
       console.log("Refetched profile data:", Object.keys(data).length, "fields");
+      console.log("Refetched profilePhotos:", data.profilePhotos);
       setProfileData(data);
         // Process siblings data if it exists
       let siblingsArray: SiblingInfo[] = [];
@@ -1046,8 +1046,11 @@ export default function EditProfilePage() {
         console.error("Upload failed with response:", responseData);
         throw new Error(responseData?.error || 'Failed to upload profile photos')
       }
+        console.log("Upload successful:", responseData);
       
-      console.log("Upload successful:", responseData);
+      // Debug: Log the current state before updating
+      console.log("Current profileData.profilePhotos:", profileData?.profilePhotos);
+      console.log("New photo URLs from response:", responseData.urls);
       
       // Check if the response has the expected structure
       if (!responseData || !responseData.urls || !Array.isArray(responseData.urls)) {
