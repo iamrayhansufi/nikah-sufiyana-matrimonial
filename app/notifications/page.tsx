@@ -11,21 +11,11 @@ import { playfair } from "../lib/fonts"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { format, isToday, isYesterday, formatDistanceToNow } from "date-fns"
-
-interface Notification {
-  id: number
-  userId: number
-  type: string
-  message: string
-  link?: string
-  metadata?: any
-  read: boolean
-  createdAt: string
-}
+import { useNotifications } from "@/hooks/use-notifications"
 
 // Group notifications by day
-function groupNotificationsByDate(notifications: Notification[]) {
-  const groups: Record<string, Notification[]> = {
+function groupNotificationsByDate(notifications: any[]) {
+  const groups: Record<string, any[]> = {
     today: [],
     yesterday: [],
     older: []
@@ -46,58 +36,21 @@ function groupNotificationsByDate(notifications: Notification[]) {
 }
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const { data: session, status } = useSession();
   const router = useRouter();
-
+    // Use the notifications hook
+  const { notifications, markAsRead, refresh: refreshNotifications } = useNotifications();
+  
+  // Set loading to false once we have session status
   useEffect(() => {
-    const fetchNotifications = async () => {
-      if (status !== "authenticated") return;
-      
-      try {
-        setLoading(true);
-        const response = await fetch('/api/notifications', {
-          credentials: 'include',
-          headers: { 'Cache-Control': 'no-cache' }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setNotifications(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch notifications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchNotifications();
-  }, [status]);
-
-  const handleMarkAsRead = async (notificationId: number) => {
-    try {
-      await fetch('/api/notifications/mark-as-read', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notificationId })
-      });
-      
-      // Update local state
-      setNotifications(prevNotifications => 
-        prevNotifications.map(n => 
-          n.id === notificationId ? { ...n, read: true } : n
-        )
-      );
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+    if (status !== "loading") {
+      setLoading(false);
     }
-  };
-
-  const handleNotificationClick = async (notification: Notification) => {
+  }, [status]);
+  const handleNotificationClick = async (notification: any) => {
     if (!notification.read) {
-      await handleMarkAsRead(notification.id);
+      await markAsRead(notification.id);
     }
     
     if (notification.link) {
@@ -121,15 +74,16 @@ export default function NotificationsPage() {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `Failed to ${action} interest`);
-      }
-      
-      // Mark notification as read
-      await handleMarkAsRead(notificationId);
+      }        // Mark notification as read
+      await markAsRead(notificationId);
       
       // Show success message based on action
       alert(action === 'accept' 
         ? 'Interest accepted! They can now view your photos.' 
         : 'Interest declined.');
+      
+      // Refresh notifications to ensure immediate UI update
+      await refreshNotifications();
       
     } catch (error) {
       console.error(`Failed to ${action} interest:`, error);
@@ -153,8 +107,7 @@ export default function NotificationsPage() {
         return <AlertCircle className="h-5 w-5 text-primary" />;
     }
   };
-
-  const renderNotificationActions = (notification: Notification) => {
+  const renderNotificationActions = (notification: any) => {
     if (notification.type === 'interest' && notification.metadata?.interestId) {
       return (
         <>
@@ -224,8 +177,7 @@ export default function NotificationsPage() {
                   {groupedNotifications.today.length > 0 && (
                     <div>
                       <h2 className={`${playfair.className} text-lg font-semibold mb-4`}>Today</h2>
-                      <div className="space-y-4">
-                        {groupedNotifications.today.map((notification) => (
+                      <div className="space-y-4">                        {groupedNotifications.today.map((notification) => (
                           <div 
                             key={notification.id} 
                             className={`flex items-start gap-4 p-3 rounded-lg transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
@@ -250,7 +202,7 @@ export default function NotificationsPage() {
                                   <Button 
                                     size="sm" 
                                     variant="outline" 
-                                    onClick={() => handleMarkAsRead(notification.id)}
+                                    onClick={() => markAsRead(notification.id)}
                                   >
                                     Mark as Read
                                   </Button>
@@ -289,14 +241,13 @@ export default function NotificationsPage() {
                               </h3>
                               <p className="text-sm text-muted-foreground">
                                 {notification.message}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2">
+                              </p>                              <div className="flex items-center gap-2 mt-2">
                                 {renderNotificationActions(notification)}
                                 {!notification.read && (
                                   <Button 
                                     size="sm" 
                                     variant="outline" 
-                                    onClick={() => handleMarkAsRead(notification.id)}
+                                    onClick={() => markAsRead(notification.id)}
                                   >
                                     Mark as Read
                                   </Button>
@@ -335,14 +286,13 @@ export default function NotificationsPage() {
                               </h3>
                               <p className="text-sm text-muted-foreground">
                                 {notification.message}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2">
+                              </p>                              <div className="flex items-center gap-2 mt-2">
                                 {renderNotificationActions(notification)}
                                 {!notification.read && (
                                   <Button 
                                     size="sm" 
                                     variant="outline" 
-                                    onClick={() => handleMarkAsRead(notification.id)}
+                                    onClick={() => markAsRead(notification.id)}
                                   >
                                     Mark as Read
                                   </Button>

@@ -32,6 +32,7 @@ import Link from "next/link"
 import { playfair } from "../../lib/fonts"
 import { useSession, signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
+import { useNotifications } from "@/hooks/use-notifications"
 
 // Helper function to safely parse JSON arrays
 const safeJsonParse = (jsonString: string | null | undefined): any[] => {
@@ -99,6 +100,7 @@ export default function ProfilePage({
 }) {  const router = useRouter()
   const { data: session, status } = useSession()
   const { toast } = useToast()
+  const { refresh: refreshNotifications } = useNotifications()
   const [profile, setProfile] = useState<any>(null)
   const [isShortlisted, setIsShortlisted] = useState(false)
   const [isInterestSent, setIsInterestSent] = useState(false)
@@ -177,13 +179,16 @@ export default function ProfilePage({
             // Check if mutual interest exists
             if (interestData.receivedInterests?.length > 0) {
               setInterestMutual(true)
-            }              // Determine if photo should be blurred based on privacy settings
+            }            // Determine if photo should be blurred based on privacy settings
             // Photos should be blurred if:
             // 1. User has set showPhotos to false (privacy setting)
-            // 2. AND there's no mutual interest (user hasn't been approved by the profile owner)
-            const hasApproval = interestData.receivedInterests?.some((interest: any) => 
-              interest.senderId.toString() === session?.user?.id?.toString() && interest.status === 'accepted'
+            // 2. AND the current user's interest hasn't been accepted by the profile owner
+            
+            // Check if current user's sent interest has been accepted
+            const hasApproval = interestData.sentInterests?.some((interest: any) => 
+              interest.status === 'accepted'
             );
+            
             const shouldBlurBasedOnPrivacy = !data.showPhotos && !hasApproval;
             setShouldBlurPhoto(shouldBlurBasedOnPrivacy);
             
@@ -191,7 +196,8 @@ export default function ProfilePage({
               showPhotos: data.showPhotos,
               hasApproval,
               shouldBlurBasedOnPrivacy,
-              receivedInterests: interestData.receivedInterests?.length || 0
+              sentInterests: interestData.sentInterests || [],
+              sentInterestsLength: interestData.sentInterests?.length || 0
             });
           }
           
@@ -316,8 +322,7 @@ export default function ProfilePage({
       }
       
       const result = await response.json()
-      
-      // Check if it resulted in a mutual match
+        // Check if it resulted in a mutual match
       if (result.isMutual) {
         setInterestMutual(true)
         setShouldBlurPhoto(false)
@@ -335,6 +340,9 @@ export default function ProfilePage({
         })
       }
       
+      // Refresh notifications to update the count
+      refreshNotifications();
+      
     } catch (error) {
       console.error("Failed to send interest:", error)
       setIsInterestSent(false)
@@ -350,46 +358,44 @@ export default function ProfilePage({
 
   const handleUndoInterest = async () => {
     try {
-      // Send API request to undo interest
       const response = await fetch(`/api/profiles/undo-interest`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          profileId: id
+          profileId: parseInt(id)
         })
-      })
+      });
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to undo interest')
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to undo interest');
       }
+        // Update UI state
+      setIsInterestSent(false);
+      setInterestMutual(false);
       
-      // Update UI state
-      setIsInterestSent(false)
-      setInterestMutual(false)
-      setShouldBlurPhoto(true) // Re-blur photos if they were visible
-      
-      // Show success message
+      // Show success toast
       toast({
-        title: "Interest Removed",
-        description: "Your interest has been successfully removed",
+        title: "Interest Undone",
+        description: "Your interest has been removed",
         variant: "default"
-      })
+      });
+      
+      // Refresh notifications to update the count
+      refreshNotifications();
       
     } catch (error) {
-      console.error("Failed to undo interest:", error)
-      
-      // Show error toast
+      console.error("Failed to undo interest:", error);
       toast({
-        title: "Failed to Remove Interest",
-        description: error instanceof Error ? error.message : "There was a problem removing your interest. Please try again.",
+        title: "Failed to Undo Interest",
+        description: error instanceof Error ? error.message : "Please try again.",        
         variant: "destructive"
-      })
+      });
     }
-  }
-  
+  };
+
   const handleShortlist = async () => {
     try {
       // Toggle the UI state immediately for better user experience

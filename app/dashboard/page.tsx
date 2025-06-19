@@ -27,6 +27,7 @@ import {
   Check,
 } from "lucide-react"
 import { playfair } from "../lib/fonts"
+import { useNotifications } from "@/hooks/use-notifications"
 
 // Helper functions for status icons/text
 const getStatusIcon = (status: string) => {
@@ -86,6 +87,7 @@ interface DashboardStats {
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { refresh: refreshNotifications } = useNotifications()
   const [userProfile, setUserProfile] = useState<any>(null)
   const [stats, setStats] = useState<DashboardStats>({
     profileViews: 0,
@@ -199,8 +201,9 @@ export default function DashboardPage() {
             time: formatTimeAgo(interest.createdAt),
           })))
           
-          // Map all received interests for the Interests Received tab
-          setReceivedInterests(interests.map((interest: any) => ({
+          // Map all received interests for the Interests Received tab (only pending ones)
+          const pendingInterests = interests.filter((interest: any) => interest.status === 'pending');
+          setReceivedInterests(pendingInterests.map((interest: any) => ({
             id: interest.id,
             name: interest.fromUser.fullName,
             age: interest.fromUser.age,
@@ -346,6 +349,9 @@ export default function DashboardPage() {
       alert(action === 'accept' 
         ? 'Interest accepted! They can now view your photos.' 
         : 'Interest declined.');
+      
+      // Refresh notifications to update the count
+      refreshNotifications();
       
     } catch (error) {
       console.error(`Failed to ${action} interest:`, error);

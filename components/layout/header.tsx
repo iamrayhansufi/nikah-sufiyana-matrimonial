@@ -20,17 +20,18 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useNotifications } from "@/hooks/use-notifications"
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [language, setLanguage] = useState("en")
   const [mounted, setMounted] = useState(false)
-  const [notificationCount, setNotificationCount] = useState(0)
-  const [notifications, setNotifications] = useState<any[]>([])
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { data: session, status } = useSession()
   const { theme, setTheme } = useTheme()
   const router = useRouter()
+    // Use the new notifications hook
+  const { notifications, unreadCount, markAsRead, enableAudio } = useNotifications()
 
   const isLoggedIn = status === "authenticated" && !!session
   const user = session?.user
@@ -47,42 +48,7 @@ export function Header() {
     } else {
       document.documentElement.dir = "ltr"
       document.documentElement.classList.remove("rtl")
-    }
-  }, [language])
-  
-  // Fetch notifications when user is logged in
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!isLoggedIn || !session?.user?.id) return;
-      
-      try {
-        const response = await fetch('/api/notifications', {
-          credentials: 'include',
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          // Filter only unread notifications
-          const unreadNotifications = data.filter((notification: any) => !notification.read);
-          setNotificationCount(unreadNotifications.length);
-          setNotifications(data.slice(0, 10)); // Show only latest 10 notifications
-        }
-      } catch (error) {
-        console.error('Failed to fetch notifications:', error);
-      }
-    };
-    
-    if (isLoggedIn) {
-      fetchNotifications();
-      
-      // Set up interval to check notifications every minute
-      const intervalId = setInterval(fetchNotifications, 60000);
-      return () => clearInterval(intervalId);
-    }
-  }, [isLoggedIn, session?.user?.id]);
+    }  }, [language])
   
   const navigation = [
     { name: "Home", href: "/" },
@@ -100,31 +66,18 @@ export function Header() {
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/' })
   }
-  
-  const handleOpenNotifications = (open: boolean) => {
+    const handleOpenNotifications = (open: boolean) => {
     setNotificationsOpen(open);
+    // Enable audio when user interacts with notifications
+    if (open) {
+      enableAudio();
+    }
   };
   
   const handleNotificationClick = async (notification: any) => {
     try {
-      // Mark the notification as read
-      await fetch('/api/notifications/mark-as-read', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ notificationId: notification.id })
-      });
-      
-      // Update local state
-      setNotifications(prevNotifications => 
-        prevNotifications.map(n => 
-          n.id === notification.id ? { ...n, read: true } : n
-        )
-      );
-      
-      // Update unread count
-      setNotificationCount(prev => Math.max(0, prev - 1));
+      // Mark the notification as read using the hook
+      await markAsRead(notification.id);
       
       // Navigate to the relevant page if there's a link
       if (notification.link) {
@@ -206,10 +159,9 @@ export function Header() {
                 <Popover open={notificationsOpen} onOpenChange={handleOpenNotifications}>
                   <PopoverTrigger asChild>
                     <Button variant="ghost" size="icon" className="relative">
-                      <Bell className="h-5 w-5" />
-                      {notificationCount > 0 && (
+                      <Bell className="h-5 w-5" />                      {unreadCount > 0 && (
                         <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                          {notificationCount > 9 ? '9+' : notificationCount}
+                          {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                       )}
                     </Button>
@@ -217,10 +169,9 @@ export function Header() {
                   <PopoverContent align="end" className="w-80 p-0">
                     <div className="p-3 border-b">
                       <h4 className="font-medium">Notifications</h4>
-                    </div>
-                    <div className="max-h-[300px] overflow-auto">
-                      {notifications.length > 0 ? (
-                        notifications.map((notification, index) => (
+                    </div>                    <div className="max-h-[300px] overflow-auto">
+                      {notifications.slice(0, 10).length > 0 ? (
+                        notifications.slice(0, 10).map((notification, index) => (
                           <div 
                             key={notification.id || index}
                             className={`p-3 border-b text-sm cursor-pointer hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
