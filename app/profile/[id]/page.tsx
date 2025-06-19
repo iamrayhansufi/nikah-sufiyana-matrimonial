@@ -591,13 +591,13 @@ export default function ProfilePage({
                         <div className="absolute inset-0 opacity-10">
                           <div className="w-full h-full islamic-pattern"></div>
                         </div>
-                        
-                        {/* Main icon with Islamic crescent and star */}
-                        <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-4 rounded-full mb-4 backdrop-blur-sm border border-amber-300/30 relative z-10">
-                          <div className="relative">
-                            <svg className="h-12 w-12 text-amber-200" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M9.822 17.904c-.736 0-1.454-.113-2.138-.34a8.466 8.466 0 0 1-1.925-.964 8.536 8.536 0 0 1-1.564-1.564 8.477 8.477 0 0 1-.964-1.925 8.343 8.343 0 0 1-.34-2.138c0-.736.113-1.454.34-2.138.227-.684.548-1.33.964-1.925a8.536 8.536 0 0 1 1.564-1.564 8.477 8.477 0 0 1 1.925-.964 8.343 8.343 0 0 1 2.138-.34c1.736 0 3.374.516 4.747 1.408-.368.08-.724.194-1.065.34a6.477 6.477 0 0 0-1.467.74 6.536 6.536 0 0 0-1.194 1.194 6.477 6.477 0 0 0-.74 1.467 6.343 6.343 0 0 0-.26 1.65c0 .568.087 1.128.26 1.65.173.522.427.997.74 1.467.313.47.686.843 1.194 1.194.508.351.997.605 1.467.74.47.135.997.26 1.065.34-1.373.892-3.011 1.408-4.747 1.408z"/>
-                              <circle cx="18" cy="6" r="2" fill="currentColor"/>
+                          {/* Main icon with Islamic crescent and star */}
+                        <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-3 rounded-full mb-4 backdrop-blur-sm border border-amber-300/30 relative z-10">
+                          <div className="flex items-center justify-center">
+                            <svg className="h-10 w-10 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" opacity="0.1"/>
+                              <path d="M10 17C7.23858 17 5 14.7614 5 12C5 9.23858 7.23858 7 10 7C9.73179 7.97256 9.5 9.23744 9.5 10C9.5 13.0376 11.3795 15.5 14 15.5C14.2731 15.5 14.5418 15.4809 14.8049 15.4443C13.8186 16.4437 11.9999 17 10 17Z" fill="currentColor"/>
+                              <circle cx="17" cy="7" r="2" fill="currentColor"/>
                             </svg>
                           </div>
                         </div>
@@ -626,18 +626,11 @@ export default function ProfilePage({
                             </Button>
                           )}
                           
-                          {isInterestSent && (
-                            <Button variant="secondary" disabled className="bg-emerald-400/90 text-emerald-900 font-medium border border-emerald-300">
+                          {isInterestSent && (                            <Button variant="secondary" disabled className="bg-emerald-400/90 text-emerald-900 font-medium border border-emerald-300">
                               <Heart className="h-4 w-4 mr-2 text-red-600 fill-red-600" />
                               Interest Expressed
                             </Button>
                           )}
-                        </div>
-                        
-                        {/* Islamic values footer */}
-                        <div className="mt-4 flex items-center text-xs text-amber-200/90 relative z-10">
-                          <Mosque className="h-3 w-3 mr-1" />
-                          <span>Following Sunnah Values • حشمة و عفاف</span>
                         </div>
                       </div>
                     )}
@@ -1199,12 +1192,14 @@ export default function ProfilePage({
                               className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
                             />                            <Badge className="absolute top-2 left-2 bg-primary">Main Photo</Badge>
                             {shouldBlurPhoto && (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">
-                                <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-3 rounded-full mb-3 backdrop-blur-sm border border-amber-300/30">
-                                  <svg className="h-8 w-8 text-amber-200" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M9.822 17.904c-.736 0-1.454-.113-2.138-.34a8.466 8.466 0 0 1-1.925-.964 8.536 8.536 0 0 1-1.564-1.564 8.477 8.477 0 0 1-.964-1.925 8.343 8.343 0 0 1-.34-2.138c0-.736.113-1.454.34-2.138.227-.684.548-1.33.964-1.925a8.536 8.536 0 0 1 1.564-1.564 8.477 8.477 0 0 1 1.925-.964 8.343 8.343 0 0 1 2.138-.34c1.736 0 3.374.516 4.747 1.408-.368.08-.724.194-1.065.34a6.477 6.477 0 0 0-1.467.74 6.536 6.536 0 0 0-1.194 1.194 6.477 6.477 0 0 0-.74 1.467 6.343 6.343 0 0 0-.26 1.65c0 .568.087 1.128.26 1.65.173.522.427.997.74 1.467.313.47.686.843 1.194 1.194.508.351.997.605 1.467.74.47.135.997.26 1.065.34-1.373.892-3.011 1.408-4.747 1.408z"/>
-                                    <circle cx="18" cy="6" r="2" fill="currentColor"/>
-                                  </svg>
+                              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">                                <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-2 rounded-full mb-3 backdrop-blur-sm border border-amber-300/30">
+                                  <div className="flex items-center justify-center">
+                                    <svg className="h-7 w-7 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" opacity="0.1"/>
+                                      <path d="M10 17C7.23858 17 5 14.7614 5 12C5 9.23858 7.23858 7 10 7C9.73179 7.97256 9.5 9.23744 9.5 10C9.5 13.0376 11.3795 15.5 14 15.5C14.2731 15.5 14.5418 15.4809 14.8049 15.4443C13.8186 16.4437 11.9999 17 10 17Z" fill="currentColor"/>
+                                      <circle cx="17" cy="7" r="2" fill="currentColor"/>
+                                    </svg>
+                                  </div>
                                 </div>
                                 <p className="text-sm font-medium text-amber-100 mb-1">Protected with Haya</p>
                                 <p className="text-xs text-emerald-200">Express interest to view</p>
@@ -1225,12 +1220,14 @@ export default function ProfilePage({
                                   className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
                                 />
                                 {shouldBlurPhoto && (
-                                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-3 text-center backdrop-blur-sm border border-amber-400/20">
-                                    <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-2 rounded-full mb-2 backdrop-blur-sm border border-amber-300/30">
-                                      <svg className="h-6 w-6 text-amber-200" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M9.822 17.904c-.736 0-1.454-.113-2.138-.34a8.466 8.466 0 0 1-1.925-.964 8.536 8.536 0 0 1-1.564-1.564 8.477 8.477 0 0 1-.964-1.925 8.343 8.343 0 0 1-.34-2.138c0-.736.113-1.454.34-2.138.227-.684.548-1.33.964-1.925a8.536 8.536 0 0 1 1.564-1.564 8.477 8.477 0 0 1 1.925-.964 8.343 8.343 0 0 1 2.138-.34c1.736 0 3.374.516 4.747 1.408-.368.08-.724.194-1.065.34a6.477 6.477 0 0 0-1.467.74 6.536 6.536 0 0 0-1.194 1.194 6.477 6.477 0 0 0-.74 1.467 6.343 6.343 0 0 0-.26 1.65c0 .568.087 1.128.26 1.65.173.522.427.997.74 1.467.313.47.686.843 1.194 1.194.508.351.997.605 1.467.74.47.135.997.26 1.065.34-1.373.892-3.011 1.408-4.747 1.408z"/>
-                                        <circle cx="18" cy="6" r="2" fill="currentColor"/>
-                                      </svg>
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-3 text-center backdrop-blur-sm border border-amber-400/20">                                    <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-1.5 rounded-full mb-2 backdrop-blur-sm border border-amber-300/30">
+                                      <div className="flex items-center justify-center">
+                                        <svg className="h-5 w-5 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" opacity="0.1"/>
+                                          <path d="M10 17C7.23858 17 5 14.7614 5 12C5 9.23858 7.23858 7 10 7C9.73179 7.97256 9.5 9.23744 9.5 10C9.5 13.0376 11.3795 15.5 14 15.5C14.2731 15.5 14.5418 15.4809 14.8049 15.4443C13.8186 16.4437 11.9999 17 10 17Z" fill="currentColor"/>
+                                          <circle cx="17" cy="7" r="2" fill="currentColor"/>
+                                        </svg>
+                                      </div>
                                     </div>
                                     <p className="text-xs font-medium text-amber-100 mb-1">Protected</p>
                                     <p className="text-xs text-emerald-200">Express interest to view</p>
