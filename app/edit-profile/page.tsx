@@ -550,11 +550,10 @@ export default function EditProfilePage() {
             console.log(`${key} data being sent (${typeof acc[key]}, length: ${Array.isArray(acc[key]) ? acc[key].length : 'not array'}):`);
             console.log(JSON.stringify(acc[key]));
           }
-        }
-        // Handle fatherOccupation specifically to ensure it saves properly
+        }        // Handle fatherOccupation specifically to ensure it saves properly
         else if (key === "fatherOccupation") {
-          // Always include fatherOccupation in the update
-          acc[key] = value || 'Not specified';
+          // Always include fatherOccupation in the update, send actual value (including empty string)
+          acc[key] = value;
           console.log(`fatherOccupation being sent: '${acc[key]}'`);
         }
         // For other fields, only include if they're not empty
@@ -1517,15 +1516,19 @@ export default function EditProfilePage() {
                         placeholder="Your father's name"
                         className={familyForm.fatherName ? "border-green-200 focus:border-green-300" : ""}
                       />
-                    </FormField>
-                    <FormField label="Father's Occupation" filled={!!familyForm.fatherOccupation}>
+                    </FormField>                    <FormField label="Father's Occupation" filled={!!familyForm.fatherOccupation}>
                       <Input 
                         id="fatherOccupation"
                         value={familyForm.fatherOccupation}
                         onChange={(e) => handleFamilyChange('fatherOccupation', e.target.value)}
                         placeholder="Enter father's occupation"
                         className={familyForm.fatherOccupation ? "border-green-200 focus:border-green-300" : ""}
-                      />                      
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {!familyForm.fatherOccupation ? 
+                          "Will display as \"Not specified\" if left empty" : 
+                          `Current value: ${familyForm.fatherOccupation}`}
+                      </p>
                     </FormField>
                       <FormField label="Mother's Name" filled={!!familyForm.motherName}>
                       <Input 
