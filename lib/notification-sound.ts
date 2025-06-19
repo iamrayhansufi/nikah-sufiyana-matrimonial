@@ -6,6 +6,7 @@ export const createNotificationSound = () => {
     if (!audioContext) {
       try {
         audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        console.log('Audio context created successfully');
       } catch (error) {
         console.warn('Web Audio API not supported:', error);
         return null;
@@ -16,13 +17,30 @@ export const createNotificationSound = () => {
   
   const playNotificationSound = () => {
     const ctx = initAudioContext();
-    if (!ctx) return;
-    
-    // Resume audio context if it's suspended (browser requirement)
-    if (ctx.state === 'suspended') {
-      ctx.resume();
+    if (!ctx) {
+      console.warn('Cannot play sound: no audio context');
+      return;
     }
     
+    try {
+      // Resume audio context if it's suspended (browser requirement)
+      if (ctx.state === 'suspended') {
+        console.log('Resuming suspended audio context');
+        ctx.resume().then(() => {
+          console.log('Audio context resumed');
+          createAndPlaySound(ctx);
+        }).catch(err => {
+          console.error('Failed to resume audio context:', err);
+        });
+      } else {
+        createAndPlaySound(ctx);
+      }
+    } catch (error) {
+      console.error('Error playing notification sound:', error);
+    }
+  };
+  
+  const createAndPlaySound = (ctx: AudioContext) => {
     try {
       // Create a simple pleasant notification sound
       const oscillator1 = ctx.createOscillator();
@@ -51,8 +69,10 @@ export const createNotificationSound = () => {
       oscillator2.start(ctx.currentTime);
       oscillator1.stop(ctx.currentTime + 0.5);
       oscillator2.stop(ctx.currentTime + 0.5);
+      
+      console.log('Notification sound played successfully');
     } catch (error) {
-      console.warn('Could not play notification sound:', error);
+      console.error('Error creating notification sound:', error);
     }
   };
   

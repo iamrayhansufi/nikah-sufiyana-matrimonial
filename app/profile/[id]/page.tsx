@@ -107,10 +107,12 @@ export default function ProfilePage({
   params
 }: { 
   params: { id: string } 
-}) {  const router = useRouter()
+}) {
+  const router = useRouter()
   const { data: session, status } = useSession()
   const { toast } = useToast()
   const { refresh: refreshNotifications } = useNotifications()
+  
   const [profile, setProfile] = useState<any>(null)
   const [isShortlisted, setIsShortlisted] = useState(false)
   const [isInterestSent, setIsInterestSent] = useState(false)
@@ -120,6 +122,11 @@ export default function ProfilePage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [shouldBlurPhoto, setShouldBlurPhoto] = useState(false)
+    // New state for handling incoming interest requests
+  const [incomingInterestRequest, setIncomingInterestRequest] = useState<any>(null)
+  const [showInterestRequestDialog, setShowInterestRequestDialog] = useState(false)
+  const [showLightbox, setShowLightbox] = useState(false)
+  const [lightboxImage, setLightboxImage] = useState<string>('')
   
   // Get the profile ID from params
   const { id } = params
@@ -185,11 +192,20 @@ export default function ProfilePage({
             if (interestData.sentInterests?.length > 0) {
               setIsInterestSent(true)
             }
-            
-            // Check if mutual interest exists
+              // Check if mutual interest exists
             if (interestData.receivedInterests?.length > 0) {
               setInterestMutual(true)
-            }            // Determine if photo should be blurred based on privacy settings
+            }
+            
+            // Check if this profile has sent an interest request to the current user
+            // that is still pending (for accept/decline UI)
+            const pendingRequestFromThisProfile = interestData.receivedInterests?.find(
+              (interest: any) => interest.fromUserId === parseInt(id) && interest.status === 'pending'
+            );
+            
+            if (pendingRequestFromThisProfile) {
+              setIncomingInterestRequest(pendingRequestFromThisProfile);
+            }// Determine if photo should be blurred based on privacy settings
             // Photos should be blurred if:
             // 1. User has set showPhotos to false (privacy setting)
             // 2. AND the current user's interest hasn't been accepted by the profile owner
@@ -450,7 +466,6 @@ export default function ProfilePage({
       })
     }
   }
-
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -463,6 +478,65 @@ export default function ProfilePage({
       navigator.clipboard.writeText(window.location.href)
     }
   }
+
+  const handleRespondToInterest = async (action: 'accept' | 'decline') => {
+    if (!incomingInterestRequest) return;
+    
+    try {
+      const response = await fetch('/api/profiles/respond-interest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          interestId: incomingInterestRequest.id,
+          action: action
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to ${action} interest`);
+      }
+      
+      // Update UI state
+      setIncomingInterestRequest(null);
+      
+      if (action === 'accept') {
+        setInterestMutual(true);
+        setShouldBlurPhoto(false);
+        toast({
+          title: "Interest Accepted! 🎉",
+          description: "You can now view each other's photos clearly.",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Interest Declined",
+          description: "The interest request has been declined.",
+          variant: "default"
+        });
+      }
+      
+      // Refresh notifications to update the count
+      refreshNotifications();
+      
+    } catch (error) {
+      console.error(`Failed to ${action} interest:`, error);
+      toast({
+        title: `Failed to ${action.charAt(0).toUpperCase() + action.slice(1)} Interest`,
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleImageClick = (imageSrc: string) => {
+    if (!shouldBlurPhoto) {
+      setLightboxImage(imageSrc);
+      setShowLightbox(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
@@ -486,7 +560,10 @@ export default function ProfilePage({
               <Card className="sticky top-24">
                 <CardContent className="p-6">                  {/* Profile Photo */}
                   <div className="relative mb-6">
-                    <Avatar className="w-full h-80 rounded-lg">
+                    <Avatar 
+                      className={`w-full h-80 rounded-lg ${!shouldBlurPhoto ? 'cursor-pointer' : ''}`}
+                      onClick={() => handleImageClick(profile.profilePhoto || "/placeholder.svg")}
+                    >
                       <AvatarImage
                         src={profile.profilePhoto || "/placeholder.svg"}
                         alt={profile.name}
@@ -500,7 +577,7 @@ export default function ProfilePage({
                               .join("")
                           : "U"}
                       </AvatarFallback>
-                    </Avatar>                    {/* Blur notice overlay for private photos */}
+                    </Avatar>{/* Blur notice overlay for private photos */}
                     {shouldBlurPhoto && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
                         <EyeOff className="h-12 w-12 mb-2" />
@@ -551,8 +628,32 @@ export default function ProfilePage({
                       {formatToTitleCase(profile.location)}
                     </div>
                     <p className="text-sm text-muted-foreground">Member since {profile.joinedDate}</p>
-                  </div>{/* Action Buttons */}
+                  </div>                  {/* Action Buttons */}
                   <div className="space-y-3">
+                    {/* Interest Request Response (if user received request from this profile) */}
+                    {incomingInterestRequest && (
+                      <div className="space-y-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800 font-medium text-center">
+                          {formatToTitleCase(profile.name)} has sent you an interest request
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => handleRespondToInterest('accept')}
+                          >
+                            Accept
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="border-red-200 text-red-600 hover:bg-red-50"
+                            onClick={() => handleRespondToInterest('decline')}
+                          >
+                            Decline
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
                     {!isInterestSent ? (
                       <Button
                         className="w-full gradient-emerald text-white"
@@ -1045,10 +1146,12 @@ export default function ProfilePage({
                     <CardHeader>
                       <CardTitle>Photo Gallery</CardTitle>
                     </CardHeader>                    <CardContent>
-                      <div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                      <div>                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                           {/* Main Profile Photo */}
-                          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+                          <div 
+                            className={`aspect-square rounded-lg overflow-hidden bg-gray-100 relative ${!shouldBlurPhoto ? 'cursor-pointer' : ''}`}
+                            onClick={() => handleImageClick(profile.profilePhoto || "/placeholder.svg")}
+                          >
                             <img 
                               src={profile.profilePhoto || "/placeholder.svg"} 
                               alt={`${profile.name}'s profile photo`}
@@ -1066,7 +1169,11 @@ export default function ProfilePage({
                           {/* Additional Photos */}
                           {profile.profilePhotos && profile.profilePhotos.length > 0 ? (
                             safeJsonParse(profile.profilePhotos).map((photo: string, index: number) => (
-                              <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+                              <div 
+                                key={index} 
+                                className={`aspect-square rounded-lg overflow-hidden bg-gray-100 relative ${!shouldBlurPhoto ? 'cursor-pointer' : ''}`}
+                                onClick={() => handleImageClick(photo)}
+                              >
                                 <img 
                                   src={photo} 
                                   alt={`${profile.name}'s photo ${index + 1}`}
@@ -1102,9 +1209,33 @@ export default function ProfilePage({
                 </TabsContent>
               </Tabs>
             </div>
+          </div>        </div>
+      </div>
+
+      {/* Lightbox Modal */}
+      {showLightbox && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50"
+          onClick={() => setShowLightbox(false)}
+        >
+          <div className="relative max-w-4xl max-h-screen p-4">
+            <img 
+              src={lightboxImage} 
+              alt="Full size photo" 
+              className="max-w-full max-h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-colors"
+              onClick={() => setShowLightbox(false)}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
       <Footer />
     </div>

@@ -47,14 +47,27 @@ export default function NotificationsPage() {
     if (status !== "loading") {
       setLoading(false);
     }
-  }, [status]);
-  const handleNotificationClick = async (notification: any) => {
-    if (!notification.read) {
-      await markAsRead(notification.id);
-    }
-    
-    if (notification.link) {
-      router.push(notification.link);
+  }, [status]);  const handleNotificationClick = async (notification: any) => {
+    try {
+      console.log('Notification clicked on notifications page:', {
+        id: notification.id,
+        type: notification.type,
+        link: notification.link,
+        message: notification.message
+      });
+      
+      if (!notification.read) {
+        await markAsRead(notification.id);
+      }
+      
+      if (notification.link) {
+        console.log('Navigating to:', notification.link);
+        router.push(notification.link);
+      } else {
+        console.log('No link found in notification');
+      }
+    } catch (error) {
+      console.error('Failed to handle notification click:', error);
     }
   };
 

@@ -72,17 +72,31 @@ export function Header() {
     if (open) {
       enableAudio();
     }
-  };
-  
-  const handleNotificationClick = async (notification: any) => {
+  };    const handleNotificationClick = async (notification: any) => {
     try {
+      console.log('Notification clicked:', {
+        id: notification.id,
+        type: notification.type,
+        link: notification.link,
+        message: notification.message
+      });
+      
       // Mark the notification as read using the hook
       await markAsRead(notification.id);
       
+      // Close the notification popover first
+      setNotificationsOpen(false);
+      
       // Navigate to the relevant page if there's a link
       if (notification.link) {
-        setNotificationsOpen(false);
-        router.push(notification.link);
+        console.log('Navigating to:', notification.link);
+        
+        // Use a small delay to ensure the popover closes first
+        setTimeout(() => {
+          router.push(notification.link);
+        }, 100);
+      } else {
+        console.log('No link found in notification');
       }
     } catch (error) {
       console.error('Failed to mark notification as read:', error);

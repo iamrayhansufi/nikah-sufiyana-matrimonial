@@ -45,9 +45,9 @@ export function useNotifications() {
         // Check for new notifications
         if (newNotifications.length > 0) {
           const latestNotificationId = Math.max(...newNotifications.map((n: Notification) => n.id));
-          
-          // Play sound if there are new notifications
+            // Play sound if there are new notifications
           if (latestNotificationId > lastNotificationId.current && lastNotificationId.current > 0) {
+            console.log('New notification detected, trying to play sound. Audio enabled:', audioEnabled);
             playNotificationSound();
           }
           
@@ -62,19 +62,53 @@ export function useNotifications() {
     }
   };  // Play notification sound
   const playNotificationSound = () => {
+    console.log('playNotificationSound called:', {
+      hasSoundFunction: !!playSound.current,
+      audioEnabled: audioEnabled
+    });
+    
     if (playSound.current && audioEnabled) {
       try {
+        console.log('Playing notification sound...');
         playSound.current();
       } catch (error) {
         console.log('Could not play notification sound:', error);
       }
+    } else {
+      console.log('Sound not played:', {
+        reason: !playSound.current ? 'No sound function' : 'Audio not enabled'
+      });
     }
   };
-
   // Enable audio after user interaction
   const enableAudio = () => {
+    console.log('Audio enabled by user interaction');
     setAudioEnabled(true);
   };
+  // Auto-enable audio after a short delay (browser compatibility)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log('Auto-enabling audio after delay');
+      setAudioEnabled(true);
+    }, 2000);
+    
+    // Enable audio on first user interaction
+    const enableOnInteraction = () => {
+      console.log('Audio enabled by user interaction (global)');
+      setAudioEnabled(true);
+      document.removeEventListener('click', enableOnInteraction);
+      document.removeEventListener('touchstart', enableOnInteraction);
+    };
+    
+    document.addEventListener('click', enableOnInteraction);
+    document.addEventListener('touchstart', enableOnInteraction);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', enableOnInteraction);
+      document.removeEventListener('touchstart', enableOnInteraction);
+    };
+  }, []);
   // Poll for new notifications every 5 seconds
   useEffect(() => {
     if (!session?.user?.id) return;
