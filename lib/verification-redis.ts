@@ -72,12 +72,23 @@ export async function createVerificationOTP(email: string, purpose = "registrati
 // Function to verify an OTP
 export async function verifyOTP(email: string, code: string, purpose = "registration"): Promise<boolean> {
   try {
+    console.log(`🔍 verifyOTP: Checking OTP for ${email}, purpose: ${purpose}, code: ${code}`);
+    
     const verificationKey = `verification:${email}:${purpose}`;
     
     // Get the verification record
     const verification = await redis.hgetall(verificationKey);
     
+    console.log(`📝 verifyOTP: Retrieved verification data:`, {
+      hasData: !!verification && Object.keys(verification).length > 0,
+      keys: verification ? Object.keys(verification) : [],
+      storedCode: verification?.code,
+      isUsed: verification?.isUsed,
+      expiresAt: verification?.expiresAt
+    });
+    
     if (!verification || Object.keys(verification).length === 0) {
+      console.log(`❌ verifyOTP: No verification record found for ${email}`);
       return false;
     }
     
@@ -89,18 +100,29 @@ export async function verifyOTP(email: string, code: string, purpose = "registra
       expiresAt = parseInt(verification.expiresAt);
     }
     
+    console.log(`🔍 verifyOTP: Validation checks:`, {
+      codeMatch: verification.code === code,
+      notUsed: verification.isUsed === "false",
+      notExpired: expiresAt > now,
+      currentTime: now,
+      expiresAt: expiresAt
+    });
+    
     const isValid = 
       verification.code === code &&
       verification.isUsed === "false" &&
       expiresAt > now;
     
     if (isValid) {
+      console.log(`✅ verifyOTP: OTP is valid, marking as used`);
       // Mark as used
       await redis.hset(verificationKey, {
         isUsed: "true"
       });
       
       return true;
+    } else {
+      console.log(`❌ verifyOTP: OTP validation failed`);
     }
     
     return false;

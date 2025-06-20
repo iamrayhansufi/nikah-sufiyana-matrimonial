@@ -15,9 +15,20 @@ export async function POST(request: NextRequest) {
     console.log('🔍 verify-otp API: Request received');
     
     // Parse and validate request body
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.log('❌ verify-otp API: Failed to parse JSON body', parseError);
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400 }
+      );
+    }
+    
     console.log('📝 verify-otp API: Request body', { 
       email: body.email, 
+      codeProvided: !!body.code,
       codeLength: body.code?.length,
       purpose: body.purpose 
     });
@@ -27,16 +38,23 @@ export async function POST(request: NextRequest) {
     if (!validationResult.success) {
       console.log('❌ verify-otp API: Validation failed', validationResult.error.errors);
       return NextResponse.json(
-        { error: validationResult.error.errors },
+        { 
+          error: "Validation failed",
+          details: validationResult.error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        },
         { status: 400 }
       );
     }
     
     const { email, code, purpose } = validationResult.data;
-    
-    // Verify OTP
+      // Verify OTP
     console.log(`🔄 verify-otp API: Verifying OTP for ${email}`);
-    const isValid = await verifyOTP(email, code, purpose);    if (isValid) {
+    const isValid = await verifyOTP(email, code, purpose);
+    
+    if (isValid) {
       console.log(`✅ verify-otp API: OTP is valid for ${email}`);
       try {
         // Update the user's verified status in the database
