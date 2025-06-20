@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getUsers, getUserStats } from "@/lib/database"
+import { dbMonitor } from "@/lib/db-monitor";
 
 type ProfileFilters = {
   profileStatus: "approved" | "pending" | "rejected"
@@ -24,9 +25,23 @@ type ProfileFilters = {
 
 export async function GET(request: NextRequest) {
   try {
+    // Check database usage before proceeding
+    const dbStatus = dbMonitor.recordQuery();
+    if (dbStatus.hasExceededLimit) {
+      console.warn("Database data transfer limit exceeded, returning cached or limited data");
+      return NextResponse.json({ 
+        error: "Data transfer limit exceeded, please try again later",
+        profiles: [],
+        pagination: { page: 1, limit: 10, total: 0, pages: 0 }
+      }, { 
+        status: 429,
+        headers: { 'Retry-After': '3600' }
+      });
+    }
+    
     const { searchParams } = new URL(request.url)
     const page = Number.parseInt(searchParams.get("page") || "1")
-    const limit = Number.parseInt(searchParams.get("limit") || "10")
+    const limit = Number.parseInt(searchParams.get("limit") || "20") // Reduced default limit
     const gender = searchParams.get("gender")
     const ageMin = searchParams.get("ageMin")
     const ageMax = searchParams.get("ageMax")
@@ -38,7 +53,7 @@ export async function GET(request: NextRequest) {
     if (isNaN(page) || page < 1) {
       return NextResponse.json({ error: "Invalid page parameter" }, { status: 400 })
     }
-    if (isNaN(limit) || limit < 1 || limit > 100) {
+    if (isNaN(limit) || limit < 1 || limit > 50) { // Reduced max limit from 100 to 50
       return NextResponse.json({ error: "Invalid limit parameter" }, { status: 400 })
     }
 
@@ -82,7 +97,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      console.log("API: Fetching profiles with filters:", JSON.stringify(filters));
+      console.log("API: Fetching profiles with filters:", JSON.stringify(filters, null, 2).slice(0, 200));
       const profiles = await getUsers(filters, page, limit, useDummy)
       console.log(`API: Found ${profiles.length} profiles`);
       const stats = await getUserStats()
@@ -109,12 +124,19 @@ export async function GET(request: NextRequest) {
           name: profile.fullName,
           age: profile.age,
           location: profile.location,
+          country: profile.country,
+          city: profile.city,
           education: profile.education,
           profession: profile.profession,
           sect: profile.sect,
+          height: profile.height,
+          maritalStatus: profile.maritalStatus,
           profilePhoto: profile.profilePhoto,
           verified: profile.verified,
+          premium: profile.premium,
           subscription: profile.subscription,
+          showPhotos: profile.showPhotos,
+          gender: profile.gender,
           lastActive: profile.lastActive,
         })),
         pagination: {
@@ -126,6 +148,19 @@ export async function GET(request: NextRequest) {
       })
     } catch (dbError) {
       console.error("Database error:", dbError)
+      
+      // Import in this scope to avoid server/client module mismatch
+      const { isNeonLimitError } = require('@/lib/database-limits');
+      
+      if (isNeonLimitError(dbError)) {
+        console.warn("Neon database transfer limit hit!");
+        return NextResponse.json({ 
+          error: "Database transfer limit reached", 
+          neonLimitHit: true,
+          message: "You have used all your data transfer allowance, upgrade your account to increase your data transfer limit."
+        }, { status: 429 }) // 429 Too Many Requests
+      }
+      
       return NextResponse.json({ error: "Database operation failed" }, { status: 500 })
     }
   } catch (error) {

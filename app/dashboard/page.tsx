@@ -88,6 +88,7 @@ export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { refresh: refreshNotifications } = useNotifications()
+  const [neonLimitHit, setNeonLimitHit] = useState(false)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [stats, setStats] = useState<DashboardStats>({
     profileViews: 0,
@@ -145,23 +146,56 @@ export default function DashboardPage() {
       
       console.log('✅ Dashboard: User authenticated and verified, proceeding to fetch profile');
 
+      // Check if we've hit the Neon database limit
+      const isDbLimitHit = sessionStorage.getItem('db_rate_limited') === 'true';
+      if (isDbLimitHit && !neonLimitHit) {
+        setNeonLimitHit(true);
+        console.log("Dashboard: Database transfer limit hit, using cached data where possible");
+      }
+      
       try {
-        // Add credentials to ensure cookies are sent
-        const fetchOptions = {
-          credentials: 'include' as RequestCredentials,
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
-        };
-
-        // Fetch user profile from API
-        const res = await fetch(`/api/profiles/${session.user.id}`, fetchOptions)
-        if (!res.ok) {
-          const errorText = await res.text()
-          console.error("Profile fetch failed:", res.status, errorText)
-          if (res.status === 401) {
-            // Session expired or invalid
-            setError("Your session has expired. Please log in again.")
+        // Check for cached data first with 30-minute expiry
+        const userId = session.user.id;
+        const cachedProfileKey = `dashboard_profile_${userId}`;
+        const cachedProfile = sessionStorage.getItem(cachedProfileKey);
+        const cacheTimestamp = sessionStorage.getItem(`${cachedProfileKey}_timestamp`);
+        const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : null;
+        const useCachedProfile = cachedProfile && cacheAge && cacheAge < 30 * 60 * 1000;
+        
+        if (useCachedProfile) {
+          console.log('Using cached profile data (30-minute cache)');
+          const profileData = JSON.parse(cachedProfile);
+          setUserProfile(profileData);
+        } else {
+          // Add credentials to ensure cookies are sent
+          const fetchOptions = {
+            credentials: 'include' as RequestCredentials,
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
+          };
+  
+          // Fetch user profile from API
+          const res = await fetch(`/api/profiles/${session.user.id}`, fetchOptions)
+          if (!res.ok) {
+            const errorText = await res.text()
+            console.error("Profile fetch failed:", res.status, errorText)
+            
+            // Check if this is a data transfer limit error
+            if (errorText.includes('data transfer') || errorText.includes('allowance')) {
+              setNeonLimitHit(true);
+              sessionStorage.setItem('db_rate_limited', 'true');
+              // If we have cached data, use it even if it's older
+              if (cachedProfile) {
+                const profileData = JSON.parse(cachedProfile);
+                setUserProfile(profileData);
+                return; // Continue with other operations
+              }
+            }
+            
+            if (res.status === 401) {
+              // Session expired or invalid
+              setError("Your session has expired. Please log in again.")
             router.push('/login?callbackUrl=/dashboard');
             return;
           } else {
@@ -175,17 +209,57 @@ export default function DashboardPage() {
           ...profile,
           name: profile.fullName || profile.name || "",
           completeness: calculateCompleteness(profile),
-        })
-
-        // Fetch user stats for dashboard
-        const statsRes = await fetch(`/api/profiles/${session.user.id}/stats`)
-        if (statsRes.ok) {
-          const statsData = await statsRes.json()
-          setStats(statsData)
+        });
+        
+        // Store in cache
+        sessionStorage.setItem(cachedProfileKey, JSON.stringify({
+          ...profile,
+          name: profile.fullName || profile.name || "",
+          completeness: calculateCompleteness(profile),
+        }));
+        sessionStorage.setItem(`${cachedProfileKey}_timestamp`, Date.now().toString());
         }
 
-        // Fetch recent interests
-        const interestsRes = await fetch('/api/profiles/interests?type=received')
+        // Only continue with other API requests if we haven't hit the data limit
+        if (!neonLimitHit) {
+          // Check for cached stats
+          const cachedStatsKey = `dashboard_stats_${userId}`;
+          const cachedStats = sessionStorage.getItem(cachedStatsKey);
+          const statsTimestamp = sessionStorage.getItem(`${cachedStatsKey}_timestamp`);
+          const statsAge = statsTimestamp ? Date.now() - parseInt(statsTimestamp) : null;
+          const useCachedStats = cachedStats && statsAge && statsAge < 30 * 60 * 1000;
+          
+          if (useCachedStats) {
+            console.log('Using cached stats data');
+            setStats(JSON.parse(cachedStats));
+          } else {
+            // Fetch user stats for dashboard
+            const statsRes = await fetch(`/api/profiles/${session.user.id}/stats`)
+            if (statsRes.ok) {
+              const statsData = await statsRes.json();
+              setStats(statsData);
+              
+              // Cache the stats
+              sessionStorage.setItem(cachedStatsKey, JSON.stringify(statsData));
+              sessionStorage.setItem(`${cachedStatsKey}_timestamp`, Date.now().toString());
+            }
+          }
+          
+          // Check for cached interests
+          const cachedInterestsKey = `dashboard_interests_${userId}`;
+          const cachedInterests = sessionStorage.getItem(cachedInterestsKey);
+          const interestsTimestamp = sessionStorage.getItem(`${cachedInterestsKey}_timestamp`);
+          const interestsAge = interestsTimestamp ? Date.now() - parseInt(interestsTimestamp) : null;
+          const useCachedInterests = cachedInterests && interestsAge && interestsAge < 15 * 60 * 1000; // 15 min
+          
+          if (useCachedInterests) {
+            console.log('Using cached interests data');
+            const parsedInterests = JSON.parse(cachedInterests);
+            setRecentInterests(parsedInterests.recent);
+            setReceivedInterests(parsedInterests.received);
+          } else {
+            // Fetch recent interests
+            const interestsRes = await fetch('/api/profiles/interests?type=received')
         if (interestsRes.ok) {
           const interests = await interestsRes.json()
           

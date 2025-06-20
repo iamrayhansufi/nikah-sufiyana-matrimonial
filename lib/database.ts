@@ -34,13 +34,11 @@ export interface User {
   expectations?: string | null
   aboutMe?: string | null
   familyDetails?: string | null
-
   // Partner preferences
   preferredAgeMin?: number | null
   preferredAgeMax?: number | null
   preferredEducation?: string | null
   preferredLocation?: string | null
-
   // Admin action fields
   approvedAt?: Date | null
   approvedBy?: string | null
@@ -49,6 +47,7 @@ export interface User {
   suspendedAt?: Date | null
   suspendedBy?: string | null
   premium?: boolean
+  showPhotos?: boolean
 }
 
 export interface PaymentOrder {
@@ -264,9 +263,9 @@ function mapDatabaseUserToAppUser(user: any): User {
     approvedAt: user.approvedAt || null,
     approvedBy: user.approvedBy || null,
     rejectedAt: user.rejectedAt || null,
-    rejectedBy: user.rejectedBy || null,
-    suspendedAt: user.suspendedAt || null,
-    suspendedBy: user.suspendedBy || null
+    rejectedBy: user.rejectedBy || null,    suspendedAt: user.suspendedAt || null,
+    suspendedBy: user.suspendedBy || null,
+    showPhotos: user.showPhotos !== undefined ? user.showPhotos : true
   };
 }
 
@@ -276,12 +275,30 @@ export async function getUsers(filters: Record<string, any>, page: number, limit
     console.log("Using dummy data as explicitly requested");
     return getDummyUsers();
   }
-
   try {
-    console.log("Fetching real profiles from database with filters:", JSON.stringify(filters));
+    console.log("Fetching real profiles from database with filters:", JSON.stringify(filters).slice(0, 100));
     
-    // Starting a query
-    let query = db.select().from(users);
+    // Optimized query - select only essential fields for browsing to reduce data transfer
+    let query = db.select({
+      id: users.id,
+      fullName: users.fullName,
+      age: users.age,
+      country: users.country,
+      city: users.city,
+      location: users.location,
+      education: users.education,
+      profession: users.profession,
+      sect: users.sect,
+      height: users.height,
+      maritalStatus: users.maritalStatus,
+      profilePhoto: users.profilePhoto,
+      verified: users.verified,
+      premium: users.premium,
+      showPhotos: users.showPhotos,
+      lastActive: users.lastActive,
+      subscription: users.subscription,
+      gender: users.gender
+    }).from(users);
     
     // Build conditions array
     const conditions = [];
@@ -325,14 +342,11 @@ export async function getUsers(filters: Record<string, any>, page: number, limit
         dbUsers = await query
           .limit(limit)
           .offset((page - 1) * limit);
-      }
-      
+      }      
       console.log(`Database query returned ${dbUsers.length} users`);
       
-      // Debug
-      if (dbUsers.length > 0) {
-        console.log("Sample user:", JSON.stringify(dbUsers[0]));
-      } else {
+      // Minimal debug logging to reduce console output
+      if (dbUsers.length === 0) {
         console.log("No users found in database");
       }
     } catch (queryError) {

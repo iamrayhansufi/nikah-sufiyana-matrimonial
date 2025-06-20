@@ -16,6 +16,7 @@ import Link from "next/link"
 import { playfair } from "../lib/fonts"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { useSession } from "next-auth/react"
+import { DataLimitWarning } from "@/components/ui/data-limit-warning"
 
 interface Profile {
   id: string
@@ -113,20 +114,61 @@ export default function BrowseProfilesPage() {
   const [isPremium, setIsPremium] = useState(false)
   const [contactInfo, setContactInfo] = useState<string | null>(null)
   const [showContactDialog, setShowContactDialog] = useState(false)
+  const [neonLimitHit, setNeonLimitHit] = useState(false)
   // New state to track interest status for each profile
   const [sentInterests, setSentInterests] = useState<Set<string>>(new Set())
   const [mutualInterests, setMutualInterests] = useState<Set<string>>(new Set())
   const [blurredPhotoIds, setBlurredPhotoIds] = useState<Set<string>>(new Set())
 
-  // Fetch real profiles from API
+  // Fetch real profiles from API with caching and optimization
   useEffect(() => {
-    setLoading(true)
+    // Debounce the API call to reduce requests when filters change rapidly
+    const timeoutId = setTimeout(() => {
+      fetchProfiles();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [filters])
+  
+  // Import the DataLimitWarning component
+  const { DataLimitWarning } = require('@/components/ui/data-limit-warning');
+      
+  const fetchProfiles = () => {
+      setLoading(true)
+      
+      // Check if we've hit the database limit via session storage
+      const isDbLimitHit = sessionStorage.getItem('db_rate_limited') === 'true';
+      if (isDbLimitHit && !neonLimitHit) {
+        setNeonLimitHit(true);
+        console.log("Database transfer limit already hit, using cached data only");
+      }
+      
+      // Cache key based on filters to avoid unnecessary API calls
+      const filterCacheKey = JSON.stringify(filters);
+      const cachedProfiles = sessionStorage.getItem(`profiles_${filterCacheKey}`);
+      const cacheTimestamp = sessionStorage.getItem(`profiles_timestamp_${filterCacheKey}`);
+      
+      // Use cached data if it's less than 30 minutes old (increased cache time)
+      if (cachedProfiles && cacheTimestamp) {
+        const age = Date.now() - parseInt(cacheTimestamp);
+        if (age < 30 * 60 * 1000) { // 30 minutes instead of 5
+          console.log('Using cached profile data');
+          setProfiles(JSON.parse(cachedProfiles));
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // If we've hit the data transfer limit and have no cache, show an empty state
+      if (isDbLimitHit && !cachedProfiles) {
+        setProfiles([]);
+        setLoading(false);
+        return;
+      }
     
     // Build query parameters based on filters
     const params = new URLSearchParams();
-    params.append("limit", "100"); // Increase limit to get more profiles
-    
-    // No longer filtering by profileStatus - removed
+    params.append("limit", "20"); // Further reduce limit to save data transfer
     
     if (filters.ageMin) params.append("ageMin", filters.ageMin);
     if (filters.ageMax) params.append("ageMax", filters.ageMax);
@@ -141,56 +183,92 @@ export default function BrowseProfilesPage() {
     if (filters.heightMin) params.append("heightMin", filters.heightMin);
     if (filters.heightMax) params.append("heightMax", filters.heightMax);
     
-    // Only use dummy data as fallback if there are no real users
-    // params.append("useDummy", "true");
+    // Ensure we don't request dummy data to save bandwidth
+    if (params.has("useDummy")) {
+      params.delete("useDummy");
+    }
     
     // Log the API request for debugging
-    console.log(`Fetching profiles with params: ${params.toString()}`);
-    
-    fetch(`/api/profiles?${params.toString()}`)
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`API error with status ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(data => {
-        if (data.profiles && Array.isArray(data.profiles)) {
-          console.log(`Received ${data.profiles.length} profiles from API`);
-          
-          if (data.profiles.length === 0) {
-            // If no real profiles, try again with dummy data
-            const dummyParams = new URLSearchParams(params);
-            dummyParams.append("useDummy", "true");
+    console.log(`Fetching profiles with params: ${params.toString()}`);      fetch(`/api/profiles?${params.toString()}`)
+        .then(res => {
+          // Special handling for rate limit errors (HTTP 429)
+          if (res.status === 429) {
+            console.warn("Database data transfer limit exceeded");
             
-            fetch(`/api/profiles?${dummyParams.toString()}`)
-              .then(res => res.json())
-              .then(dummyData => {
-                if (dummyData.profiles && Array.isArray(dummyData.profiles)) {
-                  console.log(`Received ${dummyData.profiles.length} dummy profiles as fallback`);
-                  setProfiles(dummyData.profiles);
-                }
-                setLoading(false);
-              })
-              .catch(err => {
-                console.error("Error fetching dummy profiles:", err);
-                setLoading(false);
-              });
-          } else {
-            setProfiles(data.profiles);
-            setLoading(false);
+            // Set the rate limit flag in session storage
+            sessionStorage.setItem('db_rate_limited', 'true');
+            
+            // Dispatch event to show warning banner
+            window.dispatchEvent(new CustomEvent('app:data_limit', { 
+              detail: { type: 'rate_limit' } 
+            }));
+            
+            // Try to use any available cached data, even if older
+            const anyCachedProfiles = sessionStorage.getItem(`profiles_${JSON.stringify({})}`);
+            if (anyCachedProfiles) {
+              console.log("Using older cached data due to rate limiting");
+              setProfiles(JSON.parse(anyCachedProfiles));
+              return { error: "Using cached data due to rate limiting", profiles: [] };
+            }
+            
+            throw new Error("Database data transfer limit exceeded. Please try again later.");
           }
-        } else {
-          console.warn("API returned no profiles array:", data);
+          
+          if (!res.ok) {
+            throw new Error(`API error with status ${res.status}`);
+          }
+          
+          return res.json();
+        })
+        .then(data => {
+          // Handle rate limit error response
+          if (data.error && data.error.includes("transfer limit")) {
+            console.warn("Database transfer limit message:", data.error);
+            setLoading(false);
+            return; // Already handled above by using cached data
+          }
+          
+          if (data.profiles && Array.isArray(data.profiles)) {
+            console.log(`Received ${data.profiles.length} profiles from API`);
+            
+            // Cache the results - store both filtered and unfiltered versions
+            sessionStorage.setItem(`profiles_${filterCacheKey}`, JSON.stringify(data.profiles));
+            // Also store in a generic key for fallback in case of rate limiting
+            sessionStorage.setItem(`profiles_${JSON.stringify({})}`, JSON.stringify(data.profiles));
+            sessionStorage.setItem(`profiles_timestamp_${filterCacheKey}`, Date.now().toString());
+            
+            setProfiles(data.profiles);
+          } else {
+            console.warn("API returned no profiles array");
+            setProfiles([]);
+          }
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching profiles:", error);
+          
+          // Check if this is a Neon data transfer limit error
+          if (error.response && error.response.status === 429) {
+            try {
+              const errorData = error.response.json();
+              if (errorData && errorData.neonLimitHit) {
+                console.warn("Neon database transfer limit hit!");
+                setNeonLimitHit(true);
+                setNeonLimitHit(true); // Set the global tracker
+              }
+            } catch (parseError) {
+              // If we can't parse the response, check the error message
+              if (error.message && error.message.includes('data transfer')) {
+                setNeonLimitHit(true);
+                setNeonLimitHit(true);
+              }
+            }
+          }
+          
           setProfiles([]);
           setLoading(false);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching profiles:", error);
-        setLoading(false);
-      });
-  }, [filters])
+        });
+    }
 
   // Check user subscription status from session
   useEffect(() => {
@@ -213,6 +291,8 @@ export default function BrowseProfilesPage() {
         const newSentInterests = new Set<string>();
         const newMutualInterests = new Set<string>();
         
+        console.log(`Checking photo visibility for ${profiles.length} profiles`);
+        
         // For each profile, check if we should blur photos
         for (const profile of profiles) {
           // Skip if profile doesn't have ID
@@ -220,21 +300,21 @@ export default function BrowseProfilesPage() {
           
           // First, check the profile's privacy settings directly from profile data
           const showPhotos = profile.showPhotos !== undefined ? profile.showPhotos : true;
-          console.log(`Profile ${profile.id} (${profile.name}) privacy setting: showPhotos=${showPhotos}, profile.showPhotos=${profile.showPhotos}`);
           
-          // TEMPORARY: Force the first profile to be blurred for testing
-          if (profile.id === profiles[0]?.id) {
+          // TEMPORARY: For testing, let's manually protect photos for specific profiles
+          if (profile.name && (profile.name.toLowerCase().includes('test') || profile.id === '2' || profile.id === '3')) {
             newBlurredPhotoIds.add(profile.id);
-            console.log(`TESTING: Force blurring first profile ${profile.id} (${profile.name})`);
             continue;
           }
           
           // If photos are disabled by the profile owner, blur them immediately
-          if (!showPhotos) {
+          if (showPhotos === false) {
             newBlurredPhotoIds.add(profile.id);
-            console.log(`Photos protected for profile ${profile.id} (${profile.name})`);
+            console.log(`✅ Photos protected for profile ${profile.id} (${profile.name}) - showPhotos is explicitly false`);
             // Skip interest checking if photos are protected
             continue;
+          } else {
+            console.log(`📷 Photos visible for profile ${profile.id} (${profile.name}) - showPhotos is ${showPhotos}`);
           }
           
           // Check interest status for this profile only if photos are not protected
@@ -768,6 +848,9 @@ export default function BrowseProfilesPage() {
       <Header />
 
       <div className="container mx-auto px-4 py-8">
+        {/* Data limit warning banner */}
+        <DataLimitWarning />
+        
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Desktop Filters Sidebar */}
           <div className="hidden lg:block w-80 shrink-0">

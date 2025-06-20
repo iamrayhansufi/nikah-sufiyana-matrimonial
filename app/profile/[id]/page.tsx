@@ -138,10 +138,17 @@ export default function ProfilePage({
     // Redirect to login
     router.push('/login')
   }
-    useEffect(() => {
-    const fetchProfile = async () => {
+    useEffect(() => {    const fetchProfile = async () => {
       if (!id) {
         setError("Invalid profile ID")
+        setLoading(false)
+        return
+      }
+      
+      // Validate that ID is a valid format (number or string that can be converted to number)
+      const numericId = parseInt(id.toString());
+      if (isNaN(numericId)) {
+        setError("Invalid profile ID format")
         setLoading(false)
         return
       }
@@ -187,8 +194,7 @@ export default function ProfilePage({
           
           if (interestRes.ok) {
             const interestData = await interestRes.json()
-            
-            // Set interest sent status
+              // Set interest sent status
             if (interestData.sentInterests?.length > 0) {
               setIsInterestSent(true)
             }
@@ -199,9 +205,19 @@ export default function ProfilePage({
             }
 
             // Check for incoming interest request (profile owner sent interest to viewing user)
-            const incomingInterest = interestData.receivedInterests?.find((interest: any) => 
-              interest.senderId.toString() === id && interest.status === 'pending'
-            )
+            // Add extra safety checks for senderId to prevent toString() errors
+            const incomingInterest = interestData.receivedInterests?.find((interest: any) => {
+              if (!interest || typeof interest !== 'object') return false;
+              if (!interest.senderId) return false;
+              if (!interest.status) return false;
+              
+              try {
+                return interest.senderId.toString() === id && interest.status === 'pending';
+              } catch (e) {
+                console.warn('Error comparing senderId:', e, interest);
+                return false;
+              }
+            })
             
             if (incomingInterest) {
               setIncomingInterestRequest(incomingInterest)
@@ -211,11 +227,11 @@ export default function ProfilePage({
             // Photos should be blurred if:
             // 1. User has set showPhotos to false (privacy setting)
             // 2. AND the current user's interest hasn't been accepted by the profile owner
-            
-            // Check if current user's sent interest has been accepted
-            const hasApproval = interestData.sentInterests?.some((interest: any) => 
-              interest.status === 'accepted'
-            );
+              // Check if current user's sent interest has been accepted
+            const hasApproval = interestData.sentInterests?.some((interest: any) => {
+              if (!interest || typeof interest !== 'object') return false;
+              return interest.status === 'accepted';
+            });
             
             const shouldBlurBasedOnPrivacy = !data.showPhotos && !hasApproval;
             setShouldBlurPhoto(shouldBlurBasedOnPrivacy);

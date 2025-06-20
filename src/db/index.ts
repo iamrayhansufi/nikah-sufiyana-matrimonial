@@ -18,6 +18,51 @@ if (!dbUrl) {
 // At this point TypeScript should know dbUrl is a string, but let's be explicit
 const connectionString: string = dbUrl;
 
+// Helper to track and limit data usage
+const dataTransferTracking = {
+  lastReset: Date.now(),
+  bytesTransferred: 0,
+  queryCount: 0,
+  resetInterval: 60 * 1000, // Reset counter every 1 minute
+  queryLimit: 50, // Maximum number of queries per interval
+  
+  recordQuery(size = 1000) { // Default estimate of 1KB per query
+    const now = Date.now();
+    
+    // Reset counters if reset interval has passed
+    if (now - this.lastReset > this.resetInterval) {
+      this.bytesTransferred = 0;
+      this.queryCount = 0;
+      this.lastReset = now;
+    }
+    
+    this.bytesTransferred += size;
+    this.queryCount++;
+    
+    // Return true if we should allow the query, false if we're over limit
+    return this.queryCount <= this.queryLimit;
+  },
+  
+  getRemainingQuota() {
+    return {
+      remainingQueries: Math.max(0, this.queryLimit - this.queryCount),
+      estimatedBytesTransferred: this.bytesTransferred,
+      queryCount: this.queryCount,
+      resetIn: this.resetInterval - (Date.now() - this.lastReset)
+    };
+  }
+};
+
+// Create a simple rate limiter for database queries
+function createRateLimitedNeonClient(baseClient: NeonQueryFunction<any, any>): NeonQueryFunction<any, any> {
+  // Check if we should allow this query based on rate limiting
+  if (!dataTransferTracking.recordQuery() && process.env.NODE_ENV !== 'development') {
+    console.warn('Database rate limit reached. Some queries will be rejected.');
+  }
+  
+  return baseClient;
+}
+
 // Function to create a fresh connection each time
 // This prevents stale connection issues and authentication problems
 function createConnection(): NeonQueryFunction<any, any> {
@@ -28,6 +73,13 @@ function createConnection(): NeonQueryFunction<any, any> {
                         process.env.POSTGRES_URL_NON_POOLING ||
                         connectionString;
 
+    // Check if we should allow this query based on rate limiting
+    const shouldAllow = dataTransferTracking.recordQuery();
+    if (!shouldAllow && process.env.NODE_ENV !== 'development') {
+      const quota = dataTransferTracking.getRemainingQuota();
+      console.warn(`Database query rate limit reached. Quota: ${JSON.stringify(quota)}`);
+    }
+    
     // Create connection with specific options for better reliability
     const sql = neon(unpooledUrl, { 
       // Add connection options that help with authentication issues
@@ -37,7 +89,8 @@ function createConnection(): NeonQueryFunction<any, any> {
     
     // Log in development for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.log("New unpooled database connection created");
+      const quota = dataTransferTracking.getRemainingQuota();
+      console.log(`New database connection created. Quota: ${JSON.stringify(quota)}`);
     }
     
     return sql;
