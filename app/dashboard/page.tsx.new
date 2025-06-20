@@ -1,0 +1,125 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+export default function Dashboard() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [userProfile, setUserProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (status === "loading") return;
+      
+      if (status === "unauthenticated") {
+        setError("Please log in to access your dashboard.");
+        setLoading(false);
+        router.push('/login?callbackUrl=/dashboard');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/profiles/me');
+        if (res.ok) {
+          const profile = await res.json();
+          setUserProfile(profile);
+        } else {
+          setError("Failed to load profile data.");
+        }
+      } catch (e) {
+        setError("An error occurred while fetching your profile.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [session, status, router]);
+
+  if (loading) {
+    return <div className="container py-10">Loading your dashboard...</div>;
+  }
+
+  if (error) {
+    return <div className="container py-10 text-red-500">{error}</div>;
+  }
+
+  return (
+    <>
+      <Header />
+      <main className="container py-10">
+        <h1 className="text-3xl font-bold mb-6">Your Dashboard</h1>
+        
+        <Tabs defaultValue="profile">
+          <TabsList className="mb-4">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="interests">Interests</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Profile</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {userProfile ? (
+                  <div>
+                    <p>Name: {userProfile.fullName || 'Not set'}</p>
+                    <p>Email: {session?.user?.email || 'Not available'}</p>
+                    <div className="mt-4">
+                      <Link href="/edit-profile">
+                        <Button>Edit Profile</Button>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <p>Profile data not available</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="interests">
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Interests</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>Manage your received and sent interests here.</p>
+                <Link href="/interests">
+                  <Button className="mt-4">View All Interests</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="messages">
+            <Card>
+              <CardHeader>
+                <CardTitle>Messages</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>Access your messages here.</p>
+                <Link href="/messages">
+                  <Button className="mt-4">View Messages</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
+      <Footer />
+    </>
+  );
+}
