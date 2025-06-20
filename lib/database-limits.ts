@@ -1,3 +1,5 @@
+"use client"
+
 // Database limits and transfer monitoring
 
 import { useState, useEffect } from 'react';

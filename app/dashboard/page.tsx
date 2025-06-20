@@ -1,17 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Heart,
   Star,
@@ -101,6 +101,50 @@ export default function DashboardPage() {
   const [recentInterests, setRecentInterests] = useState<DashboardInterest[]>([])
   const [receivedInterests, setReceivedInterests] = useState<DashboardInterest[]>([])
   const [shortlistedProfiles, setShortlistedProfiles] = useState<DashboardShortlist[]>([])
+  
+  // Helper function to format time ago
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days} days ago`;
+    if (hours > 0) return `${hours} hours ago`;
+    if (minutes > 0) return `${minutes} minutes ago`;
+    return 'just now';
+  }
+  
+  // Enhanced profile matching algorithm
+  const calculateMatchPercentage = (user1: any, user2: any) => {
+    if (!user1 || !user2) return 0
+    let matches = 0
+    let total = 0
+
+    // Education
+    if (user1.education && user2.education) {
+      total++
+      if (user1.education === user2.education) matches++
+    }
+    // Location (city or location string)
+    if (user1.city && user2.city) {
+      total++
+      if (user1.city === user2.city) matches++
+    } else if (user1.location && user2.location) {
+      total++
+      if (user1.location === user2.location) matches++
+    }
+    // Age range (within 3 years)
+    if (user1.age && user2.age) {
+      total++
+      const ageDiff = Math.abs(user1.age - user2.age)
+      if (ageDiff <= 3) matches++
+    }
+
+    return total ? Math.floor((matches / total) * 100) : 50
+  }
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -189,35 +233,18 @@ export default function DashboardPage() {
               if (cachedProfile) {
                 const profileData = JSON.parse(cachedProfile);
                 setUserProfile(profileData);
-                return; // Continue with other operations
               }
             }
             
-            if (res.status === 401) {
-              // Session expired or invalid
-              setError("Your session has expired. Please log in again.")
-            router.push('/login?callbackUrl=/dashboard');
-            return;
-          } else {
-            setError(`Failed to load profile. (${res.status})`)
+            throw new Error(`Profile fetch failed: ${errorText}`)
           }
-          setLoading(false)
-          return
-        }
-        const profile = await res.json()
-        setUserProfile({
-          ...profile,
-          name: profile.fullName || profile.name || "",
-          completeness: calculateCompleteness(profile),
-        });
-        
-        // Store in cache
-        sessionStorage.setItem(cachedProfileKey, JSON.stringify({
-          ...profile,
-          name: profile.fullName || profile.name || "",
-          completeness: calculateCompleteness(profile),
-        }));
-        sessionStorage.setItem(`${cachedProfileKey}_timestamp`, Date.now().toString());
+  
+          const profileData = await res.json()
+          setUserProfile(profileData)
+          
+          // Cache the profile data
+          sessionStorage.setItem(cachedProfileKey, JSON.stringify(profileData));
+          sessionStorage.setItem(`${cachedProfileKey}_timestamp`, Date.now().toString());
         }
 
         // Only continue with other API requests if we haven't hit the data limit
@@ -260,127 +287,59 @@ export default function DashboardPage() {
           } else {
             // Fetch recent interests
             const interestsRes = await fetch('/api/profiles/interests?type=received')
-        if (interestsRes.ok) {
-          const interests = await interestsRes.json()
-          
-          // Map interests for the My Interests tab (showing just 3)
-          setRecentInterests(interests.slice(0, 3).map((interest: any) => ({
-            id: interest.id,
-            name: interest.fromUser.fullName,
-            age: interest.fromUser.age,
-            location: interest.fromUser.location,
-            profession: interest.fromUser.profession,
-            image: interest.fromUser.profilePhoto || "/placeholder.svg?height=60&width=60",
-            status: interest.status,
-            time: formatTimeAgo(interest.createdAt),
-          })))
-          
-          // Map all received interests for the Interests Received tab (only pending ones)
-          const pendingInterests = interests.filter((interest: any) => interest.status === 'pending');
-          setReceivedInterests(pendingInterests.map((interest: any) => ({
-            id: interest.id,
-            name: interest.fromUser.fullName,
-            age: interest.fromUser.age,
-            location: interest.fromUser.location,
-            profession: interest.fromUser.profession,
-            image: interest.fromUser.profilePhoto || "/placeholder.svg?height=60&width=60",
-            status: interest.status,
-            time: formatTimeAgo(interest.createdAt),
-          })))
-        }
-
-        // Fetch shortlisted profiles
-        const shortlistRes = await fetch('/api/profiles/shortlist')
-        if (shortlistRes.ok) {
-          const shortlisted = await shortlistRes.json()
-          setShortlistedProfiles(shortlisted.slice(0, 3).map((item: any) => ({
-            id: item.shortlistedUser.id,
-            name: item.shortlistedUser.fullName,
-            age: item.shortlistedUser.age,
-            location: item.shortlistedUser.location,
-            profession: item.shortlistedUser.profession,
-            image: item.shortlistedUser.profilePhoto || "/placeholder.svg?height=80&width=80",
-            match: calculateMatchPercentage(userProfile, item.shortlistedUser),
-          })))
+            if (interestsRes.ok) {
+              const interests = await interestsRes.json()
+              
+              // Map interests for the My Interests tab (showing just 3)
+              setRecentInterests(interests.slice(0, 3).map((interest: any) => ({
+                id: interest.id,
+                name: interest.fromUser.fullName,
+                age: interest.fromUser.age,
+                location: interest.fromUser.location,
+                profession: interest.fromUser.profession,
+                image: interest.fromUser.profilePhoto || "/placeholder.svg?height=60&width=60",
+                status: interest.status,
+                time: formatTimeAgo(interest.createdAt),
+              })))
+              
+              // Map all received interests for the Interests Received tab (only pending ones)
+              const pendingInterests = interests.filter((interest: any) => interest.status === 'pending');
+              setReceivedInterests(pendingInterests.map((interest: any) => ({
+                id: interest.id,
+                name: interest.fromUser.fullName,
+                age: interest.fromUser.age,
+                location: interest.fromUser.location,
+                profession: interest.fromUser.profession,
+                image: interest.fromUser.profilePhoto || "/placeholder.svg?height=60&width=60",
+                status: interest.status,
+                time: formatTimeAgo(interest.createdAt),
+              })))
+            }
+            
+            // Fetch shortlisted profiles
+            const shortlistRes = await fetch('/api/profiles/shortlist');
+            if (shortlistRes.ok) {
+              const shortlisted = await shortlistRes.json()
+              setShortlistedProfiles(shortlisted.slice(0, 3).map((item: any) => ({
+                id: item.shortlistedUser.id,
+                name: item.shortlistedUser.fullName,
+                age: item.shortlistedUser.age,
+                location: item.shortlistedUser.location,
+                profession: item.shortlistedUser.profession,
+                image: item.shortlistedUser.profilePhoto || "/placeholder.svg?height=80&width=80",
+                match: calculateMatchPercentage(userProfile, item.shortlistedUser),
+              })));
+            }
+          }
         }
       } catch (e) {
-        setError("An error occurred.")
+        setError("An error occurred.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    fetchProfile()
-  }, [session, status])
-
-  // Helper function to format time ago
-  const formatTimeAgo = (dateStr: string) => {
-    const date = new Date(dateStr)
-    const now = new Date()
-    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-    const minutes = Math.floor(seconds / 60)
-    const hours = Math.floor(minutes / 60)
-    const days = Math.floor(hours / 24)
-
-    if (days > 0) return `${days} days ago`
-    if (hours > 0) return `${hours} hours ago`
-    if (minutes > 0) return `${minutes} minutes ago`
-    return 'just now'
-  }
-
-  // Enhanced profile matching algorithm
-  const calculateMatchPercentage = (user1: any, user2: any) => {
-    if (!user1 || !user2) return 0
-    let matches = 0
-    let total = 0
-
-    // Education
-    if (user1.education && user2.education) {
-      total++
-      if (user1.education === user2.education) matches++
-    }
-    // Location (city or location string)
-    if (user1.city && user2.city) {
-      total++
-      if (user1.city === user2.city) matches++
-    } else if (user1.location && user2.location) {
-      total++
-      if (user1.location === user2.location) matches++
-    }
-    // Age range (within 3 years)
-    if (user1.age && user2.age) {
-      total++
-      const ageDiff = Math.abs(user1.age - user2.age)
-      if (ageDiff <= 3) matches++
-    }
-    // Sect
-    if (user1.sect && user2.sect) {
-      total++
-      if (user1.sect === user2.sect) matches++
-    }
-    // Marital Status
-    if (user1.maritalStatus && user2.maritalStatus) {
-      total++
-      if (user1.maritalStatus === user2.maritalStatus) matches++
-    }
-    // Mother Tongue
-    if (user1.motherTongue && user2.motherTongue) {
-      total++
-      if (user1.motherTongue === user2.motherTongue) matches++
-    }
-    // Preferred Location (if set)
-    if (user1.preferredLocation && user2.location) {
-      total++
-      if (user2.location.includes(user1.preferredLocation)) matches++
-    }
-    // Profession
-    if (user1.profession && user2.profession) {
-      total++
-      if (user1.profession === user2.profession) matches++
-    }
-    // Add more fields as needed for your business logic
-
-    return total > 0 ? Math.round((matches / total) * 100) : 0
-  }
+    fetchProfile();
+  }, [session, status]);
 
   // Helper to calculate profile completeness
   const calculateCompleteness = (profile: any) => {
@@ -764,9 +723,7 @@ export default function DashboardPage() {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
-
-      <Footer />
+      </div>      <Footer />
     </div>
   )
 }
