@@ -82,7 +82,7 @@ export default function HomePage() {
     {
       name: "Fatima & Ahmed",
       location: "Mumbai",
-      text: "Alhamdulillah! We found each other through Nikah Sufiyana. The platform made it easy to connect with like-minded Muslims who share our values.",
+      text: "Alhamdulillah We found each other through Nikah Sufiyana. The platform made it easy to connect with like-minded Muslims who share our values.",
       rating: 5,
       image: "/placeholder.svg?height=60&width=60",
     },
