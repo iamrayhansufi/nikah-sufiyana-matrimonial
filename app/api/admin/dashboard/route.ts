@@ -1,14 +1,36 @@
-import { NextResponse } from "next/server";
-import { and, eq, gte, sql } from "drizzle-orm";
-import { db } from "../../../../src/db";
-import { users, subscriptionHistory, messages, subscriptionPlans } from "../../../../src/db/schema";
-import { verifyAuth } from "../../../../src/lib/auth";
+import { NextResponse, NextRequest } from "next/server";
+import { redis } from "@/lib/redis-client";
+import { verifyAdminAuth } from "@/lib/auth";
 
-export async function GET(req: Request) {
+interface RedisUser {
+  [key: string]: string;
+  id: string;
+  email: string;
+  createdAt: string;
+  profileStatus: string;
+  subscription: string;
+  subscriptionExpiry: string;
+}
+
+interface DashboardStats {
+  totalUsers: number;
+  newUsers: number;
+  pendingProfiles: number;
+  premiumUsers: number;
+  totalRevenue: number;
+  activeMessages: number;
+  matchesCount: number;
+  monthlyGrowth: {
+    users: number;
+    revenue: number;
+  };
+}
+
+export async function GET(req: NextRequest) {
   try {
-    // Verify admin authentication (TODO: Add admin check)
-    const userId = await verifyAuth(req);
-    if (!userId) {
+    // Verify admin authentication
+    const isAdmin = await verifyAdminAuth(req);
+    if (!isAdmin) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -19,75 +41,97 @@ export async function GET(req: Request) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Get total users count
-    const [{ totalUsers }] = await db
-      .select({ totalUsers: sql`count(*)` })
-      .from(users);
+    // Get all user keys
+    const userKeys = await redis.keys("user:*");
+    const users: RedisUser[] = [];
 
-    // Get new users in last 30 days
-    const [{ newUsers }] = await db
-      .select({ newUsers: sql`count(*)` })
-      .from(users)
-      .where(gte(users.createdAt, thirtyDaysAgo));
+    // Fetch all users
+    for (const key of userKeys) {
+      const user = await redis.hgetall(key) as RedisUser;
+      if (user) {
+        users.push(user);
+      }
+    }
 
-    // Get pending profiles count
-    const [{ pendingProfiles }] = await db
-      .select({ pendingProfiles: sql`count(*)` })
-      .from(users)
-      .where(eq(users.profileStatus, "pending"));
+    // Calculate statistics
+    const stats: DashboardStats = {
+      totalUsers: users.length,
+      newUsers: users.filter(user => {
+        const createdAt = new Date(user.createdAt);
+        return createdAt >= thirtyDaysAgo;
+      }).length,
+      pendingProfiles: users.filter(user => 
+        user.profileStatus === "pending"
+      ).length,
+      premiumUsers: users.filter(user => {
+        const isExpired = user.subscriptionExpiry && 
+          new Date(user.subscriptionExpiry) > new Date();
+        return user.subscription === "premium" && isExpired;
+      }).length,
+      totalRevenue: 0,
+      activeMessages: 0,
+      matchesCount: 0,
+      monthlyGrowth: {
+        users: 0,
+        revenue: 0
+      }
+    };
 
-    // Get premium users count
-    const [{ premiumUsers }] = await db
-      .select({ premiumUsers: sql`count(*)` })
-      .from(users)
-      .where(
-        and(
-          eq(users.subscription, "premium"),
-          gte(users.subscriptionExpiry, new Date())
-        )
-      );
+    // Get total revenue from subscription history
+    const subscriptionKeys = await redis.keys("subscription:*");
+    for (const key of subscriptionKeys) {
+      const subscription = await redis.hgetall(key);
+      if (subscription && typeof subscription.amount === 'string' && subscription.amount) {
+        stats.totalRevenue += parseInt(subscription.amount);
+      }
+    }
 
-    // Get total revenue
-    const [{ totalRevenue }] = await db
-      .select({
-        totalRevenue: sql`sum(sp.price)`
-      })
-      .from(subscriptionHistory)
-      .innerJoin(
-        subscriptionPlans,
-        eq(subscriptionHistory.planId, subscriptionPlans.id)
-      )
-      .where(eq(subscriptionHistory.status, "active"));
+    // Get active messages count
+    const messageKeys = await redis.keys("message:*");
+    stats.activeMessages = messageKeys.length;
 
-    // Get total messages
-    const [{ totalMessages }] = await db
-      .select({ totalMessages: sql`count(*)` })
-      .from(messages);
+    // Get matches count (accepted interests)
+    const interestKeys = await redis.keys("interest:*");
+    for (const key of interestKeys) {
+      const interest = await redis.hgetall(key);
+      if (interest && interest.status === "accepted") {
+        stats.matchesCount++;
+      }
+    }
 
-    // Get active users in last 24 hours
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const [{ activeUsers }] = await db
-      .select({ activeUsers: sql`count(*)` })
-      .from(users)
-      .where(gte(users.lastActive, yesterday));
+    // Calculate monthly growth
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-    return NextResponse.json({
-      statistics: {
-        totalUsers: Number(totalUsers),
-        newUsers: Number(newUsers),
-        pendingProfiles: Number(pendingProfiles),
-        premiumUsers: Number(premiumUsers),
-        totalRevenue: Number(totalRevenue) || 0,
-        totalMessages: Number(totalMessages),
-        activeUsers: Number(activeUsers),
-      },
-    });
+    const lastMonthUsers = users.filter(user => {
+      const createdAt = new Date(user.createdAt);
+      return createdAt >= sixtyDaysAgo && createdAt < thirtyDaysAgo;
+    }).length;
+
+    const thisMonthUsers = users.filter(user => {
+      const createdAt = new Date(user.createdAt);
+      return createdAt >= thirtyDaysAgo;
+    }).length;
+
+    stats.monthlyGrowth.users = ((thisMonthUsers - lastMonthUsers) / (lastMonthUsers || 1)) * 100;
+
+    return NextResponse.json(stats);
   } catch (error) {
     console.error("Admin dashboard error:", error);
     return NextResponse.json(
-      { error: "Failed to get dashboard statistics" },
+      { error: "Failed to fetch dashboard data" },
       { status: 500 }
     );
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }

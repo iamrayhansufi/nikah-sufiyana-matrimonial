@@ -1,25 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getUsers, getUserStats } from "@/lib/database"
 import { dbMonitor } from "@/lib/db-monitor";
+import { database } from "@/lib/database-service";
 
 type ProfileFilters = {
-  profileStatus: "approved" | "pending" | "rejected"
+  profileStatus?: "approved" | "pending" | "rejected"
   gender?: "male" | "female"
-  age?: {
-    $gte: number
-    $lte: number
-  }
-  location?: {
-    $regex: string
-    $options: string
-  } | string
-  education?: {
-    $regex: string
-    $options: string
-  } | string
-  sect?: string
   ageMin?: string
   ageMax?: string
+  location?: string
+  education?: string
+  sect?: string
   useDummy?: string
 }
 
@@ -64,7 +54,6 @@ export async function GET(request: NextRequest) {
     
     console.log("Initial filters:", filters);
 
-
     if (gender) {
       if (gender !== "male" && gender !== "female") {
         return NextResponse.json({ error: "Invalid gender parameter" }, { status: 400 })
@@ -73,7 +62,6 @@ export async function GET(request: NextRequest) {
     }
     
     if (ageMin && ageMax) {
-
       const minAge = Number.parseInt(ageMin)
       const maxAge = Number.parseInt(ageMax)
       
@@ -81,95 +69,59 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Invalid age range parameters" }, { status: 400 })
       }
       
-      filters.age = { $gte: minAge, $lte: maxAge }
+      filters.ageMin = minAge.toString();
+      filters.ageMax = maxAge.toString();
     }
     
-    if (location) filters.location = { $regex: location, $options: "i" }
-    if (education) filters.education = { $regex: education, $options: "i" }
-    if (sect) filters.sect = sect
+    if (location) filters.location = location;
+    if (education) filters.education = education;
+    if (sect) filters.sect = sect;
 
-    // Get profiles from database
-    
-    // Check if useDummy parameter is set
-    const useDummy = searchParams.get("useDummy") === "true";
-    if (useDummy) {
-      filters.useDummy = "true"; // Add to filters to pass through
-    }
-
+    // Get profiles from database using Redis
     try {
       console.log("API: Fetching profiles with filters:", JSON.stringify(filters, null, 2).slice(0, 200));
-      const profiles = await getUsers(filters, page, limit, useDummy)
-      console.log(`API: Found ${profiles.length} profiles`);
-      const stats = await getUserStats()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      
+      const searchParams = {
+        page: page.toString(),
+        limit: limit.toString(),
+        gender: filters.gender,
+        ageMin: filters.ageMin,
+        ageMax: filters.ageMax,
+        location: filters.location,
+        education: filters.education,
+        sect: filters.sect
+      };
+      
+      const { profiles, total } = await database.profiles.searchProfiles(searchParams);
+      
+      // Calculate pagination
+      const totalPages = Math.ceil(total / limit);
+      
+      // Format response
       return NextResponse.json({
-        profiles: profiles.map((profile) => ({
-          id: profile.id,
-          name: profile.fullName,
-          age: profile.age,
-          location: profile.location,
-          country: profile.country,
-          city: profile.city,
-          education: profile.education,
-          profession: profile.profession,
-          sect: profile.sect,
-          height: profile.height,
-          maritalStatus: profile.maritalStatus,
-          profilePhoto: profile.profilePhoto,
-          verified: profile.verified,
-          premium: profile.premium,
-          subscription: profile.subscription,
-          showPhotos: profile.showPhotos,
-          gender: profile.gender,
-          lastActive: profile.lastActive,
-        })),
+        profiles,
         pagination: {
           page,
           limit,
-          total: stats.total,
-          pages: Math.ceil(stats.total / limit),
-        },
-      })
-    } catch (dbError) {
-      console.error("Database error:", dbError)
+          total,
+          pages: totalPages
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching profiles:", error);
       
-      // Import in this scope to avoid server/client module mismatch
-      const { isNeonLimitError } = require('@/lib/database-limits');
-      
-      if (isNeonLimitError(dbError)) {
-        console.warn("Neon database transfer limit hit!");
-        return NextResponse.json({ 
-          error: "Database transfer limit reached", 
-          neonLimitHit: true,
-          message: "You have used all your data transfer allowance, upgrade your account to increase your data transfer limit."
-        }, { status: 429 }) // 429 Too Many Requests
-      }
-      
-      return NextResponse.json({ error: "Database operation failed" }, { status: 500 })
+      // Return an appropriate error response
+      return NextResponse.json(
+        { error: "Failed to fetch profiles" },
+        { status: 500 }
+      );
     }
   } catch (error) {
-    console.error("Get profiles error:", error)
-
-    return NextResponse.json({ 
-      error: "Internal server error",
-      message: error instanceof Error ? error.message : "Unknown error occurred"
-    }, { status: 500 })
+    console.error("Unexpected error in profiles route:", error);
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 }
 

@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { eq } from "drizzle-orm";
-import { db } from "@/src/db";
-import { users } from "@/src/db/schema";
-import { authOptions } from "@/lib/auth-options";
 import { z } from "zod";
+import { redis } from "@/lib/redis-client";
+import { authOptions } from "@/lib/auth-options-redis";
+
+interface UpdateData {
+  [key: string]: string | number | boolean | string[] | undefined;
+}
+
+interface RedisUser {
+  [key: string]: string;
+}
 
 const updateProfileSchema = z.object({
   // Basic Info
@@ -49,101 +55,114 @@ const updateProfileSchema = z.object({
   livingWithParents: z.string().optional(),
   
   // Partner Preferences
-  preferredAgeMin: z.number().min(18).optional(),
-  preferredAgeMax: z.number().max(100).optional(),
-  preferredHeight: z.string().optional(),
-  preferredEducation: z.string().optional(),
-  preferredProfession: z.string().optional(),
-  preferredLocation: z.string().optional(),
-  preferredSect: z.string().optional(),
-  preferredReligiosity: z.string().optional(),
-  expectations: z.string().optional(),
+  partnerAge: z.string().optional(),
+  partnerHeight: z.string().optional(),
+  partnerMaritalStatus: z.string().optional(),
+  partnerCity: z.string().optional(),
+  partnerState: z.string().optional(),
+  partnerCountry: z.string().optional(),
+  partnerEducation: z.string().optional(),
+  partnerProfession: z.string().optional(),
+  partnerIncome: z.string().optional(),
+  partnerExpectations: z.string().optional(),
   
-  // Privacy Settings
-  showContactInfo: z.boolean().optional(),
-  showPhotoToAll: z.boolean().optional(),
-  profileVisibility: z.enum(["all-members", "premium-only", "match-criteria"]).optional(),
-  allowMessages: z.boolean().optional(),
+  // Photos
+  photos: z.array(z.string()).optional(),
+  mainPhotoUrl: z.string().optional(),
+
+  // Additional Info
+  birthDate: z.string().optional(),
+  birthPlace: z.string().optional(),
+  motherTongue: z.string().optional(),
+  hobbies: z.array(z.string()).optional(),
+  interests: z.array(z.string()).optional(),
+  dietaryPreferences: z.string().optional(),
+  drinkingHabits: z.string().optional(),
+  smokingHabits: z.string().optional(),
+
+  // Contact Info
+  fatherMobile: z.string().optional(),
+  fatherName: z.string().optional(),
+  motherMobile: z.string().optional(),
+  motherName: z.string().optional(),
   
-  // Other fields
-  profilePhoto: z.string().optional(),
-  gallery: z.array(z.string()).optional(),
+  // Profile State
+  isVerified: z.boolean().optional(),
+  isComplete: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+  isPremium: z.boolean().optional(),
+  
+  // Subscription
+  subscriptionPlan: z.string().optional(),
+  subscriptionStartDate: z.string().optional(),
+  subscriptionEndDate: z.string().optional(),
 });
 
+function parseArrayField(field: string | undefined, defaultValue: string[] = []): string[] {
+  if (!field) return defaultValue;
+  try {
+    const parsed = JSON.parse(field);
+    return Array.isArray(parsed) ? parsed : defaultValue;
+  } catch {
+    return defaultValue;
+  }
+}
+
 export async function PUT(req: Request) {
-  try {    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const userId = parseInt(session.user.id);
 
+    const userId = session.user.id;
     const body = await req.json();
-    const updates = updateProfileSchema.parse(body);
+    const validatedData = updateProfileSchema.parse(body);
 
-    // Get current user
-    const existingUser = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-
-    if (!existingUser || existingUser.length === 0) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+    // Get current user data
+    const userKey = `user:${userId}`;
+    const currentUser = (await redis.hgetall(userKey)) as RedisUser;
+    
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Update profile
-    const [updatedUser] = await db
-      .update(users)
-      .set({
-        ...updates,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId))
-      .returning();
+    // Update only the fields that are provided
+    const updateData: UpdateData = { ...validatedData };
+    const redisData: Record<string, string> = {};
+    
+    // Convert data for Redis storage
+    Object.entries(updateData).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        redisData[key] = JSON.stringify(value);
+      } else if (value !== undefined) {
+        redisData[key] = String(value);
+      }
+    });
 
-    return NextResponse.json({
+    // Update the user data in Redis
+    await redis.hmset(userKey, redisData);
+
+    // Prepare response data
+    const responseData = {
+      ...currentUser,
+      ...updateData,
+      // Parse arrays from Redis strings
+      languages: updateData.languages || parseArrayField(currentUser.languages),
+      hobbies: updateData.hobbies || parseArrayField(currentUser.hobbies),
+      interests: updateData.interests || parseArrayField(currentUser.interests),
+      photos: updateData.photos || parseArrayField(currentUser.photos),
+    };
+
+    return NextResponse.json({ 
       message: "Profile updated successfully",
-      user: {
-        id: updatedUser.id,
-        fullName: updatedUser.fullName,
-        email: updatedUser.email,
-        phone: updatedUser.phone,
-        age: updatedUser.age,
-        city: updatedUser.city,
-        country: updatedUser.country,
-        location: updatedUser.location,
-        education: updatedUser.education,
-        profession: updatedUser.profession,
-        sect: updatedUser.sect,
-        maritalStatus: updatedUser.maritalStatus,
-        religiousInclination: updatedUser.religiousInclination,
-        expectations: updatedUser.expectations,
-        aboutMe: updatedUser.aboutMe,
-        familyDetails: updatedUser.familyDetails,
-        preferredAgeMin: updatedUser.preferredAgeMin,
-        preferredAgeMax: updatedUser.preferredAgeMax,
-        preferredEducation: updatedUser.preferredEducation,
-        preferredLocation: updatedUser.preferredLocation,
-        motherTongue: updatedUser.motherTongue,
-        height: updatedUser.height,
-        complexion: updatedUser.complexion,
-        profilePhoto: updatedUser.profilePhoto,
-        profileStatus: updatedUser.profileStatus,
-      },
+      data: responseData
     });
   } catch (error) {
     console.error("Profile update error:", error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: error.errors }, { status: 400 });
     }
     return NextResponse.json(
       { error: "Failed to update profile" },

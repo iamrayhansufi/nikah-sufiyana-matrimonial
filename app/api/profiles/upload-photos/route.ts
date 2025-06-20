@@ -1,47 +1,31 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import { writeFile, mkdir, access, constants } from "fs/promises";
 import { join } from "path";
 import path from "path";
-import { db } from "../../../../src/db";
-import { users } from "../../../../src/db/schema";
-import { verifyAuth } from "../../../../src/lib/auth";
+import { redis } from "@/lib/redis-client";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth-options";
-import fs from 'fs';
+import { authOptions } from "@/lib/auth-options-redis";
 
 // Helper function to check if running in Vercel production environment
 function isVercelProduction() {
   return process.env.VERCEL_ENV === 'production';
 }
 
+interface RedisUser {
+  [key: string]: string;
+  id: string;
+  photos: string;
+}
+
 export async function POST(req: Request) {
   try {
-    // Try both direct session check and verifyAuth for better compatibility
-    let userId: number | null = null;
-    
-    try {
-      // First try verifyAuth method
-      userId = await verifyAuth(req);
-    } catch (authError) {
-      console.log("VerifyAuth failed, trying direct session access:", authError);
-    }
-    
-    // If verifyAuth failed, try getting the session directly
-    if (!userId) {
-      const session = await getServerSession(authOptions);
-      userId = session?.user?.id ? parseInt(session.user.id) : null;
-    }
-    
-    // Check if we have a userId through either method
-    if (!userId) {
-      console.error("No user ID found in session");
-      return NextResponse.json(
-        { error: "Unauthorized - Please login again" },
-        { status: 401 }
-      );
+    // Get session
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const userId = session.user.id;
     console.log("Processing multiple photos upload for user ID:", userId);
     
     const formData = await req.formData();
@@ -152,17 +136,13 @@ export async function POST(req: Request) {
     }
 
     // Get current user data to preserve existing photos
-    const currentUser = await db
-      .select({ profilePhotos: users.profilePhotos })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+    const currentUser = await redis.hgetall(`user:${userId}`) as RedisUser;
 
     let existingPhotos: string[] = [];
     
-    if (currentUser.length > 0 && currentUser[0].profilePhotos) {
+    if (currentUser && currentUser.photos) {
       try {
-        const photosData = currentUser[0].profilePhotos;
+        const photosData = currentUser.photos;
         if (typeof photosData === 'string') {
           existingPhotos = JSON.parse(photosData);
         } else if (Array.isArray(photosData)) {
@@ -176,13 +156,10 @@ export async function POST(req: Request) {
 
     // Combine existing photos with new ones (limit to 5 total)
     const allPhotos = [...existingPhotos, ...photoUrls].slice(0, 5);    // Update user profile with the new photos array
-    await db
-      .update(users)
-      .set({ 
-        profilePhotos: JSON.stringify(allPhotos),
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, userId));
+    await redis.hmset(`user:${userId}`, { 
+      photos: JSON.stringify(allPhotos),
+      updatedAt: new Date().toISOString()
+    });
 
     console.log("User profile updated with new photos. Total photos:", allPhotos.length);
     console.log("All photos URLs:", allPhotos);

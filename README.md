@@ -6,8 +6,8 @@ This repository contains the full source code and infrastructure for the Nikah S
 
 The project is built using:
 - Next.js 15 (React framework)
-- Drizzle ORM with NeonDB (PostgreSQL)
-- Authentication via NextAuth.js
+- Redis (Upstash) for database
+- Authentication via NextAuth.js with Redis adapter
 - Email notifications via SMTP
 
 ## Key Directories & Files
@@ -15,7 +15,7 @@ The project is built using:
 - `/app` - Next.js application routes and pages
 - `/components` - Reusable React components
 - `/lib` - Utility functions and helpers
-- `/src/db` - Database schema and connection logic
+- `/lib` - Database client, services, and utilities
 - `/scripts` - Helper scripts for various tasks
 - `/public` - Static assets
 
@@ -34,12 +34,15 @@ The project is built using:
 
 ## Database
 
-The project uses a PostgreSQL database hosted on NeonDB. To work with the database:
+The project uses Redis as its primary database, hosted on Upstash. To work with the database:
 
-- Generate Drizzle schema changes: `npm run db:generate`
-- Run migrations: `npm run db:migrate`
-- Push schema changes: `npm run db:push`
-- Open Drizzle Studio: `npm run db:studio`
+- Initialize Redis: `npm run redis:init`
+- Migrate data: `npm run redis:migrate`
+- Verify Redis data: `npm run redis:verify`
+- Test API routes: `npm run redis:test-api`
+
+For more details about the Redis migration and data structure, see:
+- `REDIS_MIGRATION_COMPLETION_REPORT.md`
 
 ## Scripts
 
@@ -51,8 +54,8 @@ Several scripts are available for development and maintenance:
 - `npm run deploy:verify` - Deploy with verification steps
 - `npm run security:check` - Run security checks
 - `npm run verify:deployment` - Verify a deployment
-- `npm run db:check` - Check database connection
-- `npm run generate:credentials` - Generate new secure credentials
+- `npm run redis:verify` - Check Redis data integrity
+- `npm run redis:test-api` - Test API routes with Redis
 
 ## Migrating to Production
 

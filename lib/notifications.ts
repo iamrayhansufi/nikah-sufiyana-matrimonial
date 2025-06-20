@@ -53,28 +53,27 @@ export async function sendPaymentConfirmation(email: string, planType: string, a
 }
 
 export async function sendUserNotification(userId: string, message: string) {
-  // Get user email from database
-  // This is a placeholder - you'll need to implement the actual database lookup
-  const userEmail = "user@example.com"
-  const userName = "User"
+  // Get user from Redis database
+  const user = await database.users.getById(userId);
 
-  console.log(`Sending notification to user ${userId}: ${message}`)
+  console.log(`Sending notification to user ${userId}: ${message}`);
 
-  const emailContent = `
-    <h2>Nikah Sufiyana Update</h2>
-    <p>Dear ${userName},</p>
-    <p>${message}</p>
-    <p>If you have any questions, please contact our support team.</p>
-  `
+  if (user?.email) {
+    const emailContent = `
+      <h2>Nikah Sufiyana Update</h2>
+      <p>Dear ${user.fullName},</p>
+      <p>${message}</p>
+      <p>If you have any questions, please contact our support team.</p>
+    `;
 
-  // Implementation with email service
-  // You should implement the actual email sending logic here
+    // Implementation with email service
+    // You should implement the actual email sending logic here
+  }
 }
 
 // In-app notification functions
-import { db } from "@/src/db";
-import { notifications } from "@/src/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { redis } from "@/lib/redis-client";
+import { database } from "@/lib/database-service";
 
 interface NotificationData {
   userId: string;
@@ -85,29 +84,56 @@ interface NotificationData {
   read?: boolean;
 }
 
+interface RedisNotification {
+  id: string;
+  userId: string;
+  type: string;
+  message: string;
+  metadata: string;
+  read: string;
+  createdAt: string;
+}
+
+interface ParsedNotification {
+  id: string;
+  userId: string;
+  type: string;
+  message: string;
+  metadata: Record<string, any>;
+  read: boolean;
+  createdAt: string;
+}
+
 export async function createNotification(data: NotificationData) {
   const { userId, type, message, link, metadata = {}, read = false } = data;
   
   try {
+    const notificationId = await redis.incr("notification:id");
+    const timestamp = new Date().toISOString();
+
     console.log(`Creating notification for user ${userId}:`, {
       type,
       message,
       link,
       metadata,
       read,
-      timestamp: new Date()
+      timestamp
     });
     
-    // Actually save to the database
-    await db.insert(notifications).values({
-      userId: parseInt(userId),
+    // Save to Redis
+    await redis.hset(`notification:${notificationId}`, {
+      id: notificationId.toString(),
+      userId,
       type,
       message,
-      link,
-      metadata,
-      read,
-      createdAt: new Date()
+      link: link || "",
+      metadata: JSON.stringify(metadata),
+      read: read.toString(),
+      createdAt: timestamp
     });
+
+    // Add to user's notifications list
+    await redis.rpush(`user:${userId}:notifications`, notificationId.toString());
     
     // Optionally trigger real-time notification via WebSockets if implemented
     
@@ -120,12 +146,12 @@ export async function createNotification(data: NotificationData) {
 
 export async function markNotificationAsRead(notificationId: string) {
   try {
-    // Update the notification read status in the database
+    // Update the notification read status in Redis
     console.log(`Marking notification ${notificationId} as read`);
     
-    await db.update(notifications)
-      .set({ read: true })
-      .where(eq(notifications.id, parseInt(notificationId)));
+    await redis.hset(`notification:${notificationId}`, {
+      read: "true"
+    });
     
     return true;
   } catch (error) {
@@ -136,15 +162,43 @@ export async function markNotificationAsRead(notificationId: string) {
 
 export async function getUserNotifications(userId: string) {
   try {
-    // Get the user's notifications from the database
+    // Get the user's notifications from Redis
     console.log(`Getting notifications for user ${userId}`);
     
-    const userNotifications = await db.query.notifications.findMany({
-      where: eq(notifications.userId, parseInt(userId)),
-      orderBy: [desc(notifications.createdAt)]
-    });
+    // Get notification IDs from user's list
+    const notificationIds = await redis.lrange(`user:${userId}:notifications`, 0, -1);
     
-    return userNotifications;
+    // Get all notifications in parallel
+    const notifications = await Promise.all(
+      notificationIds.map(async (id) => {
+        const notificationData = await redis.hgetall(`notification:${id}`);
+        if (!notificationData) return null;
+        
+        const notification = notificationData as unknown as RedisNotification;
+
+        // Parse metadata if it exists
+        let metadata: Record<string, any> = {};
+        try {
+          if (notification.metadata) {
+            metadata = JSON.parse(notification.metadata);
+          }
+        } catch (error) {
+          console.error(`Error parsing metadata for notification ${id}:`, error);
+        }
+
+        return {
+          ...notification,
+          metadata,
+          read: notification.read === "true"
+        } as ParsedNotification;
+      })
+    );
+
+    // Filter out any null values and sort by createdAt descending
+    return notifications
+      .filter((n): n is ParsedNotification => n !== null)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
   } catch (error) {
     console.error("Error getting user notifications:", error);
     return [];

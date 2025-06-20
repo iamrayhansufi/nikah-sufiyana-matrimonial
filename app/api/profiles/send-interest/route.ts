@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
-import { db } from "@/src/db"
-import { eq, and } from "drizzle-orm"
-import { users, interests } from "@/src/db/schema"
-import { createNotification } from "@/lib/notifications"
+import { redis } from "@/lib/redis-client"
+
+interface RedisUser extends Record<string, string> {
+  id: string;
+  email: string;
+}
+
+interface RedisInterest extends Record<string, string> {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  status: string;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,12 +23,9 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession()
     
     if (!session?.user?.email) {
-      return new NextResponse(
-        JSON.stringify({ 
-          error: "You must be logged in to send interest" 
-        }), 
-        { status: 401 }
-      )
+      return NextResponse.json({ 
+        error: "You must be logged in to send interest" 
+      }, { status: 401 })
     }
     
     // Get the request body
@@ -24,156 +33,121 @@ export async function POST(request: NextRequest) {
     const { profileId, message } = body
     
     if (!profileId) {
-      return new NextResponse(
-        JSON.stringify({ 
-          error: "Profile ID is required" 
-        }), 
-        { status: 400 }
-      )
+      return NextResponse.json({ 
+        error: "Profile ID is required" 
+      }, { status: 400 })
     }
     
     // Get the current user (sender)
-    const senderUser = await db.query.users.findFirst({
-      where: eq(users.email, session.user.email)
-    })
+    const userKeys = await redis.keys("user:*")
+    let senderUser: RedisUser | null = null
     
-    if (!senderUser) {
-      return new NextResponse(
-        JSON.stringify({ 
-          error: "Sender user not found" 
-        }), 
-        { status: 404 }
-      )
+    for (const key of userKeys) {
+      const user = await redis.hgetall(key) as RedisUser
+      if (user && user.email === session.user.email) {
+        senderUser = user
+        break
+      }
     }
-    
-    // Get the target user (receiver)
-    const targetUser = await db.query.users.findFirst({
-      where: eq(users.id, profileId)
-    })
-    
-    if (!targetUser) {
-      return new NextResponse(
-        JSON.stringify({ 
-          error: "Target profile not found" 
-        }), 
-        { status: 404 }
-      )
-    }
-    
-    // Check if interest was already sent
-    const existingInterest = await db
-      .select()
-      .from(interests)
-      .where(
-        and(
-          eq(interests.fromUserId, senderUser.id),
-          eq(interests.toUserId, targetUser.id)
-        )
-      )
-      .limit(1);
 
-    if (existingInterest.length > 0) {
-      return new NextResponse(
-        JSON.stringify({ 
-          success: true,
-          message: "Interest already sent",
-          interestStatus: existingInterest[0].status
-        }), 
-        { status: 200 }
-      )
+    if (!senderUser) {
+      return NextResponse.json({ 
+        error: "Sender user not found" 
+      }, { status: 404 })
     }
-    
-    // Create a new interest record
-    const notificationText = message || `${senderUser.fullName || 'Someone'} has shown interest in your profile`
-    
-    const [interest] = await db
-      .insert(interests)
-      .values({
-        fromUserId: senderUser.id,
-        toUserId: targetUser.id,
-        message: notificationText,
-        status: "pending",
-      })
-      .returning();
-    
-    // Create notification for the target user
-    await createNotification({
-      userId: String(targetUser.id),
-      type: "interest",
-      message: notificationText,
-      link: `/profile/${senderUser.id}`,
-      metadata: {
-        senderName: senderUser.fullName,
-        senderId: String(senderUser.id),
-        interestId: String(interest.id)
+
+    // Get the target user (receiver)
+    const targetUser = await redis.hgetall(`user:${profileId}`) as RedisUser
+    if (!targetUser) {
+      return NextResponse.json({ 
+        error: "Target user not found" 
+      }, { status: 404 })
+    }
+
+    // Check if sender has a verified profile
+    if (senderUser.profileStatus !== 'approved') {
+      return NextResponse.json({ 
+        error: "Your profile must be approved before sending interest" 
+      }, { status: 403 })
+    }
+
+    // Check for existing interest
+    const interestKeys = await redis.keys(`interest:*`)
+    for (const key of interestKeys) {
+      const interest = await redis.hgetall(key) as RedisInterest
+      if (interest && 
+          interest.senderId === senderUser.id && 
+          interest.receiverId === targetUser.id &&
+          interest.status !== 'declined') {
+        return NextResponse.json({ 
+          error: "You have already sent interest to this profile" 
+        }, { status: 400 })
+      }
+    }
+
+    // Create new interest
+    const interestId = `interest:${Date.now()}`
+    const interestData: Record<string, string> = {
+      id: interestId,
+      senderId: senderUser.id,
+      receiverId: targetUser.id,
+      status: 'pending',
+      message: message || '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    await redis.hmset(interestId, interestData)
+
+    // Add interest to lists for both users
+    await redis.lpush(`sent_interests:${senderUser.id}`, interestId)
+    await redis.lpush(`received_interests:${targetUser.id}`, interestId)
+
+    // Create notification for receiver
+    const notificationId = `notification:${Date.now()}`
+    const notificationData = {
+      userId: targetUser.id,
+      title: 'New Interest Received',
+      message: `${senderUser.fullName || 'Someone'} has shown interest in your profile!`,
+      type: 'interest_received',
+      data: JSON.stringify({
+        interestId,
+        senderId: senderUser.id,
+        senderName: senderUser.fullName || 'Anonymous',
+        message: message || ''
+      }),
+      read: 'false',
+      createdAt: new Date().toISOString()
+    }
+
+    await redis.hmset(notificationId, notificationData)
+    await redis.lpush(`notifications:${targetUser.id}`, notificationId)
+
+    return NextResponse.json({
+      message: "Interest sent successfully",
+      data: {
+        interestId,
+        status: 'pending',
+        createdAt: new Date().toISOString()
       }
     })
-    
-    // Check if there's a mutual interest
-    const mutualInterest = await db
-      .select()
-      .from(interests)
-      .where(
-        and(
-          eq(interests.fromUserId, targetUser.id),
-          eq(interests.toUserId, senderUser.id)
-        )
-      )
-      .limit(1);
-    
-    // If mutual interest exists, automatically approve both
-    if (mutualInterest.length > 0) {
-      await db
-        .update(interests)
-        .set({ status: "accepted" })
-        .where(eq(interests.id, interest.id));
-      
-      await db
-        .update(interests)
-        .set({ status: "accepted" })
-        .where(eq(interests.id, mutualInterest[0].id));
-      
-      // Send notification of match
-      await createNotification({
-        userId: String(targetUser.id),
-        type: "match",
-        message: `You have a new match with ${senderUser.fullName}!`,
-        link: `/profile/${senderUser.id}`,
-        metadata: {
-          matchName: senderUser.fullName,
-          matchId: String(senderUser.id),
-        }
-      });
-      
-      await createNotification({
-        userId: String(senderUser.id),
-        type: "match",
-        message: `You have a new match with ${targetUser.fullName}!`,
-        link: `/profile/${targetUser.id}`,
-        metadata: {
-          matchName: targetUser.fullName,
-          matchId: String(targetUser.id),
-        }
-      });
-    }
-    
-    return new NextResponse(
-      JSON.stringify({ 
-        success: true,
-        message: "Interest sent successfully",
-        interest: interest,
-        isMutual: mutualInterest.length > 0
-      }), 
-      { status: 200 }
-    )
-    
+
   } catch (error) {
     console.error("Error sending interest:", error)
-    return new NextResponse(
-      JSON.stringify({ 
-        error: "Failed to send interest" 
-      }), 
+    return NextResponse.json(
+      { error: "Failed to send interest" },
       { status: 500 }
     )
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  })
 }

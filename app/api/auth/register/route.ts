@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import { db } from "../../../../src/db";
-import { users } from "../../../../src/db/schema";
 import { z } from "zod";
+import { database } from "@/lib/database-service";
+import { redis } from "@/lib/redis-client";
 
 const registerSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters long"),
@@ -36,28 +35,22 @@ export async function POST(req: Request) {
     const userData = registerSchema.parse(body);
 
     // Check if user already exists with phone number
-    const existingUserByPhone = await db
-      .select()
-      .from(users)
-      .where(eq(users.phone, userData.phone))
-      .limit(1);
-
-    if (existingUserByPhone && existingUserByPhone.length > 0) {
-      return NextResponse.json(
-        { error: "Phone number already registered" },
-        { status: 409 }
-      );
+    let userIds = await redis.smembers("users");
+    for (const id of userIds) {
+      const user = await redis.hgetall(`user:${id}`);
+      if (user && user.phone === userData.phone) {
+        return NextResponse.json(
+          { error: "Phone number already registered" },
+          { status: 409 }
+        );
+      }
     }
 
     // Check if user exists with email (if provided)
     if (userData.email) {
-      const existingUserByEmail = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, userData.email))
-        .limit(1);
-
-      if (existingUserByEmail && existingUserByEmail.length > 0) {
+      const existingUserByEmail = await database.users.getByEmail(userData.email);
+      
+      if (existingUserByEmail) {
         return NextResponse.json(
           { error: "Email already registered" },
           { status: 409 }
@@ -67,9 +60,13 @@ export async function POST(req: Request) {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(userData.password, 10);
+    
+    // Generate user ID
+    const userId = `user:${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
 
     // Create user with all provided fields
-    const [newUser] = await db.insert(users).values({
+    const newUserData = {
+      id: userId,
       fullName: userData.fullName,
       email: userData.email,
       phone: userData.phone,
@@ -82,25 +79,31 @@ export async function POST(req: Request) {
       education: userData.education,
       profession: userData.profession,
       sect: userData.sect,
-      motherTongue: userData.motherTongue || "", // Made optional
+      motherTongue: userData.motherTongue || null, // Made optional
       height: userData.height,
       complexion: userData.complexion,
       profileStatus: "approved", // All profiles are automatically approved
       subscription: "free",
-      lastActive: new Date(),
+      lastActive: new Date().toISOString(),
       // Optional fields
       maritalStatus: userData.maritalPreferences,
       aboutMe: userData.aboutMe,
       familyDetails: userData.familyDetails,
-    }).returning();
+      verified: false,
+      createdAt: new Date().toISOString(),
+      role: "user"
+    };
+
+    // Save user to Redis
+    await database.users.create(newUserData);
 
     return NextResponse.json({
       message: "User registered successfully",
       user: {
-        id: newUser.id,
-        email: newUser.email,
-        fullName: newUser.fullName,
-        profileStatus: newUser.profileStatus,
+        id: userId,
+        email: newUserData.email,
+        fullName: newUserData.fullName,
+        profileStatus: newUserData.profileStatus,
       },
     });
   } catch (error) {

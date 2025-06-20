@@ -2,9 +2,21 @@ import { type NextRequest, NextResponse } from "next/server"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 import { getAuthSession } from "@/lib/auth"
-import { db } from "@/src/db"
-import { users } from "@/src/db/schema"
-import { eq } from "drizzle-orm"
+import { redis } from "@/lib/redis-client"
+
+interface RedisUser {
+  [key: string]: string;
+}
+
+function parsePhotos(photosStr: string | undefined): string[] {
+  if (!photosStr) return [];
+  try {
+    const photos = JSON.parse(photosStr);
+    return Array.isArray(photos) ? photos : [];
+  } catch {
+    return [];
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,27 +62,49 @@ export async function POST(request: NextRequest) {
     await mkdir(uploadDir, { recursive: true });
 
     // Generate unique filename
-    const timestamp = Date.now();
-    const extension = file.name.split(".").pop();
-    const filename = `${userId}_${timestamp}.${extension}`;
-    const filepath = join(uploadDir, filename);
+    const ext = file.type.split("/")[1];
+    const filename = `${userId}-${Date.now()}.${ext}`;
+    const filePath = join(uploadDir, filename);
 
-    // Save file
-    await writeFile(filepath, buffer);
+    // Save file to disk
+    await writeFile(filePath, buffer);
 
-    // Update user profile with photo URL
-    const photoUrl = `/uploads/profiles/${filename}`;
-    await db
-      .update(users)
-      .set({ profilePhoto: photoUrl })
-      .where(eq(users.id, parseInt(userId)));
+    // Build public URL
+    const publicUrl = `/uploads/profiles/${filename}`;
+
+    // Update user profile in Redis
+    const userKey = `user:${userId}`;
+    const user = (await redis.hgetall(userKey)) as RedisUser;
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Update photos array
+    const photos = parsePhotos(user.photos);
+    photos.push(publicUrl);
+
+    // Update main photo if none exists
+    if (!user.mainPhotoUrl) {
+      await redis.hmset(userKey, {
+        mainPhotoUrl: publicUrl,
+        photos: JSON.stringify(photos)
+      });
+    } else {
+      await redis.hmset(userKey, {
+        photos: JSON.stringify(photos)
+      });
+    }
 
     return NextResponse.json({
       message: "Photo uploaded successfully",
-      url: photoUrl,
+      url: publicUrl
     });
   } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    console.error("Photo upload error:", error);
+    return NextResponse.json(
+      { error: "Failed to upload photo" },
+      { status: 500 }
+    );
   }
 }

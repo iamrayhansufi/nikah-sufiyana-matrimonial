@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { signIn } from "next-auth/react";
-import { db } from "../../../../src/db";
-import { users } from "../../../../src/db/schema";
 import { z } from "zod";
+import { redis, redisTables } from "../../../../lib/redis-client";
+import { database } from "@/lib/database-service";
 
 const loginSchema = z.object({
   email: z.string().email().optional(),
@@ -26,14 +25,22 @@ export async function POST(req: Request) {
     const credentials = loginSchema.parse(body);
 
     // Find user by email or phone
-    let user;
+    let user = null;
     if (credentials.email) {
-      user = await db.select().from(users).where(eq(users.email, credentials.email)).limit(1);
+      user = await database.users.getByEmail(credentials.email);
     } else if (credentials.phone) {
-      user = await db.select().from(users).where(eq(users.phone, credentials.phone)).limit(1);
+      // Get all users and find by phone
+      const userIds = await redis.smembers("users");
+      for (const id of userIds) {
+        const userData = await redis.hgetall(`user:${id}`);
+        if (userData && userData.phone === credentials.phone) {
+          user = userData;
+          break;
+        }
+      }
     }
     
-    if (!user || user.length === 0) {
+    if (!user) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -53,19 +60,15 @@ export async function POST(req: Request) {
       }
       
       // Check if user is verified
-      if (!user[0].verified) {
-        // Try to update the verified status
-        await db
-          .update(users)
-          .set({ verified: true })
-          .where(eq(users.id, user[0].id))
-          .catch(err => console.error("Error updating verification status:", err));
+      if (user.verified !== true && user.verified !== 'true') {
+        // Update verified status
+        await database.users.update(user.id, { verified: true });
       }
       
       // Skip password verification for auto-login
     } else if (credentials.password) {
       // Normal login - verify password
-      const isValidPassword = await bcrypt.compare(credentials.password, user[0].password);
+      const isValidPassword = await bcrypt.compare(credentials.password, user.password);
       if (!isValidPassword) {
         return NextResponse.json(
           { error: "Invalid credentials" },
@@ -89,24 +92,23 @@ export async function POST(req: Request) {
 
     // Create JWT token
     const token = jwt.sign(
-      { userId: user[0].id, email: user[0].email },
+      { userId: user.id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
 
     // Update last active
-    await db
-      .update(users)
-      .set({ lastActive: new Date() })
-      .where(eq(users.id, user[0].id));
+    await database.users.update(user.id, { 
+      lastActive: new Date().toISOString() 
+    });
 
     return NextResponse.json({
       user: {
-        id: user[0].id,
-        email: user[0].email,
-        fullName: user[0].fullName,
-        profileStatus: user[0].profileStatus,
-        subscription: user[0].subscription,
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        profileStatus: user.profileStatus,
+        subscription: user.subscription,
       },
       token,
     });

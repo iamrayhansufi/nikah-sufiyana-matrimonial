@@ -1,0 +1,206 @@
+/**
+ * Database service that provides a unified interface for Redis operations
+ */
+
+import { config } from 'dotenv';
+// Load environment variables
+config({ path: '.env' });
+
+// Import Redis client
+import { redis, redisTables } from './redis-client';
+
+// Set database type to Redis only
+const USE_DATABASE = 'redis';
+
+// Define a unified interface for database operations
+export const database = {
+  users: {
+    async getAllUserIds(): Promise<string[]> {
+      return await redis.smembers('users');
+    },
+    
+    async create(userData: any): Promise<string> {
+      return await redisTables.users.create(userData);
+    },
+    
+    async getById(userId: string): Promise<any | null> {
+      return await redisTables.users.get(userId);
+    },
+
+    async getByEmail(email: string): Promise<any | null> {
+      return await redisTables.users.findByEmail(email);
+    },
+    
+    async update(userId: string, data: any): Promise<boolean> {
+      return await redisTables.users.update(userId, data);
+    },
+  },
+    interests: {
+    async create(interestData: any): Promise<string> {
+      return await redisTables.interests.create(interestData);
+    },
+
+    async getReceivedInterests(userId: string): Promise<any[]> {
+      return await redisTables.interests.getReceivedInterests(userId);
+    },
+    
+    async getSentInterests(userId: string): Promise<any[]> {
+      return await redisTables.interests.getSentInterests(userId);
+    },
+    
+    async update(interestId: string, data: any): Promise<boolean> {
+      return await redisTables.interests.update(interestId, data);
+    },
+  },
+  
+  shortlists: {
+    async add(userId: string, targetUserId: string): Promise<boolean> {
+      return await redisTables.shortlists.add(userId, targetUserId);
+    },
+
+    async get(userId: string): Promise<any[]> {
+      const shortlistedIds = await redisTables.shortlists.get(userId);
+      const shortlistedUsers = [];
+
+      for (const id of shortlistedIds) {
+        const user = await redisTables.users.get(id);
+        if (user) shortlistedUsers.push(user);
+      }
+
+      return shortlistedUsers;
+    },
+    
+    async remove(userId: string, targetUserId: string): Promise<boolean> {
+      return await redisTables.shortlists.remove(userId, targetUserId);
+    },
+    
+    async isShortlisted(userId: string, targetUserId: string): Promise<boolean> {
+      return await redisTables.shortlists.isShortlisted(userId, targetUserId);
+    },
+  },
+  
+  notifications: {
+    async create(notificationData: any): Promise<string> {
+      return await redisTables.notifications.create(notificationData);
+    },
+
+    async getUserNotifications(userId: string): Promise<any[]> {
+      return await redisTables.notifications.getUserNotifications(userId);
+    },
+    
+    async markAsRead(notificationId: string): Promise<boolean> {
+      return await redisTables.notifications.markAsRead(notificationId);
+    },
+    
+    async get(notificationId: string): Promise<any | null> {
+      return await redisTables.notifications.get(notificationId);
+    },
+  },
+
+  profiles: {
+    async searchProfiles(searchParams: any): Promise<{ profiles: any[], total: number }> {
+      // Search profiles in Redis
+      const userIds = await redis.smembers('users');
+      const allUsers = [];
+      
+      // Get all users
+      for (const userId of userIds) {
+        const user = await redis.hgetall(`user:${userId}`);
+        if (user) allUsers.push(user);
+      }
+        
+      // Filter users based on search criteria
+      let filteredUsers = [...allUsers];
+      
+      if (searchParams.ageMin && searchParams.ageMax) {
+        filteredUsers = filteredUsers.filter(user => {
+          const age = parseInt(String(user.age || '0'));
+          return !isNaN(age) && 
+            age >= parseInt(searchParams.ageMin) && 
+            age <= parseInt(searchParams.ageMax);
+        });
+      }
+      
+      if (searchParams.location) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.location && String(user.location).toLowerCase().includes(searchParams.location.toLowerCase())
+        );
+      }
+      
+      if (searchParams.education) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.education === searchParams.education
+        );
+      }
+      
+      if (searchParams.profession) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.profession === searchParams.profession
+        );
+      }
+      
+      if (searchParams.sect) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.sect === searchParams.sect
+        );
+      }
+      
+      if (searchParams.maritalStatus) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.maritalStatus === searchParams.maritalStatus
+        );
+      }
+      
+      // Apply pagination
+      const page = parseInt(searchParams.page || '1');
+      const limit = parseInt(searchParams.limit || '10');
+      const offset = (page - 1) * limit;
+      
+      // Get total before pagination
+      const total = filteredUsers.length;
+      
+      // Apply pagination
+      const paginatedUsers = filteredUsers.slice(offset, offset + limit);
+      
+      // Map to the expected profile format
+      const profiles = paginatedUsers.map(user => ({
+        id: user.id,
+        fullName: user.fullName,
+        age: user.age,
+        location: user.location,
+        education: user.education,
+        profession: user.profession,
+        sect: user.sect,
+        profilePhoto: user.profilePhoto,
+        premium: user.premium === 'true' || user.premium === true,
+        lastActive: user.lastActive,
+      }));
+      
+      return { profiles, total };
+    },
+    
+    async getById(profileId: string): Promise<any | null> {
+      return await redisTables.profiles.get(profileId);
+    },
+    
+    async update(profileId: string, data: any): Promise<boolean> {
+      return await redisTables.profiles.update(profileId, data);
+    },
+  },
+
+  // Testing function to check if Redis is connected
+  testRedisConnection: async function() {
+    try {
+      const testKey = 'test_connection';
+      await redis.set(testKey, 'Connected to Redis!');
+      const result = await redis.get(testKey);
+      console.log('Redis connection test result:', result);
+      return true;
+    } catch (error) {
+      console.error('Redis connection test failed:', error);
+      return false;
+    }
+  }
+};
+
+export default database;

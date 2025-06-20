@@ -1,35 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/src/db";
-import { shortlist, users } from "@/src/db/schema";
-import { eq, and } from "drizzle-orm";
-import { verifyAuth } from "@/src/lib/auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-options-redis";
+import { database } from "@/lib/database-service";
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = await verifyAuth(request);
-    if (!userId) {
+    // Get session
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const shortlistedProfiles = await db
-      .select({
-        id: shortlist.id,
-        userId: shortlist.userId,
-        shortlistedUser: {
-          id: users.id,
-          fullName: users.fullName,
-          age: users.age,
-          location: users.location,
-          profession: users.profession,
-          education: users.education,
-          profilePhoto: users.profilePhoto,
-        },
-        createdAt: shortlist.createdAt,
-      })
-      .from(shortlist)
-      .leftJoin(users, eq(users.id, shortlist.shortlistedUserId))
-      .where(eq(shortlist.userId, userId))
-      .orderBy(shortlist.createdAt);
+    const userId = session.user.id;
+
+    // Get shortlisted user IDs
+    const shortlistedIds = await database.shortlists.get(userId);
+    const shortlistedProfiles = [];
+
+    // Fetch each shortlisted user's profile
+    for (const shortlistedId of shortlistedIds) {
+      const userProfile = await database.users.getById(shortlistedId);
+
+      if (userProfile) {
+        shortlistedProfiles.push({
+          id: `${userId}-${shortlistedId}`,
+          userId: userId,
+          shortlistedUser: {
+            id: userProfile.id,
+            fullName: userProfile.fullName,
+            age: userProfile.age,
+            location: userProfile.location,
+            profession: userProfile.profession,
+            education: userProfile.education,
+            profilePhoto: userProfile.profilePhoto,
+          },
+          createdAt: userProfile.createdAt || new Date().toISOString(),
+        });
+      }
+    }
 
     return NextResponse.json(shortlistedProfiles);
   } catch (error) {
@@ -43,10 +51,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = await verifyAuth(request);
-    if (!userId) {
+    // Get session
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const userId = session.user.id;
 
     const body = await request.json();
     const { shortlistedUserId } = body;
@@ -58,28 +69,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if already shortlisted
-    const existing = await db
-      .select()
-      .from(shortlist)
-      .where(
-        and(
-          eq(shortlist.userId, userId),
-          eq(shortlist.shortlistedUserId, shortlistedUserId)
-        )
-      )
-      .limit(1);
+    // Add 'user:' prefix if it doesn't exist
+    let targetUserId = shortlistedUserId;
+    if (!targetUserId.startsWith("user:")) {
+      targetUserId = `user:${shortlistedUserId}`;
+    }
 
-    if (existing.length > 0) {
+    // Check if user exists
+    const userExists = await database.users.getById(targetUserId);
+    if (!userExists) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if already shortlisted
+    const isAlreadyShortlisted = await database.shortlists.isShortlisted(
+      userId,
+      targetUserId
+    );
+
+    if (isAlreadyShortlisted) {
       // If already shortlisted, remove from shortlist
-      await db
-        .delete(shortlist)
-        .where(
-          and(
-            eq(shortlist.userId, userId),
-            eq(shortlist.shortlistedUserId, shortlistedUserId)
-          )
-        );
+      await database.shortlists.remove(userId, targetUserId);
 
       return NextResponse.json({
         message: "Profile removed from shortlist",
@@ -88,18 +101,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Add to shortlist
-    const [newShortlist] = await db
-      .insert(shortlist)
-      .values({
-        userId,
-        shortlistedUserId,
-      })
-      .returning();
+    await database.shortlists.add(userId, targetUserId);
+
+    // Create notification for the shortlisted user
+    await database.notifications.create({
+      userId: targetUserId,
+      type: "shortlist",
+      message: `${
+        userExists ? userExists.fullName : "Someone"
+      } has shortlisted your profile`,
+      read: false,
+      metadata: JSON.stringify({
+        relatedUserId: userId,
+        action: "shortlist",
+      }),
+      createdAt: new Date().toISOString(),
+    });
 
     return NextResponse.json({
       message: "Profile added to shortlist",
       action: "added",
-      shortlist: newShortlist,
     });
   } catch (error) {
     console.error("Shortlist error:", error);

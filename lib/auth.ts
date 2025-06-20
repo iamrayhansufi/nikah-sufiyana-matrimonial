@@ -2,10 +2,8 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import { NextRequest } from "next/server"
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "./auth-options"
-import { db } from "@/src/db"
-import { users } from "@/src/db/schema"
-import { eq } from "drizzle-orm"
+import { authOptions } from "./auth-options-redis"
+import { database } from "./database-service"
 import { Session } from "next-auth"
 
 export async function hashPassword(password: string): Promise<string> {
@@ -35,20 +33,16 @@ export async function getAuthSession() {
 
   // Check if user still exists and is active
   console.log(`🔍 getAuthSession: Looking up user ${userId} in database`);
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, parseInt(userId)))
-    .limit(1);
+  const user = await database.users.getById(userId);
 
-  if (!user || user.length === 0) {
+  if (!user) {
     console.log('❌ getAuthSession: User not found in database');
     return null;
   }
   
   // Update session with latest verified status from database
-  if (session.user && user[0]) {
-    const dbVerified = user[0].verified || false;
+  if (session.user) {
+    const dbVerified = user.verified === 'true' || user.verified === true || false;
     const sessionVerified = session.user.verified || false;
     
     // Log verification status discrepancies
@@ -68,12 +62,9 @@ export async function getCurrentUserId(): Promise<string | null> {
   if (!session?.user?.id) return null;
 
   // Update last active timestamp
-  await db
-    .update(users)
-    .set({ lastActive: new Date() })
-    .where(eq(users.id, parseInt(session.user.id)))
-    .execute()
-    .catch(() => {}); // Ignore errors updating last active
+  await database.users.update(session.user.id, { 
+    lastActive: new Date().toISOString() 
+  }).catch(() => {}); // Ignore errors updating last active
 
   return session.user.id;
 }

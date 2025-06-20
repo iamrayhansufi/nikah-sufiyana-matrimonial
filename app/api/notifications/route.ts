@@ -1,32 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { getUserNotifications, markNotificationAsRead } from "@/lib/notifications";
-import { db } from "@/src/db";
-import { users } from "@/src/db/schema";
-import { eq } from "drizzle-orm";
+import { authOptions } from "@/lib/auth-options-redis";
+import { database } from "@/lib/database-service";
 
 // GET - Fetch notifications for the logged-in user
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     
-    // Get the current user ID
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, session.user.email)
-    });
-    
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // Get the user's notifications
+    const notifications = await database.notifications.getUserNotifications(session.user.id);
+      // Define metadata type outside the map function
+    interface NotificationMetadata {
+      relatedUserId?: string;
+      [key: string]: any;
     }
     
-    // Get the user's notifications
-    const notifications = await getUserNotifications(user.id.toString());
+    // Handle notifications with relatedUserId to fetch related user info
+    const enhancedNotifications = await Promise.all(notifications.map(async notification => {
+      let metadata: NotificationMetadata = {};
+      let relatedUser = null;
+      
+      // Parse metadata if it exists
+      try {
+        if (notification.metadata) {
+          if (typeof notification.metadata === 'string') {
+            metadata = JSON.parse(notification.metadata) as NotificationMetadata;
+          } else {
+            metadata = notification.metadata as NotificationMetadata;
+          }
+          
+          // Fetch related user if available
+          const relatedUserId = metadata.relatedUserId;
+          if (relatedUserId) {
+            const user = await database.users.getById(relatedUserId);
+            if (user) {
+              relatedUser = {
+                id: user.id,
+                fullName: user.fullName,
+                profilePhoto: user.profilePhoto
+              };
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing notification metadata:", error);
+      }
+      
+      return {
+        ...notification,
+        metadata,
+        relatedUser,
+        read: notification.read === "true" || notification.read === true
+      };
+    }));
     
-    return NextResponse.json(notifications);
+    return NextResponse.json(enhancedNotifications);
   } catch (error) {
     console.error("Error fetching notifications:", error);
     return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 });
@@ -36,9 +69,9 @@ export async function GET(request: NextRequest) {
 // POST - Mark a notification as read
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     
@@ -48,7 +81,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Notification ID is required" }, { status: 400 });
     }
     
-    await markNotificationAsRead(notificationId);
+    // Mark the notification as read
+    await database.notifications.markAsRead(notificationId);
     
     return NextResponse.json({ success: true });
   } catch (error) {

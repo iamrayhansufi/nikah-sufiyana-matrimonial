@@ -2,9 +2,7 @@
 // WARNING: This should be removed in production!
 
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/src/db";
-import { users } from "@/src/db/schema";
-import { eq } from "drizzle-orm";
+import { redis } from "@/lib/redis-client";
 import jwt from "jsonwebtoken";
 
 export async function POST(request: NextRequest) {
@@ -34,61 +32,62 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find the user
-    const userResult = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
+    // Find all users and check for matching email
+    const keys = await redis.keys('user:*');
+    
+    for (const key of keys) {
+      const user = await redis.hgetall(key);
+      if (user && user.email === email) {
+        // Generate JWT token
+        const token = jwt.sign(
+          {
+            id: user.id,
+            email: user.email,
+            name: user.fullName || user.email,
+            role: user.role || 'user',
+          },
+          process.env.JWT_SECRET || 'default_secret',
+          { expiresIn: '24h' }
+        );
 
-    if (!userResult || userResult.length === 0) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+        // Log the successful emergency login
+        console.log(`🔓 Emergency login successful for user: ${email}`);
+
+        return NextResponse.json({
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.fullName || user.email,
+            role: user.role || 'user',
+            isVerified: user.isVerified === 'true',
+            phone: user.phone,
+          }
+        });
+      }
     }
 
-    const user = userResult[0];
-
-    // Create a simple session token
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        name: user.fullName,
-        role: 'user',
-        verified: true
-      },
-      process.env.NEXTAUTH_SECRET || 'fallback-secret',
-      { expiresIn: '1h' }
-    );    // Create a response with cookie
-    const response = NextResponse.json({
-      success: true,
-      message: "Emergency login successful",
-      user: {
-        id: user.id,
-        name: user.fullName,
-        email: user.email,
-        verified: true
-      }
-    });
-    
-    // Set the session cookie directly
-    response.cookies.set({
-      name: "next-auth.session-token",
-      value: token,
-      httpOnly: true,
-      path: "/",
-      secure: process.env.NODE_ENV !== "development",
-      maxAge: 60 * 60 // 1 hour
-    });
-    
-    return response;// Return is handled above where we create and return the response with cookies
-  } catch (error) {
-    console.error("Emergency login error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "User not found" },
+      { status: 404 }
+    );
+
+  } catch (error) {
+    console.error('❌ Emergency login error:', error);
+    return NextResponse.json(
+      { error: "Failed to process emergency login" },
       { status: 500 }
     );
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }

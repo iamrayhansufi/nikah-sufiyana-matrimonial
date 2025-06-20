@@ -1,90 +1,55 @@
-import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { db } from "../../../../src/db";
-import { subscriptionPlans, subscriptionHistory, users } from "../../../../src/db/schema";
-import { verifyAuth } from "../../../../src/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { redis } from "@/lib/redis-client";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-options-redis";
 import { z } from "zod";
+import { nanoid } from "nanoid";
 
 const purchaseSchema = z.object({
-  planId: z.number(),
-  paymentId: z.string(),
+  planId: z.string(),
+  paymentMethod: z.string(),
+  amount: z.number(),
 });
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    // Verify authentication
-    const userId = await verifyAuth(req);
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { planId, paymentId } = purchaseSchema.parse(body);
-
-    // Get the subscription plan
-    const plan = await db
-      .select()
-      .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.id, planId))
-      .limit(1);
-
-    if (!plan || plan.length === 0 || !plan[0].active) {
-      return NextResponse.json(
-        { error: "Invalid subscription plan" },
-        { status: 400 }
-      );
+    const body = await request.json();
+    const result = purchaseSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
     }
 
-    // Calculate subscription dates
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + plan[0].duration);
+    const { planId, paymentMethod, amount } = result.data;
 
     // Create subscription record
-    const [subscription] = await db
-      .insert(subscriptionHistory)
-      .values({
-        userId,
-        planId,
-        startDate,
-        endDate,
-        paymentId,
-        status: "active",
-      })
-      .returning();
+    const subscriptionId = nanoid();
+    const subscription = {
+      id: subscriptionId,
+      userId: session.user.id,
+      planId,
+      amount: amount.toString(),
+      paymentMethod,
+      status: "active",
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+    };
 
-    // Update user's subscription status
-    await db
-      .update(users)
-      .set({
-        subscription: plan[0].name.toLowerCase(),
-        subscriptionExpiry: endDate,
-      })
-      .where(eq(users.id, userId));
+    await redis.hset(`subscription:${subscriptionId}`, subscription);
 
-    return NextResponse.json({
-      message: "Subscription purchased successfully",
-      subscription: {
-        id: subscription.id,
-        startDate: subscription.startDate,
-        endDate: subscription.endDate,
-        plan: plan[0].name,
-      },
+    // Update user subscription status
+    await redis.hset(`user:${session.user.id}`, {
+      subscription: "premium",
+      subscriptionExpiry: subscription.expiresAt,
     });
+
+    return NextResponse.json({ subscription });
   } catch (error) {
-    console.error("Subscription purchase error:", error);
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
-        { status: 400 }
-      );
-    }
-    return NextResponse.json(
-      { error: "Failed to purchase subscription" },
-      { status: 500 }
-    );
+    console.error("Error purchasing subscription:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-} 
+}

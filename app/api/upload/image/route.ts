@@ -2,9 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 import { getAuthSession } from "@/lib/auth"
-import { db } from "@/src/db"
-import { users } from "@/src/db/schema"
-import { eq } from "drizzle-orm"
+import { redis } from "@/lib/redis-client"
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,12 +53,11 @@ export async function POST(request: NextRequest) {
     // Generate URL
     const photoUrl = `/uploads/${uploadSubDir}/${filename}`
 
-    // If it's a profile photo, update the user's profile photo field
+    // If it's a profile photo, update the user's profile photo field in Redis
     if (type === 'profile') {
-      await db
-        .update(users)
-        .set({ profilePhoto: photoUrl })
-        .where(eq(users.id, parseInt(userId)))
+      await redis.hset(`user:${userId}`, {
+        profilePhoto: photoUrl
+      })
     }
 
     return NextResponse.json({

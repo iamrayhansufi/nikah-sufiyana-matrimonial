@@ -1,47 +1,31 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import { writeFile, mkdir, access, constants } from "fs/promises";
 import { join } from "path";
 import path from "path";
-import { db } from "../../../../src/db";
-import { users } from "../../../../src/db/schema";
-import { verifyAuth } from "../../../../src/lib/auth";
+import { redis } from "@/lib/redis-client";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth-options";
-import fs from 'fs';
+import { authOptions } from "@/lib/auth-options-redis";
 
 // Helper function to check if running in Vercel production environment
 function isVercelProduction() {
   return process.env.VERCEL_ENV === 'production';
 }
 
+interface RedisUser {
+  [key: string]: string;
+  id: string;
+  photos: string;
+}
+
 export async function POST(req: Request) {
   try {
-    // Try both direct session check and verifyAuth for better compatibility
-    let userId: number | null = null;
-    
-    try {
-      // First try verifyAuth method
-      userId = await verifyAuth(req);
-    } catch (authError) {
-      console.log("VerifyAuth failed, trying direct session access:", authError);
-    }
-    
-    // If verifyAuth failed, try getting the session directly
-    if (!userId) {
-      const session = await getServerSession(authOptions);
-      userId = session?.user?.id ? parseInt(session.user.id) : null;
-    }
-    
-    // Check if we have a userId through either method
-    if (!userId) {
-      console.error("No user ID found in session");
-      return NextResponse.json(
-        { error: "Unauthorized - Please login again" },
-        { status: 401 }
-      );
+    // Get session
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const userId = session.user.id;
     console.log("Processing upload for user ID:", userId);
     
     const formData = await req.formData();
@@ -97,13 +81,15 @@ export async function POST(req: Request) {
       const dataUrl = `data:${file.type};base64,${base64Image}`;
       
       // Update user profile with the data URL directly
-      await db
-        .update(users)
-        .set({ 
-          profilePhoto: dataUrl,
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, userId));
+      // Get existing photos
+      const existingPhotos = await redis.hget(`user:${userId}`, "photos");
+      const photos = (existingPhotos && typeof existingPhotos === 'string') ? JSON.parse(existingPhotos) : [];
+      
+      // Add new photo
+      photos.push(dataUrl);
+      
+      // Update user profile with the data URL directly
+      await redis.hset(`user:${userId}`, { photos: JSON.stringify(photos) });
         
       console.log("User profile updated with data URL image");
       
@@ -135,13 +121,15 @@ export async function POST(req: Request) {
 
       // Update user profile with photo URL
       const photoUrl = `/uploads/profiles/${filename}`;
-      await db
-        .update(users)
-        .set({ 
-          profilePhoto: photoUrl,
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, userId));
+      // Get existing photos
+      const existingPhotos = await redis.hget(`user:${userId}`, "photos");
+      const photos = (existingPhotos && typeof existingPhotos === 'string') ? JSON.parse(existingPhotos) : [];
+      
+      // Add new photo
+      photos.push(photoUrl);
+      
+      // Update user profile with photo URL
+      await redis.hset(`user:${userId}`, { photos: JSON.stringify(photos) });
 
       console.log("User profile updated with photo URL:", photoUrl);
       

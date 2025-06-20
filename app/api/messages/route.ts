@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { and, eq, or } from "drizzle-orm";
-import { db } from "../../../src/db";
-import { messages, users } from "../../../src/db/schema";
-import { verifyAuth } from "../../../src/lib/auth";
+import { redis } from "@/lib/redis-client";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-options-redis";
 import { z } from "zod";
 
 const querySchema = z.object({
@@ -11,112 +10,86 @@ const querySchema = z.object({
   limit: z.string().transform(Number).default("20"),
 });
 
-export async function GET(req: Request) {
+interface Message {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  createdAt: string;
+}
+
+export async function GET(request: Request) {
   try {
     // Verify authentication
-    const userId = await verifyAuth(req);
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const url = new URL(req.url);
-    const params = querySchema.parse(Object.fromEntries(url.searchParams));
-    const { otherUserId, page, limit } = params;
-
-    // Calculate offset
-    const offset = (page - 1) * limit;
-
-    // Build query conditions
-    let conditions = [];
-    if (otherUserId) {
-      const otherId = parseInt(otherUserId);
-      conditions.push(
-        or(
-          and(
-            eq(messages.senderId, userId),
-            eq(messages.receiverId, otherId)
-          ),
-          and(
-            eq(messages.senderId, otherId),
-            eq(messages.receiverId, userId)
-          )
-        )
-      );
-    } else {
-      conditions.push(
-        or(
-          eq(messages.senderId, userId),
-          eq(messages.receiverId, userId)
-        )
-      );
+    // Get and validate query params
+    const url = new URL(request.url);
+    const result = querySchema.safeParse(Object.fromEntries(url.searchParams));
+    if (!result.success) {
+      return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
     }
 
-    // Get messages with user details
-    const messagesList = await db
-      .select({
-        id: messages.id,
-        content: messages.content,
-        senderId: messages.senderId,
-        receiverId: messages.receiverId,
-        read: messages.read,
-        createdAt: messages.createdAt,
-        senderName: users.fullName,
-        senderPhoto: users.profilePhoto,
-      })
-      .from(messages)
-      .leftJoin(users, eq(messages.senderId, users.id))
-      .where(and(...conditions))
-      .orderBy(messages.createdAt)
-      .limit(limit)
-      .offset(offset);
+    const { otherUserId, page, limit } = result.data;
+    const skip = (page - 1) * limit;
 
-    // Mark messages as read
-    if (messagesList.length > 0) {
-      await db
-        .update(messages)
-        .set({ read: true })
-        .where(
-          and(
-            eq(messages.receiverId, userId),
-            eq(messages.read, false)
-          )
-        );
+    // Get messages from Redis
+    const messageKeys = await redis.keys("message:*");
+    const messages: Message[] = [];
+
+    for (const key of messageKeys) {
+      const message = await redis.hgetall(key) as Message;
+      if (!message) continue;
+
+      // Filter messages for the current user
+      if (message.senderId === session.user.id || message.receiverId === session.user.id) {
+        if (!otherUserId || message.senderId === otherUserId || message.receiverId === otherUserId) {
+          messages.push(message);
+        }
+      }
     }
 
-    // Get unread count
-    const [{ count }] = await db
-      .select({ count: messages.id })
-      .from(messages)
-      .where(
-        and(
-          eq(messages.receiverId, userId),
-          eq(messages.read, false)
-        )
-      );
+    // Sort messages by createdAt
+    messages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    // Apply pagination
+    const paginatedMessages = messages.slice(skip, skip + limit);
+
+    // Get user details for the messages
+    const userIds = new Set<string>();
+    paginatedMessages.forEach(msg => {
+      userIds.add(msg.senderId);
+      userIds.add(msg.receiverId);
+    });
+
+    const users: Record<string, any> = {};
+    for (const userId of userIds) {
+      const user = await redis.hgetall(`user:${userId}`);
+      if (user) {
+        users[userId] = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image
+        };
+      }
+    }
 
     return NextResponse.json({
-      messages: messagesList,
-      unreadCount: Number(count),
-      pagination: {
-        page,
-        limit,
-        hasMore: messagesList.length === limit,
-      },
+      messages: paginatedMessages,
+      users,
+      total: messages.length,
+      page,
+      limit
     });
   } catch (error) {
-    console.error("Get messages error:", error);
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid parameters", details: error.errors },
-        { status: 400 }
-      );
-    }
+    console.error("Error in GET /api/messages:", error);
     return NextResponse.json(
-      { error: "Failed to get messages" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
-} 
+}

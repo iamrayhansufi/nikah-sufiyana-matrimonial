@@ -1,4 +1,5 @@
-import { connectToDatabase, getUsers, type User } from "./database"
+import { redis } from "./redis-client";
+import { database } from "./database-service";
 
 export interface UserReportEntry {
   name: string

@@ -1,68 +1,56 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { db } from "../../../../src/db";
-import { messages, users } from "../../../../src/db/schema";
-import { verifyAuth } from "../../../../src/lib/auth";
+import { redis } from "@/lib/redis-client";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-options-redis";
 import { z } from "zod";
+import { nanoid } from "nanoid";
 
 const messageSchema = z.object({
-  receiverId: z.number(),
+  receiverId: z.string(),
   content: z.string().min(1).max(1000),
 });
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
     // Verify authentication
-    const senderId = await verifyAuth(req);
-    if (!senderId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { receiverId, content } = messageSchema.parse(body);
-
-    // Check if receiver exists and is approved
-    const receiver = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, receiverId))
-      .limit(1);
-
-    if (!receiver || receiver.length === 0 || receiver[0].profileStatus !== "approved") {
-      return NextResponse.json(
-        { error: "Recipient not found or not available" },
-        { status: 404 }
-      );
+    // Validate request body
+    const body = await request.json();
+    const result = messageSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json({ error: "Invalid message data" }, { status: 400 });
     }
 
-    // Create message
-    const [newMessage] = await db
-      .insert(messages)
-      .values({
-        senderId,
-        receiverId,
-        content,
-      })
-      .returning();
+    const { receiverId, content } = result.data;
 
-    return NextResponse.json({
-      message: "Message sent successfully",
-      messageId: newMessage.id,
-    });
+    // Verify receiver exists
+    const receiver = await redis.hgetall(`user:${receiverId}`);
+    if (!receiver) {
+      return NextResponse.json({ error: "Receiver not found" }, { status: 404 });
+    }
+
+    // Create message in Redis
+    const messageId = nanoid();
+    const message = {
+      id: messageId,
+      senderId: session.user.id,
+      receiverId,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
+    await redis.hset(`message:${messageId}`, message);
+
+    return NextResponse.json({ message });
   } catch (error) {
-    console.error("Send message error:", error);
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
-        { status: 400 }
-      );
-    }
+    console.error("Error in POST /api/messages/send:", error);
     return NextResponse.json(
-      { error: "Failed to send message" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
-} 
+}

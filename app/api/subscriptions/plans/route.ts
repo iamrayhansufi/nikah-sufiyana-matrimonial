@@ -1,23 +1,36 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { db } from "../../../../src/db";
-import { subscriptionPlans } from "../../../../src/db/schema";
 
-// Get all active subscription plans
-export async function GET() {
+// Subscription plans data
+const plans = [
+  {
+    id: "basic",
+    name: "Basic",
+    price: 500,
+    duration: 30,
+    features: ["View profiles", "Send interests", "Basic filters"],
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    price: 1500,
+    duration: 90,
+    features: [
+      "All basic features",
+      "Advanced filters",
+      "Priority support",
+      "Unlimited contacts",
+    ],
+  },
+];
+
+export async function GET(request: Request) {
   try {
-    const plans = await db
-      .select()
-      .from(subscriptionPlans)
-      .where(eq(subscriptionPlans.active, true))
-      .orderBy(subscriptionPlans.price);
-
-    return NextResponse.json(plans);
+    return NextResponse.json({ plans });
   } catch (error) {
-    console.error("Get subscription plans error:", error);
+    console.error("Error getting subscription plans:", error);
     return NextResponse.json(
-      { error: "Failed to get subscription plans" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
-} 
+}

@@ -1,153 +1,123 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/src/db";
-import { interests, users } from "@/src/db/schema";
-import { eq, and } from "drizzle-orm";
-import { verifyAuth } from "@/src/lib/auth";
-import { createNotification } from "@/lib/notifications";
+import { redis } from "@/lib/redis-client";
 import { z } from "zod";
+import { getAuthSession } from "@/lib/auth";
+
+interface RedisUser extends Record<string, string> {
+  id: string;
+  email: string;
+}
+
+interface RedisInterest extends Record<string, string> {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  status: string;
+}
 
 const updateInterestSchema = z.object({
-  interestId: z.number(),
+  interestId: z.string(),
   status: z.enum(["accepted", "declined"]),
 });
 
 export async function PUT(request: NextRequest) {
   try {
-    const userId = await verifyAuth(request);
-    if (!userId) {
+    const session = await getAuthSession();
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
     const { interestId, status } = updateInterestSchema.parse(body);
 
-    // Verify interest belongs to the current user
-    const existingInterest = await db
-      .select()
-      .from(interests)
-      .where(
-        and(
-          eq(interests.id, interestId),
-          eq(interests.toUserId, userId)
-        )
-      )
-      .limit(1);
+    // Get current user
+    const userKeys = await redis.keys("user:*");
+    let currentUser: RedisUser | null = null;
+    
+    for (const key of userKeys) {
+      const user = await redis.hgetall(key) as RedisUser;
+      if (user && user.email === session.user.email) {
+        currentUser = user;
+        break;
+      }
+    }
 
-    if (existingInterest.length === 0) {
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Get the interest
+    const interest = await redis.hgetall(interestId) as RedisInterest;
+    
+    if (!interest || interest.receiverId !== currentUser.id) {
       return NextResponse.json(
         { error: "Interest not found or you don't have permission to update it" },
         { status: 404 }
       );
     }
 
-    const interest = existingInterest[0];
-
-    // Update interest status
-    await db
-      .update(interests)
-      .set({ status })
-      .where(eq(interests.id, interestId));
-
-    // Get sender user details for notification
-    const senderUser = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, interest.fromUserId))
-      .limit(1);
-
-    const receiverUser = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-
-    if (senderUser.length > 0 && receiverUser.length > 0) {
-      // Create notification for the sender based on status
-      if (status === "accepted") {
-        await createNotification({
-          userId: String(interest.fromUserId),
-          type: "interest_accepted",
-          message: `${receiverUser[0].fullName || 'Someone'} has accepted your interest!`,
-          link: `/profile/${userId}`,
-          metadata: {
-            userName: receiverUser[0].fullName,
-            userId: String(userId),
-            interestId: String(interestId),
-          }
-        });
-
-        // Check if this creates a match
-        const mutualInterest = await db
-          .select()
-          .from(interests)
-          .where(
-            and(
-              eq(interests.fromUserId, userId),
-              eq(interests.toUserId, interest.fromUserId)
-            )
-          )
-          .limit(1);
-
-        // If user has also shown interest in the other person
-        if (mutualInterest.length > 0) {
-          // Update the status of the other interest as well
-          await db
-            .update(interests)
-            .set({ status: "accepted" })
-            .where(eq(interests.id, mutualInterest[0].id));
-
-          // Send match notifications
-          await createNotification({
-            userId: String(interest.fromUserId),
-            type: "match",
-            message: `You have a new match with ${receiverUser[0].fullName}!`,
-            link: `/profile/${userId}`,
-            metadata: {
-              matchName: receiverUser[0].fullName,
-              matchId: String(userId),
-            }
-          });
-          
-          await createNotification({
-            userId: String(userId),
-            type: "match",
-            message: `You have a new match with ${senderUser[0].fullName}!`,
-            link: `/profile/${interest.fromUserId}`,
-            metadata: {
-              matchName: senderUser[0].fullName,
-              matchId: String(interest.fromUserId),
-            }
-          });
-        }
-      } else if (status === "declined") {
-        // Optionally notify of decline
-        await createNotification({
-          userId: String(interest.fromUserId),
-          type: "interest_declined",
-          message: `Your interest was not accepted at this time.`,
-          link: `/browse`,
-          metadata: {
-            interestId: String(interestId),
-          }
-        });
-      }
+    // Get sender info
+    const sender = await redis.hgetall(`user:${interest.senderId}`) as RedisUser;
+    if (!sender) {
+      return NextResponse.json({ error: "Sender not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      message: `Interest ${status === "accepted" ? "accepted" : "declined"} successfully`,
+    // Update interest status
+    await redis.hmset(interestId, {
       status,
+      updatedAt: new Date().toISOString()
     });
+
+    // Create notification for sender
+    const notificationId = `notification:${Date.now()}`;
+    const notificationData = {
+      userId: sender.id,
+      title: `Interest ${status === 'accepted' ? 'Accepted' : 'Declined'}`,
+      message: status === 'accepted' 
+        ? `${currentUser.fullName || 'Someone'} has accepted your interest request!`
+        : `${currentUser.fullName || 'Someone'} has declined your interest request.`,
+      type: 'interest_response',
+      data: JSON.stringify({
+        interestId,
+        status,
+        responderId: currentUser.id,
+        responderName: currentUser.fullName || 'Anonymous'
+      }),
+      read: 'false',
+      createdAt: new Date().toISOString()
+    };
+
+    await redis.hmset(notificationId, notificationData);
+    await redis.lpush(`notifications:${sender.id}`, notificationId);
+
+    return NextResponse.json({
+      message: `Interest ${status} successfully`,
+      data: {
+        interestId,
+        status,
+        updatedAt: new Date().toISOString()
+      }
+    });
+
   } catch (error) {
-    console.error("Update interest status error:", error);
+    console.error("Error updating interest status:", error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: error.errors }, { status: 400 });
     }
     return NextResponse.json(
       { error: "Failed to update interest status" },
       { status: 500 }
     );
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'PUT, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }

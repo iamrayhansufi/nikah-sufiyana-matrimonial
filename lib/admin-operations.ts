@@ -1,4 +1,6 @@
 import { connectToDatabase, type User, getUserStats, getUsers as getDatabaseUsers, getUserById, updateUserProfile } from "./database"
+import { redis } from "./redis-client";
+import { database } from "./database-service";
 
 export async function getDashboardStats() {
   await connectToDatabase()

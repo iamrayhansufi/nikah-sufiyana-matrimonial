@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createVerificationOTP } from "@/lib/verification";
+import { createVerificationOTP } from "@/lib/verification-redis";
 import { z } from "zod";
 
 // Input validation schema
@@ -22,41 +22,18 @@ export async function POST(request: NextRequest) {
     }
     
     const { email, purpose } = validationResult.data;
-      try {
-      // Generate and send OTP
-      const otp = await createVerificationOTP(email, purpose);
-      
-      // Log success for debugging (remove in production)
-      console.log(`OTP generated for ${email}: ${otp}`);
-      
-      return NextResponse.json(
-        { 
-          success: true,
-          message: "Verification code sent successfully" 
-        },
-        { status: 200 }
-      );
-    } catch (error) {
-      // Cast the unknown error to a type with message property
-      const otpError = error as Error;
-      console.error("Error sending verification code:", otpError);
-      
-      // Return a more specific error message
-      return NextResponse.json(
-        { 
-          error: "Failed to send verification code",
-          details: process.env.NODE_ENV === 'development' 
-            ? otpError.message 
-            : undefined
-        },
-        { status: 500 }
-      );
+
+    const otpResult = await createVerificationOTP(email, purpose);
+    if (!otpResult.success) {
+      return NextResponse.json({ error: otpResult.error }, { status: 500 });
     }
+
+    return NextResponse.json({ 
+      success: true,
+      message: "OTP sent successfully" 
+    });
   } catch (error) {
-    console.error("Failed to process verification code request:", error);
-    return NextResponse.json(
-      { error: "Internal server error processing verification request" },
-      { status: 500 }
-    );
+    console.error("Error sending OTP:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyOTP } from "@/lib/verification";
+import { verifyOTP } from "@/lib/verification-redis";
 import { z } from "zod";
-import { db } from "@/src/db";
-import { users } from "@/src/db/schema";
-import { eq } from "drizzle-orm";
+import { database } from "@/lib/database-service";
 
 // Input validation schema
 const requestSchema = z.object({
@@ -38,44 +36,52 @@ export async function POST(request: NextRequest) {
     
     // Verify OTP
     console.log(`🔄 verify-otp API: Verifying OTP for ${email}`);
-    const isValid = await verifyOTP(email, code, purpose);
-      if (isValid) {
+    const isValid = await verifyOTP(email, code, purpose);    if (isValid) {
       console.log(`✅ verify-otp API: OTP is valid for ${email}`);
       try {
         // Update the user's verified status in the database
         if (purpose === "registration") {
           console.log(`🔄 verify-otp API: Updating verified status for ${email}`);
-          await db
-            .update(users)
-            .set({ verified: true })
-            .where(eq(users.email, email));
           
-          // Get the user to return user data needed for auto-login
-          console.log(`🔍 verify-otp API: Retrieving updated user data`);
-          const userResults = await db
-            .select({
-              id: users.id,
-              email: users.email,
-              fullName: users.fullName,
-              phone: users.phone,
-              verified: users.verified
-            })
-            .from(users)
-            .where(eq(users.email, email))
-            .limit(1);
+          // Find user by email
+          const user = await database.users.getByEmail(email);
           
-          const user = userResults[0];
-          console.log(`✅ verify-otp API: User verified status updated to ${user?.verified}`);
-          
-          
-          return NextResponse.json(
-            {
-              success: true,
-              message: "Email verified successfully",
-              user: user || undefined
-            },
-            { status: 200 }
-          );
+          if (user) {
+            // Update user verification status
+            await database.users.update(user.id, { 
+              verified: true 
+            });
+            
+            // Get the updated user data
+            const updatedUser = await database.users.getById(user.id);
+            
+            console.log(`✅ verify-otp API: User verified status updated to ${updatedUser?.verified}`);
+            
+            const userData = {
+              id: updatedUser.id,
+              email: updatedUser.email,
+              fullName: updatedUser.fullName,
+              phone: updatedUser.phone,
+              verified: updatedUser.verified === true || updatedUser.verified === 'true'
+            };
+            
+            return NextResponse.json(
+              {
+                success: true,
+                message: "Email verified successfully",
+                user: userData
+              },
+              { status: 200 }
+            );
+          } else {
+            return NextResponse.json(
+              {
+                success: false,
+                message: "User not found"
+              },
+              { status: 404 }
+            );
+          }
         } else {
           // For password reset or other purposes
           return NextResponse.json(

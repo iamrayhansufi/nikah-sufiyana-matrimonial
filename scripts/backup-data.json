@@ -1,0 +1,124 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "fullName": "Admin User",
+      "email": "admin@nikahsufiyana.com",
+      "phone": "+919876543210",
+      "password": "$2a$10$ZJTr5pHzXgXkfG.xBB2kUeJXcBDxfbFBtX.EV5Yx.PpHUVj5j8bWe",
+      "gender": "Male",
+      "age": 35,
+      "country": "India",
+      "city": "Mumbai",
+      "location": "Mumbai, India",
+      "education": "Post Graduate",
+      "profession": "Administrator",
+      "income": "10-15 LPA",
+      "sect": "Sunni",
+      "motherTongue": "Urdu",
+      "height": "5'10\"",
+      "complexion": "Fair",
+      "maritalStatus": "Never Married",
+      "profileStatus": "active",
+      "subscription": "premium",
+      "verified": true,
+      "role": "admin",
+      "lastActive": "2025-06-20T12:00:00.000Z",
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "updatedAt": "2025-06-20T12:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "fullName": "Ahmed Khan",
+      "email": "ahmed@example.com",
+      "phone": "+919876543211",
+      "password": "$2a$10$ZJTr5pHzXgXkfG.xBB2kUeJXcBDxfbFBtX.EV5Yx.PpHUVj5j8bWe",
+      "gender": "Male",
+      "age": 28,
+      "country": "India",
+      "city": "Delhi",
+      "location": "Delhi, India",
+      "education": "Graduate",
+      "profession": "Software Engineer",
+      "income": "5-10 LPA",
+      "sect": "Sunni",
+      "motherTongue": "Urdu",
+      "height": "5'9\"",
+      "complexion": "Wheatish",
+      "maritalStatus": "Never Married",
+      "profileStatus": "active",
+      "subscription": "free",
+      "verified": true,
+      "role": "user",
+      "lastActive": "2025-06-19T12:00:00.000Z",
+      "createdAt": "2025-02-15T00:00:00.000Z",
+      "updatedAt": "2025-06-19T12:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "fullName": "Fatima Ali",
+      "email": "fatima@example.com",
+      "phone": "+919876543212",
+      "password": "$2a$10$ZJTr5pHzXgXkfG.xBB2kUeJXcBDxfbFBtX.EV5Yx.PpHUVj5j8bWe",
+      "gender": "Female",
+      "age": 26,
+      "country": "India",
+      "city": "Hyderabad",
+      "location": "Hyderabad, India",
+      "education": "Post Graduate",
+      "profession": "Doctor",
+      "income": "10-15 LPA",
+      "sect": "Sunni",
+      "motherTongue": "Urdu",
+      "height": "5'4\"",
+      "complexion": "Fair",
+      "maritalStatus": "Never Married",
+      "profileStatus": "active",
+      "subscription": "free",
+      "verified": true,
+      "role": "user",
+      "lastActive": "2025-06-20T10:00:00.000Z",
+      "createdAt": "2025-03-10T00:00:00.000Z",
+      "updatedAt": "2025-06-20T10:00:00.000Z"
+    }
+  ],
+  "interests": [
+    {
+      "id": 1,
+      "fromUserId": 2,
+      "toUserId": 3,
+      "message": "I like your profile and would like to know you better.",
+      "status": "pending",
+      "createdAt": "2025-05-15T00:00:00.000Z"
+    }
+  ],
+  "shortlists": [
+    {
+      "id": 1,
+      "userId": 2,
+      "shortlistedUserId": 3,
+      "createdAt": "2025-05-10T00:00:00.000Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "userId": 3,
+      "type": "interest",
+      "message": "Ahmed Khan has shown interest in your profile.",
+      "metadata": {
+        "relatedUserId": 2
+      },
+      "read": false,
+      "createdAt": "2025-05-15T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "type": "system",
+      "message": "Your profile has been viewed 10 times this week.",
+      "read": true,
+      "createdAt": "2025-06-01T00:00:00.000Z"
+    }
+  ]
+}

@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/src/db";
-import { interests, users } from "@/src/db/schema";
-import { eq, and, or } from "drizzle-orm";
-import { verifyAuth } from "@/src/lib/auth";
 import { z } from "zod";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-options-redis";
+import { database } from "@/lib/database-service";
+import { redis } from "@/lib/redis-client";
 
 const interestSchema = z.object({
-  toUserId: z.number(),
+  toUserId: z.string(),
   message: z.string().optional(),
 });
+
+async function verifyAuth(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  return session?.user?.id || null;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,91 +28,95 @@ export async function GET(request: NextRequest) {
 
     // If a specific type is provided, return only that type
     if (type === "received" || type === "sent") {
-      const interestsQuery = db
-        .select({
-          id: interests.id,
-          fromUserId: interests.fromUserId,
-          toUserId: interests.toUserId,
-          status: interests.status,
-          createdAt: interests.createdAt,
-          fromUser: {
-            id: users.id,
-            fullName: users.fullName,
-            age: users.age,
-            location: users.location,
-            profession: users.profession,
-            profilePhoto: users.profilePhoto,
-          },
-        })
-        .from(interests)
-        .leftJoin(users, type === "received" 
-          ? eq(users.id, interests.fromUserId)
-          : eq(users.id, interests.toUserId)
-        )
-        .where(
-          type === "received"
-            ? eq(interests.toUserId, userId)
-            : eq(interests.fromUserId, userId)
-        )
-        .orderBy(interests.createdAt);
-
-      const results = await interestsQuery;
-      return NextResponse.json(results);
+      let interests = [];
+      
+      if (type === "received") {
+        // Get received interests
+        interests = await database.interests.getReceivedInterests(userId);
+        
+        // For each interest, fetch the sender's info
+        for (const interest of interests) {
+          const fromUser = await database.users.getById(interest.fromUserId);
+          if (fromUser) {
+            interest.fromUser = {
+              id: fromUser.id,
+              fullName: fromUser.fullName,
+              age: fromUser.age,
+              location: fromUser.location,
+              profession: fromUser.profession,
+              profilePhoto: fromUser.profilePhoto,
+            };
+          }
+        }
+      } else {
+        // Get sent interests
+        interests = await database.interests.getSentInterests(userId);
+        
+        // For each interest, fetch the recipient's info
+        for (const interest of interests) {
+          const toUser = await database.users.getById(interest.toUserId);
+          if (toUser) {
+            interest.toUser = {
+              id: toUser.id,
+              fullName: toUser.fullName,
+              age: toUser.age,
+              location: toUser.location,
+              profession: toUser.profession,
+              profilePhoto: toUser.profilePhoto,
+            };
+          }
+        }
+      }
+      
+      // Sort by createdAt date
+      interests.sort((a, b) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      
+      return NextResponse.json(interests);
     }
     
     // If a profile ID is provided, check for interests between the current user and that profile
     else if (profileId) {
-      const profileIdNum = parseInt(profileId);
+      // Add 'user:' prefix if it doesn't exist
+      let targetProfileId = profileId;
+      if (!targetProfileId.startsWith('user:')) {
+        targetProfileId = `user:${targetProfileId}`;
+      }
       
       // Get interests sent by current user to the profile
-      const sentInterests = await db
-        .select()
-        .from(interests)
-        .where(
-          and(
-            eq(interests.fromUserId, userId),
-            eq(interests.toUserId, profileIdNum)
-          )
-        );
+      const sentInterests = await database.interests.getSentInterests(userId);
+      const filteredSentInterests = sentInterests.filter(interest => 
+        interest.toUserId === targetProfileId
+      );
       
       // Get interests received by current user from the profile
-      const receivedInterests = await db
-        .select()
-        .from(interests)
-        .where(
-          and(
-            eq(interests.toUserId, userId),
-            eq(interests.fromUserId, profileIdNum)
-          )
-        );
+      const receivedInterests = await database.interests.getReceivedInterests(userId);
+      const filteredReceivedInterests = receivedInterests.filter(interest => 
+        interest.fromUserId === targetProfileId
+      );
       
       return NextResponse.json({
-        sentInterests,
-        receivedInterests
+        sentInterests: filteredSentInterests,
+        receivedInterests: filteredReceivedInterests
       });
     }
     
     // If no specific type or profile ID provided, return all interests for the user
     else {
-      // Get all interests where the user is either sender or receiver
-      const allInterests = await db
-        .select({
-          id: interests.id,
-          fromUserId: interests.fromUserId,
-          toUserId: interests.toUserId,
-          status: interests.status,
-          createdAt: interests.createdAt,
-          message: interests.message
-        })
-        .from(interests)
-        .where(
-          or(
-            eq(interests.fromUserId, userId),
-            eq(interests.toUserId, userId)
-          )
-        )
-        .orderBy(interests.createdAt);
-        return NextResponse.json(allInterests);
+      // Get all sent and received interests
+      const sentInterests = await database.interests.getSentInterests(userId);
+      const receivedInterests = await database.interests.getReceivedInterests(userId);
+      
+      // Combine all interests
+      const allInterests = [...sentInterests, ...receivedInterests];
+      
+      // Sort by createdAt date
+      allInterests.sort((a, b) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      
+      return NextResponse.json(allInterests);
     }
   } catch (error) {
     console.error("Get interests error:", error);
@@ -128,19 +137,26 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { toUserId, message } = interestSchema.parse(body);
 
-    // Check if interest already exists
-    const existingInterest = await db
-      .select()
-      .from(interests)
-      .where(
-        and(
-          eq(interests.fromUserId, userId),
-          eq(interests.toUserId, toUserId)
-        )
-      )
-      .limit(1);
+    // Add 'user:' prefix to toUserId if not present
+    let targetUserId = toUserId;
+    if (!targetUserId.startsWith('user:')) {
+      targetUserId = `user:${toUserId}`;
+    }
 
-    if (existingInterest.length > 0) {
+    // Check if target user exists
+    const targetUser = await database.users.getById(targetUserId);
+    if (!targetUser) {
+      return NextResponse.json(
+        { error: "Target user not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if interest already exists
+    const sentInterests = await database.interests.getSentInterests(userId);
+    const existingInterest = sentInterests.find(interest => interest.toUserId === targetUserId);
+
+    if (existingInterest) {
       return NextResponse.json(
         { error: "Interest already sent" },
         { status: 400 }
@@ -148,19 +164,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new interest
-    const [interest] = await db
-      .insert(interests)
-      .values({
-        fromUserId: userId,
-        toUserId,
-        message,
-        status: "pending",
-      })
-      .returning();
+    const interestData = {
+      fromUserId: userId,
+      toUserId: targetUserId,
+      message: message || "",
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    };
+    
+    const interestId = await database.interests.create(interestData);
 
     return NextResponse.json({
       message: "Interest sent successfully",
-      interest,
+      interest: { id: interestId, ...interestData },
     });
   } catch (error) {
     console.error("Send interest error:", error);

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { eq, and, between, like, sql } from "drizzle-orm";
-import { db } from "../../../../src/db";
-import { users } from "../../../../src/db/schema";
+import { database } from "../../../../lib/database-service";
 
 const searchParamsSchema = z.object({
   ageMin: z.string().optional(),
@@ -33,61 +31,23 @@ export async function GET(request: NextRequest) {
       limit = "10",
     } = searchParamsSchema.parse(params);
 
-    const conditions = [];
-
-    if (ageMin && ageMax) {
-      conditions.push(between(users.age, parseInt(ageMin), parseInt(ageMax)));
-    }
-
-    if (location) {
-      conditions.push(like(users.location, `%${location}%`));
-    }
-
-    if (education) {
-      conditions.push(eq(users.education, education));
-    }
-
-    if (profession) {
-      conditions.push(eq(users.profession, profession));
-    }
-
-    if (sect) {
-      conditions.push(eq(users.sect, sect));
-    }
-
-    if (maritalStatus) {
-      conditions.push(eq(users.maritalStatus, maritalStatus));
-    }
-
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-
-    const profiles = await db
-      .select({
-        id: users.id,
-        fullName: users.fullName,
-        age: users.age,
-        location: users.location,
-        education: users.education,
-        profession: users.profession,
-        sect: users.sect,
-        profilePhoto: users.profilePhoto,
-        premium: users.premium,
-        lastActive: users.lastActive,
-      })
-      .from(users)
-      .where(and(...conditions))
-      .limit(parseInt(limit))
-      .offset(offset);
-
-    const total = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(users)
-      .where(and(...conditions));
+    // Use our new database service for profile search
+    const { profiles, total } = await database.profiles.searchProfiles({
+      ageMin,
+      ageMax,
+      location,
+      education,
+      profession,
+      sect,
+      maritalStatus,
+      page,
+      limit,
+    });
 
     return NextResponse.json({
       profiles,
       pagination: {
-        total: total[0].count,
+        total,
         page: parseInt(page),
         limit: parseInt(limit),
       },
@@ -99,4 +59,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
