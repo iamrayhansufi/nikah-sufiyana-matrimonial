@@ -395,19 +395,38 @@ export default function RegisterPage() {
         setIsSubmittingForm(false);
         return;
       } 
-      
-      // Registration successful
+        // Registration successful
       toast({
         title: "Registration Successful!",
-        description: "Please check your email for a verification code.",
+        description: "Logging you in and redirecting to email verification...",
         variant: "default",
       });
+      
+      // Automatically log in the user
+      try {
+        console.log('🔄 Auto-login after registration for:', formData.email);
+        const signInResult = await signIn('credentials', {
+          email: formData.email,
+          password: formData.password,
+          redirect: false
+        });
+        
+        if (signInResult?.ok) {
+          console.log('✅ Auto-login successful');
+        } else {
+          console.log('⚠️ Auto-login failed, user will need to login manually');
+        }
+      } catch (loginError) {
+        console.error('Auto-login error:', loginError);
+      }
       
       // Clear form data from localStorage
       localStorage.removeItem("heroRegistrationData");
       
-      // Redirect to verification page with email
-      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+      // Small delay to allow session to update, then redirect to verification page
+      setTimeout(() => {
+        router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+      }, 1000);
       
     } catch (error) {
       console.error('Registration error:', error);

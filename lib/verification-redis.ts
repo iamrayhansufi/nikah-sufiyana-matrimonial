@@ -102,12 +102,12 @@ export async function verifyOTP(email: string, code: string, purpose = "registra
         expiresAt = verification.expiresAt;
       }
     }
-    
-    // Check if the OTP is used - Redis might store as boolean false/true or string "false"/"true"
+      // Check if the OTP is used - Redis might store as boolean false/true or string "false"/"true"
     const isNotUsed = verification.isUsed === false || 
                       verification.isUsed === "false" || 
                       !verification.isUsed;
-      console.log(`🔍 verifyOTP: Validation checks:`, {
+    
+    console.log(`🔍 verifyOTP: Validation checks:`, {
       codeMatch: String(verification.code) === String(code),
       notUsed: isNotUsed,
       notExpired: expiresAt > now,

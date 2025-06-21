@@ -26,9 +26,8 @@ function VerifyEmailContent() {
   const [checkingSession, setCheckingSession] = useState<boolean>(true)
   // Add import statement at the top of the file
   // import { useSession } from "next-auth/react"
-  
-  // Check session and verification status
-  const { data: session, status: sessionStatus } = useSession()
+    // Check session and verification status
+  const { data: session, status: sessionStatus, update: updateSession } = useSession()
     useEffect(() => {
     // Debug session status
     console.log('🔍 VerifyEmail Debug - Session status:', sessionStatus);
@@ -113,8 +112,7 @@ function VerifyEmailContent() {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
+        },        body: JSON.stringify({
           email,
           code,
           purpose: "registration"
@@ -122,18 +120,36 @@ function VerifyEmailContent() {
       })
 
       const data = await response.json();
-        if (data.success) {
-        // Show success message and redirect to login
+      
+      if (data.success) {
+        // Show success message and redirect to dashboard
         toast({
           title: "Email Verified Successfully",
-          description: "Please log in with your credentials to continue",
+          description: "Welcome! Your account has been verified.",
           variant: "default"
         });
         
-        // Redirect to login page with indication that verification was successful
-        setTimeout(() => {
-          router.push(`/login?verified=true&email=${encodeURIComponent(email)}`);
-        }, 1500);
+        // If user is logged in, update session and redirect to dashboard
+        if (session?.user?.id) {
+          // Update the session to reflect verification status
+          await updateSession({
+            ...session,
+            user: {
+              ...session.user,
+              verified: true
+            }
+          });
+          
+          // User is logged in, redirect to dashboard
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 1500);
+        } else {
+          // User not logged in, redirect to login
+          setTimeout(() => {
+            router.push(`/login?verified=true&email=${encodeURIComponent(email)}`);
+          }, 1500);
+        }
       } else {
         toast({
           title: "Verification Failed",
