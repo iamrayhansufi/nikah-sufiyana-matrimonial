@@ -91,26 +91,36 @@ export async function verifyOTP(email: string, code: string, purpose = "registra
       console.log(`❌ verifyOTP: No verification record found for ${email}`);
       return false;
     }
-    
-    const now = Date.now();
-    
-    // Handle potential undefined or non-string expiresAt value
+      const now = Date.now();
+      // Handle potential undefined or non-string expiresAt value
     let expiresAt = 0;
-    if (verification.expiresAt && typeof verification.expiresAt === 'string') {
-      expiresAt = parseInt(verification.expiresAt);
+    if (verification.expiresAt) {
+      // Redis might return numbers as strings or actual numbers
+      if (typeof verification.expiresAt === 'string') {
+        expiresAt = parseInt(verification.expiresAt);
+      } else if (typeof verification.expiresAt === 'number') {
+        expiresAt = verification.expiresAt;
+      }
     }
+    
+    // Check if the OTP is used - Redis might store as boolean false/true or string "false"/"true"
+    const isNotUsed = verification.isUsed === false || 
+                      verification.isUsed === "false" || 
+                      !verification.isUsed;
     
     console.log(`🔍 verifyOTP: Validation checks:`, {
       codeMatch: verification.code === code,
-      notUsed: verification.isUsed === "false",
+      notUsed: isNotUsed,
       notExpired: expiresAt > now,
       currentTime: now,
-      expiresAt: expiresAt
+      expiresAt: expiresAt,
+      rawIsUsed: verification.isUsed,
+      rawExpiresAt: verification.expiresAt
     });
     
     const isValid = 
       verification.code === code &&
-      verification.isUsed === "false" &&
+      isNotUsed &&
       expiresAt > now;
     
     if (isValid) {
