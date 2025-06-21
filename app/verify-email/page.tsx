@@ -127,32 +127,71 @@ function VerifyEmailContent() {
           description: "Welcome! Your account has been verified.",
           variant: "default"
         });
-        
-        // Force session refresh first
+          // Force session refresh first
+        console.log('🔄 VerifyEmail: Calling updateSession to refresh verification status...');
         await updateSession();
         
         // Wait a bit for session to update, then check again
         setTimeout(async () => {
+          console.log('🔄 VerifyEmail: Getting fresh session after update...');
           // Re-fetch session to get updated status
           const updatedSession = await getSession();
           
-          console.log('🔍 Session after verification:', {
+          console.log('🔍 Session after verification and update:', {
             hasSession: !!updatedSession,
             userId: updatedSession?.user?.id,
             verified: updatedSession?.user?.verified,
-            email: updatedSession?.user?.email
+            email: updatedSession?.user?.email,
+            fullSessionUser: updatedSession?.user
           });
           
           // If user is logged in, redirect to dashboard
           if (updatedSession?.user?.id) {
-            console.log('✅ User is logged in, redirecting to dashboard');
-            router.push('/dashboard');
+            if (updatedSession.user.verified) {
+              console.log('✅ User is logged in and verified, redirecting to dashboard');
+              router.push('/dashboard');
+            } else {              console.log('⚠️ User is logged in but still shows as unverified in session');
+              // Try calling our custom refresh API
+              try {
+                const refreshResponse = await fetch('/api/auth/refresh-session', {
+                  method: 'POST'
+                });
+                
+                if (refreshResponse.ok) {
+                  const refreshData = await refreshResponse.json();
+                  console.log('🔄 VerifyEmail: Refresh API response:', refreshData);
+                  
+                  if (refreshData.user?.verified) {
+                    console.log('✅ User verified via refresh API, redirecting to dashboard');
+                    router.push('/dashboard');
+                    return;
+                  }
+                }
+              } catch (refreshError) {
+                console.error('Error calling refresh API:', refreshError);
+              }
+              
+              // Try one more refresh
+              setTimeout(async () => {
+                const finalSession = await getSession();
+                console.log('🔍 Final session check:', {
+                  verified: finalSession?.user?.verified
+                });
+                
+                if (finalSession?.user?.verified) {
+                  router.push('/dashboard');
+                } else {
+                  console.log('❌ Session still not updated, forcing login redirect');
+                  router.push(`/login?verified=true&email=${encodeURIComponent(email)}`);
+                }
+              }, 1000);
+            }
           } else {
             console.log('⚠️ User not logged in, redirecting to login with verification flag');
             // User not logged in, redirect to login with verification success
             router.push(`/login?verified=true&email=${encodeURIComponent(email)}`);
           }
-        }, 1000);      } else {
+        }, 1000);} else {
         const errorMessage = data.message || "Invalid or expired verification code";
         
         toast({

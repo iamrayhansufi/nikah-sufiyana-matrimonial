@@ -97,33 +97,55 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
+  callbacks: {    async jwt({ token, user, trigger }) {
       if (user) {
+        // Initial login - set user data in token
         token.id = user.id
         token.phone = user.phone
         token.role = user.role
         token.verified = user.verified
       }
+      
+      // If updateSession() was called, refresh user data from database
+      if (trigger === "update" && token.id) {
+        try {
+          console.log(`🔄 JWT: Refreshing user data for ${token.id} due to updateSession call`);
+          const freshUser = await redisTables.users.get(token.id as string);
+          if (freshUser) {
+            token.verified = freshUser.verified === true || freshUser.verified === 'true';
+            console.log(`🔄 JWT: Updated verified status to ${token.verified}`);
+          }
+        } catch (error) {
+          console.error("Error refreshing user data in JWT callback:", error);
+        }
+      }
+      
       return token
-    },    async session({ session, token }: { session: Session; token: JWT }) {
+    },async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
         session.user.id = token.id as string
         session.user.phone = token.phone as string | undefined
         session.user.role = token.role as string | undefined
         session.user.verified = token.verified as boolean | undefined
         
-        // If the user is not verified in the token but might have verified recently,
-        // fetch fresh data from the database
-        if (!token.verified && token.id) {
+        // Always check for fresh verification status from the database
+        // This ensures that when updateSession() is called, we get the latest data
+        if (token.id) {
           try {
             const freshUser = await redisTables.users.get(token.id as string);
-            if (freshUser && (freshUser.verified === true || freshUser.verified === 'true')) {
-              console.log(`🔄 Session: Updated verification status for user ${token.id} from database`);
-              session.user.verified = true;
+            if (freshUser) {
+              const freshVerified = freshUser.verified === true || freshUser.verified === 'true';
               
-              // Update the token as well for future session calls
-              token.verified = true;
+              // Update session with fresh verification status
+              if (freshVerified !== token.verified) {
+                console.log(`🔄 Session: Updated verification status for user ${token.id} from ${token.verified} to ${freshVerified}`);
+                session.user.verified = freshVerified;
+                
+                // Update the token as well for future session calls
+                token.verified = freshVerified;
+              } else {
+                session.user.verified = freshVerified;
+              }
             }
           } catch (error) {
             console.error("Error fetching fresh user data in session callback:", error);
