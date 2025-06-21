@@ -457,7 +457,7 @@ export default function HomePage() {
                           <h3 className={`${elMessiri.className} text-lg font-bold text-gray-800`}>
                             {story.couple}
                           </h3>
-                          <p className="text-sm text-gray-600">{story.location}</p>
+                          <p className="text-lg text-gray-600">{story.location}</p>
                         </div>
                       </div>
                       

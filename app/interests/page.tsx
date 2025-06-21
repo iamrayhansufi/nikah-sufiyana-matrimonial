@@ -253,7 +253,7 @@ export default function InterestsPage() {
                           />
                         </div>
                         <h2 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-2`}>{interest.fromUser.fullName}</h2>
-                        <p className="text-sm text-gray-600 mb-4 font-medium">
+                        <p className="text-lg text-gray-600 mb-4 font-medium">
                           {formatProfileInfo(interest.fromUser.age, interest.fromUser.location, interest.fromUser.profession)}
                         </p>
                         <div className="flex gap-2">
@@ -310,7 +310,7 @@ export default function InterestsPage() {
                             className="w-full aspect-[4/3] object-cover rounded-lg"
                           />
                         </div>                        <h2 className={`${elMessiri.className} text-lg font-semibold mb-2 text-royal-primary`}>{interest.fromUser.fullName}</h2>
-                        <p className="text-sm text-muted-foreground mb-4">
+                        <p className="text-lg text-muted-foreground mb-4">
                           {formatProfileInfo(interest.fromUser.age, interest.fromUser.location, interest.fromUser.profession)}
                         </p>
                         <div className="flex gap-2">
@@ -351,7 +351,7 @@ export default function InterestsPage() {
                             className="w-full aspect-[4/3] object-cover rounded-lg"
                           />
                         </div>                        <h2 className={`${elMessiri.className} text-lg font-semibold mb-2 text-royal-primary`}>{interest.fromUser.fullName}</h2>
-                        <p className="text-sm text-muted-foreground mb-4">
+                        <p className="text-lg text-muted-foreground mb-4">
                           {formatProfileInfo(interest.fromUser.age, interest.fromUser.location, interest.fromUser.profession)}
                         </p>
                         <div className="flex gap-2">

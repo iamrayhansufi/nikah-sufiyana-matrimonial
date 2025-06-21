@@ -289,7 +289,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     {shouldBlurPhoto && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
                         <Shield className="h-12 w-12 mb-2" />
-                        <p className="text-sm mb-4">For modesty, photos are protected</p>
+                        <p className="text-lg mb-4">For modesty, photos are protected</p>
                         {!session ? (
                           <Button
                             variant="secondary"
@@ -432,13 +432,13 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             ))
                           ) : (
                             <div className="col-span-full text-center">
-                              <p className="text-sm text-muted-foreground mt-4">
+                              <p className="text-lg text-muted-foreground mt-4">
                                 {profile.profilePhoto ? "No additional photos available" : "No photos available"}
                               </p>
                             </div>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground text-center">
+                        <p className="text-lg text-muted-foreground text-center">
                           {profile.showPhotos ? 
                             "Photos are visible to all members" : 
                             shouldBlurPhoto ? 

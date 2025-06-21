@@ -57,7 +57,7 @@ export default function ShortlistPage() {
                       />
                     </div>
                     <h2 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-2`}>Sister Sarah Khan</h2>
-                    <p className="text-sm text-gray-600 mb-4 font-medium">24 yrs • Mumbai • Software Engineer</p>
+                    <p className="text-lg text-gray-600 mb-4 font-medium">24 yrs • Mumbai • Software Engineer</p>
                     <div className="flex gap-2">
                       <Button className="flex-1 bg-royal-primary hover:bg-royal-primary/90 text-white">
                         <Heart className="h-4 w-4 mr-2" />

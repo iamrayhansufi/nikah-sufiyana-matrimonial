@@ -210,10 +210,9 @@ export default function NotificationsPage() {
                                 {notification.type === 'match' && 'New Match! 💕'}
                                 {notification.type === 'message' && 'New Message'}
                                 {notification.type === 'profile_view' && 'Profile View'}
-                                {notification.type === 'premium' && 'Premium Feature'}
-                                {notification.type === 'system' && 'System Notification'}
+                                {notification.type === 'premium' && 'Premium Feature'}                                {notification.type === 'system' && 'System Notification'}
                               </h3>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-lg text-muted-foreground">
                                 {notification.message}
                               </p>
                               <div className="flex items-center gap-2 mt-2">
@@ -271,7 +270,7 @@ export default function NotificationsPage() {
                                 {notification.type === 'premium' && 'Premium Feature'}
                                 {notification.type === 'system' && 'System Notification'}
                               </h3>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-lg text-muted-foreground">
                                 {notification.message}
                               </p>                              <div className="flex items-center gap-2 mt-2">
                                 {renderNotificationActions(notification)}
@@ -328,7 +327,7 @@ export default function NotificationsPage() {
                                 {notification.type === 'premium' && 'Premium Feature'}
                                 {notification.type === 'system' && 'System Notification'}
                               </h3>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-lg text-muted-foreground">
                                 {notification.message}
                               </p>                              <div className="flex items-center gap-2 mt-2">
                                 {renderNotificationActions(notification)}

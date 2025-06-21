@@ -208,7 +208,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground font-body">Total Users</p>
+                    <p className="text-lg font-medium text-muted-foreground font-body">Total Users</p>
                     <p className="text-2xl font-bold font-heading">{stats.totalRegistrations.toLocaleString()}</p>
                   </div>
                   <Users className="h-8 w-8 text-primary" />
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground font-body">Active Subscriptions</p>
+                    <p className="text-lg font-medium text-muted-foreground font-body">Active Subscriptions</p>
                     <p className="text-2xl font-bold font-heading">{stats.activeSubscriptions.toLocaleString()}</p>
                   </div>
                   <CreditCard className="h-8 w-8 text-green-500" />
@@ -232,7 +232,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground font-body">Pending Approvals</p>
+                    <p className="text-lg font-medium text-muted-foreground font-body">Pending Approvals</p>
                     <p className="text-2xl font-bold font-heading">{stats.pendingApprovals}</p>
                   </div>
                   <UserCheck className="h-8 w-8 text-yellow-500" />
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground font-body">Total Revenue</p>
+                    <p className="text-lg font-medium text-muted-foreground font-body">Total Revenue</p>
                     <p className="text-2xl font-bold font-heading">₹{(stats.totalRevenue / 100000).toFixed(1)}L</p>
                   </div>
                   <DollarSign className="h-8 w-8 text-green-600" />
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground font-body">Monthly Growth</p>
+                    <p className="text-lg font-medium text-muted-foreground font-body">Monthly Growth</p>
                     <p className="text-2xl font-bold font-heading">+{stats.monthlyGrowth}%</p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-blue-500" />
@@ -268,7 +268,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground font-body">Success Matches</p>
+                    <p className="text-lg font-medium text-muted-foreground font-body">Success Matches</p>
                     <p className="text-2xl font-bold font-heading">{stats.successfulMatches}</p>
                   </div>
                   <Activity className="h-8 w-8 text-pink-500" />
@@ -336,7 +336,7 @@ export default function AdminDashboard() {
                   </div>
                   {selectedUsers.length > 0 && (
                     <div className="flex items-center gap-4 p-4 bg-muted rounded-lg mb-4">
-                      <span className="text-sm font-medium">{selectedUsers.length} users selected</span>
+                      <span className="text-lg font-medium">{selectedUsers.length} users selected</span>
                       <Button size="sm" variant="outline" onClick={() => handleBulkApprove()}>
                         Bulk Approve
                       </Button>
@@ -392,7 +392,7 @@ export default function AdminDashboard() {
                             </Avatar>
                             <div>
                               <h4 className="font-semibold font-heading">{user.name}</h4>
-                              <p className="text-sm text-muted-foreground font-body flex items-center gap-2">
+                              <p className="text-lg text-muted-foreground font-body flex items-center gap-2">
                                 <MapPin className="h-3 w-3" />
                                 {user.age} years • {user.location}
                               </p>
@@ -484,7 +484,7 @@ export default function AdminDashboard() {
                       <div key={sub.id} className="flex items-center justify-between p-4 border rounded-lg card-hover">
                         <div>
                           <h4 className="font-semibold font-heading">{sub.userName}</h4>
-                          <p className="text-sm text-muted-foreground font-body">
+                          <p className="text-lg text-muted-foreground font-body">
                             {sub.plan} Plan • ₹{sub.amount}
                           </p>
                           <p className="text-xs text-muted-foreground font-body">
@@ -493,7 +493,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex items-center gap-4">
                           <Badge variant={sub.status === "active" ? "default" : "destructive"}>{sub.status}</Badge>
-                          <span className="text-sm text-muted-foreground font-body">{sub.paymentMethod}</span>
+                          <span className="text-lg text-muted-foreground font-body">{sub.paymentMethod}</span>
                         </div>
                       </div>
                     ))}
@@ -530,7 +530,7 @@ export default function AdminDashboard() {
                           </Avatar>
                           <div>
                             <h4 className="font-semibold font-heading">{user.name}</h4>
-                            <p className="text-sm text-muted-foreground font-body">
+                            <p className="text-lg text-muted-foreground font-body">
                               {user.age} years • {user.location}
                             </p>
                             <p className="text-xs text-muted-foreground font-body">Joined: {user.joinedDate}</p>
@@ -583,11 +583,11 @@ export default function AdminDashboard() {
                         <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
                             <h4 className="font-semibold font-heading">{user.name}</h4>
-                            <p className="text-sm text-muted-foreground font-body">{user.location}</p>
+                            <p className="text-lg text-muted-foreground font-body">{user.location}</p>
                             <p className="text-xs text-muted-foreground font-body">Last active: {user.lastActive}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-body">Views: {user.profileViews}</p>
+                            <p className="text-lg font-body">Views: {user.profileViews}</p>
                             <p className="text-xs text-muted-foreground font-body">
                               Sent: {user.interestsSent} | Received: {user.interestsReceived}
                             </p>
@@ -608,7 +608,7 @@ export default function AdminDashboard() {
                         <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
                             <h4 className="font-semibold font-heading">{payment.userName}</h4>
-                            <p className="text-sm text-muted-foreground font-body">{payment.plan} Plan</p>
+                            <p className="text-lg text-muted-foreground font-body">{payment.plan} Plan</p>
                           </div>
                           <div className="text-right">
                             <p className="font-semibold font-heading">₹{payment.amount}</p>

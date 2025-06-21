@@ -469,7 +469,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
                         <Shield className="h-12 w-12 mb-2" />
                         <p className="font-semibold text-lg mb-1">Protected Photos</p>
-                        <p className="text-sm mb-4">This member has chosen modesty for their photos. Send interest to view clearly.</p>
+                        <p className="text-lg mb-4">This member has chosen modesty for their photos. Send interest to view clearly.</p>
                         {!isInterestSent && !interestMutual && (
                           <Button 
                             variant="secondary" 
@@ -522,37 +522,37 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Age</p>
-                      <p className="text-sm font-medium">{formatAge(profile.dateOfBirth)}</p>
+                      <p className="text-lg font-medium">{formatAge(profile.dateOfBirth)}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Height</p>
-                      <p className="text-sm font-medium">{profile.height || "Not specified"}</p>
+                      <p className="text-lg font-medium">{profile.height || "Not specified"}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Religion</p>
-                      <p className="text-sm font-medium">{profile.religion || "Not specified"}</p>
+                      <p className="text-lg font-medium">{profile.religion || "Not specified"}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Sect</p>
-                      <p className="text-sm font-medium">{profile.sect || "Not specified"}</p>
+                      <p className="text-lg font-medium">{profile.sect || "Not specified"}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Marital Status</p>
-                      <p className="text-sm font-medium">{profile.maritalStatus || "Not specified"}</p>
+                      <p className="text-lg font-medium">{profile.maritalStatus || "Not specified"}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Education</p>
-                      <p className="text-sm font-medium">
+                      <p className="text-lg font-medium">
                         {profile.education ? formatToTitleCase(profile.education) : "Not specified"}
                       </p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Location</p>
-                      <p className="text-sm font-medium">{profile.city || "Not specified"}</p>
+                      <p className="text-lg font-medium">{profile.city || "Not specified"}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Ethnicity</p>
-                      <p className="text-sm font-medium">{profile.ethnicity || "Not specified"}</p>
+                      <p className="text-lg font-medium">{profile.ethnicity || "Not specified"}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -637,39 +637,39 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     <CardContent>
                       <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Age</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Age</dt>
                           <dd>{formatAge(profile.dateOfBirth)} years</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Height</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Height</dt>
                           <dd>{profile.height || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Complexion</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Complexion</dt>
                           <dd>{profile.complexion || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Religion</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Religion</dt>
                           <dd>{profile.religion || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Sect</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Sect</dt>
                           <dd>{profile.sect || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Marital Status</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Marital Status</dt>
                           <dd>{profile.maritalStatus || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Mother Tongue</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Mother Tongue</dt>
                           <dd>{profile.motherTongue || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Ethnicity</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Ethnicity</dt>
                           <dd>{profile.ethnicity || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Disability</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Disability</dt>
                           <dd>{profile.disability || "None"}</dd>
                         </div>
                       </dl>
@@ -684,15 +684,15 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     <CardContent>
                       <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Education</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Education</dt>
                           <dd>{profile.education ? formatToTitleCase(profile.education) : "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Profession</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Profession</dt>
                           <dd>{profile.profession || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Income Range</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Income Range</dt>
                           <dd>{profile.incomeRange || "Not specified"}</dd>
                         </div>
                       </dl>
@@ -709,19 +709,19 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                         <dl className="space-y-4">
                           <div className="flex items-center gap-2">
                             <Phone className="h-4 w-4 text-muted-foreground" />
-                            <dt className="text-sm font-medium text-muted-foreground">Phone</dt>
+                            <dt className="text-lg font-medium text-muted-foreground">Phone</dt>
                             <dd>{profile.phone || "Not available"}</dd>
                           </div>
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
-                            <dt className="text-sm font-medium text-muted-foreground">Email</dt>
+                            <dt className="text-lg font-medium text-muted-foreground">Email</dt>
                             <dd>{profile.email || "Not available"}</dd>
                           </div>
                           {/* Show address only if they've exchanged contact */}
                           {profile.fullAddress && (
                             <div className="flex items-start gap-2">
                               <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
-                              <dt className="text-sm font-medium text-muted-foreground">Address</dt>
+                              <dt className="text-lg font-medium text-muted-foreground">Address</dt>
                               <dd className="flex-1">{profile.fullAddress}</dd>
                             </div>
                           )}
@@ -756,19 +756,19 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     <CardContent>
                       <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">City</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">City</dt>
                           <dd>{profile.city || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">State</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">State</dt>
                           <dd>{profile.state || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Country</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Country</dt>
                           <dd>{profile.country || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Citizenship</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Citizenship</dt>
                           <dd>{profile.citizenship || "Not specified"}</dd>
                         </div>
                       </dl>
@@ -784,22 +784,22 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                       <dl className="space-y-4">
                         {profile.fatherOccupation && (
                           <div>
-                            <dt className="text-sm font-medium text-muted-foreground">Father's Occupation</dt>
+                            <dt className="text-lg font-medium text-muted-foreground">Father's Occupation</dt>
                             <dd>{profile.fatherOccupation}</dd>
                           </div>
                         )}
                         {profile.motherOccupation && (
                           <div>
-                            <dt className="text-sm font-medium text-muted-foreground">Mother's Occupation</dt>
+                            <dt className="text-lg font-medium text-muted-foreground">Mother's Occupation</dt>
                             <dd>{profile.motherOccupation}</dd>
                           </div>
                         )}
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Family Type</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Family Type</dt>
                           <dd>{profile.familyType || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Family Values</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Family Values</dt>
                           <dd>{profile.familyValues || "Not specified"}</dd>
                         </div>
                       </dl>
@@ -814,19 +814,19 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     <CardContent>
                       <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Diet</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Diet</dt>
                           <dd>{profile.diet || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Prayer Habits</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Prayer Habits</dt>
                           <dd>{profile.prayerHabits || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Religiosity</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Religiosity</dt>
                           <dd>{profile.religiosity || "Not specified"}</dd>
                         </div>
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Interests</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Interests</dt>
                           <dd>{profile.hobbies || "Not specified"}</dd>
                         </div>
                       </dl>
@@ -932,7 +932,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     <CardContent>
                       <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Age Range</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Age Range</dt>
                           <dd>{profile.preferredAgeMin && profile.preferredAgeMax ? 
                               `${profile.preferredAgeMin} to ${profile.preferredAgeMax} years` : 
                               "Not specified"}
@@ -940,42 +940,42 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                         </div>
                         
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Height</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Height</dt>
                           <dd>{profile.preferredHeight || "Not specified"}</dd>
                         </div>
                         
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Education</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Education</dt>
                           <dd>{profile.preferredEducation || "Not specified"}</dd>
                         </div>
                         
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Profession</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Profession</dt>
                           <dd>{profile.preferredProfession || "Not specified"}</dd>
                         </div>
                         
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Ethnicity</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Ethnicity</dt>
                           <dd>{profile.preferredEthnicity || "Not specified"}</dd>
                         </div>
                         
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Sect</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Sect</dt>
                           <dd>{profile.preferredSect || "Not specified"}</dd>
                         </div>
                         
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Marital Status</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Marital Status</dt>
                           <dd>{profile.preferredMaritalStatus || "Not specified"}</dd>
                         </div>
                         
                         <div>
-                          <dt className="text-sm font-medium text-muted-foreground">Location</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Location</dt>
                           <dd>{profile.preferredLocation || "Not specified"}</dd>
                         </div>
 
                         <div className="md:col-span-2">
-                          <dt className="text-sm font-medium text-muted-foreground">Additional Requirements</dt>
+                          <dt className="text-lg font-medium text-muted-foreground">Additional Requirements</dt>
                           <dd className="whitespace-pre-line">
                             {profile.additionalPreferences || "No additional requirements specified."}
                           </dd>
@@ -1074,7 +1074,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             ))
                           ) : (
                             <div className="col-span-full text-center">
-                              <p className="text-sm text-muted-foreground text-center">
+                              <p className="text-lg text-muted-foreground text-center">
                                 {profile.profilePhoto ? "No additional photos available" : "No photos available"}
                               </p>
                             </div>

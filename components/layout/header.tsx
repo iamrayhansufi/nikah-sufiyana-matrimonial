@@ -322,7 +322,7 @@ export function Header() {
                     
                     {/* Language Selector */}
                     <div className="mb-6 px-2">
-                      <p className="text-sm mb-2 font-medium">Language</p>
+                      <p className="text-lg mb-2 font-medium">Language</p>
                       <Select value={language} onValueChange={handleLanguageChange}>
                         <SelectTrigger className="w-full">
                           <div className="flex items-center gap-2">
@@ -339,7 +339,7 @@ export function Header() {
                     
                     {/* Theme Toggle */}
                     <div className="mb-6 px-2">
-                      <p className="text-sm mb-2 font-medium">Theme</p>
+                      <p className="text-lg mb-2 font-medium">Theme</p>
                       <Button
                         variant="outline"
                         size="sm"

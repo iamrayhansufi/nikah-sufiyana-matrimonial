@@ -647,7 +647,7 @@ export default function ProfilePage({
 اسلامی اصولوں کے مطابق محفوظ
                           </h3>
                           <p className="font-semibold text-lg mb-1 text-white">Protected by Islamic values</p>
-                          <p className="text-sm text-emerald-100 leading-relaxed max-w-xs mx-auto">
+                          <p className="text-lg text-emerald-100 leading-relaxed max-w-xs mx-auto">
                             Nikah Sufiyana ensures your journey begins with Haya.
                           </p>
                         </div>
@@ -731,7 +731,7 @@ export default function ProfilePage({
                       <MapPin className="h-4 w-4" />
                       {formatToTitleCase(profile.location)}
                     </div>
-                    <p className="text-sm text-muted-foreground">Member since {profile.joinedDate}</p>
+                    <p className="text-lg text-muted-foreground">Member since {profile.joinedDate}</p>
                   </div>
                   
                   {/* Action Buttons */}
@@ -739,7 +739,7 @@ export default function ProfilePage({
                     {/* Interest Request Response (if user received request from this profile) */}
                     {incomingInterestRequest && (
                       <div className="space-y-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm text-blue-800 font-medium text-center">
+                        <p className="text-lg text-blue-800 font-medium text-center">
                           {formatToTitleCase(profile.name)} has sent you an interest request
                         </p>
                         <div className="grid grid-cols-2 gap-2">
@@ -871,7 +871,7 @@ export default function ProfilePage({
                                 )}
                                 
                                 {!profile.showFatherNumber && !profile.showMotherNumber && (
-                                  <p className="text-sm text-muted-foreground">
+                                  <p className="text-lg text-muted-foreground">
                                     No parent contact numbers have been shared.
                                   </p>
                                 )}
@@ -882,7 +882,7 @@ export default function ProfilePage({
                           <div className="text-center py-6">
                             <EyeOff className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                             <h3 className="font-semibold mb-2">Upgrade to Premium</h3>
-                            <p className="text-sm text-muted-foreground mb-4">
+                            <p className="text-lg text-muted-foreground mb-4">
                               Contact information is only available for Premium members
                             </p>
                             <Button className="gradient-gold text-white">Upgrade Now</Button>
@@ -916,25 +916,25 @@ export default function ProfilePage({
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                          <div>
                             <p className="font-medium mb-1">Full Name</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.fullName || profile.name || "Not Specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.fullName || profile.name || "Not Specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Gender</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {profile.gender ? formatToTitleCase(profile.gender) : "Not Specified"}
                             </p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Age</p>
-                            <p className="text-sm text-muted-foreground">{profile.age ? `${profile.age} Years` : "Not Specified"}</p>
+                            <p className="text-lg text-muted-foreground">{profile.age ? `${profile.age} Years` : "Not Specified"}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Height</p>
-                            <p className="text-sm text-muted-foreground">{profile.height && profile.height.trim() !== "" ? profile.height : "Not Specified"}</p>
+                            <p className="text-lg text-muted-foreground">{profile.height && profile.height.trim() !== "" ? profile.height : "Not Specified"}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Complexion</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {profile.complexion === "very-fair" ? "Very Fair" : 
                                profile.complexion === "fair" ? "Fair" :
                                profile.complexion === "wheatish" ? "Wheatish" :
@@ -946,34 +946,34 @@ export default function ProfilePage({
                           </div>
                           <div>
                             <p className="font-medium mb-1">Marital Status</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {profile.maritalStatus ? formatToTitleCase(profile.maritalStatus) : "Not Specified"}
                             </p>
                           </div>
                           {profile.maritalStatus === 'other' && (
                             <div>
                               <p className="font-medium mb-1">Other Marital Status</p>
-                              <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.maritalStatusOther || "Not Specified")}</p>
+                              <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.maritalStatusOther || "Not Specified")}</p>
                             </div>
                           )}
                           <div>
                             <p className="font-medium mb-1">Maslak</p>
-                            <p className="text-sm text-muted-foreground">{profile.sect ? formatToTitleCase(profile.sect) : "Not Specified"}</p>
+                            <p className="text-lg text-muted-foreground">{profile.sect ? formatToTitleCase(profile.sect) : "Not Specified"}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Country</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.country || "Not Specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.country || "Not Specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">City</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.city || "Not Specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.city || "Not Specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Address</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.address || "Not Specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.address || "Not Specified")}</p>
                           </div>                          <div className="col-span-1 md:col-span-2">
                             <p className="font-medium mb-1">About {profile.gender === 'male' ? 'Groom' : 'Bride'}</p>
-                            <p className="text-sm text-muted-foreground leading-relaxed">{formatToTitleCase(profile.aboutMe || "Not Specified")}</p>
+                            <p className="text-lg text-muted-foreground leading-relaxed">{formatToTitleCase(profile.aboutMe || "Not Specified")}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -986,23 +986,23 @@ export default function ProfilePage({
                       </CardHeader>
                       <CardContent>                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                          <div>
                             <p className="font-medium mb-1">Qualification</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.education || "Not Specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.education || "Not Specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Education Details</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.educationDetails || "Not Specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.educationDetails || "Not Specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Profession</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.profession || "Not Specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.profession || "Not Specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Job Title</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.jobTitle || "Not Specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.jobTitle || "Not Specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Income</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.income || "Not Specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.income || "Not Specified")}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -1018,7 +1018,7 @@ export default function ProfilePage({
                             <GraduationCap className="h-5 w-5 text-primary" />
                             <div>
                               <p className="font-medium">{formatToTitleCase(profile.education)}</p>
-                              <p className="text-sm text-muted-foreground">Education</p>
+                              <p className="text-lg text-muted-foreground">Education</p>
                             </div>
                           </div>
 
@@ -1026,7 +1026,7 @@ export default function ProfilePage({
                             <Briefcase className="h-5 w-5 text-primary" />
                             <div>
                               <p className="font-medium">{formatToTitleCase(profile.profession)}</p>
-                              <p className="text-sm text-muted-foreground">Profession</p>
+                              <p className="text-lg text-muted-foreground">Profession</p>
                             </div>
                           </div>
 
@@ -1034,7 +1034,7 @@ export default function ProfilePage({
                             <MapPin className="h-5 w-5 text-primary" />
                             <div>
                               <p className="font-medium">{formatToTitleCase(profile.location)}</p>
-                              <p className="text-sm text-muted-foreground">Location</p>
+                              <p className="text-lg text-muted-foreground">Location</p>
                             </div>
                           </div>
 
@@ -1042,7 +1042,7 @@ export default function ProfilePage({
                             <Mosque className="h-5 w-5 text-primary" />
                             <div>
                               <p className="font-medium">{formatToTitleCase(profile.sect)}</p>
-                              <p className="text-sm text-muted-foreground">Islamic Sect</p>
+                              <p className="text-lg text-muted-foreground">Islamic Sect</p>
                             </div>
                           </div>
                         </div>
@@ -1058,20 +1058,20 @@ export default function ProfilePage({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <p className="font-medium mb-1">Preferred Age</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {profile.preferredAgeMin && profile.preferredAgeMax 
                                 ? `${profile.preferredAgeMin} - ${profile.preferredAgeMax} years` 
                                 : "Not specified"}
                             </p>
                           </div>                          <div>
                             <p className="font-medium mb-1">Preferred Height</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {profile.preferredHeight && profile.preferredHeight.trim() !== "" ? formatToTitleCase(profile.preferredHeight) : "Not specified"}
                             </p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Preferred Complexion</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {profile.preferredComplexion === "very-fair" ? "Very Fair" : 
                                profile.preferredComplexion === "fair" ? "Fair" :
                                profile.preferredComplexion === "wheatish" ? "Wheatish" :
@@ -1083,25 +1083,25 @@ export default function ProfilePage({
                           </div>
                           <div>
                             <p className="font-medium mb-1">Preferred Education</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.preferredEducation || "Not specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.preferredEducation || "Not specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Preferred Location</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.preferredLocation || "Not specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.preferredLocation || "Not specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Preferred Occupation</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.preferredOccupation || "Not specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.preferredOccupation || "Not specified")}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Preferred Maslak</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.preferredMaslak || "Not specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.preferredMaslak || "Not specified")}</p>
                           </div>
                         </div>
                           {profile.expectations && (
                           <div className="mt-4">
                             <p className="font-medium mb-1">Additional Expectations</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.expectations)}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.expectations)}</p>
                           </div>
                         )}
                       </CardContent>
@@ -1119,22 +1119,22 @@ export default function ProfilePage({
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                          <div>
                             <p className="font-medium mb-1">Father's Name</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {profile.fatherName ? formatToTitleCase(profile.fatherName) : "Not Specified"}
                             </p>
                           </div>                          <div>
                             <p className="font-medium mb-1">Mother's Name</p>
-                            <p className="text-sm text-muted-foreground">{formatToTitleCase(profile.motherName || "Not specified")}</p>
+                            <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.motherName || "Not specified")}</p>
                           </div>                          <div>
                             <p className="font-medium mb-1">Father's Occupation</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {profile.fatherOccupation && profile.fatherOccupation.trim() !== "" ? 
                                formatToTitleCase(profile.fatherOccupation) : "Not Specified"}
                             </p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Mother's Occupation</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {profile.motherOccupation === "other" && profile.motherOccupationOther ? 
                                 formatToTitleCase(profile.motherOccupationOther) : 
                                 profile.motherOccupation === "Home Queen" ? 
@@ -1143,7 +1143,7 @@ export default function ProfilePage({
                             </p>
                           </div>
                           <div>
-                            <p className="font-medium mb-1">Housing Status</p>                            <p className="text-sm text-muted-foreground">
+                            <p className="font-medium mb-1">Housing Status</p>                            <p className="text-lg text-muted-foreground">
                               {profile.housingStatus === "owned" ? "Own House" :
                                profile.housingStatus === "rented" ? "Rented" :
                                profile.housingStatus === "other" ? "Other" :
@@ -1154,7 +1154,7 @@ export default function ProfilePage({
                         </div>
                           <div className="mt-6">
                           <p className="font-medium mb-2">Family Description</p>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{formatToTitleCase(profile.familyDetails || "Not provided")}</p>
+                          <p className="text-lg text-muted-foreground leading-relaxed">{formatToTitleCase(profile.familyDetails || "Not provided")}</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -1276,7 +1276,7 @@ export default function ProfilePage({
                                     </svg>
                                   </div>
                                 </div>
-                                <p className="text-sm font-medium text-amber-100 mb-1">Protected with Haya</p>
+                                <p className="text-lg font-medium text-amber-100 mb-1">Protected with Haya</p>
                                 <p className="text-xs text-emerald-200">Express interest to view</p>
                               </div>
                             )}
@@ -1314,13 +1314,13 @@ export default function ProfilePage({
                             ))
                           ) : (
                             <div className="col-span-full text-center">
-                              <p className="text-sm text-muted-foreground mt-4">
+                              <p className="text-lg text-muted-foreground mt-4">
                                 {profile.profilePhoto ? "No additional photos available" : "No photos available"}
                               </p>
                             </div>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground text-center">
+                        <p className="text-lg text-muted-foreground text-center">
                           {profile.showPhotos ? 
                             "Photos are visible to all members" : 
                             shouldBlurPhoto ? 

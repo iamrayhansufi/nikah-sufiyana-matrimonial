@@ -284,7 +284,7 @@ export default function PremiumPage() {
                     </div>
                     <p className="text-muted-foreground mb-4">{testimonial.text}</p>
                     <p className="font-semibold">{testimonial.name}</p>
-                    <p className="text-sm text-muted-foreground">{testimonial.location}</p>
+                    <p className="text-lg text-muted-foreground">{testimonial.location}</p>
                   </CardContent>
                 </Card>
               ))}

@@ -141,7 +141,7 @@ export default function ContactPage() {
                   {item.details.map((detail, i) => (
                     <p key={i} className="text-muted-foreground">{detail}</p>
                   ))}
-                  <p className="text-sm text-primary mt-2">{item.description}</p>
+                  <p className="text-lg text-primary mt-2">{item.description}</p>
                 </CardContent>
               </Card>
             ))}

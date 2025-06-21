@@ -263,7 +263,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                     {shouldBlurPhoto && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg text-white p-4 text-center">
                         <Shield className="h-12 w-12 mb-2" />
-                        <p className="text-sm mb-4">For modesty, photos are protected</p>
+                        <p className="text-lg mb-4">For modesty, photos are protected</p>
                         {!session ? (
                           <Button
                             variant="secondary"
@@ -419,7 +419,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                               <Mosque className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
                             </div>
                             <div>
-                              <p className="text-sm text-muted-foreground">Sect</p>
+                              <p className="text-lg text-muted-foreground">Sect</p>
                               <p className="font-medium">{profile.sect || "Not specified"}</p>
                             </div>
                           </div>
@@ -428,7 +428,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                               <MapPin className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
                             </div>
                             <div>
-                              <p className="text-sm text-muted-foreground">Location</p>
+                              <p className="text-lg text-muted-foreground">Location</p>
                               <p className="font-medium">{profile.location || "Not specified"}</p>
                             </div>
                           </div>
@@ -437,7 +437,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                               <GraduationCap className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
                             </div>
                             <div>
-                              <p className="text-sm text-muted-foreground">Education</p>
+                              <p className="text-lg text-muted-foreground">Education</p>
                               <p className="font-medium">{profile.education || "Not specified"}</p>
                             </div>
                           </div>
@@ -446,7 +446,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                               <Briefcase className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
                             </div>
                             <div>
-                              <p className="text-sm text-muted-foreground">Occupation</p>
+                              <p className="text-lg text-muted-foreground">Occupation</p>
                               <p className="font-medium">{profile.occupation || "Not specified"}</p>
                             </div>
                           </div>
@@ -455,7 +455,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                               <Star className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
                             </div>
                             <div>
-                              <p className="text-sm text-muted-foreground">Mother Tongue</p>
+                              <p className="text-lg text-muted-foreground">Mother Tongue</p>
                               <p className="font-medium">{profile.motherTongue || "Not specified"}</p>
                             </div>
                           </div>
@@ -474,7 +474,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                   <Phone className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
                                 </div>
                                 <div>
-                                  <p className="text-sm text-muted-foreground">Phone</p>
+                                  <p className="text-lg text-muted-foreground">Phone</p>
                                   <p className="font-medium">{profile.phone || "Not specified"}</p>
                                 </div>
                               </div>
@@ -483,7 +483,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                   <Mail className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
                                 </div>
                                 <div>
-                                  <p className="text-sm text-muted-foreground">Email</p>
+                                  <p className="text-lg text-muted-foreground">Email</p>
                                   <p className="font-medium">{profile.email || "Not specified"}</p>
                                 </div>
                               </div>
@@ -529,16 +529,16 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             <h4 className="font-medium mb-2">Father</h4>
                             <div className="space-y-2">
                               <div>
-                                <p className="text-sm text-muted-foreground">Name</p>
+                                <p className="text-lg text-muted-foreground">Name</p>
                                 <p>{profile.fatherName || "Not specified"}</p>
                               </div>
                               <div>
-                                <p className="text-sm text-muted-foreground">Occupation</p>
+                                <p className="text-lg text-muted-foreground">Occupation</p>
                                 <p>{profile.fatherOccupation || "Not specified"}</p>
                               </div>
                               {interestMutual && (
                                 <div>
-                                  <p className="text-sm text-muted-foreground">Contact</p>
+                                  <p className="text-lg text-muted-foreground">Contact</p>
                                   <p>{profile.fatherMobile || "Not specified"}</p>
                                 </div>
                               )}
@@ -548,16 +548,16 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             <h4 className="font-medium mb-2">Mother</h4>
                             <div className="space-y-2">
                               <div>
-                                <p className="text-sm text-muted-foreground">Name</p>
+                                <p className="text-lg text-muted-foreground">Name</p>
                                 <p>{profile.motherName || "Not specified"}</p>
                               </div>
                               <div>
-                                <p className="text-sm text-muted-foreground">Occupation</p>
+                                <p className="text-lg text-muted-foreground">Occupation</p>
                                 <p>{profile.motherOccupation || "Not specified"}</p>
                               </div>
                               {interestMutual && (
                                 <div>
-                                  <p className="text-sm text-muted-foreground">Contact</p>
+                                  <p className="text-lg text-muted-foreground">Contact</p>
                                   <p>{profile.motherMobile || "Not specified"}</p>
                                 </div>
                               )}
@@ -578,16 +578,16 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                               <div key={index} className="border rounded-md p-3">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                   <div>
-                                    <p className="text-sm text-muted-foreground">Gender</p>
+                                    <p className="text-lg text-muted-foreground">Gender</p>
                                     <p>{sibling.gender || "Not specified"}</p>
                                   </div>
                                   <div>
-                                    <p className="text-sm text-muted-foreground">Marital Status</p>
+                                    <p className="text-lg text-muted-foreground">Marital Status</p>
                                     <p>{sibling.maritalStatus || "Not specified"}</p>
                                   </div>
                                   {sibling.occupation && (
                                     <div>
-                                      <p className="text-sm text-muted-foreground">Occupation</p>
+                                      <p className="text-lg text-muted-foreground">Occupation</p>
                                       <p>{sibling.occupation || "Not specified"}</p>
                                     </div>
                                   )}
@@ -690,13 +690,13 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                             ))
                           ) : (
                             <div className="col-span-full text-center">
-                              <p className="text-sm text-muted-foreground mt-4">
+                              <p className="text-lg text-muted-foreground mt-4">
                                 {profile.profilePhoto ? "No additional photos available" : "No photos available"}
                               </p>
                             </div>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground text-center">
+                        <p className="text-lg text-muted-foreground text-center">
                           {profile.showPhotos ? 
                             "Photos are visible to all members" : 
                             shouldBlurPhoto ? 

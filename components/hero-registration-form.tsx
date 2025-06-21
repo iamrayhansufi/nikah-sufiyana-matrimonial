@@ -51,7 +51,7 @@ export function HeroRegistrationForm() {
           <CardTitle className={`${elMessiri.className} text-2xl font-bold text-gray-800`}>
             Begin Your Royal Journey
           </CardTitle>
-          <p className="text-sm text-gray-600">Find your destined companion with Allah's blessing</p>
+          <p className="text-lg text-gray-600">Find your destined companion with Allah's blessing</p>
           
           {/* SVG Border Under Title */}
           <div className="flex justify-center mt-3">
@@ -68,7 +68,7 @@ export function HeroRegistrationForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="fullName" className="text-sm font-medium text-gray-700 font-body">
+            <Label htmlFor="fullName" className="text-lg font-medium text-gray-700 font-body">
               Full Name
             </Label>
             <div className="relative mt-1">
@@ -85,7 +85,7 @@ export function HeroRegistrationForm() {
           </div>
 
           <div>
-            <Label htmlFor="lookingFor" className="text-sm font-medium text-gray-700 font-body">
+            <Label htmlFor="lookingFor" className="text-lg font-medium text-gray-700 font-body">
               Looking for
             </Label>
             <Select
@@ -103,7 +103,7 @@ export function HeroRegistrationForm() {
           </div>
 
           <div>
-            <Label htmlFor="mobile" className="text-sm font-medium text-gray-700 font-body">
+            <Label htmlFor="mobile" className="text-lg font-medium text-gray-700 font-body">
               WhatsApp Mobile Number
             </Label>
             <div className="flex mt-1 space-x-2">

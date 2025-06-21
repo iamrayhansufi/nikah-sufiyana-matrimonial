@@ -674,7 +674,7 @@ export default function EditProfilePage() {
                 <CardTitle className="flex items-center text-2xl">
                   <UserCircle className="mr-2" /> Edit Your Profile
                 </CardTitle>
-                <CardDescription className="text-sm md:text-base">
+                <CardDescription className="text-lg md:text-base">
                   Update your information to make your profile more attractive to potential matches.
                 </CardDescription>
               </div>
@@ -1228,7 +1228,7 @@ export default function EditProfilePage() {
                       </div>
                     ) : (
                       <div className="text-center p-4 border rounded-md bg-muted/10">
-                        <p className="text-sm text-muted-foreground">No siblings added yet</p>
+                        <p className="text-lg text-muted-foreground">No siblings added yet</p>
                         <Button 
                           type="button" 
                           variant="outline" 
@@ -1301,7 +1301,7 @@ export default function EditProfilePage() {
                       </div>
                     ) : (
                       <div className="text-center p-4 border rounded-md bg-muted/10">
-                        <p className="text-sm text-muted-foreground">No brother-in-law added yet</p>
+                        <p className="text-lg text-muted-foreground">No brother-in-law added yet</p>
                         <p className="text-xs text-muted-foreground mt-1">Add brother-in-law details for married sisters</p>
                         <Button 
                           type="button" 
@@ -1392,7 +1392,7 @@ export default function EditProfilePage() {
                       </div>
                     ) : (
                       <div className="text-center p-4 border rounded-md bg-muted/10">
-                        <p className="text-sm text-muted-foreground">No maternal/paternal relations added yet</p>
+                        <p className="text-lg text-muted-foreground">No maternal/paternal relations added yet</p>
                         <Button 
                           type="button" 
                           variant="outline" 

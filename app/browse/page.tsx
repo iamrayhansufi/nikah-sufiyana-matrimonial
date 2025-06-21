@@ -933,7 +933,7 @@ export default function BrowseProfilesPage() {
               </div>
 
               <div className="mt-4 flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Showing {filteredProfiles.length} profiles</p>
+                <p className="text-lg text-muted-foreground">Showing {filteredProfiles.length} profiles</p>
                 <Select defaultValue="match">
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Sort by" />
@@ -995,7 +995,7 @@ export default function BrowseProfilesPage() {
                               صور محفوظة بالحشمة
                             </h3>
                             <p className="font-semibold text-lg mb-1 text-white">Photos Protected with Haya</p>
-                            <p className="text-sm text-emerald-100 leading-relaxed max-w-xs mx-auto">
+                            <p className="text-lg text-emerald-100 leading-relaxed max-w-xs mx-auto">
                               This member follows Islamic principles of modesty and privacy.
                             </p>
                           </div>
@@ -1014,7 +1014,7 @@ export default function BrowseProfilesPage() {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div>                           <h3 className={`${elMessiri.className} font-semibold text-lg`}>{formatToTitleCase(profile.name)}</h3>
-                          <p className="text-sm text-muted-foreground">{profile.age} years old</p>
+                          <p className="text-lg text-muted-foreground">{profile.age} years old</p>
                         </div>
                         <div className="flex gap-1">
                           {/* Photo visibility toggle button - only shown for mutual interests */}

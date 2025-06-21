@@ -155,7 +155,7 @@ export default function HomePage() {
     }
   }
 
-  return (    <div className="min-h-screen bg-sufiyana-pattern">
+  return (    <div className="min-h-screen bg-royal-gradient">
       <Header />
 
       {/* Sufiyana Hero Section with Divine Slider */}
@@ -171,7 +171,7 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
           >
             <div className="space-y-6">
-              <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-sm font-medium">
+              <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-custom-sm font-medium">
                 {slides[currentSlide].badge}
               </Badge>                  <h1 className={`${elMessiri.className} text-4xl md:text-6xl lg:text-7xl font-bold text-royal-primary leading-tight`}>
                 {slides[currentSlide].title}
@@ -395,7 +395,7 @@ export default function HomePage() {
             whileInView="animate"
             viewport={{ once: true }}
           >
-            <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-sm font-medium mb-4">
+            <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-custom-sm font-medium mb-4">
               <Crown className="h-4 w-4 mr-2" />
               Premium Verified Profiles
             </Badge>            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
@@ -450,7 +450,7 @@ export default function HomePage() {
                     <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800 mb-2`}>
                       {profile.name}
                     </h3>
-                    <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <div className="space-y-2 text-custom-sm text-gray-600 mb-4">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         {profile.age} years old
@@ -544,7 +544,7 @@ export default function HomePage() {
                           <h3 className={`${elMessiri.className} text-lg font-bold text-gray-800`}>
                             {story.couple}
                           </h3>
-                          <p className="text-sm text-gray-600">{story.location}</p>
+                          <p className="text-lg text-gray-600">{story.location}</p>
                         </div>
                       </div>
                       
@@ -555,7 +555,7 @@ export default function HomePage() {
                         </p>
                       </div>
                       
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-2 text-custom-sm">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-royal-primary" />
                           <span className="font-medium text-royal-primary">{story.date}</span>
@@ -709,7 +709,7 @@ export default function HomePage() {
               <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
                 <div className="text-4xl md:text-5xl font-bold text-royal-primary mb-2">100K+</div>
                 <div className="text-gray-700 font-medium">Blessed Souls</div>
-                <div className="text-sm text-gray-500">Active Members</div>
+                <div className="text-lg text-gray-500">Active Members</div>
               </div>
             </motion.div>
             
@@ -717,7 +717,7 @@ export default function HomePage() {
               <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
                 <div className="text-4xl md:text-5xl font-bold text-royal-primary mb-2">15K+</div>
                 <div className="text-gray-700 font-medium">Sacred Unions</div>
-                <div className="text-sm text-gray-500">Successful Matches</div>
+                <div className="text-lg text-gray-500">Successful Matches</div>
               </div>
             </motion.div>
             
@@ -725,7 +725,7 @@ export default function HomePage() {
               <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
                 <div className="text-4xl md:text-5xl font-bold text-royal-primary mb-2">95%</div>
                 <div className="text-gray-700 font-medium">Divine Success</div>
-                <div className="text-sm text-gray-500">Match Success Rate</div>
+                <div className="text-lg text-gray-500">Match Success Rate</div>
               </div>
             </motion.div>
             
@@ -733,7 +733,7 @@ export default function HomePage() {
               <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
                 <div className="text-4xl md:text-5xl font-bold text-royal-primary mb-2">24/7</div>
                 <div className="text-gray-700 font-medium">Royal Support</div>
-                <div className="text-sm text-gray-500">Always Available</div>
+                <div className="text-lg text-gray-500">Always Available</div>
               </div>
             </motion.div>
           </motion.div>

@@ -480,14 +480,13 @@ export default function DashboardPage() {
                   <p className="text-gray-600 mb-4">{userProfile.profession}</p>
 
                   <div className="flex items-center gap-2 mb-4">
-                    {getStatusIcon(profileStatus)}
-                    <span className="text-sm font-medium">{getStatusText(profileStatus)}</span>
+                    {getStatusIcon(profileStatus)}                    <span className="text-lg font-medium">{getStatusText(profileStatus)}</span>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm">Profile Completeness</span>
-                      <span className="text-sm font-medium">{userProfile.completeness}%</span>
+                      <span className="text-lg">Profile Completeness</span>
+                      <span className="text-lg font-medium">{userProfile.completeness}%</span>
                     </div>
                     <Progress value={userProfile.completeness} className="h-2" />
                     {userProfile.completeness < 100 && (
@@ -524,7 +523,7 @@ export default function DashboardPage() {
               <CardContent className="p-4 text-center">
                 <Eye className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <div className="text-2xl font-bold">{stats.profileViews}</div>
-                <div className="text-sm text-muted-foreground">Profile Views</div>
+                <div className="text-lg text-muted-foreground">Profile Views</div>
               </CardContent>
             </Card>
 
@@ -532,7 +531,7 @@ export default function DashboardPage() {
               <CardContent className="p-4 text-center">
                 <Heart className="h-8 w-8 mx-auto mb-2 text-red-500" />
                 <div className="text-2xl font-bold">{stats.interests}</div>
-                <div className="text-sm text-muted-foreground">Interests Received</div>
+                <div className="text-lg text-muted-foreground">Interests Received</div>
               </CardContent>
             </Card>
 
@@ -540,7 +539,7 @@ export default function DashboardPage() {
               <CardContent className="p-4 text-center">
                 <Star className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
                 <div className="text-2xl font-bold">{stats.shortlisted}</div>
-                <div className="text-sm text-muted-foreground">Shortlisted</div>
+                <div className="text-lg text-muted-foreground">Shortlisted</div>
               </CardContent>
             </Card>
 
@@ -548,7 +547,7 @@ export default function DashboardPage() {
               <CardContent className="p-4 text-center">
                 <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-500" />
                 <div className="text-2xl font-bold">{stats.matches}</div>
-                <div className="text-sm text-muted-foreground">Mutual Matches</div>
+                <div className="text-lg text-muted-foreground">Mutual Matches</div>
               </CardContent>
             </Card>
           </div>
@@ -586,10 +585,10 @@ export default function DashboardPage() {
                           </Avatar>
                           <div>
                             <h4 className="font-semibold">{interest.name}</h4>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {interest.age} years • {interest.location}
                             </p>
-                            <p className="text-sm text-muted-foreground">{interest.profession}</p>
+                            <p className="text-lg text-muted-foreground">{interest.profession}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -637,10 +636,10 @@ export default function DashboardPage() {
                           </Avatar>
                           <div className="flex-1">
                             <h4 className="font-semibold">{profile.name}</h4>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-lg text-muted-foreground">
                               {profile.age} years • {profile.location}
                             </p>
-                            <p className="text-sm text-muted-foreground">{profile.profession}</p>
+                            <p className="text-lg text-muted-foreground">{profile.profession}</p>
                           </div>
                           <Badge variant="secondary">{profile.match}% Match</Badge>
                         </div>
@@ -682,7 +681,7 @@ export default function DashboardPage() {
                             </Avatar>
                             <div>
                               <h3 className="font-semibold">{interest.name}</h3>
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-lg text-muted-foreground">
                                 {interest.age} years • {interest.location} • {interest.profession || 'Not specified'}
                               </div>
                               <div className="text-xs text-muted-foreground">Interest sent {interest.time}</div>
@@ -737,11 +736,11 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <h4 className="font-semibold">Current Plan</h4>
-                          <p className="text-sm text-muted-foreground">Free Membership</p>
+                          <p className="text-lg text-muted-foreground">Free Membership</p>
                         </div>
                         <Badge variant="outline">Free</Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-4">
+                      <p className="text-lg text-muted-foreground mb-4">
                         Upgrade to Premium to unlock all features and connect with more profiles.
                       </p>
                       <Link href="/premium">

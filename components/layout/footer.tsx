@@ -61,7 +61,7 @@ export function Footer() {
                 className="h-12 w-auto filter brightness-0 invert"
               />
             </Link>
-            <p className="text-sm text-white/90 max-w-md leading-relaxed">
+            <p className="text-lg text-white/90 max-w-md leading-relaxed">
               <strong className={`${elMessiri.className} text-lg`}>Nikah Sufiyana</strong> - India's most trusted Islamic matrimonial platform, where hearts unite through divine blessing. We combine sacred Islamic values with modern technology to create meaningful, halal connections that lead to blessed marriages.
             </p>
             
@@ -98,7 +98,7 @@ export function Footer() {
               <Sparkles className="h-5 w-5" />
               Sacred Links
             </h3>
-            <ul className="space-y-3 text-sm">
+            <ul className="space-y-3 text-lg">
               <li>
                 <Link href="/browse" className="hover:text-white/70 transition-colors duration-300 flex items-center gap-2">
                   <Heart className="h-4 w-4" />
@@ -139,7 +139,7 @@ export function Footer() {
               <Heart className="h-5 w-5" />
               Blessed Support
             </h3>
-            <ul className="space-y-3 text-sm">
+            <ul className="space-y-3 text-lg">
               <li>
                 <Link href="/contact" className="hover:text-white/70 transition-colors duration-300">
                   Contact Sacred Support

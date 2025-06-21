@@ -193,7 +193,7 @@ export function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-sm font-medium transition-colors hover:text-primary font-body"
+                  className="text-lg font-medium transition-colors hover:text-primary font-body"
                 >
                   {language === "en" ? item.name : (
                     <span className="font-arabic" style={{ fontFamily: "Jameel Noori Nastaleeq, serif" }}>

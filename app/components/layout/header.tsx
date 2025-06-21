@@ -24,13 +24,13 @@ export function Header() {
           <nav className="flex items-center space-x-6">
             <Link
               href="/register"
-              className="text-sm font-medium transition-colors hover:text-primary"
+              className="text-lg font-medium transition-colors hover:text-primary"
             >
               Register
             </Link>
             <Link
               href="/login"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+              className="text-lg font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               Login
             </Link>

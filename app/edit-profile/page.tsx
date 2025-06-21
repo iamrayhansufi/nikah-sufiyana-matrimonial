@@ -1203,7 +1203,7 @@ export default function EditProfilePage() {
                 <CardTitle className="flex items-center text-2xl">
                   <UserCircle className="mr-2" /> Edit Your Profile
                 </CardTitle>
-                <CardDescription className="text-sm md:text-base">
+                <CardDescription className="text-lg md:text-base">
                   Update your information to make your profile more attractive to potential matches.
                 </CardDescription>
               </div>
@@ -1752,7 +1752,7 @@ export default function EditProfilePage() {
                       </div>
                     ) : (
                       <div className="text-center p-4 border rounded-md bg-muted/10">
-                        <p className="text-sm text-muted-foreground">No siblings added yet</p>
+                        <p className="text-lg text-muted-foreground">No siblings added yet</p>
                         <Button 
                           type="button" 
                           variant="outline" 
@@ -1825,7 +1825,7 @@ export default function EditProfilePage() {
                       </div>
                     ) : (
                       <div className="text-center p-4 border rounded-md bg-muted/10">
-                        <p className="text-sm text-muted-foreground">No brother-in-law added yet</p>
+                        <p className="text-lg text-muted-foreground">No brother-in-law added yet</p>
                         <p className="text-xs text-muted-foreground mt-1">Add brother-in-law details for married sisters</p>
                         <Button 
                           type="button" 
@@ -1914,7 +1914,7 @@ export default function EditProfilePage() {
                       </div>
                     ) : (
                       <div className="text-center p-4 border rounded-md bg-muted/10">
-                        <p className="text-sm text-muted-foreground">No maternal/paternal relations added yet</p>
+                        <p className="text-lg text-muted-foreground">No maternal/paternal relations added yet</p>
                         <Button 
                           type="button" 
                           variant="outline" 
@@ -2123,7 +2123,7 @@ export default function EditProfilePage() {
                       <Label htmlFor="showOnlineStatus">Show Online Status</Label>
                     </div>
                   </div>                    <div className="border p-4 rounded-md bg-yellow-50/30">
-                      <h3 className="font-medium text-sm mb-2">Parent Contact Information (Premium Only)</h3>
+                      <h3 className="font-medium text-lg mb-2">Parent Contact Information (Premium Only)</h3>
                       
                       <div className="grid grid-cols-1 gap-4">
                         <div>
@@ -2140,7 +2140,7 @@ export default function EditProfilePage() {
                           
                           {privacyForm.showFatherNumber && (
                             <div className="pl-6 mt-2">
-                              <Label htmlFor="fatherMobile" className="text-sm mb-1 block">Father's Mobile Number</Label>                              <Input 
+                              <Label htmlFor="fatherMobile" className="text-lg mb-1 block">Father's Mobile Number</Label>                              <Input 
                                 id="fatherMobile"
                                 value={privacyForm.fatherMobile}
                                 onChange={(e) => handlePrivacyChange('fatherMobile', e.target.value)}
@@ -2170,7 +2170,7 @@ export default function EditProfilePage() {
                           
                           {privacyForm.showMotherNumber && (
                             <div className="pl-6 mt-2">
-                              <Label htmlFor="motherMobile" className="text-sm mb-1 block">Mother's Mobile Number</Label>                              <Input 
+                              <Label htmlFor="motherMobile" className="text-lg mb-1 block">Mother's Mobile Number</Label>                              <Input 
                                 id="motherMobile"
                                 value={privacyForm.motherMobile}
                                 onChange={(e) => handlePrivacyChange('motherMobile', e.target.value)}
@@ -2190,7 +2190,7 @@ export default function EditProfilePage() {
                   
                     <div className="border p-4 rounded-md bg-blue-50/30 mt-4 space-y-4">
                       <h3 className="font-medium text-md mb-2">Photo Gallery</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
+                      <p className="text-lg text-muted-foreground mb-4">
                         Upload additional photos to showcase in your profile gallery. You can add up to 5 photos.
                       </p>
                       
@@ -2265,7 +2265,7 @@ export default function EditProfilePage() {
                           )}
                         </div>
                         
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-lg text-muted-foreground">
                           <p>
                             <strong>Note:</strong> Each photo should be less than 5MB. For best results, use square images.
                           </p>

@@ -69,7 +69,7 @@ export function AuthRequiredModal({ isOpen, onClose, returnUrl }: AuthRequiredMo
           </Button>
           <div className="relative flex items-center">
             <div className="flex-grow border-t border-gray-300"></div>
-            <span className="flex-shrink mx-4 text-gray-400 text-sm">or</span>
+            <span className="flex-shrink mx-4 text-gray-400 text-lg">or</span>
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
           <Button 

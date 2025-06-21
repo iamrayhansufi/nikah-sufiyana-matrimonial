@@ -267,7 +267,7 @@ function LoginFormWithParams() {
                       Remember me
                     </Label>
                   </div>
-                  <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                  <Link href="/forgot-password" className="text-lg text-primary hover:underline">
                     Forgot password?
                   </Link>
                 </div>
@@ -293,7 +293,7 @@ function LoginFormWithParams() {
 
               {/* Sign Up Link */}
               <div className="text-center mt-6">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-muted-foreground">
                   Don't have an account?{" "}
                   <Link href="/register" className="text-primary hover:underline font-medium">
                     Create your profile
@@ -305,7 +305,7 @@ function LoginFormWithParams() {
 
           {/* Help Section */}
           <div className="text-center mt-6">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-lg text-muted-foreground">
               Need help? Contact us at{" "}
               <a href="mailto:support@nikahsufiyana.com" className="text-primary hover:underline">
                 support@nikahsufiyana.com

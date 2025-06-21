@@ -49,7 +49,7 @@ export default function MessagesPage() {
                               className="w-12 h-12 rounded-full"
                             />                            <div className="flex-1 min-w-0">
                               <h3 className={`${elMessiri.className} font-semibold text-royal-primary truncate`}>Aisha Khan</h3>
-                              <p className="text-sm text-gray-600 truncate">
+                              <p className="text-lg text-gray-600 truncate">
                                 Thank you for your interest...
                               </p>
                             </div>
@@ -72,7 +72,7 @@ export default function MessagesPage() {
                       />
                       <div>
                         <h2 className={`${elMessiri.className} font-semibold text-royal-primary`}>Aisha Khan</h2>
-                        <p className="text-sm text-emerald-600 font-medium">Online - Blessed to Connect</p>
+                        <p className="text-lg text-emerald-600 font-medium">Online - Blessed to Connect</p>
                       </div>
                     </div>
                   </div>

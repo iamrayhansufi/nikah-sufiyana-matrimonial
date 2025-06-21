@@ -193,7 +193,7 @@ export default function PaymentPage() {
                 {additionalServices.map((service, index) => (
                   <div key={index} className="border rounded-lg p-4">
                     <h4 className="font-semibold mb-2">{service.name}</h4>
-                    <p className="text-sm text-muted-foreground mb-2">{service.description}</p>
+                    <p className="text-lg text-muted-foreground mb-2">{service.description}</p>
                     <p className="font-semibold text-primary">{service.price}</p>
                     <Button variant="outline" size="sm" className="mt-2">
                       Learn More
@@ -210,25 +210,25 @@ export default function PaymentPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
               <div>
                 <h4 className="font-semibold mb-2">Is my payment secure?</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-muted-foreground">
                   Yes, all payments are processed through secure payment gateways with 256-bit SSL encryption.
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold mb-2">Can I cancel my subscription?</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-muted-foreground">
                   Yes, you can cancel anytime. Refunds are available as per our refund policy.
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold mb-2">What if I don't find a match?</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-muted-foreground">
                   Premium members get our success guarantee - 6 months free if you don't find a suitable match.
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold mb-2">How do I upgrade my plan?</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-muted-foreground">
                   You can upgrade anytime from your dashboard. The price difference will be adjusted.
                 </p>
               </div>

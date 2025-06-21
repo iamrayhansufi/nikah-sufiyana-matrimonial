@@ -31,14 +31,7 @@
   }
   
   body {
-    @apply text-foreground transition-colors duration-300 min-h-screen;
-    background-color: #FCF9F2;
-    background-image: 
-      url('/pattern-icon-01.svg'),
-      linear-gradient(135deg, rgba(252, 249, 242, 0.95) 0%, rgba(242, 228, 193, 0.95) 100%);
-    background-size: 80px 80px, cover;
-    background-repeat: repeat, no-repeat;
-    background-position: 0 0, center;
+    @apply bg-royal-gradient text-foreground transition-colors duration-300 min-h-screen;
     font-family: var(--font-el-messiri), 'El Messiri', var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif !important;
   }
 
@@ -100,6 +93,11 @@
   /* Navigation menu font size */
   .nav-menu-item {
     font-size: 1rem; /* 16px */
+  }
+
+  /* Custom text size replacement for text-sm */
+  .text-custom-sm {
+    font-size: 1.1rem;
   }
 
   /* Royal Box Shadow */

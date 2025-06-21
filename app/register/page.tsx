@@ -647,8 +647,8 @@ export default function RegisterPage() {
                 <div className="space-y-2">
                   {Object.entries(extractedPreview.data).map(([key, value]) => (
                     <div key={key} className="space-y-1">
-                      <p className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</p>
-                      <p className="text-sm text-muted-foreground">{value || 'Not found'}</p>
+                      <p className="text-lg font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</p>
+                      <p className="text-lg text-muted-foreground">{value || 'Not found'}</p>
                     </div>
                   ))}
                 </div>
@@ -658,7 +658,7 @@ export default function RegisterPage() {
           <div>
             <h3 className="font-semibold mb-2">Original Text</h3>
             <ScrollArea className="h-[300px] w-full rounded-md border p-4">
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              <p className="text-lg text-muted-foreground whitespace-pre-wrap">
                 {extractedPreview.text || 'No text content available'}
               </p>
             </ScrollArea>
@@ -697,7 +697,7 @@ export default function RegisterPage() {
               <div className="text-center">
                 <PenSquare className="h-12 w-12 mx-auto text-primary mb-4" />
                 <h3 className={`${elMessiri.className} font-semibold text-lg mb-2`}>Fill Form Manually</h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-muted-foreground">
                   Create your profile by filling out our step-by-step form
                 </p>
                 <Button className="mt-4 w-full">Start Form</Button>
@@ -710,7 +710,7 @@ export default function RegisterPage() {
               <div className="text-center">
                 <FileText className="h-12 w-12 mx-auto text-primary mb-4" />
                 <h3 className={`${elMessiri.className} font-semibold text-lg mb-2`}>Upload Bio Data</h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-muted-foreground">
                   Upload your bio data and we'll automatically fill the form for you
                 </p>
                 <Input 
@@ -787,7 +787,7 @@ export default function RegisterPage() {
                   </div>
                   <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800`}>Processing Sacred Bio Data</h3>
                   <Progress value={processingProgress} className="w-full max-w-xs mx-auto" />
-                  <p className="text-sm text-gray-600">
+                  <p className="text-lg text-gray-600">
                     {processingProgress < 100 
                       ? "Extracting blessed information from your document..." 
                       : "Almost ready for your royal profile..."}
@@ -824,7 +824,7 @@ export default function RegisterPage() {
                       </div>
                     ))}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-lg text-muted-foreground">
                     Step {step} of {totalSteps}:{" "}
                     {step === 1
                       ? "Basic Information"
@@ -864,7 +864,7 @@ export default function RegisterPage() {
                           placeholder="Enter your full name"
                         />
                         {fieldErrors.fullName && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.fullName}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.fullName}</p>
                         )}
                       </div>                      <div>
                         <Label htmlFor="gender">Gender *</Label>
@@ -882,7 +882,7 @@ export default function RegisterPage() {
                           </SelectContent>
                         </Select>
                         {fieldErrors.gender && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.gender}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.gender}</p>
                         )}
                       </div>
                     </div>
@@ -905,7 +905,7 @@ export default function RegisterPage() {
                           placeholder="your@email.com"
                         />
                         {fieldErrors.email && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.email}</p>
                         )}
                       </div>                      <div>                        <Label htmlFor="phone">WhatsApp Phone Number *</Label>
                         <div className="flex mt-1 space-x-2">
@@ -978,7 +978,7 @@ export default function RegisterPage() {
                           />
                         </div>
                         {fieldErrors.phone && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.phone}</p>
                         )}
                       </div>
                     </div>                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1002,7 +1002,7 @@ export default function RegisterPage() {
                           required
                         />
                         {fieldErrors.age && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.age}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.age}</p>
                         )}
                       </div>                      <div>
                         <Label htmlFor="country">Country *</Label>
@@ -1049,7 +1049,7 @@ export default function RegisterPage() {
                           </SelectContent>
                         </Select>
                         {fieldErrors.country && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.country}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.country}</p>
                         )}
                       </div>
                       <div>
@@ -1154,7 +1154,7 @@ export default function RegisterPage() {
                           />
                         )}
                         {fieldErrors.city && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.city}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.city}</p>
                         )}
                       </div>
                     </div>                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1186,7 +1186,7 @@ export default function RegisterPage() {
                           </Button>
                         </div>
                         {fieldErrors.password && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.password}</p>
                         )}
                       </div>
                       <div>
@@ -1208,7 +1208,7 @@ export default function RegisterPage() {
                           />
                         </div>
                         {fieldErrors.confirmPassword && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
                         )}
                       </div>
                     </div>
@@ -1246,7 +1246,7 @@ export default function RegisterPage() {
                           </SelectContent>
                         </Select>
                         {fieldErrors.sect && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.sect}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.sect}</p>
                         )}
                       </div>
                       <div>
@@ -1265,7 +1265,7 @@ export default function RegisterPage() {
                           placeholder="e.g., Bachelor's in Computer Science"
                         />
                         {fieldErrors.education && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.education}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.education}</p>
                         )}
                       </div>
                     </div>
@@ -1327,7 +1327,7 @@ export default function RegisterPage() {
                           placeholder="e.g., 5'6''"
                         />
                         {fieldErrors.height && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.height}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.height}</p>
                         )}
                       </div>
                       <div>
@@ -1413,10 +1413,10 @@ export default function RegisterPage() {
                           />
                         </div>
                         {fieldErrors.preferredAgeMin && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.preferredAgeMin}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.preferredAgeMin}</p>
                         )}
                         {fieldErrors.preferredAgeMax && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.preferredAgeMax}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.preferredAgeMax}</p>
                         )}
                       </div>
                       <div>
@@ -1529,7 +1529,7 @@ export default function RegisterPage() {
                           />
                         )}
                         {fieldErrors.preferredLocation && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.preferredLocation}</p>
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.preferredLocation}</p>
                         )}
                       </div>
                       <div>
@@ -1629,7 +1629,7 @@ export default function RegisterPage() {
                           ) : (
                             <div className="text-center">
                               <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                              <p className="text-sm text-muted-foreground mb-2">Upload your profile photo</p>
+                              <p className="text-lg text-muted-foreground mb-2">Upload your profile photo</p>
                               <p className="text-xs text-muted-foreground mb-4">JPG or PNG, max 5MB</p>
                             </div>
                           )}
@@ -1727,7 +1727,7 @@ export default function RegisterPage() {
 
               {/* Login Link */}
               <div className="text-center mt-6">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-muted-foreground">
                   Already have an account?{" "}
                   <Link href="/login" className="text-primary hover:underline">
                     Sign in here

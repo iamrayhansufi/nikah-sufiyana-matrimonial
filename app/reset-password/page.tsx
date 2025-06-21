@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
               </form>
               
               <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg text-muted-foreground">
                   Remember your password?{" "}
                   <Link href="/login" className="text-primary hover:underline">
                     Sign in

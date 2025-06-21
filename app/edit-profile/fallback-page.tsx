@@ -141,7 +141,7 @@ export default function EditProfileFallback() {
 
             {/* Connection Status */}
             <Separator />
-            <div className="flex justify-between text-sm text-muted-foreground">
+            <div className="flex justify-between text-lg text-muted-foreground">
               <span>
                 {debugInfo ? (
                   <span className="flex items-center">

@@ -220,7 +220,7 @@ export default function AboutPage() {
                 <CardContent className="p-6 text-center">
                   <h3 className={`${playfair.className} text-xl font-semibold mb-1`}>{member.name}</h3>
                   <p className="text-primary font-medium mb-3">{member.role}</p>
-                  <p className="text-muted-foreground text-sm">{member.description}</p>
+                  <p className="text-muted-foreground text-lg">{member.description}</p>
                 </CardContent>
               </Card>
             ))}

@@ -297,7 +297,7 @@ function VerifyEmailContent() {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-lg text-muted-foreground">
                       We sent a verification code to:
                     </p>
                     <p className="font-medium">{email}</p>
@@ -331,7 +331,7 @@ function VerifyEmailContent() {
 
                 <div className="text-center mt-4">
                   {timerActive ? (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-lg text-muted-foreground">
                       Resend code in {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
                     </p>
                   ) : (

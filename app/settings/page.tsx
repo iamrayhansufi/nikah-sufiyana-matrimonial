@@ -59,7 +59,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Profile Visibility</Label>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-lg text-muted-foreground">
                         Control who can see your profile
                       </div>
                     </div>
@@ -77,7 +77,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Photo Privacy</Label>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-lg text-muted-foreground">
                         Control who can see your photos
                       </div>
                     </div>
@@ -95,7 +95,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Contact Information</Label>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-lg text-muted-foreground">
                         Show contact details to matched profiles
                       </div>
                     </div>
@@ -113,7 +113,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Email Notifications</Label>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-lg text-muted-foreground">
                         Receive updates via email
                       </div>
                     </div>
@@ -122,7 +122,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>SMS Notifications</Label>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-lg text-muted-foreground">
                         Receive updates via SMS
                       </div>
                     </div>
@@ -131,7 +131,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>WhatsApp Notifications</Label>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-lg text-muted-foreground">
                         Receive updates via WhatsApp
                       </div>
                     </div>
@@ -149,7 +149,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Theme</Label>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-lg text-muted-foreground">
                         Choose your preferred theme
                       </div>
                     </div>

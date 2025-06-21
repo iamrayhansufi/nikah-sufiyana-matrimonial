@@ -33,7 +33,7 @@ export function DataLimitWarning() {
           <AlertCircle className="h-5 w-5 text-amber-400" />
         </div>
         <div className="ml-3">
-          <p className="text-sm text-amber-700">
+          <p className="text-lg text-amber-700">
             Our database has reached its data transfer limit. Some features may be limited or using cached data.
             This is a temporary issue and will be resolved soon.
           </p>
