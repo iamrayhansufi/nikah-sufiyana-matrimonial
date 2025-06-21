@@ -112,6 +112,23 @@ export const authOptions: NextAuthOptions = {
         session.user.phone = token.phone as string | undefined
         session.user.role = token.role as string | undefined
         session.user.verified = token.verified as boolean | undefined
+        
+        // If the user is not verified in the token but might have verified recently,
+        // fetch fresh data from the database
+        if (!token.verified && token.id) {
+          try {
+            const freshUser = await redisTables.users.get(token.id as string);
+            if (freshUser && (freshUser.verified === true || freshUser.verified === 'true')) {
+              console.log(`🔄 Session: Updated verification status for user ${token.id} from database`);
+              session.user.verified = true;
+              
+              // Update the token as well for future session calls
+              token.verified = true;
+            }
+          } catch (error) {
+            console.error("Error fetching fresh user data in session callback:", error);
+          }
+        }
       }
       return session
     },

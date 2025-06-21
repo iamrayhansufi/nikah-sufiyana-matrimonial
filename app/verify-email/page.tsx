@@ -152,13 +152,25 @@ function VerifyEmailContent() {
             // User not logged in, redirect to login with verification success
             router.push(`/login?verified=true&email=${encodeURIComponent(email)}`);
           }
-        }, 1000);
-      } else {
+        }, 1000);      } else {
+        const errorMessage = data.message || "Invalid or expired verification code";
+        
         toast({
           title: "Verification Failed",
-          description: data.message || "Invalid or expired verification code",
+          description: errorMessage,
           variant: "destructive"
-        })
+        });
+        
+        // If the code was already used, automatically offer to resend
+        if (errorMessage.includes("already been used")) {
+          setTimeout(() => {
+            toast({
+              title: "Need a new code?",
+              description: "Click 'Resend' to get a fresh verification code",
+              variant: "default"
+            });
+          }, 2000);
+        }
       }
     } catch (error) {
       console.error("Error verifying email:", error)

@@ -49,10 +49,49 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const { email, code, purpose } = validationResult.data;
-      // Verify OTP
+    const { email, code, purpose } = validationResult.data;    // Verify OTP
     console.log(`🔄 verify-otp API: Verifying OTP for ${email}`);
     const isValid = await verifyOTP(email, code, purpose);
+    
+    // Get additional details for better error messages if verification failed
+    let errorMessage = "Invalid or expired verification code";
+    
+    if (!isValid) {
+      try {
+        // Check what specifically went wrong by examining the verification record
+        const redis = (await import("@/lib/redis-client")).redis;
+        const verificationKey = `verification:${email}:${purpose}`;
+        const verification = await redis.hgetall(verificationKey);
+        
+        if (!verification || Object.keys(verification).length === 0) {
+          errorMessage = "No verification code found. Please request a new code.";
+        } else {
+          const now = Date.now();
+          let expiresAt = 0;
+            if (verification.expiresAt) {
+            expiresAt = typeof verification.expiresAt === 'string' 
+              ? parseInt(verification.expiresAt) 
+              : typeof verification.expiresAt === 'number'
+                ? verification.expiresAt
+                : 0;
+          }
+          
+          const isUsed = verification.isUsed === true || verification.isUsed === "true";
+          const isExpired = expiresAt <= now;
+          const codeMatch = String(verification.code) === String(code);
+          
+          if (isUsed) {
+            errorMessage = "This verification code has already been used. Please request a new code.";
+          } else if (isExpired) {
+            errorMessage = "This verification code has expired. Please request a new code.";
+          } else if (!codeMatch) {
+            errorMessage = "Invalid verification code. Please check and try again.";
+          }
+        }
+      } catch (checkError) {
+        console.error("Error checking verification details:", checkError);
+      }
+    }
     
     if (isValid) {
       console.log(`✅ verify-otp API: OTP is valid for ${email}`);
@@ -119,12 +158,11 @@ export async function POST(request: NextRequest) {
           },
           { status: 200 }
         );
-      }
-    } else {
+      }    } else {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid or expired verification code"
+          message: errorMessage
         },
         { status: 400 }
       );
