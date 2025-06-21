@@ -202,12 +202,12 @@ export const database = {
       
       // Get total before pagination
       const total = filteredUsers.length;
-      
-      // Apply pagination
+        // Apply pagination
       const paginatedUsers = filteredUsers.slice(offset, offset + limit);
-        // Map to the expected profile format
+      
+      // Map to the expected profile format
       const profiles = paginatedUsers.map(user => ({
-        id: user.id,
+        id: (user.id && typeof user.id === 'string') ? user.id.replace('user:', '') : user.id, // Remove user: prefix for cleaner URLs
         name: user.fullName || user.name || 'Unknown', // Map fullName to name for frontend compatibility
         fullName: user.fullName || user.name || 'Unknown',
         age: user.age,

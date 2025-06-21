@@ -144,10 +144,9 @@ export default function ProfilePage({
         setLoading(false)
         return
       }
-      
-      // Validate that ID is a valid format (number or string that can be converted to number)
-      const numericId = parseInt(id.toString());
-      if (isNaN(numericId)) {
+        // Validate that ID is a valid format (should be alphanumeric with possible dashes)
+      const idString = id.toString().replace('user:', ''); // Remove user: prefix if present
+      if (!idString || idString.length < 3 || !/^[a-zA-Z0-9-]+$/.test(idString)) {
         setError("Invalid profile ID format")
         setLoading(false)
         return
@@ -433,9 +432,8 @@ export default function ProfilePage({
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          profileId: parseInt(id)
+        },        body: JSON.stringify({
+          profileId: id
         })
       });
       

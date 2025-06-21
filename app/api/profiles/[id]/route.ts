@@ -100,10 +100,11 @@ export async function GET(
       } else if (receivedInterest) {
         interestStatus = "received";
       }
-    }
-      // Reshape the profile data to match the expected format
+    }    // Reshape the profile data to match the expected format
     const formattedProfile = {
-      id: profile.id,
+      id: (profile.id && typeof profile.id === 'string') 
+        ? profile.id.replace('user:', '') 
+        : profileId.replace('user:', ''), // Remove user: prefix for cleaner URLs
       name: profile.fullName || profile.name || 'Unknown', // Map fullName to name for frontend compatibility
       fullName: profile.fullName || profile.name || 'Unknown',
       age: profile.age,
