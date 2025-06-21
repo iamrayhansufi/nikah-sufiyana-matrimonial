@@ -50,20 +50,24 @@ export const redisTables = {
       await redis.sadd('users', userId);
       return userId;
     },
-    
-    async get(userId: string): Promise<any | null> {
-      const user = await redis.hgetall(`user:${userId}`);
+      async get(userId: string): Promise<any | null> {
+      // Remove 'user:' prefix if it exists to avoid double-prefixing
+      const cleanUserId = userId.startsWith('user:') ? userId.replace('user:', '') : userId;
+      const user = await redis.hgetall(`user:${cleanUserId}`);
       return user || null;
     },
-    
-    async update(userId: string, data: Partial<any>): Promise<boolean> {
-      await redis.hset(`user:${userId}`, data);
+      async update(userId: string, data: Partial<any>): Promise<boolean> {
+      // Remove 'user:' prefix if it exists to avoid double-prefixing
+      const cleanUserId = userId.startsWith('user:') ? userId.replace('user:', '') : userId;
+      await redis.hset(`user:${cleanUserId}`, data);
       return true;
     },
     
     async delete(userId: string): Promise<boolean> {
-      await redis.del(`user:${userId}`);
-      await redis.srem('users', userId);
+      // Remove 'user:' prefix if it exists to avoid double-prefixing
+      const cleanUserId = userId.startsWith('user:') ? userId.replace('user:', '') : userId;
+      await redis.del(`user:${cleanUserId}`);
+      await redis.srem('users', cleanUserId);
       return true;
     },
     

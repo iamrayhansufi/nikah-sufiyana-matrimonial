@@ -3,6 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options-redis";
 import { database } from "@/lib/database-service";
 
+// Simple in-memory cache to reduce Redis calls
+const notificationCache = new Map<string, { data: any[], timestamp: number }>();
+const CACHE_DURATION = 15000; // 15 seconds cache
+
 // GET - Fetch notifications for the logged-in user
 export async function GET(request: NextRequest) {
   try {
@@ -12,8 +16,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     
+    const userId = session.user.id;
+    const now = Date.now();
+    
+    // Check cache first
+    const cached = notificationCache.get(userId);
+    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+      console.log(`📋 Returning cached notifications for user ${userId}`);
+      return NextResponse.json({ notifications: cached.data });
+    }
+    
+    console.log(`🔄 Fetching fresh notifications for user ${userId}`);
+    
     // Get the user's notifications
-    const notifications = await database.notifications.getUserNotifications(session.user.id);
+    const notifications = await database.notifications.getUserNotifications(userId);
       // Define metadata type outside the map function
     interface NotificationMetadata {
       relatedUserId?: string;
@@ -59,6 +75,15 @@ export async function GET(request: NextRequest) {
       };
     }));
     
+    // Update cache
+    notificationCache.set(userId, { data: enhancedNotifications, timestamp: now });    // Cache the results
+    notificationCache.set(userId, {
+      data: enhancedNotifications,
+      timestamp: now
+    });
+    
+    console.log(`💾 Cached notifications for user ${userId}`);
+    
     return NextResponse.json(enhancedNotifications);
   } catch (error) {
     console.error("Error fetching notifications:", error);
@@ -83,6 +108,10 @@ export async function POST(request: NextRequest) {
     
     // Mark the notification as read
     await database.notifications.markAsRead(notificationId);
+    
+    // Invalidate cache for the user
+    const userId = session.user.id;
+    notificationCache.delete(userId);
     
     return NextResponse.json({ success: true });
   } catch (error) {

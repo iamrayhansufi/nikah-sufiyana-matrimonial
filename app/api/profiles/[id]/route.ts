@@ -92,11 +92,11 @@ export async function GET(
         interestStatus = "received";
       }
     }
-    
-    // Reshape the profile data to match the expected format
+      // Reshape the profile data to match the expected format
     const formattedProfile = {
       id: profile.id,
-      fullName: profile.fullName,
+      name: profile.fullName || profile.name || 'Unknown', // Map fullName to name for frontend compatibility
+      fullName: profile.fullName || profile.name || 'Unknown',
       age: profile.age,
       gender: profile.gender,
       country: profile.country,
@@ -113,7 +113,9 @@ export async function GET(
       complexion: profile.complexion,
       maritalStatus: profile.maritalStatus,
       maritalStatusOther: profile.maritalStatusOther,
-      profilePhoto: profile.profilePhoto,
+      // Handle profile photo - check multiple possible field names and provide fallback
+      profilePhoto: profile.profilePhoto || profile.image || '/placeholder-user.jpg',
+      image: profile.profilePhoto || profile.image || '/placeholder-user.jpg',
       profilePhotos: profile.profilePhotos,
       aboutMe: profile.aboutMe,
       familyDetails: profile.familyDetails,
@@ -139,6 +141,7 @@ export async function GET(
       expectations: profile.expectations,
       motherTongue: profile.motherTongue,
       premium: profile.premium === "true" || profile.premium === true,
+      verified: profile.verified === "true" || profile.verified === true,
       lastActive: profile.lastActive,
       bio: profile.bio || profile.aboutMe,
       createdAt: profile.createdAt,

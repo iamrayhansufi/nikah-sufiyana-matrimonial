@@ -108,18 +108,26 @@ export function useNotifications() {
       document.removeEventListener('click', enableOnInteraction);
       document.removeEventListener('touchstart', enableOnInteraction);
     };
-  }, []);
-  // Poll for new notifications every 5 seconds
+  }, []);  // Poll for new notifications every 30 seconds (reduced from 5 seconds)
   useEffect(() => {
     if (!session?.user?.id) return;
 
+    let isMounted = true;
+    
     // Initial fetch
     fetchNotifications();
 
-    // Set up polling
-    const interval = setInterval(fetchNotifications, 5000);
+    // Set up polling with longer interval to reduce Redis load
+    const interval = setInterval(() => {
+      if (isMounted) {
+        fetchNotifications();
+      }
+    }, 30000); // Changed from 5000 to 30000 (30 seconds)
 
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [session?.user?.id]);
 
   // Mark notification as read

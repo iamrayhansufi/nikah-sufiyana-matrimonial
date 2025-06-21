@@ -161,19 +161,32 @@ export const database = {
       
       // Apply pagination
       const paginatedUsers = filteredUsers.slice(offset, offset + limit);
-      
-      // Map to the expected profile format
+        // Map to the expected profile format
       const profiles = paginatedUsers.map(user => ({
         id: user.id,
-        fullName: user.fullName,
+        name: user.fullName || user.name || 'Unknown', // Map fullName to name for frontend compatibility
+        fullName: user.fullName || user.name || 'Unknown',
         age: user.age,
         location: user.location,
+        city: user.city,
+        country: user.country,
         education: user.education,
         profession: user.profession,
         sect: user.sect,
-        profilePhoto: user.profilePhoto,
+        height: user.height,
+        maritalStatus: user.maritalStatus,
+        motherTongue: user.motherTongue,
+        complexion: user.complexion,
+        income: user.income,
+        housing: user.housing,
+        // Handle profile photo - check multiple possible field names
+        profilePhoto: user.profilePhoto || user.image || '/placeholder-user.jpg',
+        image: user.profilePhoto || user.image || '/placeholder-user.jpg',
         premium: user.premium === 'true' || user.premium === true,
+        verified: user.verified === 'true' || user.verified === true,
         lastActive: user.lastActive,
+        gender: user.gender,
+        profileStatus: user.profileStatus,
       }));
       
       return { profiles, total };
