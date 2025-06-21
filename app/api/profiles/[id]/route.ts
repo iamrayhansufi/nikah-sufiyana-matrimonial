@@ -47,20 +47,29 @@ export async function GET(
         { status: 400 }
       );
     }
-    
-    // Add 'user:' prefix if it doesn't exist
+      // Add 'user:' prefix if it doesn't exist and clean any double prefixes
     if (!profileId.startsWith('user:')) {
       profileId = `user:${profileId}`;
     }
+    
+    console.log(`Fetching profile for ID: ${profileId}`);
     
     // Get user from Redis
     const profile = await database.users.getById(profileId);
     
     if (!profile) {
+      console.log(`Profile not found for ID: ${profileId}`);
       return NextResponse.json(
         { error: "Profile not found" },
         { status: 404 }
       )
+    }
+    
+    console.log(`Profile found with ${Object.keys(profile).length} fields`);
+    
+    // Ensure the profile has the correct ID field
+    if (!profile.id) {
+      profile.id = profileId;
     }
     
     // Determine if the current user has shortlisted this profile

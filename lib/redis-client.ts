@@ -40,15 +40,17 @@ export async function testRedisConnection() {
 // Helper to create and manage tables/collections in Redis
 export const redisTables = {
   // User operations
-  users: {
-    async create(user: any): Promise<string> {
-      const userId = user.id || `user:${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-      if (!user.id) user.id = userId;
+  users: {    async create(user: any): Promise<string> {
+      const userId = user.id || `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      const cleanUserId = userId.startsWith('user:') ? userId.replace('user:', '') : userId;
       
-      await redis.hset(`user:${userId}`, user);
-      // Add to user index
-      await redis.sadd('users', userId);
-      return userId;
+      // Set the user ID in the user object
+      user.id = `user:${cleanUserId}`;
+      
+      await redis.hset(`user:${cleanUserId}`, user);
+      // Add to user index (store clean ID in the set)
+      await redis.sadd('users', cleanUserId);
+      return `user:${cleanUserId}`;
     },
       async get(userId: string): Promise<any | null> {
       // Remove 'user:' prefix if it exists to avoid double-prefixing
