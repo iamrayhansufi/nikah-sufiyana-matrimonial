@@ -6,7 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useToast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
-import { playfair } from "@/lib/fonts"
+import { elMessiri } from "@/lib/fonts"
 import { signIn } from "next-auth/react"
 
 import { Header } from "@/components/layout/header"
@@ -23,7 +23,7 @@ import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
-import { Heart, Upload, Eye, EyeOff, FileText, PenSquare } from "lucide-react"
+import { Heart, Upload, Eye, EyeOff, FileText, PenSquare, Crown, Sparkles } from "lucide-react"
 
 interface ExtractedData {
   fullName?: string;
@@ -684,10 +684,9 @@ export default function RegisterPage() {
             src="/Nikah-Sufiyana-Logo.svg"
             alt="Nikah Sufiyana"
             width={180}
-            height={45}
-            className="mb-4"
+            height={45}            className="mb-4"
           />
-          <h1 className={`${playfair.className} text-2xl font-bold`}>Create Your Profile</h1>
+          <h1 className={`${elMessiri.className} text-2xl font-bold`}>Create Your Profile</h1>
         </div>
         <p className="text-muted-foreground">Choose how you want to create your profile</p>
       </CardHeader>
@@ -697,7 +696,7 @@ export default function RegisterPage() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <PenSquare className="h-12 w-12 mx-auto text-primary mb-4" />
-                <h3 className={`${playfair.className} font-semibold text-lg mb-2`}>Fill Form Manually</h3>
+                <h3 className={`${elMessiri.className} font-semibold text-lg mb-2`}>Fill Form Manually</h3>
                 <p className="text-sm text-muted-foreground">
                   Create your profile by filling out our step-by-step form
                 </p>
@@ -710,7 +709,7 @@ export default function RegisterPage() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <FileText className="h-12 w-12 mx-auto text-primary mb-4" />
-                <h3 className={`${playfair.className} font-semibold text-lg mb-2`}>Upload Bio Data</h3>
+                <h3 className={`${elMessiri.className} font-semibold text-lg mb-2`}>Upload Bio Data</h3>
                 <p className="text-sm text-muted-foreground">
                   Upload your bio data and we'll automatically fill the form for you
                 </p>
@@ -749,26 +748,49 @@ export default function RegisterPage() {
       </div>
     </div>
   );
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+    <div className="min-h-screen bg-royal-gradient">
       <Header />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
+          {/* Royal Header */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
+              <Crown className="h-10 w-10 text-white" />
+            </div>
+            <h1 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-gray-800 mb-4`}>
+              Begin Your Sacred Journey
+            </h1>
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/sufiyana-border-ui.svg"
+                alt="Decorative Border"
+                width={200}
+                height={12}
+                className="opacity-60"
+              />
+            </div>
+            <p className="text-lg text-gray-600 max-w-lg mx-auto">
+              Create your blessed profile and let Allah guide you to your destined companion through our royal matrimonial platform.
+            </p>
+          </div>
+
           {/* Show bio-data processing UI only during step 0 (file upload) */}
           {isProcessing && step === 0 && (
-            <Card className="mb-4">
-              <CardContent className="py-6">
+            <Card className="mb-4 border-0 shadow-2xl royal-shadow bg-white/95 backdrop-blur-sm">
+              <CardContent className="py-8">
                 <div className="text-center space-y-4">
                   <div className="flex items-center justify-center">
-                    <FileText className="h-8 w-8 text-primary animate-pulse" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-royal-primary/20 to-royal-primary/10 rounded-full flex items-center justify-center">
+                      <FileText className="h-8 w-8 text-royal-primary animate-pulse" />
+                    </div>
                   </div>
-                  <h3 className={`${playfair.className} font-semibold`}>Processing Bio Data</h3>
+                  <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800`}>Processing Sacred Bio Data</h3>
                   <Progress value={processingProgress} className="w-full max-w-xs mx-auto" />
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     {processingProgress < 100 
-                      ? "Extracting information from your document..." 
-                      : "Almost done..."}
+                      ? "Extracting blessed information from your document..." 
+                      : "Almost ready for your royal profile..."}
                   </p>
                 </div>
               </CardContent>
@@ -786,10 +808,9 @@ export default function RegisterPage() {
                       src="/Nikah-Sufiyana-Logo.svg"
                       alt="Nikah Sufiyana"
                       width={180}
-                      height={45}
-                      className="mb-4"
+                      height={45}                      className="mb-4"
                     />
-                    <h1 className={`${playfair.className} text-2xl font-bold`}>Create Your Profile</h1>
+                    <h1 className={`${elMessiri.className} text-2xl font-bold`}>Create Your Profile</h1>
                   </div>
                   <div className="flex justify-center space-x-2 mb-4">
                     {[1, 2, 3, 4].map((i) => (

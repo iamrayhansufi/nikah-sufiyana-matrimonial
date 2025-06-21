@@ -25,9 +25,13 @@ import {
   AlertCircle,
   TrendingUp,
   Check,
+  Crown,
+  Sparkles,
+  Award,
 } from "lucide-react"
-import { playfair } from "../lib/fonts"
+import { elMessiri } from "../lib/fonts"
 import { useNotifications } from "@/hooks/use-notifications"
+import Image from "next/image"
 
 // Helper functions for status icons/text
 const getStatusIcon = (status: string) => {
@@ -403,21 +407,42 @@ export default function DashboardPage() {
   }
 
   const profileStatus = "approved"
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+    <div className="min-h-screen bg-royal-gradient">
       <Header />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          {/* Profile Header */}
-          <Card className="mb-8">
-            <CardContent className="p-6">
+          {/* Royal Welcome Header */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
+              <Crown className="h-8 w-8 text-white" />
+            </div>
+            <h1 className={`${elMessiri.className} text-3xl md:text-4xl font-bold text-gray-800 mb-2`}>
+              Welcome to Your Royal Dashboard
+            </h1>
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/sufiyana-border-ui.svg"
+                alt="Decorative Border"
+                width={200}
+                height={12}
+                className="opacity-60"
+              />
+            </div>
+            <p className="text-gray-600">
+              Manage your blessed profile and discover your destined companion
+            </p>
+          </div>
+
+          {/* Royal Profile Card */}
+          <Card className="mb-8 border-0 shadow-2xl royal-shadow bg-white/95 backdrop-blur-sm">
+            <CardContent className="p-8">
               <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                 <div className="relative">
-                  <Avatar className="h-32 w-32">
+                  <Avatar className="h-32 w-32 border-4 border-royal-primary/20">
                     <AvatarImage src={userProfile.profilePhoto || "/placeholder.svg"} alt={userProfile.name} />
-                    <AvatarFallback className="text-2xl">
+                    <AvatarFallback className="text-2xl bg-gradient-to-br from-royal-primary/20 to-royal-primary/10 text-royal-primary">
                       {userProfile.name && typeof userProfile.name === 'string' 
                         ? userProfile.name
                             .split(" ")
@@ -426,22 +451,33 @@ export default function DashboardPage() {
                         : "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <Button size="icon" className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full">
-                    <Camera className="h-4 w-4" />
+                  <Button size="icon" className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full bg-royal-primary hover:bg-royal-primary/90 shadow-lg">
+                    <Camera className="h-5 w-5" />
                   </Button>
                 </div>
 
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h1 className={`${playfair.className} text-2xl font-bold`}>{userProfile.name}</h1>
-                    {userProfile.verified && <Badge className="bg-green-500 text-white">✓ Verified</Badge>}
-                    {!userProfile.premium && <Badge variant="outline">Free Plan</Badge>}
+                  <div className="flex items-center gap-3 mb-3">
+                    <h1 className={`${elMessiri.className} text-3xl font-bold text-gray-800`}>{userProfile.name}</h1>
+                    {userProfile.verified && <Badge className="bg-green-500 text-white flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" />
+                      Blessed & Verified
+                    </Badge>}
+                    {userProfile.premium ? (
+                      <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white flex items-center gap-1">
+                        <Crown className="h-3 w-3" />
+                        Royal Member
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-royal-primary text-royal-primary">Sacred Plan</Badge>
+                    )}
                   </div>
 
-                  <p className="text-muted-foreground mb-2">
+                  <p className="text-gray-600 mb-2 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-royal-primary" />
                     {userProfile.age} years • {userProfile.location}
                   </p>
-                  <p className="text-muted-foreground mb-4">{userProfile.profession}</p>
+                  <p className="text-gray-600 mb-4">{userProfile.profession}</p>
 
                   <div className="flex items-center gap-2 mb-4">
                     {getStatusIcon(profileStatus)}

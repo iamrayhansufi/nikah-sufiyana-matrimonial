@@ -9,7 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Heart, User, Phone } from "lucide-react"
+import { Heart, User, Phone, Crown } from "lucide-react"
+import { elMessiri } from "@/app/lib/fonts"
+import Image from "next/image"
 
 export function HeroRegistrationForm() {
   const router = useRouter()
@@ -29,14 +31,39 @@ export function HeroRegistrationForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-white/95 backdrop-blur-sm shadow-2xl border-0 animate-scale-in">
-      <CardHeader className="text-center pb-4">
-        <div className="w-12 h-12 mx-auto mb-3 gradient-primary rounded-full flex items-center justify-center">
-          <Heart className="h-6 w-6 text-white" />
-        </div>
-        <CardTitle className="text-xl font-heading text-gray-800">Start Your Journey</CardTitle>
-        <p className="text-sm text-gray-600 font-body">Find your perfect Islamic match</p>
-      </CardHeader>
+    <div className="relative">
+      {/* Decorative SVG Border */}
+      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+        <Image
+          src="/sufiyana-border-ui.svg"
+          alt="Decorative Border"
+          width={150}
+          height={12}
+          className="opacity-60"
+        />
+      </div>
+      
+      <Card className="w-full max-w-md mx-auto bg-white/95 backdrop-blur-sm shadow-2xl border-0 royal-shadow">
+        <CardHeader className="text-center pb-4 pt-8">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
+            <Crown className="h-8 w-8 text-white" />
+          </div>
+          <CardTitle className={`${elMessiri.className} text-2xl font-bold text-gray-800`}>
+            Begin Your Royal Journey
+          </CardTitle>
+          <p className="text-sm text-gray-600">Find your destined companion with Allah's blessing</p>
+          
+          {/* SVG Border Under Title */}
+          <div className="flex justify-center mt-3">
+            <Image
+              src="/sufiyana-border-ui.svg"
+              alt="Decorative Border"
+              width={120}
+              height={8}
+              className="opacity-40"
+            />
+          </div>
+        </CardHeader>
 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -111,17 +138,19 @@ export function HeroRegistrationForm() {
 
           <Button
             type="submit"
-            className="w-full gradient-primary text-white btn-hover font-body font-medium"
+            className="w-full bg-royal-primary hover:bg-royal-primary/90 text-white font-semibold py-3 text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             size="lg"
           >
-            Create My Profile
+            <Crown className="mr-2 h-5 w-5" />
+            Begin Sacred Journey
           </Button>
         </form>
 
-        <p className="text-xs text-center text-gray-500 mt-4 font-body">
+        <p className={`text-xs text-center text-gray-500 mt-4 ${elMessiri.className}`}>
           By registering, you agree to our Terms & Privacy Policy
         </p>
       </CardContent>
     </Card>
+    </div>
   )
 }

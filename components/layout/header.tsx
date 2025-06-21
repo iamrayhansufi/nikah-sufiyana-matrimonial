@@ -21,6 +21,17 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useNotifications } from "@/hooks/use-notifications"
+import { elMessiri } from "@/app/lib/fonts"
+
+interface Notification {
+  id: number;
+  type: string;
+  message: string;
+  link?: string;
+  metadata?: Record<string, any>;
+  read: boolean;
+  createdAt: string;
+}
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -104,41 +115,43 @@ export function Header() {
   };
 
   if (!mounted) return null
-
   return (
     <>
       <MarqueeBanner />
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-royal-primary/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 shadow-md">
         <div className="container mx-auto px-4">
           <div className="flex h-20 items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">              <Image 
+            <Link href="/" className="flex items-center space-x-2 hover-lift">              <Image 
                 src="/Nikah-Sufiyana-Logo.svg"
                 alt="Nikah Sufiyana" 
                 width={190} 
                 height={52}
-                className="h-13 w-auto"
+                className="h-13 w-auto transition-transform duration-300"
                 priority
               />
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-6">
+            <nav className="hidden md:flex items-center space-x-8">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-sm font-medium transition-colors hover:text-primary font-body"
+                  className={`${elMessiri.className} text-sm font-medium transition-all duration-300 hover:text-royal-primary relative group`}
                 >
-                  {language === "en" ? item.name : (
-                    <span className="font-arabic" style={{ fontFamily: "Jameel Noori Nastaleeq, serif" }}>
-                      {item.name === "Home" ? "ہوم" : 
-                       item.name === "Browse Profiles" ? "پروفائل دیکھیں" :
-                       item.name === "Our Services" ? "ہماری خدمات" : 
-                       item.name === "Premium" ? "پریمیم" :
-                       item.name === "About Us" ? "ہمارے بارے میں" : "رابطہ کریں"}
-                    </span>
-                  )}
+                  <span className="relative z-10">
+                    {language === "en" ? item.name : (
+                      <span className="font-arabic" style={{ fontFamily: "Jameel Noori Nastaleeq, serif" }}>
+                        {item.name === "Home" ? "ہوم" : 
+                         item.name === "Browse Profiles" ? "پروفائل دیکھیں" :
+                         item.name === "Our Services" ? "ہماری خدمات" : 
+                         item.name === "Premium" ? "پریمیم" :
+                         item.name === "About Us" ? "ہمارے بارے میں" : "رابطہ کریں"}
+                      </span>
+                    )}
+                  </span>
+                  <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-royal-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
                 </Link>
               ))}
             </nav>
@@ -183,9 +196,8 @@ export function Header() {
                   <PopoverContent align="end" className="w-80 p-0">
                     <div className="p-3 border-b">
                       <h4 className="font-medium">Notifications</h4>
-                    </div>                    <div className="max-h-[300px] overflow-auto">
-                      {notifications.slice(0, 10).length > 0 ? (
-                        notifications.slice(0, 10).map((notification, index) => (
+                    </div>                    <div className="max-h-[300px] overflow-auto">                      {notifications.slice(0, 10).length > 0 ? (
+                        notifications.slice(0, 10).map((notification: Notification, index: number) => (
                           <div 
                             key={notification.id || index}
                             className={`p-3 border-b text-sm cursor-pointer hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}

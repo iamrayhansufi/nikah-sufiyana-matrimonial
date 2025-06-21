@@ -11,12 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Heart, Star, MapPin, GraduationCap, Briefcase, Filter, Eye, EyeOff, MessageSquare } from "lucide-react"
+import { Heart, Star, MapPin, GraduationCap, Briefcase, Filter, Eye, EyeOff, MessageSquare, Crown, Sparkles, Search } from "lucide-react"
 import Link from "next/link"
-import { playfair } from "../lib/fonts"
+import { elMessiri } from "../lib/fonts"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { useSession } from "next-auth/react"
 import { DataLimitWarning } from "@/components/ui/data-limit-warning"
+import Image from "next/image"
 
 interface Profile {
   id: string
@@ -842,21 +843,45 @@ export default function BrowseProfilesPage() {
       </div>
     </div>
   )
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+    <div className="min-h-screen bg-royal-gradient">
       <Header />
 
       <div className="container mx-auto px-4 py-8">
+        {/* Royal Browse Header */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
+            <Search className="h-8 w-8 text-white" />
+          </div>
+          <h1 className={`${elMessiri.className} text-3xl md:text-4xl font-bold text-gray-800 mb-2`}>
+            Discover Your Blessed Companion
+          </h1>
+          <div className="flex justify-center mb-4">
+            <Image
+              src="/sufiyana-border-ui.svg"
+              alt="Decorative Border"
+              width={200}
+              height={12}
+              className="opacity-60"
+            />
+          </div>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Browse through thousands of verified profiles and find your destined life partner with Allah's guidance
+          </p>
+        </div>
+
         {/* Data limit warning banner */}
         <DataLimitWarning />
         
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Desktop Filters Sidebar */}
+          {/* Royal Filters Sidebar */}
           <div className="hidden lg:block w-80 shrink-0">
-            <Card className="sticky top-24">
-              <div className="p-4 border-b">
-                <h2 className={`${playfair.className} font-semibold text-lg`}>Filters</h2>
+            <Card className="sticky top-24 border-0 shadow-2xl royal-shadow bg-white/95 backdrop-blur-sm">
+              <div className="p-6 border-b border-royal-primary/10">
+                <h2 className={`${elMessiri.className} font-bold text-xl text-gray-800 flex items-center gap-2`}>
+                  <Filter className="h-5 w-5 text-royal-primary" />
+                  Sacred Filters
+                </h2>
               </div>
               <FilterContent />
             </Card>
@@ -884,7 +909,7 @@ export default function BrowseProfilesPage() {
                     </SheetTrigger>
                     <SheetContent side="left" className="w-80">
                       <div className="py-4">
-                        <h2 className={`${playfair.className} font-semibold text-lg mb-4`}>Filters</h2>
+                        <h2 className={`${elMessiri.className} font-semibold text-lg mb-4`}>Filters</h2>
                         <FilterContent />
                       </div>
                     </SheetContent>
@@ -988,8 +1013,7 @@ export default function BrowseProfilesPage() {
 
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className={`${playfair.className} font-semibold text-lg`}>{formatToTitleCase(profile.name)}</h3>
+                        <div>                           <h3 className={`${elMessiri.className} font-semibold text-lg`}>{formatToTitleCase(profile.name)}</h3>
                           <p className="text-sm text-muted-foreground">{profile.age} years old</p>
                         </div>
                         <div className="flex gap-1">
@@ -1072,8 +1096,7 @@ export default function BrowseProfilesPage() {
               <div className="text-center py-12">
                 <div className="w-24 h-24 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
                   <Heart className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <h3 className={`${playfair.className} text-lg font-semibold mb-2`}>No profiles found</h3>
+                </div>                 <h3 className={`${elMessiri.className} text-lg font-semibold mb-2`}>No profiles found</h3>
                 <p className="text-muted-foreground mb-4">Try adjusting your filters to see more profiles</p>
                 <Button
                   onClick={() =>
