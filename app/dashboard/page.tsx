@@ -16,8 +16,7 @@ import {
   Heart,
   Star,
   Eye,
-  MessageSquare,
-  CreditCard,
+  MessageSquare,  CreditCard,
   Edit,
   Camera,
   CheckCircle,
@@ -25,7 +24,6 @@ import {
   AlertCircle,
   TrendingUp,
   Check,
-  Crown,
   Sparkles,
   Award,
 } from "lucide-react"
@@ -414,9 +412,14 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Royal Welcome Header */}
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
-              <Crown className="h-8 w-8 text-white" />
+          <div className="text-center mb-8">            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
+              <Image
+                src="/Nikah-Sufiyana-Icon-white-01.svg"
+                alt="Nikah Sufiyana Icon"
+                width={32}
+                height={32}
+                className="h-8 w-8"
+              />
             </div>
             <h1 className={`${elMessiri.className} text-3xl md:text-4xl font-bold text-gray-800 mb-2`}>
               Welcome to Your Royal Dashboard
@@ -462,10 +465,15 @@ export default function DashboardPage() {
                     {userProfile.verified && <Badge className="bg-green-500 text-white flex items-center gap-1">
                       <CheckCircle className="h-3 w-3" />
                       Blessed & Verified
-                    </Badge>}
-                    {userProfile.premium ? (
+                    </Badge>}                    {userProfile.premium ? (
                       <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white flex items-center gap-1">
-                        <Crown className="h-3 w-3" />
+                        <Image
+                          src="/Nikah-Sufiyana-Icon-white-01.svg"
+                          alt="Nikah Sufiyana Icon"
+                          width={12}
+                          height={12}
+                          className="h-3 w-3"
+                        />
                         Royal Member
                       </Badge>
                     ) : (

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { Heart, Shield, Star, ArrowRight, ChurchIcon as Mosque, UserCheck, CheckCircle, MapPin, GraduationCap, Briefcase, MessageSquare, UserPlus, Search, HeartHandshake, Crown, Sparkles, Users, Award, Verified, Quote, Calendar, Phone, Mail } from "lucide-react"
+import { Heart, Shield, Star, ArrowRight, ChurchIcon as Mosque, UserCheck, CheckCircle, MapPin, GraduationCap, Briefcase, MessageSquare, UserPlus, Search, HeartHandshake, Sparkles, Users, Award, Verified, Quote, Calendar, Phone, Mail } from "lucide-react"
 import { elMessiri } from "./lib/fonts"
 import { useState, useEffect } from "react"
 import { Slider } from "@/components/ui/slider"
@@ -16,97 +16,106 @@ import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import { motion } from "framer-motion"
 
+// Custom Nikah Sufiyana Icon Component
+const NikahSufiyanaIcon = ({ className }: { className?: string }) => (
+  <Image
+    src="/Nikah-Sufiyana-Icon-white-01.svg"
+    alt="Nikah Sufiyana Icon"
+    width={24}
+    height={24}
+    className={className}
+  />
+)
+
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [filters, setFilters] = useState({
     ageRange: [18, 60],
-    ageMin: "18",
-    ageMax: "60",
+    ageMin: "18",    ageMax: "60",
     height: ""
   })
-    const slides = [
+  
+  const slides = [
     {
-      title: "Nikah Sufi​yana - Where Sufiyana Hearts Unite in Divine Grace",      
-      description: "Experience the mystical journey of finding your destined companion through our blessed Sufi-inspired platform, where every connection flows through divine will and Islamic values of pure love, creating eternal bonds in this sufiyana matrimonial space.",
+      title: "Nikah Sufiyana - India's Most Trusted Muslim Matrimonial Platform",      
+      description: "Connect with thousands of verified Muslim profiles across India. Find your perfect life partner through our secure and reliable Islamic matrimonial service designed for modern Muslim families.",
       image: "/placeholder.svg",
-      badge: "✨ Blessed by 100,000+ Faithful Souls in Divine Harmony"
+      badge: "✨ Trusted by 100,000+ Muslim Families Across India"
     },
     {
-      title: "The Sufiyana Way of Divine Union",
-      subtitle: "Divine Matrimonial Conference 2024 - Where Souls Meet",
-      description: "Join our sufiyana gathering with renowned Islamic scholars, Sufi masters, and blessed couples who've discovered eternal happiness through the mystical path of halal matrimony, guided by centuries of Sufi wisdom and spiritual enlightenment.",
+      title: "Your Perfect Match Awaits in Hyderabad",
+      subtitle: "Special Focus on Hyderabad Muslim Community",
+      description: "Join hundreds of successful couples from Hyderabad who found their life partners through Nikah Sufiyana. Connect with verified profiles from your city and surrounding areas with complete family support.",
       image: "/events-bg.jpg",
-      badge: "🕌 Register for Spiritual Guidance & Divine Connection",
-      cta: "Enter the Sufiyana Circle of Love"
+      badge: "🕌 Hyderabad's #1 Choice for Muslim Matrimony",
+      cta: "Find Hyderabad Matches"
     },
     {
-      title: "Sufiyana Matchmaking Excellence",
-      subtitle: "Mystical Journey to Your Divinely Ordained Soulmate",
-      description: "Experience our exclusive Sufiyana treatment with dedicated spiritual consultants who understand the mystical art of nikah and guide you toward your divinely ordained destiny, ensuring every match flows through divine grace and eternal blessing.",
+      title: "Premium Matchmaking Service",
+      subtitle: "Personalized Support for Serious Marriage Seekers",
+      description: "Get dedicated relationship manager support, verified profiles, and personalized matchmaking assistance. Our premium service ensures you connect with genuine, marriage-minded Muslim singles.",
       image: "/premium-bg.jpg",
-      badge: "👑 Sufiyana Blessing & Premium Service",
-      cta: "Begin Your Sufiyana Mystical Journey"
+      badge: "👑 Premium Matrimonial Service",      cta: "Explore Premium Features"
     }
   ]
+  
   const values = [
     {
       icon: Mosque,
-      title: "Sufiyana Islamic Values & Divine Grace",
-      description: "Rooted in the mystical tradition of Sufism and pure Islamic principles, every connection flows through divine guidance and spiritual awakening, creating eternal bliss and sacred matrimonial space where hearts find their destined place.",
+      title: "Islamic Values & Principles",
+      description: "Built on authentic Islamic principles with complete respect for halal relationships and Islamic matrimonial traditions. Every connection is guided by Islamic values and family involvement.",
       color: "from-emerald-500 to-teal-600"
     },
     {
       icon: Shield,
-      title: "Sacred Sufiyana Privacy & Divine Trust",
-      description: "Your spiritual journey remains protected in our sacred trust with advanced security that ensures your path to love stays blessed and divinely guarded, honoring the Sufi tradition of protecting the sacred and the hearts that are most cherished.",
+      title: "Safe & Secure Platform",
+      description: "Your privacy and security are our top priorities. Advanced verification processes and secure communication ensure your matrimonial journey remains safe and protected.",
       color: "from-blue-500 to-indigo-600"
     },    {
-      icon: Crown,
-      title: "Premium Sufiyana Treatment & Mystical Excellence",
-      description: "Experience matrimonial services inspired by Sufi wisdom, with personalized spiritual consultation and mystical matchmaking excellence that honors your soul, ensuring every interaction reflects the divine nobility of your sacred search for love.",
+      icon: NikahSufiyanaIcon,
+      title: "Premium Matchmaking Service",
+      description: "Get personalized support from our experienced relationship managers who understand Indian Muslim families. Premium features help you find the perfect match faster.",
       color: "from-purple-500 to-pink-600"
     },
     {
       icon: Heart,
-      title: "Blessed Sufiyana Connections & Eternal Love",
-      description: "Every match flows through the mystical Sufiyana way, creating soul-deep relationships that transcend ordinary love and lead to divine companionship, where two hearts become one in the sacred dance of eternal matrimonial romance.",
+      title: "Successful Marriages",
+      description: "Join thousands of happy couples who found their life partners through Nikah Sufiyana. Our success stories speak for the quality of matches and genuine connections we facilitate.",
       color: "from-rose-500 to-red-600"
     }
   ]
-
   const successStories = [
     {
-      couple: "Brother Ahmed & Sister Fatima",
-      location: "Mumbai - Allah's Blessing",
+      couple: "Ahmed & Fatima",
+      location: "Hyderabad",
       image: "/success-stories/couple1.jpg",
-      story: "Alhamdulillah! Through Nikah Sufiyana's blessed platform, we found not just a life partner but a soul mate. The journey was filled with divine guidance and pure intentions. May Allah bless this sacred platform!",
-      date: "Nikah Ceremony - 2024",
+      story: "Alhamdulillah! We found each other through Nikah Sufiyana. The platform made it easy to connect with genuine profiles from Hyderabad. Our families are very happy with the match!",
+      date: "Married in 2024",
       blessing: "Blessed with their first child - Masha'Allah"
     },
     {
-      couple: "Brother Omar & Sister Ayesha",
-      location: "Delhi - Divine Intervention",
-      image: "/success-stories/couple2.jpg",
-      story: "SubhanAllah! What touched our hearts about Nikah Sufiyana was their deep respect for Islamic principles while making our sacred search effortless and dignified. Truly blessed!",
-      date: "Sacred Union - 2023",
-      blessing: "Expecting their first blessing - InshAllah"
+      couple: "Omar & Ayesha",
+      location: "Secunderabad",
+      image: "/success-stories/couple2.jpg",      story: "Alhamdulillah! Nikah Sufiyana helped us find each other with complete respect for our Islamic values. The verification process gave our families confidence, and we're very grateful!",
+      date: "Married in 2023",
+      blessing: "Expecting their first child - InshAllah"
     },
     {
-      couple: "Brother Yusuf & Sister Zainab",
-      location: "Hyderabad - Divine Intervention",
+      couple: "Yusuf & Zainab",
+      location: "Old City, Hyderabad",
       image: "/success-stories/couple3.jpg",
-      story: "MashaAllah! The premium treatment and spiritual guidance from Nikah Sufiyana's blessed team was extraordinary. They understood our hearts and guided us to eternal happiness.",
-      date: "Heavenly Marriage - 2022",
+      story: "MashaAllah! The team at Nikah Sufiyana was very supportive throughout our journey. They helped us connect with compatible families and made the process smooth and respectful.",
+      date: "Married in 2022",
       blessing: "Blessed with son Muhammad Abdullah"
     },
   ]
 
   const premiumProfiles = [
     {
-      name: "Sister Maryam A.",
+      name: "Maryam A.",
       age: 26,
       profession: "Software Engineer",
-      location: "Bangalore, Karnataka",
+      location: "Hyderabad, Telangana",
       education: "B.Tech Computer Science",
       image: "/profiles/sister1.jpg",
       verified: true,
@@ -241,9 +250,8 @@ export default function HomePage() {
             className="text-center mb-16"
             variants={fadeInUp}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}          >            <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-royal-primary mb-6`}>
-              The Sacred Sufiyana Values
+            whileInView="animate"            viewport={{ once: true }}          >            <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
+              Why Choose Nikah Sufiyana?
             </h2>
             <div className="flex justify-center mb-6">
               <Image
@@ -255,7 +263,7 @@ export default function HomePage() {
               />
             </div>
             <p className="text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto font-medium leading-relaxed">
-              Built upon the mystical principles of Sufism and pure Islamic teachings, Nikah Sufiyana serves as a divine bridge connecting souls destined for eternal love through the sacred path of matrimony.
+              India's most trusted Islamic matrimonial platform, dedicated to helping Muslim families find the perfect life partners with complete Islamic values and modern convenience.
             </p>
           </motion.div>
 
@@ -295,9 +303,8 @@ export default function HomePage() {
             variants={fadeInUp}
             initial="initial"
             whileInView="animate"
-            viewport={{ once: true }}
-          >            <div className="text-center mb-16">              <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-royal-primary mb-6`}>
-                The Mystical Legacy of Nikah Sufiyana
+            viewport={{ once: true }}          >            <div className="text-center mb-16">              <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
+                About Nikah Sufiyana
               </h2>
               <div className="flex justify-center mb-8">
                 <Image
@@ -331,12 +338,11 @@ export default function HomePage() {
                     </h3>
                     <div className="space-y-6 text-gray-700 leading-relaxed">                      <p className="text-lg">
                         <strong>Nikah Sufiyana</strong> represents the beautiful harmony between spiritual devotion and matrimonial bliss. Our platform celebrates the sacred bond of marriage as a divine blessing that brings two hearts together in eternal companionship and shared faith.
+                      </p>                      <p className="text-lg">
+                        We believe that every marriage is a sacred bond blessed by Allah (SWT), uniting not just two individuals, but two families with shared values and aspirations. Our mission is to facilitate these blessed unions with complete respect for Islamic principles and Indian family traditions.
                       </p>
                       <p className="text-lg">
-                        We believe that true love is a gift from Allah (SWT), and every marriage is a sacred covenant that unites not just two individuals, but two families, two histories, and two destinies. Our mission is to facilitate these blessed unions with the highest respect for Islamic values and family traditions.
-                      </p>
-                      <p className="text-lg">
-                        Every profile on our platform is blessed with the intention of finding not just a life partner, but a <strong>companion for the spiritual journey</strong> - someone who will walk alongside you in this world and the hereafter.
+                        Every profile on our platform represents a genuine person seeking a <strong>life partner for this world and the hereafter</strong> - someone who shares your values, understands your culture, and complements your personality.
                       </p>
                     </div>
                   </div>
@@ -349,30 +355,33 @@ export default function HomePage() {
                 transition={{ duration: 0.8, delay: 0.2 }}
                 viewport={{ once: true }}
                 className="space-y-8"
-              >
-                <div className="bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 p-6 rounded-xl border border-royal-primary/20">
+              >                <div className="bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 p-6 rounded-xl border border-royal-primary/20">
                   <h4 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4 flex items-center gap-3`}>
                     <Sparkles className="h-6 w-6" />
-                    The Sacred Promise
+                    Our Commitment
                   </h4>
                   <p className="text-gray-700 text-lg leading-relaxed">
-                    We promise to honor your search for love with the same reverence Sufis show for their spiritual path - with patience, wisdom, and divine guidance.
+                    We are committed to providing a safe, secure, and respectful platform where Muslim families can find suitable matches with complete confidence and peace of mind.
                   </p>
                 </div>
 
                 <div className="bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 p-6 rounded-xl border border-royal-primary/20">
                   <h4 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4 flex items-center gap-3`}>
                     <Heart className="h-6 w-6" />
-                    Mystical Matchmaking
+                    Smart Matchmaking
                   </h4>
                   <p className="text-gray-700 text-lg leading-relaxed">
-                    Our approach combines modern technology with ancient wisdom, ensuring that every connection flows through divine will and spiritual compatibility.
+                    Our advanced algorithms and personalized approach help you connect with compatible profiles based on your preferences, values, and lifestyle choices.
                   </p>
-                </div>
-
-                <div className="bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 p-6 rounded-xl border border-royal-primary/20">
+                </div><div className="bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 p-6 rounded-xl border border-royal-primary/20">
                   <h4 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4 flex items-center gap-3`}>
-                    <Crown className="h-6 w-6" />
+                    <Image
+                      src="/Nikah-Sufiyana-Icon-white-01.svg"
+                      alt="Nikah Sufiyana Icon"
+                      width={24}
+                      height={24}
+                      className="h-6 w-6"
+                    />
                     Royal Sufi Service
                   </h4>
                   <p className="text-gray-700 text-lg leading-relaxed">
@@ -394,12 +403,16 @@ export default function HomePage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-custom-sm font-medium mb-4">
-              <Crown className="h-4 w-4 mr-2" />
-              Premium Verified Profiles
-            </Badge>            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
-              Meet Your Sufiyana Soulmate
+          >            <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-custom-sm font-medium mb-4">
+              <Image
+                src="/Nikah-Sufiyana-Icon-white-01.svg"
+                alt="Nikah Sufiyana Icon"
+                width={16}
+                height={16}
+                className="h-4 w-4 mr-2"
+              />
+              Premium Verified Profiles            </Badge>            <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
+              Featured Profiles from Hyderabad
             </h2>
             <div className="flex justify-center mb-6">
               <Image
@@ -437,10 +450,15 @@ export default function HomePage() {
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Verified
                         </Badge>
-                      )}
-                      {profile.premium && (
+                      )}                      {profile.premium && (
                         <Badge className="bg-royal-primary text-white border-0">
-                          <Crown className="h-3 w-3 mr-1" />
+                          <Image
+                            src="/Nikah-Sufiyana-Icon-white-01.svg"
+                            alt="Nikah Sufiyana Icon"
+                            width={12}
+                            height={12}
+                            className="h-3 w-3 mr-1"
+                          />
                           Premium
                         </Badge>
                       )}
@@ -467,9 +485,8 @@ export default function HomePage() {
                         <Briefcase className="h-4 w-4" />
                         {profile.profession}
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button className="flex-1 bg-royal-primary hover:bg-royal-primary/90 text-white">
+                    </div>                    <div className="flex gap-2">
+                      <Button className="flex-1 royal-shine-button text-white">
                         View Profile
                       </Button>
                       <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
@@ -482,8 +499,7 @@ export default function HomePage() {
             ))}
           </motion.div>
 
-          <div className="text-center">
-            <Button size="lg" variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white px-8 py-4 text-lg font-semibold">
+          <div className="text-center">            <Button size="lg" variant="outline" className="border-royal-primary text-royal-primary hover:royal-shine-button hover:text-white px-8 py-4 text-lg font-semibold">
               View All Premium Profiles
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -500,7 +516,7 @@ export default function HomePage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+          >            <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
               Blessed Sufiyana Love Stories
             </h2>
             <div className="flex justify-center mb-6">
@@ -588,10 +604,9 @@ export default function HomePage() {
             className="text-center mb-16"
             variants={fadeInUp}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            whileInView="animate"            viewport={{ once: true }}
           >
-            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+            <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
               The Sufiyana Way - Where Hearts Unite in Divine Harmony
             </h2>
             <div className="flex justify-center mb-8">
@@ -603,8 +618,7 @@ export default function HomePage() {
                 className="opacity-60"
               />
             </div>
-            <p className="text-xl md:text-2xl text-gray-700 max-w-5xl mx-auto font-medium leading-relaxed">
-              In the mystical realm of Nikah Sufiyana, every connection flows like poetry in motion, where sacred hearts discover their eternal destination through divine intervention and spiritual celebration.
+            <p className="text-xl md:text-2xl text-gray-700 max-w-5xl mx-auto font-medium leading-relaxed">              Find your perfect match among thousands of verified Muslim profiles with complete family support and Islamic guidance throughout your matrimonial journey.
             </p>
           </motion.div>
 
@@ -627,12 +641,11 @@ export default function HomePage() {
                 <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
                   <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-royal-primary to-royal-primary/80 flex items-center justify-center">
                     <Heart className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
-                    سُفیانہ محبت - Sufiyana Love
+                  </div>                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
+                    Verified Profiles
                   </h3>
                   <p className="text-gray-700 leading-relaxed">
-                    Love that transcends the material realm, connecting souls through divine wisdom and spiritual understanding - the Sufiyana way of eternal companionship.
+                    Every profile is thoroughly verified with document checks and family verification to ensure authenticity and build trust for meaningful connections.
                   </p>
                 </div>
               </div>
@@ -656,12 +669,11 @@ export default function HomePage() {
                 <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
                   <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                     <Users className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
-                    روحانی برادری - Sacred Brotherhood
+                  </div>                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
+                    Trusted Community
                   </h3>
                   <p className="text-gray-700 leading-relaxed">
-                    A blessed community of 100,000+ faithful souls, united in the pursuit of halal love and guided by Islamic principles in every matrimonial connection.
+                    Join 100,000+ Muslim families who trust Nikah Sufiyana for finding compatible matches with shared Islamic values and family traditions.
                   </p>
                 </div>
               </div>
@@ -677,7 +689,7 @@ export default function HomePage() {
               <div className="relative mb-8">
                 <Image
                   src="/Nikah-Sufiyana-box-with-border-01.svg"
-                  alt="Decorative Box Border"
+                  alt="Decorative Box"
                   width={300}
                   height={200}
                   className="absolute inset-0 w-full h-full object-cover opacity-20"
@@ -749,8 +761,7 @@ export default function HomePage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+          >            <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
               Premium Sufiyana Features - Where Technology Meets Spirituality
             </h2>
             <div className="flex justify-center mb-8">
@@ -855,9 +866,8 @@ export default function HomePage() {
             variants={fadeInUp}
             initial="initial"
             whileInView="animate"
-            viewport={{ once: true }}
-          >            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold mb-6`}>
-              Begin Your Sufiyana Journey Today
+            viewport={{ once: true }}          >            <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold mb-6 text-white`}>
+              Find Your Life Partner Today
             </h2>
             <div className="flex justify-center mb-8">
               <Image
@@ -866,9 +876,8 @@ export default function HomePage() {
                 width={250}
                 height={12}
                 className="opacity-60 filter brightness-0 invert"
-              />
-            </div>            <p className="text-xl md:text-2xl mb-8 leading-relaxed">
-              Join thousands of blessed souls who have found their destined companions through our royal Sufiyana platform. Your perfect match awaits with Allah's blessing in this sacred space where hearts unite through divine will and mystical matrimonial grace.
+              />            </div>            <p className="text-xl md:text-2xl mb-8 leading-relaxed">
+              Join thousands of happy couples who found their life partners through Nikah Sufiyana. Start your journey today and connect with verified Muslim profiles from Hyderabad and across India with complete family support.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="secondary" className="bg-white text-royal-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold">

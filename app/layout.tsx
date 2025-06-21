@@ -1,18 +1,10 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter, Playfair_Display, El_Messiri } from "next/font/google"
+import { Playfair_Display, El_Messiri } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { SessionProvider } from "@/components/auth/session-provider"
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-inter",
-  display: "swap",
-  preload: true,
-})
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -56,10 +48,9 @@ export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
-}) {
-  return (
+}) {  return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${playfair.variable} ${elMessiri.variable} font-el-messiri antialiased bg-royal-gradient min-h-screen`} suppressHydrationWarning>
+      <body className={`${playfair.variable} ${elMessiri.variable} font-el-messiri antialiased bg-royal-gradient min-h-screen`} suppressHydrationWarning>
         <SessionProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             {children}

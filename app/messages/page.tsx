@@ -16,7 +16,7 @@ export default function MessagesPage() {
       <Header />
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-6xl mx-auto">
-          <h1 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-royal-primary text-center mb-8`}>
+          <h1 className={`${elMessiri.className} text-3xl md:text-4xl font-bold text-royal-primary text-center mb-8`}>
             Sacred Sufiyana Messages
           </h1>
             <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-2xl">

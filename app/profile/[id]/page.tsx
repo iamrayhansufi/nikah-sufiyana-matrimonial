@@ -656,8 +656,7 @@ export default function ProfilePage({
                         <div className="relative z-10">
                           {!isInterestSent && (
                             <Button 
-                              variant="secondary" 
-                              className="bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 hover:from-amber-300 hover:to-amber-400 font-medium border border-amber-300 shadow-lg transition-all duration-300"
+                              variant="secondary"                              className="royal-shine-button hover:scale-105 text-slate-900 hover:from-amber-300 hover:to-amber-400 font-medium border border-amber-300 shadow-lg transition-all duration-300"
                               onClick={handleSendInterest}
                             >
                               <Heart className="h-4 w-4 mr-2 text-red-600" />

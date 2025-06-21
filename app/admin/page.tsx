@@ -663,7 +663,7 @@ export default function AdminDashboard() {
 
                     <Button
                       onClick={handleSendNotification}
-                      className="gradient-primary text-white btn-hover font-body"
+                      className="royal-shine-button text-white btn-hover font-body"
                       disabled={!notificationMessage.trim()}
                     >
                       <Send className="h-4 w-4 mr-2" />

@@ -21,7 +21,7 @@ export default function ShortlistPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h1 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+            <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
               Your Sacred Sufiyana Shortlist
             </h1>
             <div className="flex justify-center mb-6">

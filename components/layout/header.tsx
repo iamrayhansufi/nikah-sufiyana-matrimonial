@@ -121,8 +121,7 @@ export function Header() {
       <header className="sticky top-0 z-50 w-full border-b border-royal-primary/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 shadow-md">
         <div className="container mx-auto px-4">
           <div className="flex h-20 items-center justify-between">
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2 hover-lift">              <Image 
+            {/* Logo */}            <Link href="/" className="flex items-center space-x-2 hover-lift logo-shine">              <Image 
                 src="/Nikah-Sufiyana-Logo.svg"
                 alt="Nikah Sufiyana" 
                 width={190} 
@@ -269,9 +268,8 @@ export function Header() {
                     <Button variant="outline" className="font-body">
                       {language === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
                     </Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button className="gradient-primary text-white btn-hover font-body">
+                  </Link>                  <Link href="/register">
+                    <Button className="royal-shine-button text-white btn-hover font-body">
                       {language === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
                     </Button>
                   </Link>
@@ -369,10 +367,9 @@ export function Header() {
                               <User className="h-4 w-4" />
                               Dashboard
                             </Button>
-                          </Link>
-                          <Button 
+                          </Link>                          <Button 
                             variant="default" 
-                            className="w-full gradient-primary text-white" 
+                            className="w-full royal-shine-button text-white" 
                             onClick={handleLogout}
                           >
                             Logout
@@ -384,9 +381,8 @@ export function Header() {
                             <Button variant="outline" className="w-full font-body">
                               {language === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
                             </Button>
-                          </Link>
-                          <Link href="/register" onClick={() => setIsOpen(false)}>
-                            <Button className="w-full gradient-primary text-white font-body">
+                          </Link>                          <Link href="/register" onClick={() => setIsOpen(false)}>
+                            <Button className="w-full royal-shine-button text-white font-body">
                               {language === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
                             </Button>
                           </Link>

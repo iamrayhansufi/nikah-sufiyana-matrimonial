@@ -8,13 +8,24 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { Heart, Shield, Star, ArrowRight, ChurchIcon as Mosque, UserCheck, CheckCircle, MapPin, GraduationCap, Briefcase, MessageSquare, UserPlus, Search, HeartHandshake, Crown, Sparkles, Users, Award, Verified, Quote, Calendar, Phone, Mail } from "lucide-react"
+import { Heart, Shield, Star, ArrowRight, ChurchIcon as Mosque, UserCheck, CheckCircle, MapPin, GraduationCap, Briefcase, MessageSquare, UserPlus, Search, HeartHandshake, Sparkles, Users, Award, Verified, Quote, Calendar, Phone, Mail } from "lucide-react"
 import { elMessiri } from "./lib/fonts"
 import { useState, useEffect } from "react"
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import { motion } from "framer-motion"
+
+// Custom Nikah Sufiyana Icon Component
+const NikahSufiyanaIcon = ({ className }: { className?: string }) => (
+  <Image
+    src="/Nikah-Sufiyana-Icon-white-01.svg"
+    alt="Nikah Sufiyana Icon"
+    width={24}
+    height={24}
+    className={className}
+  />
+)
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -54,7 +65,7 @@ export default function HomePage() {
     {
       icon: Mosque,
       title: "Islamic Values",
-      description: "Rooted in pure Islamic principles, every connection is blessed with divine guidance and spiritual foundation for eternal happiness.",
+      description: "Built on pure Islamic principles with complete respect for halal relationships and sacred matrimonial traditions.",
       color: "from-emerald-500 to-teal-600"
     },
     {
@@ -64,7 +75,7 @@ export default function HomePage() {
       color: "from-blue-500 to-indigo-600"
     },
     {
-      icon: Crown,
+      icon: NikahSufiyanaIcon,
       title: "Royal Treatment",
       description: "Experience matrimonial services fit for royalty, with personalized consultation and premium matchmaking excellence.",
       color: "from-purple-500 to-pink-600"
@@ -209,8 +220,7 @@ export default function HomePage() {
               <Button size="lg" className="bg-royal-primary hover:bg-royal-primary/90 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
                 {slides[currentSlide].cta || "Begin Your Sacred Journey"}
                 <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button variant="outline" size="lg" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white px-8 py-4 text-lg font-semibold">
+              </Button>              <Button variant="outline" size="lg" className="border-royal-primary text-royal-primary hover:royal-shine-button hover:text-white px-8 py-4 text-lg font-semibold">
                 Watch Success Stories
                 <Heart className="ml-2 h-5 w-5" />
               </Button>
@@ -248,10 +258,9 @@ export default function HomePage() {
             className="text-center mb-16"
             variants={fadeInUp}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            whileInView="animate"            viewport={{ once: true }}
           >
-            <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-gray-800 mb-6`}>
+            <h2 className={`${elMessiri.className} text-3xl md:text-4xl font-bold text-gray-800 mb-6`}>
               Our Sacred Values
             </h2>
             <div className="flex justify-center mb-6">
@@ -305,12 +314,16 @@ export default function HomePage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-lg font-medium mb-4">
-              <Crown className="h-4 w-4 mr-2" />
-              Premium Verified Profiles
+          >            <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-lg font-medium mb-4">
+              <Image
+                src="/Nikah-Sufiyana-Icon-white-01.svg"
+                alt="Nikah Sufiyana Icon"
+                width={16}
+                height={16}
+                className="h-4 w-4 mr-2"
+              />              Premium Verified Profiles
             </Badge>
-            <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-gray-800 mb-6`}>
+            <h2 className={`${elMessiri.className} text-3xl md:text-4xl font-bold text-gray-800 mb-6`}>
               Meet Your Royal Match
             </h2>
             <div className="flex justify-center mb-6">
@@ -349,10 +362,15 @@ export default function HomePage() {
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Verified
                         </Badge>
-                      )}
-                      {profile.premium && (
+                      )}                      {profile.premium && (
                         <Badge className="bg-royal-primary text-white border-0">
-                          <Crown className="h-3 w-3 mr-1" />
+                          <Image
+                            src="/Nikah-Sufiyana-Icon-white-01.svg"
+                            alt="Nikah Sufiyana Icon"
+                            width={12}
+                            height={12}
+                            className="h-3 w-3 mr-1"
+                          />
                           Premium
                         </Badge>
                       )}
@@ -379,9 +397,8 @@ export default function HomePage() {
                         <Briefcase className="h-4 w-4" />
                         {profile.profession}
                       </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button className="flex-1 bg-royal-primary hover:bg-royal-primary/90 text-white">
+                    </div>                    <div className="flex gap-2">
+                      <Button className="flex-1 royal-shine-button text-white">
                         View Profile
                       </Button>
                       <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
@@ -394,8 +411,7 @@ export default function HomePage() {
             ))}
           </motion.div>
 
-          <div className="text-center">
-            <Button size="lg" variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white px-8 py-4 text-lg font-semibold">
+          <div className="text-center">            <Button size="lg" variant="outline" className="border-royal-primary text-royal-primary hover:royal-shine-button hover:text-white px-8 py-4 text-lg font-semibold">
               View All Premium Profiles
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -410,10 +426,9 @@ export default function HomePage() {
             className="text-center mb-16"
             variants={fadeInUp}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            whileInView="animate"            viewport={{ once: true }}
           >
-            <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-gray-800 mb-6`}>
+            <h2 className={`${elMessiri.className} text-3xl md:text-4xl font-bold text-gray-800 mb-6`}>
               Blessed Success Stories
             </h2>
             <div className="flex justify-center mb-6">
@@ -502,10 +517,9 @@ export default function HomePage() {
             className="text-center max-w-4xl mx-auto"
             variants={fadeInUp}
             initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
+            whileInView="animate"            viewport={{ once: true }}
           >
-            <h2 className={`${elMessiri.className} text-4xl md:text-6xl font-bold mb-6`}>
+            <h2 className={`${elMessiri.className} text-3xl md:text-5xl font-bold mb-6`}>
               Begin Your Sacred Journey Today
             </h2>
             <div className="flex justify-center mb-8">

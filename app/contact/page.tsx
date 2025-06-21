@@ -117,7 +117,7 @@ export default function ContactPage() {
             <Badge className="mb-6 bg-primary/10 text-primary border-primary/20 backdrop-blur-sm">
               24/7 Support Available
             </Badge>
-            <h1 className={`${playfair.className} text-4xl md:text-5xl lg:text-6xl font-bold mb-6`}>
+            <h1 className={`${playfair.className} text-3xl md:text-4xl lg:text-5xl font-bold mb-6`}>
               Get in Touch
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">

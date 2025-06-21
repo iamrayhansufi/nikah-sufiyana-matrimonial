@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Heart, Star, MapPin, GraduationCap, Briefcase, Filter, Eye, EyeOff, MessageSquare, Crown, Sparkles, Search } from "lucide-react"
+import { Heart, Star, MapPin, GraduationCap, Briefcase, Filter, Eye, EyeOff, MessageSquare, Sparkles, Search } from "lucide-react"
 import Link from "next/link"
 import { elMessiri } from "../lib/fonts"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"

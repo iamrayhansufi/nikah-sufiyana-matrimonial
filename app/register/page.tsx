@@ -23,7 +23,7 @@ import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
-import { Heart, Upload, Eye, EyeOff, FileText, PenSquare, Crown, Sparkles } from "lucide-react"
+import { Heart, Upload, Eye, EyeOff, FileText, PenSquare, Sparkles } from "lucide-react"
 
 interface ExtractedData {
   fullName?: string;
@@ -754,11 +754,16 @@ export default function RegisterPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           {/* Royal Header */}
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
-              <Crown className="h-10 w-10 text-white" />
+          <div className="text-center mb-8">            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
+              <Image
+                src="/Nikah-Sufiyana-Icon-white-01.svg"
+                alt="Nikah Sufiyana Icon"
+                width={40}
+                height={40}
+                className="h-10 w-10"
+              />
             </div>
-            <h1 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-gray-800 mb-4`}>
+            <h1 className={`${elMessiri.className} text-3xl md:text-4xl font-bold text-gray-800 mb-4`}>
               Begin Your Sacred Journey
             </h1>
             <div className="flex justify-center mb-4">

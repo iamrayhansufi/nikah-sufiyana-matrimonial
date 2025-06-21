@@ -203,7 +203,7 @@ export default function InterestsPage() {
   return (    <div className="min-h-screen bg-royal-gradient">
       <Header />
       <div className="container mx-auto px-4 py-16">
-        <div className="max-w-6xl mx-auto">          <h1 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary text-center mb-8`}>
+        <div className="max-w-6xl mx-auto">          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary text-center mb-8`}>
             Sacred Sufiyana Interests - Divine Connections
           </h1>
           

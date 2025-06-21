@@ -8,4 +8,6 @@ export const playfair = Playfair_Display({
 export const elMessiri = El_Messiri({
   subsets: ["latin", "arabic"],
   display: "swap",
+  variable: "--font-el-messiri",
+  weight: ["400", "500", "600", "700"]
 })

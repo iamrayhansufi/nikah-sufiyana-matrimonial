@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Heart, Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Download, Send, Crown, Sparkles } from "lucide-react"
+import { Heart, Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Download, Send, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { elMessiri } from "@/app/lib/fonts"
@@ -10,22 +10,19 @@ export function Footer() {
     <footer className="bg-gradient-to-br from-royal-primary to-royal-primary/90 text-white relative overflow-hidden">
       {/* Decorative Elements */}
       <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-10"></div>
-      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <Image
-          src="/sufiyana-border-ui.svg"
-          alt="Decorative Border"
-          width={300}
-          height={12}
-          className="opacity-30 filter brightness-0 invert"
-        />
-      </div>
-      
+            
       {/* Newsletter Section */}
       <div className="border-b border-white/20">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-xl mx-auto text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
-              <Crown className="h-8 w-8 text-white" />
+              <Image
+                src="/Nikah-Sufiyana-Icon-white-01.svg"
+                alt="Nikah Sufiyana Icon"
+                width={32}
+                height={32}
+                className="h-8 w-8"
+              />
             </div>
             <h3 className={`${elMessiri.className} text-3xl font-bold mb-4`}>
               Join Our Royal Newsletter
@@ -176,7 +173,13 @@ export function Footer() {
           {/* Royal Contact */}
           <div className="space-y-4">
             <h3 className={`${elMessiri.className} font-bold text-lg flex items-center gap-2`}>
-              <Crown className="h-5 w-5" />
+              <Image
+                src="/Nikah-Sufiyana-Icon-white-01.svg"
+                alt="Nikah Sufiyana Icon"
+                width={20}
+                height={20}
+                className="h-5 w-5"
+              />
               Royal Contact
             </h3>
             <div className="space-y-4 text-lg">

@@ -5,7 +5,8 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Check, Star, Crown, Heart } from "lucide-react"
+import { Check, Star, Heart } from "lucide-react"
+import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -100,7 +101,13 @@ export default function PaymentPage() {
                 <CardHeader className="text-center pb-4">
                   <div className="mb-4">
                     {plan.name === "Premium" ? (
-                      <Crown className="h-12 w-12 mx-auto text-yellow-500" />
+                      <Image
+                        src="/Nikah-Sufiyana-Icon-white-01.svg"
+                        alt="Nikah Sufiyana Icon"
+                        width={48}
+                        height={48}
+                        className="h-12 w-12 mx-auto"
+                      />
                     ) : (
                       <Heart className="h-12 w-12 mx-auto text-primary" />
                     )}
