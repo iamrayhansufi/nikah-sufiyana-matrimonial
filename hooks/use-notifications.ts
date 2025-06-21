@@ -37,10 +37,23 @@ export function useNotifications() {
       const response = await fetch('/api/notifications', {
         credentials: 'include',
         headers: { 'Cache-Control': 'no-cache' }
-      });
-      
-      if (response.ok) {
-        const newNotifications = await response.json();
+      });      if (response.ok) {
+        const responseData = await response.json();
+        
+        // Extract notifications array from response with additional safety checks
+        const newNotifications = Array.isArray(responseData?.notifications) 
+          ? responseData.notifications 
+          : Array.isArray(responseData) 
+            ? responseData 
+            : [];
+        
+        // Debug logging
+        console.log('📨 Notifications response:', {
+          responseStructure: typeof responseData,
+          hasNotificationsKey: 'notifications' in (responseData || {}),
+          notificationsCount: newNotifications.length,
+          isArray: Array.isArray(newNotifications)
+        });
         
         // Check for new notifications
         if (newNotifications.length > 0) {

@@ -18,8 +18,7 @@ export async function GET(request: NextRequest) {
     
     const userId = session.user.id;
     const now = Date.now();
-    
-    // Check cache first
+      // Check cache first
     const cached = notificationCache.get(userId);
     if (cached && (now - cached.timestamp) < CACHE_DURATION) {
       console.log(`📋 Returning cached notifications for user ${userId}`);
@@ -30,14 +29,18 @@ export async function GET(request: NextRequest) {
     
     // Get the user's notifications
     const notifications = await database.notifications.getUserNotifications(userId);
-      // Define metadata type outside the map function
+    
+    // Ensure notifications is an array
+    const notificationsArray = Array.isArray(notifications) ? notifications : [];
+    
+    // Define metadata type outside the map function
     interface NotificationMetadata {
       relatedUserId?: string;
       [key: string]: any;
     }
     
     // Handle notifications with relatedUserId to fetch related user info
-    const enhancedNotifications = await Promise.all(notifications.map(async notification => {
+    const enhancedNotifications = await Promise.all(notificationsArray.map(async notification => {
       let metadata: NotificationMetadata = {};
       let relatedUser = null;
       
@@ -72,19 +75,17 @@ export async function GET(request: NextRequest) {
         metadata,
         relatedUser,
         read: notification.read === "true" || notification.read === true
-      };
-    }));
+      };    }));
     
-    // Update cache
-    notificationCache.set(userId, { data: enhancedNotifications, timestamp: now });    // Cache the results
+    // Cache the results
     notificationCache.set(userId, {
       data: enhancedNotifications,
       timestamp: now
     });
     
-    console.log(`💾 Cached notifications for user ${userId}`);
+    console.log(`💾 Cached ${enhancedNotifications.length} notifications for user ${userId}`);
     
-    return NextResponse.json(enhancedNotifications);
+    return NextResponse.json({ notifications: enhancedNotifications });
   } catch (error) {
     console.error("Error fetching notifications:", error);
     return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 });
