@@ -68,3 +68,15 @@ export interface VerificationCode {
   isUsed: boolean;
   createdAt: string;
 }
+
+export interface PaymentOrder {
+  id: string;
+  orderId: string;
+  userId: string;
+  planType: string;
+  amount: number;
+  status: "created" | "completed" | "failed";
+  paymentId?: string;
+  createdAt: string;
+  completedAt?: string;
+}

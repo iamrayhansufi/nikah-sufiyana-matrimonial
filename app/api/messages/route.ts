@@ -38,11 +38,17 @@ export async function GET(request: Request) {
 
     // Get messages from Redis
     const messageKeys = await redis.keys("message:*");
-    const messages: Message[] = [];
+    const messages: Message[] = [];    for (const key of messageKeys) {
+      const messageData = await redis.hgetall(key);
+      if (!messageData || Object.keys(messageData).length === 0) continue;
 
-    for (const key of messageKeys) {
-      const message = await redis.hgetall(key) as Message;
-      if (!message) continue;
+      const message: Message = {
+        id: (messageData.id as string) || key.split(':')[1] || '',
+        senderId: (messageData.senderId as string) || '',
+        receiverId: (messageData.receiverId as string) || '',
+        content: (messageData.content as string) || '',
+        createdAt: (messageData.createdAt as string) || new Date().toISOString()
+      };
 
       // Filter messages for the current user
       if (message.senderId === session.user.id || message.receiverId === session.user.id) {

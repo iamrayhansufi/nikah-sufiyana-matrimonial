@@ -1,5 +1,6 @@
 import { redis } from "./redis-client";
 import { database } from "./database-service";
+import { type User } from "./types";
 
 export interface UserReportEntry {
   name: string
@@ -32,29 +33,31 @@ export interface ActivityReportEntry {
 }
 
 export async function generateUserReport(startDate?: string, endDate?: string): Promise<UserReportEntry[]> {
-  await connectToDatabase()
+  const allUsers = await database.users.getUsers(1, 1000);
 
-  const dateFilter: Record<string, Date> = {}
-  if (startDate) dateFilter.$gte = new Date(startDate)
-  if (endDate) dateFilter.$lte = new Date(endDate)
+  // Filter users by date if provided
+  let users = allUsers;
+  if (startDate || endDate) {
+    users = allUsers.filter((user: User) => {
+      if (!user.createdAt) return false;
+      const createdAt = new Date(user.createdAt);
+      if (startDate && createdAt < new Date(startDate)) return false;
+      if (endDate && createdAt > new Date(endDate)) return false;
+      return true;
+    });
+  }
 
-  const users = await getUsers(
-    Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {},
-    1,
-    1000
-  )
-
-  return users.map((user) => ({
-    name: user.fullName,
+  return users.map((user: User) => ({
+    name: user.fullName || '',
     email: user.email,
-    phone: user.phone,
-    age: user.age,
-    location: user.location,
-    education: user.education,
+    phone: user.phone || '',
+    age: user.age || 0,
+    location: user.location || '',
+    education: user.education || '',
     profession: user.profession,
-    subscription: user.subscription,
-    status: user.profileStatus,
-    joinedDate: user.createdAt.toISOString().split("T")[0],
+    subscription: user.subscription || '',
+    status: user.profileStatus || '',
+    joinedDate: user.createdAt ? new Date(user.createdAt).toISOString().split("T")[0] : '',
   }))
 }
 
@@ -69,39 +72,42 @@ export async function generateRevenueReport(startDate?: string, endDate?: string
 }
 
 export async function generateActivityReport(startDate?: string, endDate?: string): Promise<ActivityReportEntry> {
-  await connectToDatabase()
+  const allUsers = await database.users.getUsers(1, 1000);
 
-  const dateFilter: Record<string, Date> = {}
-  if (startDate) dateFilter.$gte = new Date(startDate)
-  if (endDate) dateFilter.$lte = new Date(endDate)
-
-  const users = await getUsers(
-    Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {},
-    1,
-    1000
-  )
+  // Filter users by date if provided
+  let users = allUsers;
+  if (startDate || endDate) {
+    users = allUsers.filter((user: User) => {
+      if (!user.createdAt) return false;
+      const createdAt = new Date(user.createdAt);
+      if (startDate && createdAt < new Date(startDate)) return false;
+      if (endDate && createdAt > new Date(endDate)) return false;
+      return true;
+    });
+  }
 
   // Process daily registrations
-  const dailyRegistrations = users.reduce((acc: Record<string, number>, user) => {
-    const date = user.createdAt.toISOString().split('T')[0]
-    acc[date] = (acc[date] || 0) + 1
-    return acc
-  }, {})
+  const dailyRegistrations = users.reduce((acc: Record<string, number>, user: User) => {
+    const date = user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : 'unknown';
+    acc[date] = (acc[date] || 0) + 1;
+    return acc;
+  }, {});
 
   // Process status breakdown
-  const statusBreakdown = users.reduce((acc: Record<string, number>, user) => {
-    acc[user.profileStatus] = (acc[user.profileStatus] || 0) + 1
-    return acc
-  }, {})
+  const statusBreakdown = users.reduce((acc: Record<string, number>, user: User) => {
+    const status = user.profileStatus || 'unknown';
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
 
   return {
     dailyRegistrations: Object.entries(dailyRegistrations).map(([date, count]) => ({
       date,
-      registrations: count,
+      registrations: count as number,
     })),
     statusBreakdown: Object.entries(statusBreakdown).map(([status, count]) => ({
       status,
-      count,
+      count: count as number,
     })),
   }
 }

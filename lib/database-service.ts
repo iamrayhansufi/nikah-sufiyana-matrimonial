@@ -30,9 +30,53 @@ export const database = {
     async getByEmail(email: string): Promise<any | null> {
       return await redisTables.users.findByEmail(email);
     },
-    
-    async update(userId: string, data: any): Promise<boolean> {
+      async update(userId: string, data: any): Promise<boolean> {
       return await redisTables.users.update(userId, data);
+    },
+
+    // Admin methods
+    async getUsers(page: number = 1, limit: number = 10): Promise<any[]> {
+      const userIds = await redis.smembers('users');
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedIds = userIds.slice(startIndex, endIndex);
+      
+      const users = await Promise.all(
+        paginatedIds.map(async (id) => {
+          const userData = await redis.hgetall(`user:${id}`);
+          return userData && Object.keys(userData).length > 0 ? { ...userData, id } : null;
+        })
+      );
+      
+      return users.filter(user => user !== null);
+    },
+
+    async getUserStats(): Promise<{ total: number; premium: number; pending: number }> {
+      const userIds = await redis.smembers('users');
+      const users = await Promise.all(
+        userIds.map(async (id) => {
+          const userData = await redis.hgetall(`user:${id}`);
+          return userData && Object.keys(userData).length > 0 ? userData : null;
+        })
+      );
+      
+      const validUsers = users.filter(user => user !== null);
+      const premium = validUsers.filter(user => user.subscription === 'premium').length;
+      const pending = validUsers.filter(user => user.profileStatus === 'pending').length;
+      
+      return {
+        total: validUsers.length,
+        premium,
+        pending
+      };
+    },
+
+    async getUserById(userId: string): Promise<any | null> {
+      return await this.getById(userId);
+    },
+
+    async updateUserProfile(userId: string, data: any): Promise<boolean> {
+      return await this.update(userId, data);
     },
   },
     interests: {

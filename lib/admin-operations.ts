@@ -1,30 +1,31 @@
-import { connectToDatabase, type User, getUserStats, getUsers as getDatabaseUsers, getUserById, updateUserProfile } from "./database"
+import { type User } from "./types";
 import { redis } from "./redis-client";
 import { database } from "./database-service";
 
 export async function getDashboardStats() {
-  await connectToDatabase()
-
   // Get current date ranges
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
 
-  const stats = await getUserStats()
+  const stats = await database.users.getUserStats()
   
   // Get users for this month and last month
-  const thisMonthUsers = await getDatabaseUsers(
-    { createdAt: { $gte: startOfMonth } },
-    1,
-    1000
-  )
+  const allUsers = await database.users.getUsers(1, 1000)
+  
+  // Filter users by date (approximation since we're working with Redis)
+  const thisMonthUsers = allUsers.filter((user: User) => {
+    if (!user.createdAt) return false;
+    const createdAt = new Date(user.createdAt);
+    return createdAt >= startOfMonth;
+  });
 
-  const lastMonthUsers = await getDatabaseUsers(
-    { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } },
-    1,
-    1000
-  )
+  const lastMonthUsers = allUsers.filter((user: User) => {
+    if (!user.createdAt) return false;
+    const createdAt = new Date(user.createdAt);
+    return createdAt >= startOfLastMonth && createdAt <= endOfLastMonth;
+  });
 
   const monthlyGrowth = lastMonthUsers.length > 0 
     ? ((thisMonthUsers.length - lastMonthUsers.length) / lastMonthUsers.length) * 100 
@@ -43,16 +44,14 @@ export async function getDashboardStats() {
 }
 
 export async function getRecentActivity() {
-  await connectToDatabase()
-  return await getDatabaseUsers({}, 1, 10)
+  const users = await database.users.getUsers(1, 10);
+  return users;
 }
 
 export async function bulkUpdateUsers(userIds: string[], updateData: Partial<User>) {
-  await connectToDatabase()
-
   try {
     const updatedUsers = await Promise.all(
-      userIds.map(id => updateUserProfile(id, updateData))
+      userIds.map(id => database.users.updateUserProfile(id, updateData))
     )
 
     return {
@@ -91,10 +90,8 @@ export async function sendBulkNotifications(
   userIds: string[],
   notificationData: NotificationData
 ): Promise<BulkNotificationResult> {
-  await connectToDatabase()
-
-  const users = await Promise.all(userIds.map(id => getUserById(id)))
-  const validUsers = users.filter((user): user is User => user !== null)
+  const users = await Promise.all(userIds.map(id => database.users.getUserById(id)))
+  const validUsers = users.filter((user: any): user is User => user !== null)
 
   let successCount = 0
   let failedCount = 0
@@ -117,7 +114,7 @@ export async function sendBulkNotifications(
           message: notificationData.message,
           userName: user.fullName,
         })
-      } else if (notificationData.type === "sms") {
+      } else if (notificationData.type === "sms" && user.phone) {
         await sendSMS({
           to: user.phone,
           message: notificationData.message,

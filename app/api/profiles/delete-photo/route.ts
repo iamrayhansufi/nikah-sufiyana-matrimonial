@@ -11,7 +11,6 @@ const deletePhotoSchema = z.object({
 interface RedisUser {
   [key: string]: string;
   id: string;
-  photos?: string;
 }
 
 export async function POST(request: NextRequest) {

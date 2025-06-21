@@ -85,12 +85,15 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const userData = validation.data;
-
-    // Check if user already exists using Redis
+    const userData = validation.data;    // Check if user already exists using Redis
     let isExistingUser = false;
     
     try {
+      // Validate email before proceeding
+      if (!userData.email || typeof userData.email !== 'string') {
+        throw new Error(`Invalid email format: ${typeof userData.email}`);
+      }
+      
       logDbOperation("Checking if user already exists in Redis", {
         email: userData.email,
         phone: userData.phone
@@ -106,19 +109,24 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         );
       }
-      
-      // We would need to check by phone as well, but this requires additional functionality
+        // We would need to check by phone as well, but this requires additional functionality
       // For now, we'll use a workaround by scanning all users
       const allUserIds = await database.users.getAllUserIds();
       
       for (const userId of allUserIds) {
-        const user = await database.users.getById(userId);
-        if (user && user.phone === userData.phone) {
-          isExistingUser = true;
-          return NextResponse.json(
-            { error: "A user with this phone number already exists" },
-            { status: 409 }
-          );
+        try {
+          const user = await database.users.getById(userId);
+          if (user && user.phone === userData.phone) {
+            isExistingUser = true;
+            return NextResponse.json(
+              { error: "A user with this phone number already exists" },
+              { status: 409 }
+            );
+          }
+        } catch (userCheckError) {
+          console.error(`Error checking user ${userId}:`, userCheckError);
+          // Continue with other users instead of failing completely
+          continue;
         }
       }
       

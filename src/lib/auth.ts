@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth-options"
+import { authOptions } from "@/lib/auth-options-redis"
 
 export async function verifyAuth(req: Request): Promise<number | null> {
   const session = await getServerSession(authOptions)

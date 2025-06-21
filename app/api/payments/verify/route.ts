@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { type PaymentOrder } from "@/lib/database"
+import { type PaymentOrder } from "@/lib/types"
 
 interface PaymentVerificationData {
   orderId: string
@@ -68,7 +68,7 @@ async function getPaymentOrder(orderId: string): Promise<PaymentOrder | null> {
     planType: "premium",
     amount: 9999,
     status: "created",
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
   } // Placeholder
 }
 

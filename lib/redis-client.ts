@@ -70,20 +70,30 @@ export const redisTables = {
       await redis.srem('users', cleanUserId);
       return true;
     },
-    
-    async findByEmail(email: string): Promise<any | null> {
-      // First get all user IDs
-      const userIds = await redis.smembers('users');
-      
-      // Search through users to find one with matching email
-      for (const userId of userIds) {
-        const user = await redis.hgetall(`user:${userId}`);
-        if (user && user.email === email) {
-          return user;
-        }
+      async findByEmail(email: string): Promise<any | null> {
+      // Validate email parameter
+      if (!email || typeof email !== 'string') {
+        console.error('findByEmail: Invalid email parameter:', { email, type: typeof email });
+        return null;
       }
       
-      return null;
+      try {
+        // First get all user IDs
+        const userIds = await redis.smembers('users');
+        
+        // Search through users to find one with matching email
+        for (const userId of userIds) {
+          const user = await redis.hgetall(`user:${userId}`);
+          if (user && user.email && typeof user.email === 'string' && user.email === email) {
+            return user;
+          }
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('findByEmail: Error during search:', { error, email });
+        throw error;
+      }
     }
   },
   
