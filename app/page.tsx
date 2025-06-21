@@ -24,55 +24,54 @@ export default function HomePage() {
     ageMax: "60",
     height: ""
   })
-
+  
   const slides = [
     {
-      title: "Where Hearts Unite in Sacred Bond",      
-      description: "Discover your destined companion through our blessed platform, where every connection is guided by divine will and Islamic values of love, respect, and harmony.",
+      title: "Nikah Sufi​yana - Where Sacred Hearts Unite in Divine Grace",      
+      description: "Experience the mystical journey of finding your destined companion through our blessed Sufi-inspired platform, where every connection flows through divine will and Islamic values of pure love, creating eternal bonds in this sacred matrimonial space.",
       image: "/placeholder.svg",
-      badge: "✨ Blessed by 100,000+ Faithful Hearts"
+      badge: "✨ Blessed by 100,000+ Faithful Souls in Divine Harmony"
     },
     {
-      title: "Sacred Matrimonial Gathering",
-      subtitle: "Islamic Marriage Conference 2024",
-      description: "Join us for an enlightening journey with renowned Islamic scholars, relationship experts, and blessed couples who've found eternal happiness through halal unions.",
+      title: "The Royal Sufiyana Way of Sacred Union",
+      subtitle: "Divine Matrimonial Conference 2024 - Where Souls Meet",
+      description: "Join our sacred gathering with renowned Islamic scholars, Sufi masters, and blessed couples who've discovered eternal happiness through the mystical path of halal matrimony, guided by centuries of Sufi wisdom and spiritual enlightenment.",
       image: "/events-bg.jpg",
-      badge: "🕌 Register for Divine Guidance",
-      cta: "Secure Your Sacred Spot"
+      badge: "🕌 Register for Spiritual Guidance & Divine Connection",
+      cta: "Enter the Sacred Circle of Love"
     },
     {
-      title: "Royal Matchmaking Experience",
-      subtitle: "Personalized Sacred Journey",
-      description: "Experience our exclusive royal treatment with dedicated marriage consultants who understand the sanctity of nikah and guide you toward your blessed destiny.",
+      title: "Royal Sufiyana Matchmaking Excellence",
+      subtitle: "Mystical Journey to Your Divinely Ordained Soulmate",
+      description: "Experience our exclusive Sufiyana treatment with dedicated spiritual consultants who understand the mystical art of nikah and guide you toward your divinely ordained destiny, ensuring every match flows through divine grace and eternal blessing.",
       image: "/premium-bg.jpg",
-      badge: "👑 Royal Ramadan Blessing",
-      cta: "Begin Your Sacred Journey"
+      badge: "👑 Royal Sufiyana Blessing & Premium Service",
+      cta: "Begin Your Sacred Mystical Journey"
     }
   ]
-
   const values = [
     {
       icon: Mosque,
-      title: "Islamic Values",
-      description: "Rooted in pure Islamic principles, every connection is blessed with divine guidance and spiritual foundation for eternal happiness.",
+      title: "Sufiyana Islamic Values & Divine Grace",
+      description: "Rooted in the mystical tradition of Sufism and pure Islamic principles, every connection flows through divine guidance and spiritual awakening, creating eternal bliss and sacred matrimonial space where hearts find their destined place.",
       color: "from-emerald-500 to-teal-600"
     },
     {
       icon: Shield,
-      title: "Sacred Privacy",
-      description: "Your privacy is our sacred trust. Advanced security ensures your personal journey remains blessed and protected.",
+      title: "Sacred Sufiyana Privacy & Divine Trust",
+      description: "Your spiritual journey remains protected in our sacred trust with advanced security that ensures your path to love stays blessed and divinely guarded, honoring the Sufi tradition of protecting the sacred and the hearts that are most cherished.",
       color: "from-blue-500 to-indigo-600"
     },
     {
       icon: Crown,
-      title: "Royal Treatment",
-      description: "Experience matrimonial services fit for royalty, with personalized consultation and premium matchmaking excellence.",
+      title: "Royal Sufiyana Treatment & Mystical Excellence",
+      description: "Experience matrimonial services inspired by Sufi royalty, with personalized spiritual consultation and mystical matchmaking excellence that honors your soul, ensuring every interaction reflects the divine nobility of your sacred search for love.",
       color: "from-purple-500 to-pink-600"
     },
     {
       icon: Heart,
-      title: "Blessed Connections",
-      description: "Every match is blessed with divine intervention, creating meaningful relationships that lead to lifelong happiness.",
+      title: "Blessed Sufiyana Connections & Eternal Love",
+      description: "Every match flows through the mystical Sufiyana way, creating soul-deep relationships that transcend ordinary love and lead to divine companionship, where two hearts become one in the sacred dance of eternal matrimonial romance.",
       color: "from-rose-500 to-red-600"
     }
   ]
@@ -177,19 +176,16 @@ export default function HomePage() {
             <div className="space-y-6">
               <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-sm font-medium">
                 {slides[currentSlide].badge}
-              </Badge>
-              
-              <h1 className={`${elMessiri.className} text-4xl md:text-6xl lg:text-7xl font-bold text-gray-800 leading-tight`}>
+              </Badge>                  <h1 className={`${elMessiri.className} text-6xl md:text-8xl lg:text-9xl font-bold text-royal-primary leading-tight`}>
                 {slides[currentSlide].title}
               </h1>
-              
-              {slides[currentSlide].subtitle && (
-                <h2 className={`${elMessiri.className} text-2xl md:text-3xl text-royal-primary font-semibold`}>
+                {slides[currentSlide].subtitle && (
+                <h2 className={`${elMessiri.className} text-4xl md:text-5xl text-royal-primary font-semibold`}>
                   {slides[currentSlide].subtitle}
                 </h2>
               )}
               
-              <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-2xl">
+              <p className="text-xl md:text-2xl text-gray-700 leading-relaxed max-w-3xl font-medium">
                 {slides[currentSlide].description}
               </p>
             </div>
@@ -250,21 +246,20 @@ export default function HomePage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-gray-800 mb-6`}>
-              Our Sacred Values
+          >            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+              The Sacred Sufiyana Values
             </h2>
             <div className="flex justify-center mb-6">
               <Image
                 src="/sufiyana-border-ui.svg"
                 alt="Decorative Border"
-                width={250}
+                width={300}
                 height={12}
                 className="opacity-60"
               />
             </div>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Built upon the divine principles of Islam, our platform serves as a sacred bridge connecting hearts destined for eternal happiness and blessed unions.
+            <p className="text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto font-medium leading-relaxed">
+              Built upon the mystical principles of Sufism and pure Islamic teachings, Nikah Sufiyana serves as a divine bridge connecting souls destined for eternal love through the sacred path of matrimony.
             </p>
           </motion.div>
 
@@ -292,6 +287,106 @@ export default function HomePage() {
                 </Card>
               </motion.div>
             ))}
+          </motion.div>        </div>
+      </section>
+
+      {/* Brand Story Section - The Sufiyana Legacy */}
+      <section className="py-20 bg-gradient-to-br from-cream-light/30 to-cream-dark/20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-5"></div>
+        <div className="container mx-auto px-4 relative">
+          <motion.div 
+            className="max-w-6xl mx-auto"
+            variants={fadeInUp}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+          >
+            <div className="text-center mb-16">              <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+                The Mystical Legacy of Nikah Sufiyana
+              </h2>
+              <div className="flex justify-center mb-8">
+                <Image
+                  src="/sufiyana-border-ui.svg"
+                  alt="Decorative Border"
+                  width={300}
+                  height={12}
+                  className="opacity-60"
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+              >
+                <div className="relative">
+                  <Image
+                    src="/Nikah-Sufiyana-box-with-border-01.svg"
+                    alt="Decorative Box Border"
+                    width={500}
+                    height={300}
+                    className="absolute inset-0 w-full h-full object-cover opacity-20"
+                  />
+                  <div className="relative bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-2xl">
+                    <h3 className={`${elMessiri.className} text-3xl font-bold text-royal-primary mb-6`}>
+                      روحانی شادی - The Spiritual Union
+                    </h3>
+                    <div className="space-y-6 text-gray-700 leading-relaxed">
+                      <p className="text-lg">
+                        <strong>Nikah Sufiyana</strong> draws its essence from the mystical traditions of Sufism, where love transcends the material world to touch the divine. Our name embodies the sacred journey of two souls finding their spiritual completion through matrimony.
+                      </p>
+                      <p className="text-lg">
+                        In the <em>Sufi tradition</em>, marriage is not merely a contract but a mystical union that mirrors the soul's relationship with the Divine. We honor this sacred philosophy by creating connections that nurture both earthly happiness and spiritual growth.
+                      </p>
+                      <p className="text-lg">
+                        Every profile on our platform is blessed with the intention of finding not just a life partner, but a <strong>companion for the spiritual journey</strong> - someone who will walk alongside you in this world and the hereafter.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+                className="space-y-8"
+              >
+                <div className="bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 p-6 rounded-xl border border-royal-primary/20">
+                  <h4 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4 flex items-center gap-3`}>
+                    <Sparkles className="h-6 w-6" />
+                    The Sacred Promise
+                  </h4>
+                  <p className="text-gray-700 text-lg leading-relaxed">
+                    We promise to honor your search for love with the same reverence Sufis show for their spiritual path - with patience, wisdom, and divine guidance.
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 p-6 rounded-xl border border-royal-primary/20">
+                  <h4 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4 flex items-center gap-3`}>
+                    <Heart className="h-6 w-6" />
+                    Mystical Matchmaking
+                  </h4>
+                  <p className="text-gray-700 text-lg leading-relaxed">
+                    Our approach combines modern technology with ancient wisdom, ensuring that every connection flows through divine will and spiritual compatibility.
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 p-6 rounded-xl border border-royal-primary/20">
+                  <h4 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4 flex items-center gap-3`}>
+                    <Crown className="h-6 w-6" />
+                    Royal Sufi Service
+                  </h4>
+                  <p className="text-gray-700 text-lg leading-relaxed">
+                    Experience matrimonial service inspired by the noble tradition of Sufi hospitality - where every soul is treated with royal dignity and spiritual respect.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -309,9 +404,8 @@ export default function HomePage() {
             <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-sm font-medium mb-4">
               <Crown className="h-4 w-4 mr-2" />
               Premium Verified Profiles
-            </Badge>
-            <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-gray-800 mb-6`}>
-              Meet Your Royal Match
+            </Badge>            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+              Meet Your Sufiyana Soulmate
             </h2>
             <div className="flex justify-center mb-6">
               <Image
@@ -412,21 +506,20 @@ export default function HomePage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-gray-800 mb-6`}>
-              Blessed Success Stories
+          >            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+              Blessed Sufiyana Love Stories
             </h2>
             <div className="flex justify-center mb-6">
               <Image
                 src="/sufiyana-border-ui.svg"
                 alt="Decorative Border"
-                width={250}
+                width={300}
                 height={12}
                 className="opacity-60"
               />
             </div>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Real couples sharing their blessed journey of finding eternal love and happiness through our sacred platform.
+            <p className="text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto font-medium leading-relaxed">
+              Real couples sharing their mystical journey of discovering eternal love and spiritual companionship through the blessed Nikah Sufiyana path.
             </p>
           </motion.div>
 
@@ -490,6 +583,271 @@ export default function HomePage() {
               Read More Success Stories
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
+          </div>        </div>
+      </section>
+
+      {/* Sufiyana Philosophy & Community Section */}
+      <section className="py-20 bg-gradient-to-br from-cream-light/40 to-cream-dark/30 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-5"></div>
+        <div className="container mx-auto px-4 relative">
+          <motion.div 
+            className="text-center mb-16"
+            variants={fadeInUp}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+          >
+            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+              The Sufiyana Way - Where Hearts Unite in Divine Harmony
+            </h2>
+            <div className="flex justify-center mb-8">
+              <Image
+                src="/sufiyana-border-ui.svg"
+                alt="Decorative Border"
+                width={300}
+                height={12}
+                className="opacity-60"
+              />
+            </div>
+            <p className="text-xl md:text-2xl text-gray-700 max-w-5xl mx-auto font-medium leading-relaxed">
+              In the mystical realm of Nikah Sufiyana, every connection flows like poetry in motion, where sacred hearts discover their eternal destination through divine intervention and spiritual celebration.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            <motion.div
+              variants={fadeInUp}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              className="text-center"
+            >
+              <div className="relative mb-8">
+                <Image
+                  src="/Nikah-Sufiyana-box-with-border-01.svg"
+                  alt="Decorative Box Border"
+                  width={300}
+                  height={200}
+                  className="absolute inset-0 w-full h-full object-cover opacity-20"
+                />
+                <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-royal-primary to-royal-primary/80 flex items-center justify-center">
+                    <Heart className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
+                    سُفیانہ محبت - Sufiyana Love
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    Love that transcends the material realm, connecting souls through divine wisdom and spiritual understanding - the Sufiyana way of eternal companionship.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              variants={fadeInUp}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              className="text-center"
+            >
+              <div className="relative mb-8">
+                <Image
+                  src="/Nikah-Sufiyana-box-with-border-01.svg"
+                  alt="Decorative Box Border"
+                  width={300}
+                  height={200}
+                  className="absolute inset-0 w-full h-full object-cover opacity-20"
+                />
+                <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                    <Users className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
+                    روحانی برادری - Sacred Brotherhood
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    A blessed community of 100,000+ faithful souls, united in the pursuit of halal love and guided by Islamic principles in every matrimonial connection.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              variants={fadeInUp}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              className="text-center"
+            >
+              <div className="relative mb-8">
+                <Image
+                  src="/Nikah-Sufiyana-box-with-border-01.svg"
+                  alt="Decorative Box Border"
+                  width={300}
+                  height={200}
+                  className="absolute inset-0 w-full h-full object-cover opacity-20"
+                />
+                <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                    <Award className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
+                    شاہانہ خدمت - Royal Service
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    Experience matchmaking excellence that honors the nobility of your search - where every member receives royal treatment worthy of their spiritual journey.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Interactive Stats */}
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={fadeInUp} className="group cursor-pointer">
+              <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
+                <div className="text-4xl md:text-5xl font-bold text-royal-primary mb-2">100K+</div>
+                <div className="text-gray-700 font-medium">Blessed Souls</div>
+                <div className="text-sm text-gray-500">Active Members</div>
+              </div>
+            </motion.div>
+            
+            <motion.div variants={fadeInUp} className="group cursor-pointer">
+              <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
+                <div className="text-4xl md:text-5xl font-bold text-royal-primary mb-2">15K+</div>
+                <div className="text-gray-700 font-medium">Sacred Unions</div>
+                <div className="text-sm text-gray-500">Successful Matches</div>
+              </div>
+            </motion.div>
+            
+            <motion.div variants={fadeInUp} className="group cursor-pointer">
+              <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
+                <div className="text-4xl md:text-5xl font-bold text-royal-primary mb-2">95%</div>
+                <div className="text-gray-700 font-medium">Divine Success</div>
+                <div className="text-sm text-gray-500">Match Success Rate</div>
+              </div>
+            </motion.div>
+            
+            <motion.div variants={fadeInUp} className="group cursor-pointer">
+              <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
+                <div className="text-4xl md:text-5xl font-bold text-royal-primary mb-2">24/7</div>
+                <div className="text-gray-700 font-medium">Royal Support</div>
+                <div className="text-sm text-gray-500">Always Available</div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Sufiyana Features Section */}
+      <section className="py-20 relative">
+        <div className="container mx-auto px-4">
+          <motion.div 
+            className="text-center mb-16"
+            variants={fadeInUp}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+          >
+            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+              Royal Sufiyana Features - Where Technology Meets Spirituality
+            </h2>
+            <div className="flex justify-center mb-8">
+              <Image
+                src="/sufiyana-border-ui.svg"
+                alt="Decorative Border"
+                width={300}
+                height={12}
+                className="opacity-60"
+              />
+            </div>
+            <p className="text-xl md:text-2xl text-gray-700 max-w-5xl mx-auto font-medium leading-relaxed">
+              Discover advanced features designed with Sufi wisdom, ensuring your journey to finding your soulmate is blessed with convenience, privacy, and divine guidance.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <motion.div
+              variants={fadeInUp}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              className="group"
+            >
+              <Card className="h-full group-hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-royal-primary to-royal-primary/80 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Search className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
+                    Mystical Match Algorithm
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed mb-4">
+                    Our AI-powered matching system combines spiritual compatibility with personal preferences, ensuring every suggestion feels divinely guided.
+                  </p>
+                  <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
+                    Explore Matches
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              variants={fadeInUp}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              className="group"
+            >
+              <Card className="h-full group-hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Shield className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
+                    Sacred Privacy Protection
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed mb-4">
+                    Advanced security measures ensure your personal information remains as protected as the secrets of the Sufi masters.
+                  </p>
+                  <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
+                    Privacy Settings
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              variants={fadeInUp}
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              className="group"
+            >
+              <Card className="h-full group-hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <MessageSquare className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
+                    Blessed Communication
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed mb-4">
+                    Connect with potential matches through our secure messaging system, designed to honor Islamic principles of respectful courtship.
+                  </p>
+                  <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
+                    Start Chatting
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -504,9 +862,8 @@ export default function HomePage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            <h2 className={`${elMessiri.className} text-4xl md:text-6xl font-bold mb-6`}>
-              Begin Your Sacred Journey Today
+          >            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold mb-6`}>
+              Begin Your Sacred Sufiyana Journey Today
             </h2>
             <div className="flex justify-center mb-8">
               <Image
@@ -516,9 +873,8 @@ export default function HomePage() {
                 height={12}
                 className="opacity-60 filter brightness-0 invert"
               />
-            </div>
-            <p className="text-xl md:text-2xl mb-8 leading-relaxed">
-              Join thousands of blessed souls who have found their destined companions through our royal matrimonial platform. Your perfect match awaits with Allah's blessing.
+            </div>            <p className="text-xl md:text-2xl mb-8 leading-relaxed">
+              Join thousands of blessed souls who have found their destined companions through our royal Sufiyana platform. Your perfect match awaits with Allah's blessing in this sacred space where hearts unite through divine will and mystical matrimonial grace.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="secondary" className="bg-white text-royal-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold">

@@ -7,11 +7,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Heart, MessageSquare, Eye, X, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { playfair } from "../lib/fonts"
+import { elMessiri } from "../lib/fonts"
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 
 interface InterestItem {
   id: number
@@ -186,13 +187,12 @@ export default function InterestsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+    return (      <div className="min-h-screen bg-royal-gradient">
         <Header />
         <div className="container mx-auto px-4 py-16 flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4" />
-            <p>Loading your interests...</p>
+            <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-royal-primary" />
+            <p className="text-gray-700 font-medium">Loading your blessed interests...</p>
           </div>
         </div>
         <Footer />
@@ -200,26 +200,48 @@ export default function InterestsPage() {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+  return (    <div className="min-h-screen bg-royal-gradient">
       <Header />
       <div className="container mx-auto px-4 py-16">
-        <div className="max-w-6xl mx-auto">
-          <h1 className={`${playfair.className} text-2xl font-semibold text-center mb-8`}>Interests</h1>
+        <div className="max-w-6xl mx-auto">          <h1 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary text-center mb-8`}>
+            Sacred Sufiyana Interests - Divine Connections
+          </h1>
+          
+          <div className="flex justify-center mb-8">
+            <Image
+              src="/sufiyana-border-ui.svg"
+              alt="Decorative Border"
+              width={300}
+              height={12}
+              className="opacity-60"
+            />
+          </div>
           
           <Tabs defaultValue="received" className="space-y-6">
-            <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto">
-              <TabsTrigger value="received">Received{receivedInterests.length > 0 ? ` (${receivedInterests.length})` : ''}</TabsTrigger>
-              <TabsTrigger value="sent">Sent{sentInterests.length > 0 ? ` (${sentInterests.length})` : ''}</TabsTrigger>
-              <TabsTrigger value="accepted">Matched{acceptedInterests.length > 0 ? ` (${acceptedInterests.length})` : ''}</TabsTrigger>
+            <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto bg-white/80 backdrop-blur-sm">
+              <TabsTrigger value="received" className="data-[state=active]:bg-royal-primary data-[state=active]:text-white">
+                Received{receivedInterests.length > 0 ? ` (${receivedInterests.length})` : ''}
+              </TabsTrigger>
+              <TabsTrigger value="sent" className="data-[state=active]:bg-royal-primary data-[state=active]:text-white">
+                Sent{sentInterests.length > 0 ? ` (${sentInterests.length})` : ''}
+              </TabsTrigger>
+              <TabsTrigger value="accepted" className="data-[state=active]:bg-royal-primary data-[state=active]:text-white">
+                Matched{acceptedInterests.length > 0 ? ` (${acceptedInterests.length})` : ''}
+              </TabsTrigger>
             </TabsList>
 
             {/* Received Interests */}
             <TabsContent value="received">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {receivedInterests.length > 0 ? (
-                  receivedInterests.map((interest) => (
-                    <Card key={interest.id}>
+                  receivedInterests.map((interest, index) => (
+                    <motion.div
+                      key={interest.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                    >
+                      <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1">
                       <CardContent className="p-6">
                         <div className="relative mb-4">
                           <Image
@@ -227,16 +249,16 @@ export default function InterestsPage() {
                             alt={interest.fromUser.fullName}
                             width={300}
                             height={200}
-                            className="w-full aspect-[4/3] object-cover rounded-lg"
+                            className="w-full aspect-[4/3] object-cover rounded-lg border-2 border-royal-primary/20"
                           />
                         </div>
-                        <h2 className={`${playfair.className} text-lg font-semibold mb-2`}>{interest.fromUser.fullName}</h2>
-                        <p className="text-sm text-muted-foreground mb-4">
+                        <h2 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-2`}>{interest.fromUser.fullName}</h2>
+                        <p className="text-sm text-gray-600 mb-4 font-medium">
                           {formatProfileInfo(interest.fromUser.age, interest.fromUser.location, interest.fromUser.profession)}
                         </p>
                         <div className="flex gap-2">
                           <Button 
-                            className="flex-1" 
+                            className="flex-1 bg-royal-primary hover:bg-royal-primary/90 text-white shadow-lg" 
                             onClick={() => handleAcceptInterest(interest.id)}
                             disabled={updatingId === interest.id}
                           >
@@ -245,7 +267,7 @@ export default function InterestsPage() {
                             ) : (
                               <Heart className="h-4 w-4 mr-2" />
                             )}
-                            Accept
+                            Accept Blessed Interest
                           </Button>
                           <Button 
                             variant="outline"
@@ -259,10 +281,10 @@ export default function InterestsPage() {
                             disabled={updatingId === interest.id}
                           >
                             <X className="h-4 w-4" />
-                          </Button>
-                        </div>
+                          </Button>                        </div>
                       </CardContent>
                     </Card>
+                    </motion.div>
                   ))
                 ) : (
                   <div className="col-span-full text-center py-10">
@@ -287,8 +309,7 @@ export default function InterestsPage() {
                             height={200}
                             className="w-full aspect-[4/3] object-cover rounded-lg"
                           />
-                        </div>
-                        <h2 className={`${playfair.className} text-lg font-semibold mb-2`}>{interest.fromUser.fullName}</h2>
+                        </div>                        <h2 className={`${elMessiri.className} text-lg font-semibold mb-2 text-royal-primary`}>{interest.fromUser.fullName}</h2>
                         <p className="text-sm text-muted-foreground mb-4">
                           {formatProfileInfo(interest.fromUser.age, interest.fromUser.location, interest.fromUser.profession)}
                         </p>
@@ -329,14 +350,13 @@ export default function InterestsPage() {
                             height={200}
                             className="w-full aspect-[4/3] object-cover rounded-lg"
                           />
-                        </div>
-                        <h2 className={`${playfair.className} text-lg font-semibold mb-2`}>{interest.fromUser.fullName}</h2>
+                        </div>                        <h2 className={`${elMessiri.className} text-lg font-semibold mb-2 text-royal-primary`}>{interest.fromUser.fullName}</h2>
                         <p className="text-sm text-muted-foreground mb-4">
                           {formatProfileInfo(interest.fromUser.age, interest.fromUser.location, interest.fromUser.profession)}
                         </p>
                         <div className="flex gap-2">
                           <Button 
-                            className="flex-1"
+                            className="flex-1 bg-royal-primary hover:bg-royal-primary/90 text-white"
                             onClick={() => handleMessage(interest.fromUser.id)}
                           >
                             <MessageSquare className="h-4 w-4 mr-2" />

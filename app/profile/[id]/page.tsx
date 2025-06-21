@@ -29,7 +29,7 @@ import {
   EyeOff,
 } from "lucide-react"
 import Link from "next/link"
-import { playfair } from "../../lib/fonts"
+import { elMessiri } from "../../lib/fonts"
 import { useSession, signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 import { useNotifications } from "@/hooks/use-notifications"
@@ -581,13 +581,11 @@ export default function ProfilePage({
         title: "Failed to Respond",
         description: "There was a problem responding to the interest request.",
         variant: "destructive"
-      })
-    }
+      })    }
   }
 
-  // ...existing useEffect and handlers...
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+    <div className="min-h-screen bg-royal-gradient">
       <Header />
 
       <div className="container mx-auto px-4 py-8">
@@ -723,19 +721,20 @@ export default function ProfilePage({
                           </>
                         )}
                       </Button>
-                    </div>
-                  )}
+                    </div>                  )}
                   
                   {/* Basic Info */}
                   <div className="text-center mb-6">
-                    <h1 className={`${playfair.className} text-2xl font-semibold mb-2`}>{formatToTitleCase(profile.name)}</h1>
+                    <h1 className={`${elMessiri.className} text-3xl font-bold mb-2 text-royal-primary`}>{formatToTitleCase(profile.name)}</h1>
                     <p className="text-muted-foreground mb-1">{profile.age} years old</p>
                     <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-2">
                       <MapPin className="h-4 w-4" />
                       {formatToTitleCase(profile.location)}
                     </div>
                     <p className="text-sm text-muted-foreground">Member since {profile.joinedDate}</p>
-                  </div>{/* Action Buttons */}
+                  </div>
+                  
+                  {/* Action Buttons */}
                   <div className="space-y-3">
                     {/* Interest Request Response (if user received request from this profile) */}
                     {incomingInterestRequest && (

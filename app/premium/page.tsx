@@ -23,7 +23,9 @@ import {
   CheckCircle,
 } from "lucide-react"
 import Link from "next/link"
-import { playfair } from "../lib/fonts"
+import { elMessiri } from "../lib/fonts"
+import { motion } from "framer-motion"
+import Image from "next/image"
 
 export default function PremiumPage() {
   const features = [
@@ -138,32 +140,45 @@ export default function PremiumPage() {
       image: "/placeholder.svg?height=60&width=60",
     },
   ]
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+    <div className="min-h-screen bg-royal-gradient">
       <Header />
 
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
           {/* Hero Section */}
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              ✨ Upgrade Your Matrimonial Experience
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Badge className="mb-4 bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2">
+              ✨ Upgrade Your Sacred Sufiyana Experience
             </Badge>
-            <h1 className={`${playfair.className} text-4xl md:text-5xl font-bold mb-4`}>
-              Unlock Premium Features to Find Your <span className="text-primary">Perfect Match</span>
+            <h1 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+              Royal Sufiyana Premium - Where Divine Connections <span className="text-royal-primary">Flourish</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Join thousands of successful couples who found their life partners with our premium features
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/sufiyana-border-ui.svg"
+                alt="Decorative Border"
+                width={300}
+                height={12}
+                className="opacity-60"
+              />
+            </div>
+            <p className="text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto font-medium leading-relaxed">
+              Join thousands of blessed couples who found their destined soulmates through our exclusive royal premium features, guided by divine intervention and Sufi wisdom.
             </p>
-          </div>
+          </motion.div>
 
           {/* Premium Features */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             <Card>
               <CardContent className="p-6">
                 <Star className="h-10 w-10 text-yellow-500 mb-4" />
-                <h2 className={`${playfair.className} text-xl font-semibold mb-2`}>Priority Visibility</h2>
+                <h2 className={`${elMessiri.className} text-xl font-semibold mb-2 text-royal-primary`}>Royal Sufiyana Visibility</h2>
                 <p className="text-muted-foreground">
                   Your profile gets featured at the top of search results
                 </p>
@@ -173,7 +188,7 @@ export default function PremiumPage() {
             <Card>
               <CardContent className="p-6">
                 <Shield className="h-10 w-10 text-blue-500 mb-4" />
-                <h2 className={`${playfair.className} text-xl font-semibold mb-2`}>Advanced Privacy</h2>
+                <h2 className={`${elMessiri.className} text-xl font-semibold mb-2 text-royal-primary`}>Sacred Privacy Protection</h2>
                 <p className="text-muted-foreground">
                   Control who can view your photos and contact details
                 </p>
@@ -183,7 +198,7 @@ export default function PremiumPage() {
             <Card>
               <CardContent className="p-6">
                 <Users className="h-10 w-10 text-purple-500 mb-4" />
-                <h2 className={`${playfair.className} text-xl font-semibold mb-2`}>Unlimited Interests</h2>
+                <h2 className={`${elMessiri.className} text-xl font-semibold mb-2 text-royal-primary`}>Unlimited Divine Interests</h2>
                 <p className="text-muted-foreground">
                   Send unlimited interests to potential matches
                 </p>
@@ -193,7 +208,7 @@ export default function PremiumPage() {
             <Card>
               <CardContent className="p-6">
                 <Gift className="h-10 w-10 text-pink-500 mb-4" />
-                <h2 className={`${playfair.className} text-xl font-semibold mb-2`}>Special Benefits</h2>
+                <h2 className={`${elMessiri.className} text-xl font-semibold mb-2 text-royal-primary`}>Blessed Royal Benefits</h2>
                 <p className="text-muted-foreground">
                   Get access to exclusive events and matchmaking services
                 </p>
@@ -227,7 +242,7 @@ export default function PremiumPage() {
                       <Heart className="h-12 w-12 mx-auto text-primary" />
                     )}
                   </div>
-                  <CardTitle className={`${playfair.className} text-2xl`}>{plan.name}</CardTitle>
+                  <CardTitle className={`${elMessiri.className} text-2xl font-bold text-royal-primary`}>{plan.name}</CardTitle>
                   <div className="text-4xl font-bold text-primary mb-2">
                     ₹{plan.price}
                   </div>
@@ -253,7 +268,7 @@ export default function PremiumPage() {
 
           {/* Testimonials */}
           <div className="text-center mb-16">
-            <h2 className={`${playfair.className} text-3xl font-bold mb-8`}>Success Stories</h2>
+            <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold mb-8 text-royal-primary`}>Blessed Sufiyana Success Stories</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {testimonials.map((testimonial, index) => (
                 <Card key={index}>
@@ -277,12 +292,20 @@ export default function PremiumPage() {
           </div>
 
           {/* CTA Section */}
-          <div className="text-center">
-            <h2 className={`${playfair.className} text-3xl font-bold mb-4`}>
-              Ready to Find Your Perfect Match?
+          <div className="text-center">            <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold mb-6 text-royal-primary`}>
+              Ready to Discover Your Sacred Sufiyana Soulmate?
             </h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              Choose your premium plan and start your journey to finding true love
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/sufiyana-border-ui.svg"
+                alt="Decorative Border"
+                width={250}
+                height={12}
+                className="opacity-60"
+              />
+            </div>
+            <p className="text-xl md:text-2xl text-gray-700 mb-8 max-w-4xl mx-auto font-medium leading-relaxed">
+              Choose your royal premium plan and begin your blessed journey to finding eternal love through divine guidance and Sufi wisdom.
             </p>
             <Button size="lg" className="px-8">
               View All Premium Features
