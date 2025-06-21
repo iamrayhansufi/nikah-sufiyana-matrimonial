@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { useSession, getSession } from "next-auth/react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -120,8 +120,7 @@ function VerifyEmailContent() {
       })
 
       const data = await response.json();
-      
-      if (data.success) {
+        if (data.success) {
         // Show success message and redirect to dashboard
         toast({
           title: "Email Verified Successfully",
@@ -129,27 +128,31 @@ function VerifyEmailContent() {
           variant: "default"
         });
         
-        // If user is logged in, update session and redirect to dashboard
-        if (session?.user?.id) {
-          // Update the session to reflect verification status
-          await updateSession({
-            ...session,
-            user: {
-              ...session.user,
-              verified: true
-            }
+        // Force session refresh first
+        await updateSession();
+        
+        // Wait a bit for session to update, then check again
+        setTimeout(async () => {
+          // Re-fetch session to get updated status
+          const updatedSession = await getSession();
+          
+          console.log('🔍 Session after verification:', {
+            hasSession: !!updatedSession,
+            userId: updatedSession?.user?.id,
+            verified: updatedSession?.user?.verified,
+            email: updatedSession?.user?.email
           });
           
-          // User is logged in, redirect to dashboard
-          setTimeout(() => {
+          // If user is logged in, redirect to dashboard
+          if (updatedSession?.user?.id) {
+            console.log('✅ User is logged in, redirecting to dashboard');
             router.push('/dashboard');
-          }, 1500);
-        } else {
-          // User not logged in, redirect to login
-          setTimeout(() => {
+          } else {
+            console.log('⚠️ User not logged in, redirecting to login with verification flag');
+            // User not logged in, redirect to login with verification success
             router.push(`/login?verified=true&email=${encodeURIComponent(email)}`);
-          }, 1500);
-        }
+          }
+        }, 1000);
       } else {
         toast({
           title: "Verification Failed",
