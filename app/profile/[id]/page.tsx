@@ -304,7 +304,7 @@ export default function ProfilePage({
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-white px-2 text-sm text-gray-500">
+                  <span className="bg-white px-2 text-lg text-gray-500">
                     or
                   </span>
                 </div>
@@ -727,7 +727,7 @@ export default function ProfilePage({
                   <div className="text-center mb-6">
                     <h1 className={`${elMessiri.className} text-3xl font-bold mb-2 text-royal-primary`}>{formatToTitleCase(profile.name)}</h1>
                     <p className="text-muted-foreground mb-1">{profile.age} years old</p>
-                    <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-2">
+                    <div className="flex items-center justify-center gap-1 text-lg text-muted-foreground mb-2">
                       <MapPin className="h-4 w-4" />
                       {formatToTitleCase(profile.location)}
                     </div>
@@ -1171,7 +1171,7 @@ export default function ProfilePage({
                             <div className="space-y-4">                              {siblings.map((sibling: any, index: number) => (
                                 <div key={index} className="border-b pb-2 last:border-0">
                                   <p className="font-medium">{formatToTitleCase(sibling.name || "No Name Provided")}</p>
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-lg text-muted-foreground">
                                     <p>
                                       {sibling.siblingType === "brother" ? "Brother" :
                                        sibling.siblingType === "sister" ? "Sister" :
@@ -1206,7 +1206,7 @@ export default function ProfilePage({
                             <div className="space-y-4">                              {brotherInLaws.map((brotherInLaw: any, index: number) => (
                                 <div key={index} className="border-b pb-2 last:border-0">
                                   <p className="font-medium">{formatToTitleCase(brotherInLaw.name || "No Name Provided")}</p>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-lg text-muted-foreground">
                                     <p>Occupation: {formatToTitleCase(brotherInLaw.occupation || "Not specified")}</p>
                                   </div>
                                 </div>
@@ -1234,7 +1234,7 @@ export default function ProfilePage({
                                      relation.relation ? formatToTitleCase(relation.relation) :
                                      "Relative"}
                                   </p>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-lg text-muted-foreground">
                                     <p>Name: {formatToTitleCase(relation.name || "Not specified")}</p>
                                     <p>Occupation: {formatToTitleCase(relation.occupation || "Not specified")}</p>
                                   </div>

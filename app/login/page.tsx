@@ -263,7 +263,7 @@ function LoginFormWithParams() {
                       checked={formData.rememberMe}
                       onCheckedChange={(checked) => setFormData({ ...formData, rememberMe: checked as boolean })}
                     />
-                    <Label htmlFor="remember" className="text-sm">
+                    <Label htmlFor="remember" className="text-lg">
                       Remember me
                     </Label>
                   </div>
@@ -280,7 +280,7 @@ function LoginFormWithParams() {
                 {/* OTP Login - Commented out for now 
                 <div className="relative mt-4">
                   <Separator />
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-sm text-muted-foreground">
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-lg text-muted-foreground">
                     Or
                   </span>
                 </div>

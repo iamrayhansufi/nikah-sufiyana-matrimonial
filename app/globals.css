@@ -95,7 +95,7 @@
     font-size: 1rem; /* 16px */
   }
 
-  /* Custom text size replacement for text-sm */
+  /* Custom text size replacement for text-lg */
   .text-custom-sm {
     font-size: 1.1rem;
   }

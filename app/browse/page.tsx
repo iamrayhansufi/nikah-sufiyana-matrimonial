@@ -560,7 +560,7 @@ export default function BrowseProfilesPage() {
             step={1}
             className="w-full relative [&>[role=slider]]:block"
           />
-          <div className="flex justify-between text-sm font-medium mt-3">
+          <div className="flex justify-between text-lg font-medium mt-3">
             <div className="flex flex-col gap-1">
               <span className="bg-primary/10 px-3 py-1 rounded-full text-center">{tempFilters.ageRange[0]} years</span>
               <span className="text-xs text-center">Min Age</span>
@@ -1048,7 +1048,7 @@ export default function BrowseProfilesPage() {
                         </div>
                       </div>
 
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-2 text-lg">
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
                           <span>{formatToTitleCase(profile.location)}</span>

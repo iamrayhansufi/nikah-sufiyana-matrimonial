@@ -853,7 +853,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                      sibling.siblingType ? formatToTitleCase(sibling.siblingType) :
                                      "Sibling"}
                                   </p>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-lg text-muted-foreground">
                                     <p>Name: {sibling.name || "Not specified"}</p>
                                     <p>Marital Status: {sibling.maritalStatus || "Not specified"}</p>
                                     {sibling.occupation && <p className="md:col-span-2">Occupation: {sibling.occupation}</p>}
@@ -879,7 +879,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                               {brotherInLaws.map((law: any, index: number) => (
                                 <div key={index} className="border-b pb-2 last:border-0">
                                   <p className="font-medium">{law.relation || "In-law"}</p>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-lg text-muted-foreground">
                                     <p>Name: {law.name || "Not specified"}</p>
                                     <p>Occupation: {law.occupation || "Not specified"}</p>
                                   </div>
@@ -909,7 +909,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                      relation.relation ? formatToTitleCase(relation.relation) :
                                      "Relative"}
                                   </p>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-lg text-muted-foreground">
                                     <p>Name: {relation.name || "Not specified"}</p>
                                     <p>Occupation: {relation.occupation || "Not specified"}</p>
                                   </div>

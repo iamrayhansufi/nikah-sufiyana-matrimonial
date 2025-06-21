@@ -178,7 +178,7 @@ export default function ProfilePage({
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-white px-2 text-sm text-gray-500">
+                  <span className="bg-white px-2 text-lg text-gray-500">
                     or
                   </span>
                 </div>
@@ -303,7 +303,7 @@ export default function ProfilePage({
                   <div className="text-center mb-6">
                     <h1 className={`${playfair.className} text-2xl font-semibold mb-2`}>{profile.name}</h1>
                     <p className="text-muted-foreground mb-1">{profile.age} years old</p>
-                    <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-2">
+                    <div className="flex items-center justify-center gap-1 text-lg text-muted-foreground mb-2">
                       <MapPin className="h-4 w-4" />
                       {profile.location}
                     </div>
@@ -716,7 +716,7 @@ export default function ProfilePage({
                               {siblings.map((sibling: any, index: number) => (
                                 <div key={index} className="border-b pb-2 last:border-0">
                                   <p className="font-medium">{sibling.name || "No Name Provided"}</p>
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-lg text-muted-foreground">
                                     <p>
                                       {sibling.siblingType === "brother" ? "Brother" :
                                        sibling.siblingType === "sister" ? "Sister" :
@@ -752,7 +752,7 @@ export default function ProfilePage({
                               {brotherInLaws.map((brotherInLaw: any, index: number) => (
                                 <div key={index} className="border-b pb-2 last:border-0">
                                   <p className="font-medium">{brotherInLaw.name || "No Name Provided"}</p>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-lg text-muted-foreground">
                                     <p>Occupation: {brotherInLaw.occupation || "Not specified"}</p>
                                   </div>
                                 </div>
@@ -781,7 +781,7 @@ export default function ProfilePage({
                                      relation.relation ? formatToTitleCase(relation.relation) :
                                      "Relative"}
                                   </p>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-lg text-muted-foreground">
                                     <p>Name: {relation.name || "Not specified"}</p>
                                     <p>Occupation: {relation.occupation || "Not specified"}</p>
                                   </div>

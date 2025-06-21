@@ -563,7 +563,7 @@ export default function AdminDashboard() {
                       </div>
                     )}
                     {error && (
-                      <p className="text-red-500 text-center text-sm font-body">{error}</p>
+                      <p className="text-red-500 text-center text-lg font-body">{error}</p>
                     )}
                   </div>
                 </CardContent>

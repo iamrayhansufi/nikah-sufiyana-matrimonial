@@ -255,7 +255,7 @@ export function Header() {
                         notifications.map((notification, index) => (
                           <div 
                             key={notification.id || index}
-                            className={`p-3 border-b text-sm cursor-pointer hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
+                            className={`p-3 border-b text-lg cursor-pointer hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
                             onClick={() => handleNotificationClick(notification)}
                           >
                             <div className="flex items-start">
@@ -430,7 +430,7 @@ export function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="flex-1 text-center text-sm font-medium transition-colors hover:text-primary font-body"
+                  className="flex-1 text-center text-lg font-medium transition-colors hover:text-primary font-body"
                 >
                   {item.name}
                 </Link>

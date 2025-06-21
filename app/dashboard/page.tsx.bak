@@ -488,7 +488,7 @@ export default function DashboardPage() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm">Profile Completeness</span>
+                      <span className="text-lg">Profile Completeness</span>
                       <span className="text-lg font-medium">{userProfile.completeness}%</span>
                     </div>
                     <Progress value={userProfile.completeness} className="h-2" />

@@ -475,7 +475,7 @@ export default function ProfilePage({
                     </p>
                     <div className="flex items-center justify-center mt-1">
                       <MapPin className="h-3.5 w-3.5 mr-1 text-green-600 dark:text-green-400" />
-                      <span className="text-sm">{profile.location || "Not specified"}</span>
+                      <span className="text-lg">{profile.location || "Not specified"}</span>
                     </div>
                   </div>
 

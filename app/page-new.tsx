@@ -175,7 +175,7 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
           >
             <div className="space-y-6">
-              <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-sm font-medium">
+              <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-lg font-medium">
                 {slides[currentSlide].badge}
               </Badge>
               
@@ -306,7 +306,7 @@ export default function HomePage() {
             whileInView="animate"
             viewport={{ once: true }}
           >
-            <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-sm font-medium mb-4">
+            <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-lg font-medium mb-4">
               <Crown className="h-4 w-4 mr-2" />
               Premium Verified Profiles
             </Badge>
@@ -362,7 +362,7 @@ export default function HomePage() {
                     <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800 mb-2`}>
                       {profile.name}
                     </h3>
-                    <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <div className="space-y-2 text-lg text-gray-600 mb-4">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         {profile.age} years old
@@ -468,7 +468,7 @@ export default function HomePage() {
                         </p>
                       </div>
                       
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-2 text-lg">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-royal-primary" />
                           <span className="font-medium text-royal-primary">{story.date}</span>

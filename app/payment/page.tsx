@@ -115,7 +115,7 @@ export default function PaymentPage() {
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-center gap-3">
                         <Check className="h-5 w-5 text-green-500 shrink-0" />
-                        <span className="text-sm">{feature}</span>
+                        <span className="text-lg">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -147,34 +147,34 @@ export default function PaymentPage() {
                   <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">
                     VISA
                   </div>
-                  <span className="text-sm">Visa</span>
+                  <span className="text-lg">Visa</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-12 h-8 bg-red-600 rounded flex items-center justify-center text-white text-xs font-bold">
                     MC
                   </div>
-                  <span className="text-sm">Mastercard</span>
+                  <span className="text-lg">Mastercard</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-12 h-8 bg-purple-600 rounded flex items-center justify-center text-white text-xs font-bold">
                     UPI
                   </div>
-                  <span className="text-sm">UPI</span>
+                  <span className="text-lg">UPI</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-12 h-8 bg-green-600 rounded flex items-center justify-center text-white text-xs font-bold">
                     GPay
                   </div>
-                  <span className="text-sm">Google Pay</span>
+                  <span className="text-lg">Google Pay</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-12 h-8 bg-blue-800 rounded flex items-center justify-center text-white text-xs font-bold">
                     PPay
                   </div>
-                  <span className="text-sm">PhonePe</span>
+                  <span className="text-lg">PhonePe</span>
                 </div>
               </div>
-              <p className="text-center text-sm text-muted-foreground mt-4">
+              <p className="text-center text-lg text-muted-foreground mt-4">
                 All payments are secured with 256-bit SSL encryption
               </p>
             </CardContent>

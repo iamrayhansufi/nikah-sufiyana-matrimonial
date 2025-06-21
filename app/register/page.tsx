@@ -100,7 +100,7 @@ const isFieldFilled = (value: string | boolean | File | null) => {
 const inputStyles = "transition-colors focus:ring-2 focus:ring-primary/20 data-[filled=true]:bg-primary/5 data-[filled=true]:border-primary/30"
 
 const selectTriggerStyles = cn(
-  "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+  "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
   "transition-colors focus:ring-2 focus:ring-primary/20 data-[filled=true]:bg-primary/5 data-[filled=true]:border-primary/30"
 )
 
@@ -816,7 +816,7 @@ export default function RegisterPage() {
                     {[1, 2, 3, 4].map((i) => (
                       <div
                         key={i}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-medium ${
                           i <= step ? "bg-primary text-white" : "bg-muted text-muted-foreground"
                         }`}
                       >
@@ -1679,7 +1679,7 @@ export default function RegisterPage() {
                           checked={formData.termsAccepted}
                           onCheckedChange={(checked) => setFormData({ ...formData, termsAccepted: checked as boolean })}
                         />
-                        <Label htmlFor="terms" className="text-sm">
+                        <Label htmlFor="terms" className="text-lg">
                           I agree to the{" "}
                           <Link href="/terms" className="text-primary hover:underline">
                             Terms of Service
@@ -1692,7 +1692,7 @@ export default function RegisterPage() {
                           checked={formData.privacyAccepted}
                           onCheckedChange={(checked) => setFormData({ ...formData, privacyAccepted: checked as boolean })}
                         />
-                        <Label htmlFor="privacy" className="text-sm">
+                        <Label htmlFor="privacy" className="text-lg">
                           I agree to the{" "}
                           <Link href="/privacy" className="text-primary hover:underline">
                             Privacy Policy

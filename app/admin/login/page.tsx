@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && <p className="text-red-500 text-lg">{error}</p>}
             <Button type="submit" className="w-full gradient-primary text-white" disabled={loading}>
               {loading ? "Logging in..." : "Login"}
             </Button>

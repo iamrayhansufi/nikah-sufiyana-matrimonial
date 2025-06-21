@@ -179,7 +179,7 @@ export function Footer() {
               <Crown className="h-5 w-5" />
               Royal Contact
             </h3>
-            <div className="space-y-4 text-sm">
+            <div className="space-y-4 text-lg">
               <div className="flex items-center space-x-3 bg-white/10 p-3 rounded-lg">
                 <Phone className="h-5 w-5 text-white" />
                 <div>
@@ -219,7 +219,7 @@ export function Footer() {
             <p className={`${elMessiri.className} text-lg mb-2`}>
               <strong>© {new Date().getFullYear()} Nikah Sufiyana</strong> - Where Sacred Hearts Unite
             </p>
-            <p className="text-white/80 text-sm mb-4">
+            <p className="text-white/80 text-lg mb-4">
               Made with <Heart className="inline h-4 w-4 text-red-300" /> for the blessed Muslim Ummah | 
               <Link href="/sitemap" className="hover:text-white/70 ml-1">Sacred Sitemap</Link>
             </p>

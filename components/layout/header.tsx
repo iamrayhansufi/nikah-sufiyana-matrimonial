@@ -200,7 +200,7 @@ export function Header() {
                         notifications.slice(0, 10).map((notification: Notification, index: number) => (
                           <div 
                             key={notification.id || index}
-                            className={`p-3 border-b text-sm cursor-pointer hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
+                            className={`p-3 border-b text-lg cursor-pointer hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}
                             onClick={() => handleNotificationClick(notification)}
                           >                            <div className="flex items-start">
                               {notification.type === 'interest' && (
