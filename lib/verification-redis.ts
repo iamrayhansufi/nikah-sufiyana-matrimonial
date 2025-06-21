@@ -107,19 +107,22 @@ export async function verifyOTP(email: string, code: string, purpose = "registra
     const isNotUsed = verification.isUsed === false || 
                       verification.isUsed === "false" || 
                       !verification.isUsed;
-    
-    console.log(`🔍 verifyOTP: Validation checks:`, {
-      codeMatch: verification.code === code,
+      console.log(`🔍 verifyOTP: Validation checks:`, {
+      codeMatch: String(verification.code) === String(code),
       notUsed: isNotUsed,
       notExpired: expiresAt > now,
       currentTime: now,
       expiresAt: expiresAt,
       rawIsUsed: verification.isUsed,
-      rawExpiresAt: verification.expiresAt
+      rawExpiresAt: verification.expiresAt,
+      storedCodeType: typeof verification.code,
+      inputCodeType: typeof code,
+      storedCodeValue: verification.code,
+      inputCodeValue: code
     });
     
     const isValid = 
-      verification.code === code &&
+      String(verification.code) === String(code) &&
       isNotUsed &&
       expiresAt > now;
     
