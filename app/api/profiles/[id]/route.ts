@@ -122,11 +122,82 @@ export async function GET(
       height: profile.height,
       complexion: profile.complexion,
       maritalStatus: profile.maritalStatus,
-      maritalStatusOther: profile.maritalStatusOther,
-      // Handle profile photo - check multiple possible field names and provide fallback
-      profilePhoto: profile.profilePhoto || profile.image || '/placeholder-user.jpg',
-      image: profile.profilePhoto || profile.image || '/placeholder-user.jpg',
-      profilePhotos: profile.profilePhotos,
+      maritalStatusOther: profile.maritalStatusOther,      // Handle profile photo - check multiple possible field names and provide fallback
+      profilePhoto: (() => {
+        // Priority: profilePhoto -> first photo from photos array -> image -> fallback
+        if (profile.profilePhoto) return profile.profilePhoto;
+        if (profile.photos) {
+          // Handle both cases: JSON string or already parsed array
+          let photosArray;
+          if (typeof profile.photos === 'string') {
+            try {
+              photosArray = JSON.parse(profile.photos);
+            } catch (e) {
+              console.warn('Error parsing photos field:', e);
+              return profile.image || '/placeholder-user.jpg';
+            }
+          } else if (Array.isArray(profile.photos)) {
+            photosArray = profile.photos;
+          }
+          
+          if (Array.isArray(photosArray) && photosArray.length > 0) {
+            return photosArray[0]; // Use first photo as profile photo
+          }
+        }
+        return profile.image || '/placeholder-user.jpg';
+      })(),      image: (() => {
+        // Same logic as profilePhoto for compatibility
+        if (profile.profilePhoto) return profile.profilePhoto;
+        if (profile.photos) {
+          // Handle both cases: JSON string or already parsed array
+          let photosArray;
+          if (typeof profile.photos === 'string') {
+            try {
+              photosArray = JSON.parse(profile.photos);
+            } catch (e) {
+              console.warn('Error parsing photos field:', e);
+              return profile.image || '/placeholder-user.jpg';
+            }
+          } else if (Array.isArray(profile.photos)) {
+            photosArray = profile.photos;
+          }
+          
+          if (Array.isArray(photosArray) && photosArray.length > 0) {
+            return photosArray[0];
+          }
+        }
+        return profile.image || '/placeholder-user.jpg';
+      })(),profilePhotos: (() => {
+        // Return all photos from the photos field or profilePhotos field
+        if (profile.photos) {
+          // Handle both cases: JSON string or already parsed array
+          if (typeof profile.photos === 'string') {
+            try {
+              const photosArray = JSON.parse(profile.photos);
+              if (Array.isArray(photosArray)) {
+                return photosArray;
+              }
+            } catch (e) {
+              console.warn('Error parsing photos field:', e);
+            }
+          } else if (Array.isArray(profile.photos)) {
+            return profile.photos;
+          }
+        }
+        if (profile.profilePhotos) {
+          // Handle both cases: JSON string or already parsed array
+          if (typeof profile.profilePhotos === 'string') {
+            try {
+              return JSON.parse(profile.profilePhotos);
+            } catch (e) {
+              console.warn('Error parsing profilePhotos field:', e);
+            }
+          } else if (Array.isArray(profile.profilePhotos)) {
+            return profile.profilePhotos;
+          }
+        }
+        return [];
+      })(),
       aboutMe: profile.aboutMe,
       familyDetails: profile.familyDetails,
       fatherName: profile.fatherName,

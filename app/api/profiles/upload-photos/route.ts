@@ -152,14 +152,22 @@ export async function POST(req: Request) {
         console.warn("Error parsing existing photos:", e);
         existingPhotos = [];
       }
-    }
-
-    // Combine existing photos with new ones (limit to 5 total)
-    const allPhotos = [...existingPhotos, ...photoUrls].slice(0, 5);    // Update user profile with the new photos array
-    await redis.hmset(`user:${userId}`, { 
+    }    // Combine existing photos with new ones (limit to 5 total)
+    const allPhotos = [...existingPhotos, ...photoUrls].slice(0, 5);
+    
+    // Prepare update data
+    const updateData: { [key: string]: string } = {
       photos: JSON.stringify(allPhotos),
       updatedAt: new Date().toISOString()
-    });
+    };
+    
+    // If there was no profile photo before and we now have photos, set the first one as profile photo
+    if (!currentUser.profilePhoto && allPhotos.length > 0) {
+      updateData.profilePhoto = allPhotos[0];
+    }
+    
+    // Update user profile with the new photos array
+    await redis.hmset(`user:${userId}`, updateData);
 
     console.log("User profile updated with new photos. Total photos:", allPhotos.length);
     console.log("All photos URLs:", allPhotos);

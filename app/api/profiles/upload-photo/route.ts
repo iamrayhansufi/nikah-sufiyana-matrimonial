@@ -79,17 +79,39 @@ export async function POST(req: Request) {
       // This is a temporary solution until you implement proper cloud storage
       const base64Image = buffer.toString('base64');
       const dataUrl = `data:${file.type};base64,${base64Image}`;
-      
-      // Update user profile with the data URL directly
-      // Get existing photos
+        // Update user profile with the data URL directly      // Get existing photos
       const existingPhotos = await redis.hget(`user:${userId}`, "photos");
-      const photos = (existingPhotos && typeof existingPhotos === 'string') ? JSON.parse(existingPhotos) : [];
+      let photos = [];
+      
+      // Handle existing photos - might be string or array due to Redis auto-deserialization
+      if (existingPhotos) {
+        if (typeof existingPhotos === 'string') {
+          try {
+            photos = JSON.parse(existingPhotos);
+          } catch (e) {
+            console.warn('Error parsing existing photos:', e);
+            photos = [];
+          }
+        } else if (Array.isArray(existingPhotos)) {
+          photos = existingPhotos;
+        }
+      }
       
       // Add new photo
       photos.push(dataUrl);
       
+      // Update both photos array and profilePhoto field (for main profile photo)
+      const updateData: { [key: string]: string } = {
+        photos: JSON.stringify(photos)
+      };
+      
+      // If this is the first photo, also set it as the main profile photo
+      if (photos.length === 1) {
+        updateData.profilePhoto = dataUrl;
+      }
+      
       // Update user profile with the data URL directly
-      await redis.hset(`user:${userId}`, { photos: JSON.stringify(photos) });
+      await redis.hset(`user:${userId}`, updateData);
         
       console.log("User profile updated with data URL image");
       
@@ -117,19 +139,41 @@ export async function POST(req: Request) {
       // Save file
       const filepath = join(uploadDir, filename);
       await writeFile(filepath, buffer);
-      console.log("File written successfully to:", filepath);
-
-      // Update user profile with photo URL
+      console.log("File written successfully to:", filepath);      // Update user profile with photo URL
       const photoUrl = `/uploads/profiles/${filename}`;
       // Get existing photos
       const existingPhotos = await redis.hget(`user:${userId}`, "photos");
-      const photos = (existingPhotos && typeof existingPhotos === 'string') ? JSON.parse(existingPhotos) : [];
+      let photos = [];
+      
+      // Handle existing photos - might be string or array due to Redis auto-deserialization
+      if (existingPhotos) {
+        if (typeof existingPhotos === 'string') {
+          try {
+            photos = JSON.parse(existingPhotos);
+          } catch (e) {
+            console.warn('Error parsing existing photos:', e);
+            photos = [];
+          }
+        } else if (Array.isArray(existingPhotos)) {
+          photos = existingPhotos;
+        }
+      }
       
       // Add new photo
       photos.push(photoUrl);
       
+      // Update both photos array and profilePhoto field (for main profile photo)
+      const updateData: { [key: string]: string } = {
+        photos: JSON.stringify(photos)
+      };
+      
+      // If this is the first photo, also set it as the main profile photo
+      if (photos.length === 1) {
+        updateData.profilePhoto = photoUrl;
+      }
+      
       // Update user profile with photo URL
-      await redis.hset(`user:${userId}`, { photos: JSON.stringify(photos) });
+      await redis.hset(`user:${userId}`, updateData);
 
       console.log("User profile updated with photo URL:", photoUrl);
       

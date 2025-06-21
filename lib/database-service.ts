@@ -222,10 +222,53 @@ export const database = {
         motherTongue: user.motherTongue,
         complexion: user.complexion,
         income: user.income,
-        housing: user.housing,
-        // Handle profile photo - check multiple possible field names
-        profilePhoto: user.profilePhoto || user.image || '/placeholder-user.jpg',
-        image: user.profilePhoto || user.image || '/placeholder-user.jpg',
+        housing: user.housing,        // Handle profile photo - check multiple possible field names
+        profilePhoto: (() => {
+          // Priority: profilePhoto -> first photo from photos array -> image -> fallback
+          if (user.profilePhoto) return user.profilePhoto;
+          if (user.photos) {
+            // Handle both cases: JSON string or already parsed array
+            let photosArray;
+            if (typeof user.photos === 'string') {
+              try {
+                photosArray = JSON.parse(user.photos);
+              } catch (e) {
+                console.warn('Error parsing photos field:', e);
+                return user.image || '/placeholder-user.jpg';
+              }
+            } else if (Array.isArray(user.photos)) {
+              photosArray = user.photos;
+            }
+            
+            if (Array.isArray(photosArray) && photosArray.length > 0) {
+              return photosArray[0]; // Use first photo as profile photo
+            }
+          }
+          return user.image || '/placeholder-user.jpg';
+        })(),
+        image: (() => {
+          // Same logic as profilePhoto for compatibility
+          if (user.profilePhoto) return user.profilePhoto;
+          if (user.photos) {
+            // Handle both cases: JSON string or already parsed array
+            let photosArray;
+            if (typeof user.photos === 'string') {
+              try {
+                photosArray = JSON.parse(user.photos);
+              } catch (e) {
+                console.warn('Error parsing photos field:', e);
+                return user.image || '/placeholder-user.jpg';
+              }
+            } else if (Array.isArray(user.photos)) {
+              photosArray = user.photos;
+            }
+            
+            if (Array.isArray(photosArray) && photosArray.length > 0) {
+              return photosArray[0];
+            }
+          }
+          return user.image || '/placeholder-user.jpg';
+        })(),
         premium: user.premium === 'true' || user.premium === true,
         verified: user.verified === 'true' || user.verified === true,
         lastActive: user.lastActive,
