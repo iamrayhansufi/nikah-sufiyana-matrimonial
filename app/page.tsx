@@ -155,13 +155,7 @@ export default function HomePage() {
     }
   }
 
-  return (
-    <div className="min-h-screen" style={{
-      background: 'linear-gradient(135deg, #FCF9F2 0%, #F2E4C1 100%), url("/pattern-icon-01.svg")',
-      backgroundSize: 'auto, 50px 50px',
-      backgroundRepeat: 'no-repeat, repeat',
-      backgroundPosition: 'center, 0 0'
-    }}>
+  return (    <div className="min-h-screen bg-sufiyana-pattern">
       <Header />
 
       {/* Sufiyana Hero Section with Divine Slider */}
@@ -335,12 +329,11 @@ export default function HomePage() {
                     <h3 className={`${elMessiri.className} text-3xl font-bold text-royal-primary mb-6`}>
                       روحانی شادی - The Spiritual Union
                     </h3>
-                    <div className="space-y-6 text-gray-700 leading-relaxed">
-                      <p className="text-lg">
-                        <strong>Nikah Sufiyana</strong> draws its essence from the mystical traditions of Sufism, where love transcends the material world to touch the divine. Our name embodies the sacred journey of two souls finding their spiritual completion through matrimony.
+                    <div className="space-y-6 text-gray-700 leading-relaxed">                      <p className="text-lg">
+                        <strong>Nikah Sufiyana</strong> represents the beautiful harmony between spiritual devotion and matrimonial bliss. Our platform celebrates the sacred bond of marriage as a divine blessing that brings two hearts together in eternal companionship and shared faith.
                       </p>
                       <p className="text-lg">
-                        In the <em>Sufi tradition</em>, marriage is not merely a contract but a mystical union that mirrors the soul's relationship with the Divine. We honor this sacred philosophy by creating connections that nurture both earthly happiness and spiritual growth.
+                        We believe that true love is a gift from Allah (SWT), and every marriage is a sacred covenant that unites not just two individuals, but two families, two histories, and two destinies. Our mission is to facilitate these blessed unions with the highest respect for Islamic values and family traditions.
                       </p>
                       <p className="text-lg">
                         Every profile on our platform is blessed with the intention of finding not just a life partner, but a <strong>companion for the spiritual journey</strong> - someone who will walk alongside you in this world and the hereafter.
@@ -864,7 +857,7 @@ export default function HomePage() {
             whileInView="animate"
             viewport={{ once: true }}
           >            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold mb-6`}>
-              Begin Your Sacred Sufiyana Journey Today
+              Begin Your Sufiyana Journey Today
             </h2>
             <div className="flex justify-center mb-8">
               <Image
