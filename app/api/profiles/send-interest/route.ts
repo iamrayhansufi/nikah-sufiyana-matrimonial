@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth-options-redis"
 import { redis } from "@/lib/redis-client"
 
 interface RedisUser extends Record<string, string> {
@@ -18,17 +19,15 @@ interface RedisInterest extends Record<string, string> {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    // Get user session to verify authentication
-    const session = await getServerSession()
+  try {    // Get user session to verify authentication
+    const session = await getServerSession(authOptions)
     
     if (!session?.user?.email) {
       return NextResponse.json({ 
         error: "You must be logged in to send interest" 
       }, { status: 401 })
     }
-    
-    // Get the request body
+      // Get the request body
     const body = await request.json()
     const { profileId, message } = body
     
@@ -36,6 +35,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         error: "Profile ID is required" 
       }, { status: 400 })
+    }
+
+    // Ensure profileId has the correct format
+    let targetProfileId = profileId;
+    if (!targetProfileId.startsWith('user:')) {
+      targetProfileId = `user:${targetProfileId}`;
     }
     
     // Get the current user (sender)
@@ -54,20 +59,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         error: "Sender user not found" 
       }, { status: 404 })
-    }
-
-    // Get the target user (receiver)
-    const targetUser = await redis.hgetall(`user:${profileId}`) as RedisUser
+    }    // Get the target user (receiver)
+    const targetUser = await redis.hgetall(targetProfileId) as RedisUser
     if (!targetUser) {
       return NextResponse.json({ 
         error: "Target user not found" 
       }, { status: 404 })
-    }
-
-    // Check if sender has a verified profile
-    if (senderUser.profileStatus !== 'approved') {
+    }    // Check if sender has basic required profile information
+    if (!senderUser.fullName || !senderUser.age || !senderUser.gender) {
       return NextResponse.json({ 
-        error: "Your profile must be approved before sending interest" 
+        error: "Please complete your profile before sending interest" 
       }, { status: 403 })
     }
 
