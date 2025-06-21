@@ -138,7 +138,7 @@ export function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`${elMessiri.className} text-sm font-medium transition-all duration-300 hover:text-royal-primary relative group`}
+                  className={`${elMessiri.className} nav-menu-item font-medium transition-all duration-300 hover:text-royal-primary relative group`}
                 >
                   <span className="relative z-10">
                     {language === "en" ? item.name : (

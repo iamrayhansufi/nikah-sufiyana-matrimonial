@@ -71,10 +71,11 @@ const config: Config = {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		},
-  		backgroundImage: {
+  		},  		backgroundImage: {
   			'royal-gradient': 'linear-gradient(135deg, #FCF9F2 0%, #F2E4C1 100%)',
   			'royal-gradient-vertical': 'linear-gradient(to bottom, #FCF9F2 0%, #F2E4C1 100%)',
+  			'sufiyana-pattern': 'url("/sufiyana-background-01.svg")',
+  			'pattern-icon': 'url("/pattern-icon-01.svg")',
   		},
   		keyframes: {
   			'accordion-down': {

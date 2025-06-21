@@ -24,29 +24,28 @@ export default function HomePage() {
     ageMax: "60",
     height: ""
   })
-  
-  const slides = [
+    const slides = [
     {
-      title: "Nikah Sufi​yana - Where Sacred Hearts Unite in Divine Grace",      
-      description: "Experience the mystical journey of finding your destined companion through our blessed Sufi-inspired platform, where every connection flows through divine will and Islamic values of pure love, creating eternal bonds in this sacred matrimonial space.",
+      title: "Nikah Sufi​yana - Where Sufiyana Hearts Unite in Divine Grace",      
+      description: "Experience the mystical journey of finding your destined companion through our blessed Sufi-inspired platform, where every connection flows through divine will and Islamic values of pure love, creating eternal bonds in this sufiyana matrimonial space.",
       image: "/placeholder.svg",
       badge: "✨ Blessed by 100,000+ Faithful Souls in Divine Harmony"
     },
     {
-      title: "The Royal Sufiyana Way of Sacred Union",
+      title: "The Sufiyana Way of Divine Union",
       subtitle: "Divine Matrimonial Conference 2024 - Where Souls Meet",
-      description: "Join our sacred gathering with renowned Islamic scholars, Sufi masters, and blessed couples who've discovered eternal happiness through the mystical path of halal matrimony, guided by centuries of Sufi wisdom and spiritual enlightenment.",
+      description: "Join our sufiyana gathering with renowned Islamic scholars, Sufi masters, and blessed couples who've discovered eternal happiness through the mystical path of halal matrimony, guided by centuries of Sufi wisdom and spiritual enlightenment.",
       image: "/events-bg.jpg",
       badge: "🕌 Register for Spiritual Guidance & Divine Connection",
-      cta: "Enter the Sacred Circle of Love"
+      cta: "Enter the Sufiyana Circle of Love"
     },
     {
-      title: "Royal Sufiyana Matchmaking Excellence",
+      title: "Sufiyana Matchmaking Excellence",
       subtitle: "Mystical Journey to Your Divinely Ordained Soulmate",
       description: "Experience our exclusive Sufiyana treatment with dedicated spiritual consultants who understand the mystical art of nikah and guide you toward your divinely ordained destiny, ensuring every match flows through divine grace and eternal blessing.",
       image: "/premium-bg.jpg",
-      badge: "👑 Royal Sufiyana Blessing & Premium Service",
-      cta: "Begin Your Sacred Mystical Journey"
+      badge: "👑 Sufiyana Blessing & Premium Service",
+      cta: "Begin Your Sufiyana Mystical Journey"
     }
   ]
   const values = [
@@ -61,11 +60,10 @@ export default function HomePage() {
       title: "Sacred Sufiyana Privacy & Divine Trust",
       description: "Your spiritual journey remains protected in our sacred trust with advanced security that ensures your path to love stays blessed and divinely guarded, honoring the Sufi tradition of protecting the sacred and the hearts that are most cherished.",
       color: "from-blue-500 to-indigo-600"
-    },
-    {
+    },    {
       icon: Crown,
-      title: "Royal Sufiyana Treatment & Mystical Excellence",
-      description: "Experience matrimonial services inspired by Sufi royalty, with personalized spiritual consultation and mystical matchmaking excellence that honors your soul, ensuring every interaction reflects the divine nobility of your sacred search for love.",
+      title: "Premium Sufiyana Treatment & Mystical Excellence",
+      description: "Experience matrimonial services inspired by Sufi wisdom, with personalized spiritual consultation and mystical matchmaking excellence that honors your soul, ensuring every interaction reflects the divine nobility of your sacred search for love.",
       color: "from-purple-500 to-pink-600"
     },
     {
@@ -97,7 +95,7 @@ export default function HomePage() {
       couple: "Brother Yusuf & Sister Zainab",
       location: "Hyderabad - Divine Intervention",
       image: "/success-stories/couple3.jpg",
-      story: "MashaAllah! The royal treatment and spiritual guidance from Nikah Sufiyana's blessed team was extraordinary. They understood our hearts and guided us to eternal happiness.",
+      story: "MashaAllah! The premium treatment and spiritual guidance from Nikah Sufiyana's blessed team was extraordinary. They understood our hearts and guided us to eternal happiness.",
       date: "Heavenly Marriage - 2022",
       blessing: "Blessed with son Muhammad Abdullah"
     },
@@ -158,10 +156,15 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-royal-gradient">
+    <div className="min-h-screen" style={{
+      background: 'linear-gradient(135deg, #FCF9F2 0%, #F2E4C1 100%), url("/pattern-icon-01.svg")',
+      backgroundSize: 'auto, 50px 50px',
+      backgroundRepeat: 'no-repeat, repeat',
+      backgroundPosition: 'center, 0 0'
+    }}>
       <Header />
 
-      {/* Royal Hero Section with Divine Slider */}
+      {/* Sufiyana Hero Section with Divine Slider */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-royal-primary/5 to-transparent"></div>
         
@@ -176,11 +179,11 @@ export default function HomePage() {
             <div className="space-y-6">
               <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-sm font-medium">
                 {slides[currentSlide].badge}
-              </Badge>                  <h1 className={`${elMessiri.className} text-6xl md:text-8xl lg:text-9xl font-bold text-royal-primary leading-tight`}>
+              </Badge>                  <h1 className={`${elMessiri.className} text-4xl md:text-6xl lg:text-7xl font-bold text-royal-primary leading-tight`}>
                 {slides[currentSlide].title}
               </h1>
                 {slides[currentSlide].subtitle && (
-                <h2 className={`${elMessiri.className} text-4xl md:text-5xl text-royal-primary font-semibold`}>
+                <h2 className={`${elMessiri.className} text-3xl md:text-4xl text-royal-primary font-semibold`}>
                   {slides[currentSlide].subtitle}
                 </h2>
               )}
@@ -245,8 +248,7 @@ export default function HomePage() {
             variants={fadeInUp}
             initial="initial"
             whileInView="animate"
-            viewport={{ once: true }}
-          >            <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+            viewport={{ once: true }}          >            <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-royal-primary mb-6`}>
               The Sacred Sufiyana Values
             </h2>
             <div className="flex justify-center mb-6">
@@ -300,8 +302,7 @@ export default function HomePage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            <div className="text-center mb-16">              <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
+          >            <div className="text-center mb-16">              <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold text-royal-primary mb-6`}>
                 The Mystical Legacy of Nikah Sufiyana
               </h2>
               <div className="flex justify-center mb-8">
@@ -757,7 +758,7 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             <h2 className={`${elMessiri.className} text-6xl md:text-7xl font-bold text-royal-primary mb-6`}>
-              Royal Sufiyana Features - Where Technology Meets Spirituality
+              Premium Sufiyana Features - Where Technology Meets Spirituality
             </h2>
             <div className="flex justify-center mb-8">
               <Image
