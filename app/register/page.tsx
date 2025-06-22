@@ -412,9 +412,30 @@ export default function RegisterPage() {
           password: formData.password,
           redirect: false
         });
-        
-        if (signInResult?.ok) {
+          if (signInResult?.ok) {
           console.log('✅ Auto-login successful');
+          
+          // Upload profile photo if one was selected
+          if (formData.profilePhoto) {
+            try {
+              console.log('📸 Uploading profile photo...');
+              const photoFormData = new FormData();
+              photoFormData.append('photo', formData.profilePhoto);
+              
+              const photoResponse = await fetch('/api/profiles/upload-photo', {
+                method: 'POST',
+                body: photoFormData,
+              });
+              
+              if (photoResponse.ok) {
+                console.log('✅ Profile photo uploaded successfully');
+              } else {
+                console.log('⚠️ Profile photo upload failed, user can upload later');
+              }
+            } catch (photoError) {
+              console.error('Photo upload error:', photoError);
+            }
+          }
         } else {
           console.log('⚠️ Auto-login failed, user will need to login manually');
         }

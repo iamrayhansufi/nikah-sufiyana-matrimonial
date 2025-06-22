@@ -47,6 +47,7 @@ interface BasicProfileForm {
   sect: string;
   height: string;
   complexion: string;
+  marriageTimeline: string;
   aboutMe: string;
   city: string;
   country: string;
@@ -146,8 +147,7 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(false)
   const [savingTab, setSavingTab] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [profileData, setProfileData] = useState<any>(null)
-  // Default to basic tab and make sure we're not using the 'religious' tab anymore
+  const [profileData, setProfileData] = useState<any>(null)  // Default to basic tab and make sure we're not using the 'religious' tab anymore
   const [activeTab, setActiveTab] = useState("basic")  
   
   // Form states for each tab
@@ -160,6 +160,7 @@ export default function EditProfilePage() {
     sect: "",
     height: "",
     complexion: "",
+    marriageTimeline: "",
     aboutMe: "",
     city: "",
     country: "",
@@ -258,11 +259,12 @@ export default function EditProfilePage() {
         
         const data = await response.json()
         console.log("Profile data received:", Object.keys(data).length, "fields");
-        
-        if (isMounted) {
+          if (isMounted) {
           setProfileData(data)
-            // Populate form data for each tab
-          setBasicForm({            fullName: data.fullName || "",
+          
+          // Populate form data for each tab
+          setBasicForm({
+            fullName: data.fullName || "",
             age: data.age ? String(data.age) : "",
             gender: data.gender || "",
             location: data.location || "",
@@ -271,6 +273,7 @@ export default function EditProfilePage() {
             sect: data.sect || "",
             height: data.height || "",
             complexion: data.complexion || "",
+            marriageTimeline: data.marriageTimeline || "",
             aboutMe: data.aboutMe || "",
             city: data.city || "",
             country: data.country || "",
@@ -688,11 +691,11 @@ export default function EditProfilePage() {
       } catch (e) {
         console.warn("Could not parse maternal/paternal data during refetch:", e);
       }
-      
-      // Update all form states with the fresh data
+        // Update all form states with the fresh data
       
       // Basic form data
-      setBasicForm({        fullName: data.fullName || "",
+      setBasicForm({
+        fullName: data.fullName || "",
         age: data.age ? String(data.age) : "",
         gender: data.gender || "",
         location: data.location || "",
@@ -701,6 +704,7 @@ export default function EditProfilePage() {
         sect: data.sect || "",
         height: data.height || "",
         complexion: data.complexion || "",
+        marriageTimeline: data.marriageTimeline || "",
         aboutMe: data.aboutMe || "",
         city: data.city || "",
         country: data.country || "",
@@ -1343,11 +1347,30 @@ export default function EditProfilePage() {
                           <SelectItem value="wheatish-brown">Wheatish Brown</SelectItem>
                           <SelectItem value="brown">Brown</SelectItem>
                           <SelectItem value="dark">Dark</SelectItem>
+                        </SelectContent>                      </Select>
+                    </FormField>
+                    
+                    {/* 6. Marriage Timeline */}
+                    <FormField label="How soon are you planning to marry?" filled={!!basicForm.marriageTimeline}>
+                      <Select 
+                        value={basicForm.marriageTimeline} 
+                        onValueChange={(value) => handleBasicChange('marriageTimeline', value)}
+                      >
+                        <SelectTrigger className={basicForm.marriageTimeline ? "border-green-200" : ""}>
+                          <SelectValue placeholder="Select timeline" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="immediately">Immediately</SelectItem>
+                          <SelectItem value="within-3-months">Within 3 months</SelectItem>
+                          <SelectItem value="within-6-months">Within 6 months</SelectItem>
+                          <SelectItem value="within-1-year">Within 1 year</SelectItem>
+                          <SelectItem value="within-2-years">Within 2 years</SelectItem>
+                          <SelectItem value="no-hurry">No hurry</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormField>
                     
-                    {/* 6. Marital Status */}
+                    {/* 7. Marital Status */}
                     <FormField label="Marital Status" filled={!!basicForm.maritalStatus}>
                       <Select 
                         value={basicForm.maritalStatus} 
@@ -1376,7 +1399,7 @@ export default function EditProfilePage() {
                       </FormField>
                     )}
                     
-                    {/* 7. Maslak */}
+                    {/* 8. Maslak */}
                     <FormField label="Maslak" filled={!!basicForm.sect}>
                       <Select 
                         value={basicForm.sect} 
@@ -1394,7 +1417,7 @@ export default function EditProfilePage() {
                         </SelectContent>
                       </Select>
                     </FormField>                    
-                    {/* 8. Address */}
+                    {/* 9. Address */}
                     <FormField label="Address" filled={!!basicForm.address}>
                       <Input 
                         id="address"
@@ -1405,7 +1428,7 @@ export default function EditProfilePage() {
                       />
                     </FormField>
                     
-                    {/* 9. City */}
+                    {/* 10. City */}
                     <FormField label="City" filled={!!basicForm.city}>
                       <Input 
                         id="city"
@@ -1416,7 +1439,7 @@ export default function EditProfilePage() {
                       />
                     </FormField>
                     
-                    {/* 10. Country */}
+                    {/* 11. Country */}
                     <FormField label="Country" filled={!!basicForm.country}>
                       <Select 
                         value={basicForm.country} 

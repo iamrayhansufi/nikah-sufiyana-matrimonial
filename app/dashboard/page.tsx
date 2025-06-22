@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 import { elMessiri } from "../lib/fonts"
 import { useNotifications } from "@/hooks/use-notifications"
+import { PhotoAccessManager } from "@/components/PhotoAccessManager"
 import Image from "next/image"
 
 // Helper functions for status icons/text
@@ -561,11 +562,11 @@ export default function DashboardPage() {
           </div>
 
           {/* Main Content Tabs */}
-          <Tabs defaultValue="interests" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="interests" className="space-y-6">            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="interests">My Interests</TabsTrigger>
               <TabsTrigger value="shortlisted">Shortlisted</TabsTrigger>
               <TabsTrigger value="received_interests">Interests Received</TabsTrigger>
+              <TabsTrigger value="privacy">Privacy</TabsTrigger>
               <TabsTrigger value="payments">Payments</TabsTrigger>
             </TabsList>
 
@@ -729,7 +730,46 @@ export default function DashboardPage() {
                     </div>
                   )}
                 </CardContent>
-              </Card>
+              </Card>            </TabsContent>
+
+            {/* Privacy Tab */}
+            <TabsContent value="privacy">
+              <div className="space-y-6">
+                <PhotoAccessManager />
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Privacy Settings</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Control who can view your photos and profile information
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">Profile Photo Visibility</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Show your photos to other members automatically
+                          </p>
+                        </div>
+                        <Badge variant={userProfile?.showPhotos !== false ? "default" : "secondary"}>
+                          {userProfile?.showPhotos !== false ? "Public" : "Private"}
+                        </Badge>
+                      </div>
+                      
+                      <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-lg">
+                        <p className="font-medium text-blue-800 mb-1">How it works:</p>
+                        <ul className="space-y-1 text-blue-700">
+                          <li>• When set to Private, only users whose interest you accept can see your photos</li>
+                          <li>• You can set time limits when accepting interests (1 day to permanent)</li>
+                          <li>• You can revoke photo access at any time from the "Photo Access Management" section above</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             {/* Payments Tab */}

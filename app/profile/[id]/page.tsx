@@ -33,6 +33,7 @@ import { elMessiri } from "../../lib/fonts"
 import { useSession, signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 import { useNotifications } from "@/hooks/use-notifications"
+import { InterestResponseDialog, QuickInterestResponse } from "@/components/InterestResponseDialog"
 
 // Helper function to safely parse JSON arrays
 const safeJsonParse = (jsonString: string | null | undefined): any[] => {
@@ -122,11 +123,12 @@ export default function ProfilePage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [shouldBlurPhoto, setShouldBlurPhoto] = useState(false)
-    // New state for handling incoming interest requests
+  // New state for handling incoming interest requests
   const [incomingInterestRequest, setIncomingInterestRequest] = useState<any>(null)
   const [showInterestRequestDialog, setShowInterestRequestDialog] = useState(false)
   const [showLightbox, setShowLightbox] = useState(false)
   const [lightboxImage, setLightboxImage] = useState<string>('')
+  const [photoAccessInfo, setPhotoAccessInfo] = useState<any>(null)
   
   // Get the profile ID from params
   const { id } = params
@@ -138,7 +140,32 @@ export default function ProfilePage({
     // Redirect to login
     router.push('/login')
   }
-    useEffect(() => {    const fetchProfile = async () => {
+    // Function to check photo access status
+  const checkPhotoAccess = async () => {
+    if (!session?.user?.id || !id) return
+    
+    try {
+      const response = await fetch(`/api/profiles/check-photo-access?profileId=${id}`, {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setPhotoAccessInfo(data)
+        
+        // Update blur state based on photo access
+        if (data.hasPhotoAccess && profile?.showPhotos !== false) {
+          setShouldBlurPhoto(false)
+        } else if (!data.hasPhotoAccess || profile?.showPhotos === false) {
+          setShouldBlurPhoto(true)
+        }
+      }
+    } catch (error) {
+      console.error('Error checking photo access:', error)
+    }
+  }
+
+  useEffect(() => {    const fetchProfile = async () => {
       if (!id) {
         setError("Invalid profile ID")
         setLoading(false)
@@ -252,8 +279,10 @@ export default function ProfilePage({
           if (shortlistRes.ok) {
             const shortlistData = await shortlistRes.json()
             setIsShortlisted(shortlistData.isShortlisted)
-          }
-        }
+          }        }
+        
+        // Check photo access status
+        await checkPhotoAccess()
         
         setLoading(false)
       } catch (error) {
@@ -529,9 +558,8 @@ export default function ProfilePage({
       setShowLightbox(true)
     }
   }
-
   // Handle accept/decline interest request
-  const handleRespondToInterest = async (action: 'accept' | 'decline') => {
+  const handleRespondToInterest = async (action: 'accept' | 'decline', duration?: string) => {
     if (!incomingInterestRequest) return
 
     try {
@@ -543,7 +571,7 @@ export default function ProfilePage({
         body: JSON.stringify({
           interestId: incomingInterestRequest.id,
           action,
-          profileId: incomingInterestRequest.senderId
+          photoAccessDuration: duration || '1week'
         })
       })
 
@@ -558,7 +586,7 @@ export default function ProfilePage({
         setShouldBlurPhoto(false)
         toast({
           title: "Interest Accepted! 🎉",
-          description: "You've accepted their interest. Photos are now visible.",
+          description: `You've accepted their interest. They can view your photos for ${duration || '1 week'}.`,
           variant: "default"
         })
       } else {
@@ -572,8 +600,9 @@ export default function ProfilePage({
       // Remove the incoming request
       setIncomingInterestRequest(null)
       
-      // Refresh notifications
+      // Refresh notifications and photo access
       refreshNotifications()
+      await checkPhotoAccess()
 
     } catch (error) {
       console.error("Failed to respond to interest:", error)
@@ -581,7 +610,8 @@ export default function ProfilePage({
         title: "Failed to Respond",
         description: "There was a problem responding to the interest request.",
         variant: "destructive"
-      })    }
+      })
+    }
   }
 
   return (
@@ -734,28 +764,22 @@ export default function ProfilePage({
                   </div>
                   
                   {/* Action Buttons */}
-                  <div className="space-y-3">
-                    {/* Interest Request Response (if user received request from this profile) */}
+                  <div className="space-y-3">                    {/* Interest Request Response (if user received request from this profile) */}
                     {incomingInterestRequest && (
                       <div className="space-y-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <p className="text-lg text-blue-800 font-medium text-center">
                           {formatToTitleCase(profile.name)} has sent you an interest request
                         </p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                            onClick={() => handleRespondToInterest('accept')}
-                          >
-                            Accept
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="border-red-200 text-red-600 hover:bg-red-50"
-                            onClick={() => handleRespondToInterest('decline')}
-                          >
-                            Decline
-                          </Button>
-                        </div>
+                        <QuickInterestResponse
+                          interest={{
+                            id: incomingInterestRequest.id,
+                            senderId: incomingInterestRequest.senderId,
+                            senderName: formatToTitleCase(profile.name),
+                            message: incomingInterestRequest.message,
+                            createdAt: incomingInterestRequest.createdAt
+                          }}
+                          onResponse={handleRespondToInterest}
+                        />
                       </div>
                     )}
 
@@ -888,12 +912,65 @@ export default function ProfilePage({
                           </div>
                         )}
                       </DialogContent>
-                    </Dialog>
-
-                    <Button variant="outline" className="w-full text-red-600 border-red-200">
+                    </Dialog>                    <Button variant="outline" className="w-full text-red-600 border-red-200">
                       <Flag className="h-4 w-4 mr-2" />
                       Report Profile
                     </Button>
+
+                    {/* Photo Access Information */}
+                    {photoAccessInfo && photoAccessInfo.hasPhotoAccess && (
+                      <Card className="bg-green-50 border-green-200">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm text-green-800 flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            Photo Access Granted
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <div className="space-y-2 text-sm">
+                            {!photoAccessInfo.isPermanent && photoAccessInfo.remainingTime && (
+                              <p className="text-green-700">
+                                <strong>Time remaining:</strong> {photoAccessInfo.remainingTime.days} days, {photoAccessInfo.remainingTime.hours} hours
+                              </p>
+                            )}
+                            {photoAccessInfo.isPermanent && (
+                              <p className="text-green-700">
+                                <strong>Access:</strong> Permanent
+                              </p>
+                            )}
+                            <p className="text-green-600 text-xs">
+                              Granted on {photoAccessInfo.grantedAt ? new Date(photoAccessInfo.grantedAt).toLocaleDateString() : 'Unknown'}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Photo Access Expired/Revoked */}
+                    {photoAccessInfo && !photoAccessInfo.hasPhotoAccess && photoAccessInfo.reason && (
+                      <Card className="bg-red-50 border-red-200">
+                        <CardContent className="pt-4">
+                          <div className="text-center">
+                            <EyeOff className="h-8 w-8 mx-auto text-red-500 mb-2" />
+                            <p className="text-sm text-red-700">
+                              {photoAccessInfo.reason === 'Photo access was revoked' && 'Photo access was revoked'}
+                              {photoAccessInfo.reason === 'Photo access has expired' && 'Photo access has expired'}
+                              {photoAccessInfo.reason === 'No accepted interest found' && 'Send interest to view photos'}
+                            </p>
+                            {photoAccessInfo.reason === 'Photo access has expired' && !interestMutual && (
+                              <Button 
+                                size="sm" 
+                                className="mt-2 bg-emerald-600 hover:bg-emerald-700"
+                                onClick={handleSendInterest}
+                                disabled={isInterestSent}
+                              >
+                                Request Access Again
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -948,13 +1025,24 @@ export default function ProfilePage({
                             <p className="text-lg text-muted-foreground">
                               {profile.maritalStatus ? formatToTitleCase(profile.maritalStatus) : "Not Specified"}
                             </p>
-                          </div>
-                          {profile.maritalStatus === 'other' && (
+                          </div>                          {profile.maritalStatus === 'other' && (
                             <div>
                               <p className="font-medium mb-1">Other Marital Status</p>
                               <p className="text-lg text-muted-foreground">{formatToTitleCase(profile.maritalStatusOther || "Not Specified")}</p>
                             </div>
                           )}
+                          <div>
+                            <p className="font-medium mb-1">Marriage Timeline</p>
+                            <p className="text-lg text-muted-foreground">
+                              {profile.marriageTimeline === "immediately" ? "Immediately" :
+                               profile.marriageTimeline === "within-3-months" ? "Within 3 months" :
+                               profile.marriageTimeline === "within-6-months" ? "Within 6 months" :
+                               profile.marriageTimeline === "within-1-year" ? "Within 1 year" :
+                               profile.marriageTimeline === "within-2-years" ? "Within 2 years" :
+                               profile.marriageTimeline === "no-hurry" ? "No hurry" :
+                               profile.marriageTimeline ? formatToTitleCase(profile.marriageTimeline) : "Not Specified"}
+                            </p>
+                          </div>
                           <div>
                             <p className="font-medium mb-1">Maslak</p>
                             <p className="text-lg text-muted-foreground">{profile.sect ? formatToTitleCase(profile.sect) : "Not Specified"}</p>

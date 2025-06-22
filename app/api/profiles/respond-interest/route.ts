@@ -1,14 +1,63 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth-options-redis"
-import { database } from "@/lib/database-service"
+import { redis } from "@/lib/redis-client"
+import { sendInterestResponseEmail } from "@/lib/email-service"
+
+interface RedisUser extends Record<string, string> {
+  id: string;
+  email: string;
+  fullName: string;
+}
+
+interface RedisInterest extends Record<string, string> {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  status: string;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Helper function to calculate expiry date
+function calculateExpiryDate(duration: string): Date {
+  const now = new Date();
+  
+  switch (duration) {
+    case '1day':
+      return new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    case '2days':
+      return new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+    case '1week':
+      return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    case '1month':
+      return new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    case 'permanent':
+      return new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1 year
+    default:
+      return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // Default 1 week
+  }
+}
+
+// Helper function to convert duration codes to human-readable text
+function getDurationText(duration: string): string {
+  switch (duration) {
+    case '1day': return '1 day';
+    case '2days': return '2 days';
+    case '1week': return '1 week';
+    case '1month': return '1 month';
+    case 'permanent': return 'permanently';
+    default: return '1 week';
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
     // Get user session to verify authentication
     const session = await getServerSession(authOptions)
     
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ 
         error: "You must be logged in to respond to interests" 
       }, { status: 401 })
@@ -16,7 +65,7 @@ export async function POST(request: NextRequest) {
     
     // Get the request body
     const body = await request.json()
-    const { interestId, action } = body // action: 'accept' or 'decline'
+    const { interestId, action, photoAccessDuration = '1week' } = body // action: 'accept' or 'decline', photoAccessDuration: '1day', '2days', '1week', '1month', 'permanent'
     
     if (!interestId || !action) {
       return NextResponse.json({ 
@@ -29,27 +78,47 @@ export async function POST(request: NextRequest) {
         error: "Action must be 'accept' or 'decline'" 
       }, { status: 400 })
     }
+
+    // Validate photo access duration
+    const validDurations = ['1day', '2days', '1week', '1month', 'permanent'];
+    if (action === 'accept' && !validDurations.includes(photoAccessDuration)) {
+      return NextResponse.json({ 
+        error: "Invalid photo access duration" 
+      }, { status: 400 })
+    }
     
     // Get the current user (receiver)
-    const receiverUserId = session.user.id
-    const receiverUser = await database.users.getById(receiverUserId)
+    const userKeys = await redis.keys("user:*")
+    let receiverUser: RedisUser | null = null
     
+    for (const key of userKeys) {
+      const user = await redis.hgetall(key) as RedisUser
+      if (user && user.email === session.user.email) {
+        receiverUser = user
+        break
+      }
+    }
+
     if (!receiverUser) {
       return NextResponse.json({ 
         error: "Receiver user not found" 
       }, { status: 404 })
     }
     
-    // Get all interests
-    const receivedInterests = await database.interests.getReceivedInterests(receiverUserId);
+    // Get the interest
+    const interest = await redis.hgetall(interestId) as RedisInterest
     
-    // Find the specific interest
-    const interest = receivedInterests.find(i => i.id === interestId);
-
-    if (!interest) {
+    if (!interest || !interest.id) {
       return NextResponse.json({ 
-        error: "Interest not found or you're not authorized to respond to it" 
+        error: "Interest not found" 
       }, { status: 404 })
+    }
+
+    // Verify the current user is the receiver of this interest
+    if (interest.receiverId !== receiverUser.id) {
+      return NextResponse.json({ 
+        error: "You're not authorized to respond to this interest" 
+      }, { status: 403 })
     }
     
     // Check if interest has already been responded to
@@ -59,44 +128,75 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    // Update the interest status
-    await database.interests.update(interestId, { 
-      status: action === 'accept' ? 'accepted' : 'declined'
-    });
+    // Update the interest status and add photo access information if accepted
+    const updateData: Record<string, string> = {
+      status: action === 'accept' ? 'accepted' : 'declined',
+      updatedAt: new Date().toISOString()
+    }
+
+    if (action === 'accept') {
+      const expiryDate = calculateExpiryDate(photoAccessDuration);
+      updateData.photoAccessDuration = photoAccessDuration;
+      updateData.photoAccessExpiryDate = expiryDate.toISOString();
+      updateData.photoAccessGrantedAt = new Date().toISOString();
+    }
     
-    // Get sender information for notification
-    const senderUserId = interest.fromUserId
-    const senderUser = await database.users.getById(senderUserId)
+    await redis.hmset(interestId, updateData)
     
-    if (senderUser) {
+    // Get sender information for notification and email
+    const senderUser = await redis.hgetall(`user:${interest.senderId}`) as RedisUser
+    
+    if (senderUser && senderUser.id) {
       // Create notification for the sender
       const notificationMessage = action === 'accept' 
-        ? `🎉 ${receiverUser.fullName || 'Someone'} has accepted your interest! You can now view their photos. Click to visit their profile.`
+        ? `🎉 ${receiverUser.fullName || 'Someone'} has accepted your interest! You can now view their photos for ${getDurationText(photoAccessDuration)}. Visit their profile to connect.`
         : `${receiverUser.fullName || 'Someone'} has declined your interest.`;
       
       // Create notification
-      await database.notifications.create({
-        userId: senderUserId,
-        type: action === 'accept' ? "interest_accepted" : "interest_declined",
+      const notificationId = `notification:${Date.now()}`
+      const notificationData = {
+        userId: senderUser.id,
+        title: action === 'accept' ? 'Interest Accepted! 🎉' : 'Interest Update',
         message: notificationMessage,
-        link: `/profile/${receiverUserId}`,
-        read: false,
-        createdAt: new Date().toISOString(),
-        metadata: JSON.stringify({
+        type: action === 'accept' ? "interest_accepted" : "interest_declined",
+        data: JSON.stringify({
           responderName: receiverUser.fullName,
-          responderId: receiverUserId,
+          responderId: receiverUser.id,
           interestId: interestId,
-          action: action
-        })
-      });
+          action: action,
+          photoAccessDuration: action === 'accept' ? photoAccessDuration : undefined,
+          photoAccessExpiry: action === 'accept' ? updateData.photoAccessExpiryDate : undefined
+        }),
+        read: 'false',
+        createdAt: new Date().toISOString()
+      }
+
+      await redis.hmset(notificationId, notificationData)
+      await redis.lpush(`notifications:${senderUser.id}`, notificationId)      // Send email notification
+      try {
+        await sendInterestResponseEmail(
+          senderUser.email,
+          senderUser.fullName || 'User',
+          receiverUser.fullName || 'Someone',
+          action as 'accept' | 'decline',
+          action === 'accept' ? photoAccessDuration : undefined
+        )
+      } catch (emailError) {
+        console.error('Failed to send interest response email:', emailError)
+        // Don't fail the entire request if email fails
+      }
     }
     
-    console.log(`Interest ${action}ed: Interest ${interestId} by User ${receiverUserId}`);
+    console.log(`Interest ${action}ed: Interest ${interestId} by User ${receiverUser.id}`);
     
     return NextResponse.json({ 
       success: true,
       message: `Interest ${action}ed successfully`,
-      action: action
+      action: action,
+      ...(action === 'accept' && {
+        photoAccessDuration: photoAccessDuration,
+        photoAccessExpiry: updateData.photoAccessExpiryDate
+      })
     }, { status: 200 })
     
   } catch (error) {

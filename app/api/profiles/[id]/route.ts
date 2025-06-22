@@ -119,10 +119,10 @@ export async function GET(
       jobTitle: profile.jobTitle,
       income: profile.income,
       sect: profile.sect,
-      height: profile.height,
-      complexion: profile.complexion,
+      height: profile.height,      complexion: profile.complexion,
       maritalStatus: profile.maritalStatus,
-      maritalStatusOther: profile.maritalStatusOther,      // Handle profile photo - check multiple possible field names and provide fallback
+      maritalStatusOther: profile.maritalStatusOther,
+      marriageTimeline: profile.marriageTimeline,// Handle profile photo - check multiple possible field names and provide fallback
       profilePhoto: (() => {
         // Priority: profilePhoto -> first photo from photos array -> image -> fallback
         if (profile.profilePhoto) return profile.profilePhoto;
@@ -313,9 +313,9 @@ export async function PATCH(
       gender: body.gender || existingUser.gender,
       location: body.location || existingUser.location,
       education: body.education || existingUser.education,
-      profession: body.profession || existingUser.profession,
-      maritalStatus: body.maritalStatus || existingUser.maritalStatus,
+      profession: body.profession || existingUser.profession,      maritalStatus: body.maritalStatus || existingUser.maritalStatus,
       maritalStatusOther: body.maritalStatusOther || existingUser.maritalStatusOther,
+      marriageTimeline: body.marriageTimeline || existingUser.marriageTimeline,
       sect: body.sect || existingUser.sect,
       height: body.height !== undefined ? (body.height === '' ? null : body.height) : existingUser.height,
       complexion: body.complexion !== undefined ? (body.complexion === '' ? null : body.complexion) : existingUser.complexion,

@@ -19,7 +19,8 @@ interface RedisInterest extends Record<string, string> {
 }
 
 export async function POST(request: NextRequest) {
-  try {    // Get user session to verify authentication
+  try {    
+    // Get user session to verify authentication
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.email) {
@@ -27,7 +28,8 @@ export async function POST(request: NextRequest) {
         error: "You must be logged in to send interest" 
       }, { status: 401 })
     }
-      // Get the request body
+      
+    // Get the request body
     const body = await request.json()
     const { profileId, message } = body
     
@@ -42,7 +44,7 @@ export async function POST(request: NextRequest) {
     if (!targetProfileId.startsWith('user:')) {
       targetProfileId = `user:${targetProfileId}`;
     }
-    
+
     // Get the current user (sender)
     const userKeys = await redis.keys("user:*")
     let senderUser: RedisUser | null = null
@@ -102,9 +104,7 @@ export async function POST(request: NextRequest) {
 
     // Add interest to lists for both users
     await redis.lpush(`sent_interests:${senderUser.id}`, interestId)
-    await redis.lpush(`received_interests:${targetUser.id}`, interestId)
-
-    // Create notification for receiver
+    await redis.lpush(`received_interests:${targetUser.id}`, interestId)    // Create notification for receiver
     const notificationId = `notification:${Date.now()}`
     const notificationData = {
       userId: targetUser.id,
@@ -123,6 +123,19 @@ export async function POST(request: NextRequest) {
 
     await redis.hmset(notificationId, notificationData)
     await redis.lpush(`notifications:${targetUser.id}`, notificationId)
+
+    // Send email notification to receiver
+    try {
+      const { sendInterestReceivedEmail } = await import('@/lib/email-service')
+      await sendInterestReceivedEmail(
+        targetUser.email,
+        targetUser.fullName || 'User',
+        senderUser.fullName || 'Someone'
+      )
+    } catch (emailError) {
+      console.error('Failed to send interest received email:', emailError)
+      // Don't fail the entire request if email fails
+    }
 
     return NextResponse.json({
       message: "Interest sent successfully",
