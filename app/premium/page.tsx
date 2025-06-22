@@ -158,17 +158,17 @@ export default function PremiumPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-amber-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <Header />
 
       {/* Hero Section */}
       <section className="relative py-20 px-4">
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/10 to-amber-600/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-rose-600/10"></div>
         <div className="relative max-w-6xl mx-auto text-center">
-          <Badge className="mb-6 bg-gradient-to-r from-emerald-500 to-amber-500 text-white border-0 px-6 py-2 text-lg">
+          <Badge className="mb-6 bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 px-6 py-2 text-lg">
             ✨ Premium Matrimonial Features
           </Badge>
-          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-emerald-600 to-amber-600 bg-clip-text text-transparent mb-6`}>
+          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-6`}>
             Find Your Perfect Match Faster
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8">

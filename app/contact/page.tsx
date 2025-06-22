@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Phone, Mail, MapPin, Clock, MessageSquare, Send, Heart, CheckCircle, ArrowRight } from "lucide-react"
-import { playfair } from "../lib/fonts"
+import { elMessiri } from "../lib/fonts"
 import Link from "next/link"
 
 export default function ContactPage() {
@@ -106,7 +106,7 @@ export default function ContactPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950">
       <Header />
 
       {/* Hero Section */}
@@ -117,7 +117,7 @@ export default function ContactPage() {
             <Badge className="mb-6 bg-primary/10 text-primary border-primary/20 backdrop-blur-sm">
               24/7 Support Available
             </Badge>
-            <h1 className={`${playfair.className} text-3xl md:text-4xl lg:text-5xl font-bold mb-6`}>
+            <h1 className={`${elMessiri.className} text-3xl md:text-4xl lg:text-5xl font-bold mb-6`}>
               Get in Touch
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -134,10 +134,10 @@ export default function ContactPage() {
             {contactInfo.map((item, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all">
                 <CardContent className="p-6">
-                  <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-red-600 to-rose-600 flex items-center justify-center mb-4">
                     <item.icon className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className={`${playfair.className} text-lg font-semibold mb-2`}>{item.title}</h3>
+                  <h3 className={`${elMessiri.className} text-lg font-semibold mb-2`}>{item.title}</h3>
                   {item.details.map((detail, i) => (
                     <p key={i} className="text-muted-foreground">{detail}</p>
                   ))}
@@ -156,7 +156,7 @@ export default function ContactPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               {/* Form */}
               <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8">
-                <h2 className={`${playfair.className} text-2xl font-semibold mb-6`}>Send us a Message</h2>
+                <h2 className={`${elMessiri.className} text-2xl font-semibold mb-6`}>Send us a Message</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -241,7 +241,7 @@ export default function ContactPage() {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full gradient-primary text-white" size="lg">
+                  <Button type="submit" className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white" size="lg">
                     <Send className="h-4 w-4 mr-2" />
                     Send Message
                   </Button>
@@ -257,12 +257,12 @@ export default function ContactPage() {
 
               {/* FAQ Section */}
               <div>
-                <h2 className={`${playfair.className} text-2xl font-semibold mb-6`}>Frequently Asked Questions</h2>
+                <h2 className={`${elMessiri.className} text-2xl font-semibold mb-6`}>Frequently Asked Questions</h2>
                 <div className="space-y-4">
                   {faqItems.map((item, index) => (
                     <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow">
                       <CardContent className="p-6">
-                        <h3 className={`${playfair.className} text-lg font-semibold mb-2`}>{item.question}</h3>
+                        <h3 className={`${elMessiri.className} text-lg font-semibold mb-2`}>{item.question}</h3>
                         <p className="text-muted-foreground">{item.answer}</p>
                       </CardContent>
                     </Card>
@@ -275,11 +275,11 @@ export default function ContactPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 gradient-primary text-white relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-r from-red-600 to-rose-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-10"></div>
         <div className="container mx-auto px-4 relative">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className={`${playfair.className} text-3xl md:text-4xl font-bold mb-6`}>
+            <h2 className={`${elMessiri.className} text-3xl md:text-4xl font-bold mb-6`}>
               Ready to Begin Your Journey?
             </h2>
             <p className="text-xl mb-8 opacity-90">
