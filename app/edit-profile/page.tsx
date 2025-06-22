@@ -128,6 +128,16 @@ const sanitizePhotoUrl = (url: string): string => {
     return url.split('?')[0];
   }
   
+  // Fix placeholder URL to use relative path for local development
+  if (url === '/placeholder-user.jpg' || url.includes('placeholder-user.jpg')) {
+    return '/placeholder-user.jpg';
+  }
+  
+  // If it's a production URL but we're in development, convert to relative
+  if (url.startsWith('https://www.nikahsufiyana.com/') && window.location.hostname === 'localhost') {
+    return url.replace('https://www.nikahsufiyana.com', '');
+  }
+  
   return url;
 };
 

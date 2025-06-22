@@ -23,8 +23,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useNotifications } from "@/hooks/use-notifications"
 import { elMessiri } from "@/app/lib/fonts"
 
-interface Notification {
-  id: number;
+interface UserNotification {
+  id: string | number;
   type: string;
   message: string;
   link?: string;
@@ -83,7 +83,7 @@ export function Header() {
     if (open) {
       enableAudio();
     }
-  };    const handleNotificationClick = async (notification: any) => {
+  };    const handleNotificationClick = async (notification: UserNotification) => {
     try {
       console.log('Notification clicked:', {
         id: notification.id,
@@ -101,10 +101,9 @@ export function Header() {
       // Navigate to the relevant page if there's a link
       if (notification.link) {
         console.log('Navigating to:', notification.link);
-        
-        // Use a small delay to ensure the popover closes first
+          // Use a small delay to ensure the popover closes first
         setTimeout(() => {
-          router.push(notification.link);
+          router.push(notification.link!);
         }, 100);
       } else {
         console.log('No link found in notification');
@@ -196,7 +195,7 @@ export function Header() {
                     <div className="p-3 border-b">
                       <h4 className="font-medium">Notifications</h4>
                     </div>                    <div className="max-h-[300px] overflow-auto">                      {notifications.slice(0, 10).length > 0 ? (
-                        notifications.slice(0, 10).map((notification: Notification, index: number) => (
+                        notifications.slice(0, 10).map((notification, index: number) => (
                           <div 
                             key={notification.id || index}
                             className={`p-3 border-b text-lg cursor-pointer hover:bg-muted transition-colors ${!notification.read ? 'bg-muted/50' : ''}`}

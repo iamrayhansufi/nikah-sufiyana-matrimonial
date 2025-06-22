@@ -6,6 +6,11 @@ import { uploadProfilePhoto } from "@/lib/cloudinary-service";
 
 export async function POST(req: Request) {
   try {
+    // Debug environment variables
+    console.log('🔧 Upload API Environment Check:');
+    console.log('  CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME ? '✅ Set' : '❌ Missing');
+    console.log('  CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY ? '✅ Set' : '❌ Missing');
+    console.log('  CLOUDINARY_API_SECRET:', process.env.CLOUDINARY_API_SECRET ? '✅ Set' : '❌ Missing');
     // Get session
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -59,11 +64,17 @@ export async function POST(req: Request) {
 
     try {
       console.log("Uploading to Cloudinary...");
-      
-      // Upload to Cloudinary
+        // Upload to Cloudinary
       const result = await uploadProfilePhoto(buffer, userId.replace('user:', ''));
       
-      console.log("Cloudinary upload successful:", result.secure_url);
+      console.log("Cloudinary private upload successful:", result.secure_url);
+      console.log("Public ID:", result.public_id);
+      
+      // Extract the image ID from public_id for secure URL generation
+      const imageId = result.public_id.replace('matrimonial-profiles/', '');
+      const secureUrl = `/api/secure-image/${imageId}`;
+      
+      console.log("Generated secure URL:", secureUrl);
       
       // Get existing photos
       const existingPhotos = await redis.hget(`user:${userId}`, "photos");
@@ -82,9 +93,8 @@ export async function POST(req: Request) {
           photos = existingPhotos;
         }
       }
-      
-      // Add new photo URL
-      photos.push(result.secure_url);
+        // Add new photo URL (use secure URL instead of direct Cloudinary URL)
+      photos.push(secureUrl);
       
       // Update both photos array and profilePhoto field
       const updateData: { [key: string]: string } = {
@@ -94,18 +104,37 @@ export async function POST(req: Request) {
       
       // If this is the first photo, also set it as the main profile photo
       if (photos.length === 1) {
-        updateData.profilePhoto = result.secure_url;
+        updateData.profilePhoto = secureUrl;
       }
+        // Store the Cloudinary public_id for future management (deletion, etc.)
+      const cloudinaryIds = await redis.hget(`user:${userId}`, "cloudinary_ids");
+      let ids = [];
+      if (cloudinaryIds && typeof cloudinaryIds === 'string') {
+        try {
+          ids = JSON.parse(cloudinaryIds);
+        } catch (e) {
+          ids = [];
+        }
+      }
+      ids.push({
+        public_id: result.public_id,
+        secure_url: secureUrl,
+        type: 'profile',
+        uploaded_at: new Date().toISOString()
+      });
+      updateData.cloudinary_ids = JSON.stringify(ids);
       
-      // Update user profile with the Cloudinary URL
+      // Update user profile with the secure URL
       await redis.hset(`user:${userId}`, updateData);
       
-      console.log("User profile updated with Cloudinary URL:", result.secure_url);
+      console.log("User profile updated with secure URL:", secureUrl);
       
       return NextResponse.json({
         message: "Photo uploaded successfully",
-        url: result.secure_url,
-        cloudinary_public_id: result.public_id      });
+        url: secureUrl, // Return secure URL instead of direct Cloudinary URL
+        cloudinary_public_id: result.public_id,
+        is_private: true // Indicate that this is a private image
+      });
       
     } catch (error) {
       console.error("Cloudinary upload error:", error);

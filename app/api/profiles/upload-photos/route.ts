@@ -75,13 +75,19 @@ export async function POST(req: Request) {
         const buffer = Buffer.from(bytes);
         
         console.log(`Uploading file ${i + 1} to Cloudinary...`);
-        
-        // Upload to Cloudinary
+          // Upload to Cloudinary
         const result = await uploadGalleryPhoto(buffer, userId.replace('user:', ''), i);
         
-        console.log(`Cloudinary upload ${i + 1} successful:`, result.secure_url);
+        console.log(`Cloudinary private upload ${i + 1} successful:`, result.secure_url);
+        console.log(`Public ID ${i + 1}:`, result.public_id);
         
-        photoUrls.push(result.secure_url);
+        // Extract the image ID from public_id for secure URL generation
+        const imageId = result.public_id.replace('matrimonial-gallery/', '');
+        const secureUrl = `/api/secure-image/${imageId}`;
+        
+        console.log(`Generated secure URL ${i + 1}:`, secureUrl);
+        
+        photoUrls.push(secureUrl);
         
       } catch (uploadError) {
         console.error(`Error uploading file ${i + 1}:`, uploadError);
