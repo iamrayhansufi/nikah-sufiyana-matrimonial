@@ -232,7 +232,7 @@ export default function WeddingServicesPage() {
     }
   ]
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-rose-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <Header />
       
       {/* Hero Section */}
@@ -258,7 +258,7 @@ export default function WeddingServicesPage() {
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-16 px-4 bg-gradient-to-r from-emerald-600 to-amber-600">
+      <section className="py-16 px-4 bg-gradient-to-r from-red-600 to-rose-600">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {whyChooseUs.map((item, index) => (
@@ -295,7 +295,7 @@ export default function WeddingServicesPage() {
                       <service.icon className="h-8 w-8 text-white" />
                     </div>
                     {service.popular && (
-                      <Badge className="bg-amber-500 text-white">Popular</Badge>
+                      <Badge className="bg-red-500 text-white">Popular</Badge>
                     )}
                   </div>
                   <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800 dark:text-gray-200 mb-4`}>
@@ -309,12 +309,10 @@ export default function WeddingServicesPage() {
                       <li key={i} className="flex items-center gap-3">                        <CheckCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
                         <span className="text-gray-700 dark:text-gray-300 text-sm">{feature}</span>
                       </li>
-                    ))}
-                  </ul>
-                  <div className="text-lg font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-4">
-                    {service.pricing}
-                  </div>
-                  <Button className="w-full">Get Quote</Button>
+                    ))}                  </ul>
+                  <Button className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700">
+                    Get Quote
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -336,10 +334,10 @@ export default function WeddingServicesPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {weddingPackages.map((pkg, index) => (
-              <Card key={index} className={`relative ${pkg.popular ? 'border-2 border-amber-500 shadow-2xl md:scale-105' : 'border-0'} bg-white/90 dark:bg-gray-800/90 hover:shadow-xl transition-all duration-300`}>
+              <Card key={index} className={`relative ${pkg.popular ? 'border-2 border-red-500 shadow-2xl md:scale-105' : 'border-0'} bg-white/90 dark:bg-gray-800/90 hover:shadow-xl transition-all duration-300`}>
                 {pkg.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2">
+                    <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white px-4 py-2">
                       <Star className="h-4 w-4 mr-1" />
                       Most Popular
                     </Badge>
@@ -375,7 +373,7 @@ export default function WeddingServicesPage() {
                       </li>
                     ))}
                   </ul>
-                  <Button className={`w-full ${pkg.popular ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600' : ''}`} size="lg">
+                  <Button className={`w-full ${pkg.popular ? 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600' : 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'}`} size="lg">
                     Choose Package
                   </Button>
                 </CardContent>
@@ -403,7 +401,7 @@ export default function WeddingServicesPage() {
                 <CardContent className="p-8">
                   <div className="flex items-center mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-amber-400 fill-current" />
+                      <Star key={i} className="h-5 w-5 text-red-400 fill-current" />
                     ))}
                   </div>
                   <p className="text-gray-700 dark:text-gray-300 mb-6 italic leading-relaxed">

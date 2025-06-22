@@ -63,7 +63,7 @@ export function AuthRequiredModal({ isOpen, onClose, returnUrl }: AuthRequiredMo
         <div className="flex flex-col space-y-4 py-4">
           <Button 
             onClick={handleLogin} 
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="bg-red-600 hover:bg-red-700 text-white"
           >
             Login to your account
           </Button>
@@ -75,7 +75,7 @@ export function AuthRequiredModal({ isOpen, onClose, returnUrl }: AuthRequiredMo
           <Button 
             onClick={handleRegister} 
             variant="outline" 
-            className="border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+            className="border-red-600 text-red-600 hover:bg-red-50"
           >
             Create a new account
           </Button>

@@ -34,8 +34,8 @@ export default function RegistrationFallbackHandler({
   };
   
   return (
-    <Alert className="bg-amber-50 border-amber-200 text-amber-800 my-4">
-      <AlertTitle className="text-amber-800 font-semibold">
+    <Alert className="bg-red-50 border-red-200 text-red-800 my-4">
+      <AlertTitle className="text-red-800 font-semibold">
         Registration Issue Detected
       </AlertTitle>
       <AlertDescription className="mt-2">
@@ -49,7 +49,7 @@ export default function RegistrationFallbackHandler({
         </p>
         <Button 
           variant="outline" 
-          className="bg-amber-100 border-amber-300 hover:bg-amber-200 text-amber-900"
+          className="bg-red-100 border-red-300 hover:bg-red-200 text-red-900"
           onClick={handleTryFallback}
           disabled={isTrying}
         >
