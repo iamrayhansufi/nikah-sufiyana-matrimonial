@@ -70,16 +70,19 @@ export async function POST(req: Request) {
     // Get the file bytes
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
-    // Check if running on Vercel production (where filesystem writes won't work)
+      // Check if running on Vercel production (where filesystem writes won't work)
     if (isVercelProduction()) {
-      console.log("Running on Vercel production - using database storage instead of filesystem");
+      console.log("Running on Vercel production - using Redis storage instead of filesystem");
       
-      // In production, store the image directly in the database as a data URL
-      // This is a temporary solution until you implement proper cloud storage
-      const base64Image = buffer.toString('base64');
-      const dataUrl = `data:${file.type};base64,${base64Image}`;
-        // Update user profile with the data URL directly      // Get existing photos
+      // Create unique filename - make it URL-safe by removing spaces and special characters
+      const timestamp = Date.now();
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filename = `${userId.replace('user:', '')}-${timestamp}-${sanitizedFileName}`;
+      
+      // Create a URL that points to our image serving endpoint
+      const imageUrl = `/api/images/${filename}`;
+      
+      // Get existing photos
       const existingPhotos = await redis.hget(`user:${userId}`, "photos");
       let photos = [];
       
@@ -98,26 +101,35 @@ export async function POST(req: Request) {
       }
       
       // Add new photo
-      photos.push(dataUrl);
+      photos.push(imageUrl);
       
       // Update both photos array and profilePhoto field (for main profile photo)
       const updateData: { [key: string]: string } = {
-        photos: JSON.stringify(photos)
+        photos: JSON.stringify(photos),
+        profilePhotos: JSON.stringify(photos) // Also update profilePhotos for frontend compatibility
       };
       
       // If this is the first photo, also set it as the main profile photo
       if (photos.length === 1) {
-        updateData.profilePhoto = dataUrl;
+        updateData.profilePhoto = imageUrl;
       }
       
-      // Update user profile with the data URL directly
+      // Update user profile with the image URL
       await redis.hset(`user:${userId}`, updateData);
+      
+      // Store the actual file data in Redis for serving later
+      await redis.hset(`image:${filename}`, {
+        data: buffer.toString('base64'),
+        contentType: file.type,
+        uploadedAt: new Date().toISOString(),
+        userId: userId
+      });
         
-      console.log("User profile updated with data URL image");
+      console.log("User profile updated with image URL:", imageUrl);
       
       return NextResponse.json({
         message: "Photo uploaded successfully",
-        url: dataUrl,
+        url: imageUrl,
       });
     }
     
@@ -161,10 +173,10 @@ export async function POST(req: Request) {
       
       // Add new photo
       photos.push(photoUrl);
-      
-      // Update both photos array and profilePhoto field (for main profile photo)
+        // Update both photos array and profilePhoto field (for main profile photo)
       const updateData: { [key: string]: string } = {
-        photos: JSON.stringify(photos)
+        photos: JSON.stringify(photos),
+        profilePhotos: JSON.stringify(photos) // Also update profilePhotos for frontend compatibility
       };
       
       // If this is the first photo, also set it as the main profile photo

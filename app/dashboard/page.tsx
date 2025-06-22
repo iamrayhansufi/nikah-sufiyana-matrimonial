@@ -60,7 +60,7 @@ const getStatusText = (status: string) => {
 
 // Add types for interests and shortlist
 interface DashboardInterest {
-  id: number
+  id: string
   name: string
   age: number
   location: string
@@ -71,7 +71,7 @@ interface DashboardInterest {
 }
 
 interface DashboardShortlist {
-  id: number
+  id: string
   name: string
   age: number
   location: string
@@ -304,8 +304,7 @@ export default function DashboardPage() {
                 status: interest.status,
                 time: formatTimeAgo(interest.createdAt),
               })))
-              
-              // Map all received interests for the Interests Received tab (only pending ones)
+                // Map all received interests for the Interests Received tab (only pending ones)
               const pendingInterests = interests.filter((interest: any) => interest.status === 'pending');
               setReceivedInterests(pendingInterests.map((interest: any) => ({
                 id: interest.id,
@@ -317,6 +316,32 @@ export default function DashboardPage() {
                 status: interest.status,
                 time: formatTimeAgo(interest.createdAt),
               })))
+              
+              // Cache the interests data
+              const interestsToCache = {
+                recent: interests.slice(0, 3).map((interest: any) => ({
+                  id: interest.id,
+                  name: interest.fromUser.fullName,
+                  age: interest.fromUser.age,
+                  location: interest.fromUser.location,
+                  profession: interest.fromUser.profession,
+                  image: interest.fromUser.profilePhoto || "/placeholder.svg?height=60&width=60",
+                  status: interest.status,
+                  time: formatTimeAgo(interest.createdAt),
+                })),
+                received: pendingInterests.map((interest: any) => ({
+                  id: interest.id,
+                  name: interest.fromUser.fullName,
+                  age: interest.fromUser.age,
+                  location: interest.fromUser.location,
+                  profession: interest.fromUser.profession,
+                  image: interest.fromUser.profilePhoto || "/placeholder.svg?height=60&width=60",
+                  status: interest.status,
+                  time: formatTimeAgo(interest.createdAt),
+                }))
+              };
+                sessionStorage.setItem(cachedInterestsKey, JSON.stringify(interestsToCache));
+              sessionStorage.setItem(`${cachedInterestsKey}_timestamp`, Date.now().toString());
             }
             
             // Fetch shortlisted profiles
@@ -360,7 +385,7 @@ export default function DashboardPage() {
     return Math.round((filled / fields.length) * 100)
   }
 
-  const handleInterestResponse = async (interestId: number, action: 'accept' | 'decline') => {
+  const handleInterestResponse = async (interestId: string, action: 'accept' | 'decline') => {
     try {
       const response = await fetch('/api/profiles/respond-interest', {
         method: 'POST',
@@ -377,9 +402,16 @@ export default function DashboardPage() {
         const errorData = await response.json();
         throw new Error(errorData.error || `Failed to ${action} interest`);
       }
-      
-      // Remove the interest from the list since it's been handled
+        // Remove the interest from the list since it's been handled
       setReceivedInterests(prev => prev.filter(interest => interest.id !== interestId));
+      
+      // Clear cached interests since data has changed
+      const userId = session?.user?.id;
+      if (userId) {
+        const cachedInterestsKey = `dashboard_interests_${userId}`;
+        sessionStorage.removeItem(cachedInterestsKey);
+        sessionStorage.removeItem(`${cachedInterestsKey}_timestamp`);
+      }
       
       // Show success message
       alert(action === 'accept' 

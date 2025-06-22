@@ -924,8 +924,7 @@ export default function EditProfilePage() {
       if (!response.ok) {
         console.error("Upload failed with response:", responseData);
         throw new Error(responseData?.error || 'Failed to upload profile photo')
-      }
-        console.log("Upload successful:", responseData);
+      }      console.log("Upload successful:", responseData);
       
       // Ensure responseData contains a URL
       if (!responseData || !responseData.url) {
@@ -933,23 +932,8 @@ export default function EditProfilePage() {
         throw new Error("Server response is missing the photo URL");
       }
       
-      // Update the profile data with the new photo URL and add a timestamp to force refresh
-      const photoUrl = `${responseData.url}?t=${new Date().getTime()}`;
-      console.log("Setting new photo URL:", photoUrl);
-      setProfileData({...profileData, profilePhoto: photoUrl})
-      
-      // Force update the profile in the database with the new photo URL
-      if (session?.user?.id) {
-        await fetch(`/api/profiles/${session.user.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            profilePhoto: responseData.url
-          })
-        });
-      }
+      // The upload API already updates the user profile, so we just need to refresh the data
+      console.log("Photo uploaded successfully, refreshing profile data...");
       
       toast({
         title: "Photo Updated",
