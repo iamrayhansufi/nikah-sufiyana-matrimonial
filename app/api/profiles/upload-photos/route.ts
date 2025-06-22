@@ -1,21 +1,8 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir, access, constants } from "fs/promises";
-import { join } from "path";
-import path from "path";
 import { redis } from "@/lib/redis-client";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options-redis";
-
-// Helper function to check if running in Vercel production environment
-function isVercelProduction() {
-  return process.env.VERCEL_ENV === 'production';
-}
-
-interface RedisUser {
-  [key: string]: string;
-  id: string;
-  photos: string;
-}
+import { uploadGalleryPhoto } from "@/lib/cloudinary-service";
 
 export async function POST(req: Request) {
   try {
@@ -50,16 +37,16 @@ export async function POST(req: Request) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
         return NextResponse.json(
-          { error: `Invalid file type for ${file.name}. Only images are allowed.` },
+          { error: `Invalid file type: ${file.name}. Only image files are allowed.` },
           { status: 400 }
         );
       }
 
-      // Check file size (limit to 5MB per file)
+      // Check individual file size (limit to 5MB each)
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
         return NextResponse.json(
-          { error: `File ${file.name} is too large. Maximum file size is 5MB per image.` },
+          { error: `File ${file.name} is too large. Maximum file size is 5MB.` },
           { status: 400 }
         );
       }
@@ -77,106 +64,84 @@ export async function POST(req: Request) {
 
     const photoUrls: string[] = [];
 
-    // Process each file
+    // Process each file by uploading to Cloudinary
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       console.log(`Processing file ${i + 1}:`, file.name, "Type:", file.type, "Size:", file.size);
 
-      // Create unique filename - make it URL-safe by removing spaces and special characters
-      const timestamp = Date.now();
-      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const filename = `${userId}-${timestamp}-${i}-${sanitizedFileName}`;
-      
-      // Get the file bytes
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      // Check if running on Vercel production (where filesystem writes won't work)
-      if (isVercelProduction()) {
-        console.log("Running on Vercel production - using database storage instead of filesystem");
+      try {
+        // Get the file bytes
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
         
-        // In production, store the image directly in the database as a data URL
-        // This is a temporary solution until you implement proper cloud storage
-        const base64Image = buffer.toString('base64');
-        const dataUrl = `data:${file.type};base64,${base64Image}`;
+        console.log(`Uploading file ${i + 1} to Cloudinary...`);
         
-        photoUrls.push(dataUrl);
-      } else {
-        // For local development, continue using the filesystem
-        try {
-          // Ensure upload directory exists
-          const uploadDir = join(process.cwd(), "public", "uploads", "profiles");
-          
-          try {
-            // Check if directory exists
-            await access(uploadDir, constants.F_OK);
-            console.log("Upload directory exists");
-          } catch {
-            // Create if it doesn't
-            console.log("Creating upload directory");
-            await mkdir(uploadDir, { recursive: true });
-          }
+        // Upload to Cloudinary
+        const result = await uploadGalleryPhoto(buffer, userId.replace('user:', ''), i);
+        
+        console.log(`Cloudinary upload ${i + 1} successful:`, result.secure_url);
+        
+        photoUrls.push(result.secure_url);
+        
+      } catch (uploadError) {
+        console.error(`Error uploading file ${i + 1}:`, uploadError);
+        // Continue with other files even if one fails
+        continue;
+      }
+    }
+    
+    if (photoUrls.length === 0) {
+      return NextResponse.json(
+        { error: "Failed to upload any photos to Cloudinary" },
+        { status: 500 }
+      );
+    }
 
-          // Save file
-          const filepath = join(uploadDir, filename);
-          await writeFile(filepath, buffer);
-          console.log("File written successfully to:", filepath);
+    // Get current user data
+    const currentUser = await redis.hgetall(`user:${userId}`);
+    if (!currentUser || Object.keys(currentUser).length === 0) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
 
-          // Create photo URL
-          const photoUrl = `/uploads/profiles/${filename}`;
-          photoUrls.push(photoUrl);
-        } catch (fsError) {
-          console.error("File system error:", fsError);
-          return NextResponse.json(
-            { error: "Failed to save uploaded files" },
-            { status: 500 }
-          );
+    // Get existing photos
+    let existingPhotos: string[] = [];
+    if (currentUser.photos) {
+      try {
+        const parsed = JSON.parse(currentUser.photos as string);
+        if (Array.isArray(parsed)) {
+          existingPhotos = parsed;
         }
+      } catch (e) {
+        console.warn('Error parsing existing photos:', e);
       }
     }
 
-    // Get current user data to preserve existing photos
-    const currentUser = await redis.hgetall(`user:${userId}`) as RedisUser;
-
-    let existingPhotos: string[] = [];
-    
-    if (currentUser && currentUser.photos) {
-      try {
-        const photosData = currentUser.photos;
-        if (typeof photosData === 'string') {
-          existingPhotos = JSON.parse(photosData);
-        } else if (Array.isArray(photosData)) {
-          existingPhotos = photosData;
-        }
-      } catch (e) {
-        console.warn("Error parsing existing photos:", e);
-        existingPhotos = [];
-      }
-    }    // Combine existing photos with new ones (limit to 5 total)
+    // Combine existing and new photos, limit to 5 total
     const allPhotos = [...existingPhotos, ...photoUrls].slice(0, 5);
-    
-    // Prepare update data
+
+    // Update user with new photos
     const updateData: { [key: string]: string } = {
       photos: JSON.stringify(allPhotos),
-      updatedAt: new Date().toISOString()
+      profilePhotos: JSON.stringify(allPhotos) // Also update profilePhotos for frontend compatibility
     };
-    
-    // If there was no profile photo before and we now have photos, set the first one as profile photo
+
+    // If this is the first photo(s) and no profile photo exists, set the first as main
     if (!currentUser.profilePhoto && allPhotos.length > 0) {
       updateData.profilePhoto = allPhotos[0];
     }
-    
-    // Update user profile with the new photos array
-    await redis.hmset(`user:${userId}`, updateData);
 
-    console.log("User profile updated with new photos. Total photos:", allPhotos.length);
-    console.log("All photos URLs:", allPhotos);
+    // Update user profile
+    await redis.hset(`user:${userId}`, updateData);
+
+    console.log(`Successfully uploaded ${photoUrls.length} photos for user:`, userId);
     
     return NextResponse.json({
-      message: "Photos uploaded successfully",
+      message: `Successfully uploaded ${photoUrls.length} photo(s)`,
       urls: photoUrls,
-      totalPhotos: allPhotos.length,
-      allPhotos: allPhotos // Include all photos for debugging
+      totalPhotos: allPhotos.length
     });
 
   } catch (error) {
