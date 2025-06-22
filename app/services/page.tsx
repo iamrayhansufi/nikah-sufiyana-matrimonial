@@ -436,7 +436,7 @@ export default function WeddingServicesPage() {
               <Phone className="mr-2 h-5 w-5" />
               Call Now: +91-9876543210
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-red-600 px-8 py-4 text-lg">
+            <Button size="lg" variant="outline" className="border-white text-red-600 hover:bg-white hover:text-red-600 px-8 py-4 text-lg font-semibold">
               <Mail className="mr-2 h-5 w-5" />
               Email Consultation
             </Button>

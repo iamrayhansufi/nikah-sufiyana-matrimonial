@@ -54,13 +54,11 @@ interface FormData {
   education: string;
   profession: string;
   income: string;
-  religion: string;
-  sect: string;
-  location?: string; // Add optional location property
+  religion: string;  sect: string;  location?: string; // Add optional location property
   hijabNiqab: string;
-  beard: string;
   height: string;
   complexion: string;
+  marriageTimeline: string;
   maritalPreferences: string;
   preferredAgeMin: string;
   preferredAgeMax: string;
@@ -131,12 +129,11 @@ export default function RegisterPage() {
     education: "",
     profession: "",
     income: "",
-    religion: "",
-    sect: "",
+    religion: "",    sect: "",
     hijabNiqab: "",
-    beard: "",
     height: "",
     complexion: "",
+    marriageTimeline: "",
     maritalPreferences: "",
     preferredAgeMin: "",
     preferredAgeMax: "",
@@ -195,12 +192,13 @@ export default function RegisterPage() {
 
   const handleNext = () => {
     let errors: FieldErrors = {};
-    
-    if (step === 1) {
+      if (step === 1) {
       // Basic Information validation
       errors = validateFields(
-        {          fullName: formData.fullName,
+        {
+          fullName: formData.fullName,
           gender: formData.gender,
+          email: formData.email,
           phone: formData.phone,
           age: formData.age,
           country: formData.country,
@@ -211,13 +209,17 @@ export default function RegisterPage() {
         {
           fullName: "Full Name",
           gender: "Gender",
+          email: "Email Address",
           phone: "Phone Number",
           age: "Age",
           country: "Country",
           city: "City",
-          password: "Password",          confirmPassword: "Confirm Password"
+          password: "Password",
+          confirmPassword: "Confirm Password"
         }
-      );      // Password validation
+      );
+      
+      // Password validation
       if (formData.password !== formData.confirmPassword) {
         errors.confirmPassword = "Passwords do not match";
       }      // Enhanced password validation
@@ -242,9 +244,7 @@ export default function RegisterPage() {
           errors.phone = `Please enter a valid ${formData.countryCode} phone number`;
         }
       }
-    }
-
-    if (step === 2) {
+    }    if (step === 2) {
       // Important Details validation
       errors = validateFields(
         {
@@ -252,14 +252,16 @@ export default function RegisterPage() {
           education: formData.education,
           profession: formData.profession,
           income: formData.income,
-          height: formData.height
+          height: formData.height,
+          marriageTimeline: formData.marriageTimeline
         },
         {
           sect: "Sect",
-          education: "Education",
+          education: "Qualification",
           profession: "Profession",
           income: "Income",
-          height: "Height"
+          height: "Height",
+          marriageTimeline: "Marriage Timeline"
         }
       );
     }
@@ -894,7 +896,7 @@ export default function RegisterPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="email">Email Address (Optional)</Label>
+                        <Label htmlFor="email">Email Address *</Label>
                         <Input
                           id="email"
                           type="email"
@@ -1240,11 +1242,9 @@ export default function RegisterPage() {
                           <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.sect && "border-red-500")} data-filled={isFieldFilled(formData.sect)}>
                             <SelectValue placeholder="Select Maslak" />
                           </SelectTrigger>                          <SelectContent>
-                            <SelectItem value="sunni">Sunni</SelectItem>
-                            <SelectItem value="shafii">Shafi'i</SelectItem>
                             <SelectItem value="ahle-sunnat-wal-jamaat">Ahle Sunnat Wal Jamaat</SelectItem>
-                            <SelectItem value="deobandi">Deobandi</SelectItem>
-                            <SelectItem value="shia">Shia</SelectItem>
+                            <SelectItem value="deobandi">Sunni - Deobandi</SelectItem>
+                            <SelectItem value="ahl-e-hadees">Ahl-E-Hadees</SelectItem>
                             <SelectItem value="revert">Revert Muslim</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
                             <SelectItem value="no-preference">No Preference</SelectItem>
@@ -1255,7 +1255,7 @@ export default function RegisterPage() {
                         )}
                       </div>
                       <div>
-                        <Label htmlFor="education">Education *</Label>
+                        <Label htmlFor="education">Qualification *</Label>
                         <Input
                           id="education"
                           className={cn(inputStyles, fieldErrors.education && "border-red-500")}
@@ -1347,29 +1347,34 @@ export default function RegisterPage() {
                             <SelectItem value="wheatish">Wheatish</SelectItem>
                             <SelectItem value="wheatish-brown">Wheatish Brown</SelectItem>
                             <SelectItem value="brown">Brown</SelectItem>
-                            <SelectItem value="dark">Dark</SelectItem>
-                          </SelectContent>
-                        </Select>
+                            <SelectItem value="dark">Dark</SelectItem>                          </SelectContent>                        </Select>
                       </div>
-                    </div>
-
-                    {formData.gender === "male" && (
                       <div>
-                        <Label htmlFor="beard">Beard</Label>
-                        <Select value={formData.beard} onValueChange={(value) => setFormData({ ...formData, beard: value })}>
-                          <SelectTrigger className={selectTriggerStyles} data-filled={isFieldFilled(formData.beard)}>
-                            <SelectValue placeholder="Select beard style" />
+                        <Label htmlFor="marriageTimeline">How soon are you planning to marry? *</Label>
+                        <Select value={formData.marriageTimeline} onValueChange={(value) => {
+                          setFormData({ ...formData, marriageTimeline: value });
+                          if (fieldErrors.marriageTimeline) {
+                            setFieldErrors({ ...fieldErrors, marriageTimeline: "" });
+                          }
+                        }}>
+                          <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.marriageTimeline && "border-red-500")} data-filled={isFieldFilled(formData.marriageTimeline)}>
+                            <SelectValue placeholder="Select timeline" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="full">Full beard</SelectItem>
-                            <SelectItem value="trimmed">Trimmed beard</SelectItem>
-                            <SelectItem value="mustache">Mustache only</SelectItem>
-                            <SelectItem value="clean">Clean shaven</SelectItem>
-                            <SelectItem value="growing">Growing beard</SelectItem>
+                            <SelectItem value="immediately">Immediately</SelectItem>
+                            <SelectItem value="within-3-months">Within 3 months</SelectItem>
+                            <SelectItem value="within-6-months">Within 6 months</SelectItem>
+                            <SelectItem value="within-1-year">Within 1 year</SelectItem>
+                            <SelectItem value="within-2-years">Within 2 years</SelectItem>
+                            <SelectItem value="no-hurry">No hurry</SelectItem>
                           </SelectContent>
                         </Select>
+                        {fieldErrors.marriageTimeline && (
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.marriageTimeline}</p>
+                        )}
                       </div>
-                    )}                  </CardContent>
+                    </div>
+                  </CardContent>
                 </Card>
               )}
 
