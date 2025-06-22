@@ -438,9 +438,8 @@ export default function WeddingServicesPage() {
           </h2>
           <p className="text-xl text-red-100 mb-8 leading-relaxed">
             Let our experienced team help you create the perfect Islamic wedding celebration. Get in touch for a free consultation and custom quote.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-red-600 hover:bg-gray-100 px-8 py-4 text-lg">
+          </p>          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" variant="secondary" className="bg-white text-red-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold">
               <Phone className="mr-2 h-5 w-5" />
               Call Now: +91-9876543210
             </Button>

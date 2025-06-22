@@ -344,9 +344,8 @@ export default function PremiumPage() {  const coreFeatures = [
           </h2>
           <p className="text-xl text-red-100 mb-8 leading-relaxed">
             Join thousands of successful couples who found their soulmates through our premium matrimonial platform. Start your journey today with enhanced features and personalized support.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-red-600 hover:bg-gray-100 px-8 py-4 text-lg">
+          </p>          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" variant="secondary" className="bg-white text-red-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold">
               Upgrade to Premium
               <Star className="ml-2 h-5 w-5" />
             </Button>

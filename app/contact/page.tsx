@@ -110,17 +110,17 @@ export default function ContactPage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-bg.png')] opacity-5"></div>
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto text-center">
-            <Badge className="mb-6 bg-primary/10 text-primary border-primary/20 backdrop-blur-sm">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 backdrop-blur-sm">
               24/7 Support Available
             </Badge>
-            <h1 className={`${elMessiri.className} text-3xl md:text-4xl lg:text-5xl font-bold mb-6`}>
+            <h1 className={`${elMessiri.className} text-3xl md:text-4xl lg:text-5xl font-bold mb-4`}>
               Get in Touch
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
               Have questions about finding your perfect match? Our dedicated team is here to help you on your journey to a blessed marriage.
             </p>
           </div>
@@ -128,7 +128,7 @@ export default function ContactPage() {
       </section>
 
       {/* Contact Info Cards */}
-      <section className="py-12">
+      <section className="py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {contactInfo.map((item, index) => (
@@ -150,14 +150,14 @@ export default function ContactPage() {
       </section>
 
       {/* Contact Form Section */}
-      <section className="py-16 bg-white/50 dark:bg-black/50">
+      <section className="py-12 bg-white/50 dark:bg-black/50">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Form */}
-              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8">
-                <h2 className={`${elMessiri.className} text-2xl font-semibold mb-6`}>Send us a Message</h2>
-                <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6">
+                <h2 className={`${elMessiri.className} text-2xl font-semibold mb-4`}>Send us a Message</h2>
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="name">Full Name *</Label>
@@ -235,7 +235,7 @@ export default function ContactPage() {
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       placeholder="Please describe your inquiry in detail..."
-                      rows={5}
+                      rows={4}
                       required
                       className="mt-1"
                     />
@@ -257,7 +257,7 @@ export default function ContactPage() {
 
               {/* FAQ Section */}
               <div>
-                <h2 className={`${elMessiri.className} text-2xl font-semibold mb-6`}>Frequently Asked Questions</h2>
+                <h2 className={`${elMessiri.className} text-2xl font-semibold mb-4`}>Frequently Asked Questions</h2>
                 <div className="space-y-4">
                   {faqItems.map((item, index) => (
                     <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow">
@@ -275,14 +275,14 @@ export default function ContactPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-red-600 to-rose-600 text-white relative overflow-hidden">
+      <section className="py-12 bg-gradient-to-r from-red-600 to-rose-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-10"></div>
         <div className="container mx-auto px-4 relative">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className={`${elMessiri.className} text-3xl md:text-4xl font-bold mb-6`}>
+            <h2 className={`${elMessiri.className} text-3xl md:text-4xl font-bold mb-4`}>
               Ready to Begin Your Journey?
             </h2>
-            <p className="text-xl mb-8 opacity-90">
+            <p className="text-xl mb-6 opacity-90">
               Join thousands of Muslims who have found their perfect match through Nikah Sufiyana
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
