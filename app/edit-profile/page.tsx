@@ -1223,13 +1223,22 @@ export default function EditProfilePage() {
                 )}
                 
                 <div className="relative">                  <div className="h-16 w-16 rounded-full border-2 border-primary overflow-hidden bg-slate-200">
-                    {profileData?.profilePhoto ? (
+                    {(profileData?.profilePhoto || 
+                      (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
+                      (privacyForm.profilePhotos && privacyForm.profilePhotos[0])) ? (
                       <img 
-                        src={sanitizePhotoUrl(profileData.profilePhoto)} 
+                        src={sanitizePhotoUrl(
+                          profileData?.profilePhoto || 
+                          (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
+                          (privacyForm.profilePhotos && privacyForm.profilePhotos[0]) || 
+                          ''
+                        )} 
                         alt="Profile" 
                         className="h-full w-full object-cover"
                         onError={(e) => {
-                          console.error('Failed to load header profile image:', profileData.profilePhoto);
+                          console.error('Failed to load header profile image:', profileData?.profilePhoto);
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder-user.jpg';
                         }}
                       />
                     ) : (
@@ -2227,13 +2236,22 @@ export default function EditProfilePage() {
                         <div className="flex flex-wrap gap-4">
                           {/* Main Profile Photo */}
                           <div className="relative">                            <div className="h-32 w-32 rounded-md border-2 border-primary overflow-hidden bg-slate-200">
-                              {profileData?.profilePhoto ? (
+                              {(profileData?.profilePhoto || 
+                                (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
+                                (privacyForm.profilePhotos && privacyForm.profilePhotos[0])) ? (
                                 <img 
-                                  src={sanitizePhotoUrl(profileData.profilePhoto)} 
+                                  src={sanitizePhotoUrl(
+                                    profileData?.profilePhoto || 
+                                    (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
+                                    (privacyForm.profilePhotos && privacyForm.profilePhotos[0]) || 
+                                    ''
+                                  )} 
                                   alt="Profile" 
                                   className="h-full w-full object-cover"
                                   onError={(e) => {
-                                    console.error('Failed to load profile image:', profileData.profilePhoto);
+                                    console.error('Failed to load profile image:', profileData?.profilePhoto);
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = '/placeholder-user.jpg';
                                   }}
                                 />
                               ) : (
@@ -2244,9 +2262,8 @@ export default function EditProfilePage() {
                             </div>
                             <Badge className="absolute -top-2 -right-2 bg-primary">Main</Badge>
                           </div>
-                          
-                          {/* Additional Photos */}
-                          {profileData?.profilePhotos && profileData.profilePhotos.map((photo: string, index: number) => (
+                            {/* Additional Photos */}
+                          {(profileData?.profilePhotos || privacyForm.profilePhotos).map((photo: string, index: number) => (
                             <div key={index} className="relative">                              <div className="h-32 w-32 rounded-md border border-gray-200 overflow-hidden">
                                 <img 
                                   src={sanitizePhotoUrl(photo)} 
@@ -2271,9 +2288,9 @@ export default function EditProfilePage() {
                               </button>
                             </div>
                           ))}
-                          
-                          {/* Add More Photos Button */}
-                          {(!profileData?.profilePhotos || profileData.profilePhotos.length < 5) && (
+                            {/* Add More Photos Button */}
+                          {((!profileData?.profilePhotos && !privacyForm.profilePhotos) || 
+                            (profileData?.profilePhotos || privacyForm.profilePhotos).length < 5) && (
                             <label 
                               htmlFor="additional-photos" 
                               className="h-32 w-32 rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
