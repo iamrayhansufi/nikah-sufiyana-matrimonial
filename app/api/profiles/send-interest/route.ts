@@ -23,7 +23,14 @@ export async function POST(request: NextRequest) {
     // Get user session to verify authentication
     const session = await getServerSession(authOptions)
     
+    console.log('🚀 Send Interest API called', {
+      hasSession: !!session,
+      userEmail: session?.user?.email,
+      userId: session?.user?.id
+    })
+    
     if (!session?.user?.email) {
+      console.log('❌ Authentication failed - no session or email')
       return NextResponse.json({ 
         error: "You must be logged in to send interest" 
       }, { status: 401 })
@@ -33,7 +40,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { profileId, message } = body
     
+    console.log('📝 Request body:', { profileId, message })
+    
     if (!profileId) {
+      console.log('❌ No profileId provided')
       return NextResponse.json({ 
         error: "Profile ID is required" 
       }, { status: 400 })
@@ -44,12 +54,13 @@ export async function POST(request: NextRequest) {
     if (!targetProfileId.startsWith('user:')) {
       targetProfileId = `user:${targetProfileId}`;
     }
+    
+    console.log('🎯 Target profile ID:', targetProfileId)
 
     // Get the current user (sender)
     const userKeys = await redis.keys("user:*")
     let senderUser: RedisUser | null = null
-    
-    for (const key of userKeys) {
+      for (const key of userKeys) {
       const user = await redis.hgetall(key) as RedisUser
       if (user && user.email === session.user.email) {
         senderUser = user
@@ -57,36 +68,72 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log('👤 Sender user:', {
+      found: !!senderUser,
+      id: senderUser?.id,
+      email: senderUser?.email,
+      fullName: senderUser?.fullName,
+      hasAge: !!senderUser?.age,
+      hasGender: !!senderUser?.gender
+    })
+
     if (!senderUser) {
+      console.log('❌ Sender user not found')
       return NextResponse.json({ 
         error: "Sender user not found" 
       }, { status: 404 })
     }    // Get the target user (receiver)
     const targetUser = await redis.hgetall(targetProfileId) as RedisUser
+    
+    console.log('🎯 Target user:', {
+      found: !!targetUser,
+      id: targetUser?.id,
+      email: targetUser?.email,
+      fullName: targetUser?.fullName
+    })
+    
     if (!targetUser) {
+      console.log('❌ Target user not found for ID:', targetProfileId)
       return NextResponse.json({ 
         error: "Target user not found" 
       }, { status: 404 })
     }    // Check if sender has basic required profile information
     if (!senderUser.fullName || !senderUser.age || !senderUser.gender) {
+      console.log('❌ Sender profile incomplete:', {
+        hasFullName: !!senderUser.fullName,
+        hasAge: !!senderUser.age,
+        hasGender: !!senderUser.gender
+      })
       return NextResponse.json({ 
         error: "Please complete your profile before sending interest" 
       }, { status: 403 })
-    }
-
-    // Check for existing interest
+    }    // Check for existing interest
     const interestKeys = await redis.keys(`interest:*`)
+    let existingInterest = false
+    
     for (const key of interestKeys) {
       const interest = await redis.hgetall(key) as RedisInterest
       if (interest && 
           interest.senderId === senderUser.id && 
           interest.receiverId === targetUser.id &&
           interest.status !== 'declined') {
-        return NextResponse.json({ 
-          error: "You have already sent interest to this profile" 
-        }, { status: 400 })
+        existingInterest = true
+        console.log('❌ Existing interest found:', {
+          interestId: interest.id,
+          status: interest.status,
+          createdAt: interest.createdAt
+        })
+        break
       }
     }
+    
+    if (existingInterest) {
+      return NextResponse.json({ 
+        error: "You have already sent interest to this profile" 
+      }, { status: 400 })
+    }
+
+    console.log('✅ All validations passed, creating interest...')
 
     // Create new interest
     const interestId = `interest:${Date.now()}`
@@ -102,9 +149,14 @@ export async function POST(request: NextRequest) {
 
     await redis.hmset(interestId, interestData)
 
-    // Add interest to lists for both users
-    await redis.lpush(`sent_interests:${senderUser.id}`, interestId)
-    await redis.lpush(`received_interests:${targetUser.id}`, interestId)    // Create notification for receiver
+    // Add interest to lists for both users    await redis.lpush(`sent_interests:${senderUser.id}`, interestId)
+    await redis.lpush(`received_interests:${targetUser.id}`, interestId)
+    
+    console.log('✅ Interest created successfully:', interestId)
+    
+    console.log('📧 Sending notification and email...')
+
+    // Create notification for receiver
     const notificationId = `notification:${Date.now()}`
     const notificationData = {
       userId: targetUser.id,
@@ -132,10 +184,13 @@ export async function POST(request: NextRequest) {
         targetUser.fullName || 'User',
         senderUser.fullName || 'Someone'
       )
+      console.log('✅ Email notification sent')
     } catch (emailError) {
-      console.error('Failed to send interest received email:', emailError)
+      console.error('❌ Failed to send interest received email:', emailError)
       // Don't fail the entire request if email fails
     }
+
+    console.log('🎉 Interest sent successfully!')
 
     return NextResponse.json({
       message: "Interest sent successfully",
@@ -147,7 +202,23 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error("Error sending interest:", error)
+    console.error("❌ Error sending interest:", error)
+    
+    // Provide more specific error messages based on error type
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        { error: "Invalid request format" },
+        { status: 400 }
+      )
+    }
+    
+    if (error instanceof Error && error.message.includes('Redis')) {
+      return NextResponse.json(
+        { error: "Database connection error" },
+        { status: 503 }
+      )
+    }
+    
     return NextResponse.json(
       { error: "Failed to send interest" },
       { status: 500 }

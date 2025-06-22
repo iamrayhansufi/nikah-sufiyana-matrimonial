@@ -389,12 +389,32 @@ export default function ProfilePage({
         })
       })
       
+      // Get the response text for better error debugging
+      const responseText = await response.text()
+      
       if (!response.ok) {
-        throw new Error('Failed to send interest')
+        let errorMessage = 'Failed to send interest'
+        try {
+          const errorData = JSON.parse(responseText)
+          errorMessage = errorData.error || errorMessage
+        } catch (e) {
+          console.error('Failed to parse error response:', responseText)
+        }
+        
+        console.error('Send interest failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          responseText,
+          profileId: id,
+          sessionUser: session?.user
+        })
+        
+        throw new Error(errorMessage)
       }
       
-      const result = await response.json()
-        // Check if it resulted in a mutual match
+      const result = JSON.parse(responseText)
+      
+      // Check if it resulted in a mutual match
       if (result.isMutual) {
         setInterestMutual(true)
         setShouldBlurPhoto(false)
@@ -419,13 +439,16 @@ export default function ProfilePage({
       console.error("Failed to send interest:", error)
       setIsInterestSent(false)
       
-      // Show error toast
+      // Show more specific error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      
       toast({
         title: "Error",
-        description: "Failed to send interest. Please try again later.",
+        description: errorMessage,
         variant: "destructive"
       })
-    }  }
+    }
+  }
   
   // Function to toggle photo visibility
   const togglePhotoVisibility = () => {
@@ -681,12 +704,7 @@ export default function ProfilePage({
                             Nikah Sufiyana ensures your journey begins with Haya.
                           </p>
                         </div>
-                          {/* Photo Privacy Notice */}
-                        <div className="relative z-10">
-                          <p className="text-emerald-100 text-center text-sm">
-                            Send interest below to connect and view photos
-                          </p>
-                        </div>
+                                                
                       </div>
                     )}
 
