@@ -1234,11 +1234,23 @@ export default function EditProfilePage() {
                           ''
                         )} 
                         alt="Profile" 
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          console.error('Failed to load header profile image:', profileData?.profilePhoto);
+                        className="h-full w-full object-cover"                        onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = '/placeholder-user.jpg';
+                          const currentSrc = target.src;
+                          
+                          console.log('🚨 Image load error details:');
+                          console.log('   Current src:', currentSrc);
+                          console.log('   profileData?.profilePhoto:', profileData?.profilePhoto);
+                          console.log('   profileData?.profilePhotos:', profileData?.profilePhotos);
+                          console.log('   privacyForm.profilePhotos:', privacyForm.profilePhotos);
+                          
+                          // Prevent infinite loop by checking if we're already showing placeholder
+                          if (!currentSrc.includes('placeholder-user.jpg')) {
+                            console.error('Failed to load header profile image:', currentSrc);
+                            target.src = '/placeholder-user.jpg';
+                          } else {
+                            console.error('❌ Even placeholder failed to load!');
+                          }
                         }}
                       />
                     ) : (
@@ -2247,11 +2259,17 @@ export default function EditProfilePage() {
                                     ''
                                   )} 
                                   alt="Profile" 
-                                  className="h-full w-full object-cover"
-                                  onError={(e) => {
-                                    console.error('Failed to load profile image:', profileData?.profilePhoto);
+                                  className="h-full w-full object-cover"                                  onError={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.src = '/placeholder-user.jpg';
+                                    // Prevent infinite loop by checking if we're already showing placeholder
+                                    if (!target.src.includes('placeholder-user.jpg')) {
+                                      console.error('Failed to load profile image:', 
+                                        profileData?.profilePhoto || 
+                                        (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
+                                        (privacyForm.profilePhotos && privacyForm.profilePhotos[0])
+                                      );
+                                      target.src = '/placeholder-user.jpg';
+                                    }
                                   }}
                                 />
                               ) : (

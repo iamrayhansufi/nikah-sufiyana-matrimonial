@@ -5,11 +5,30 @@
 
 import { v2 as cloudinary } from 'cloudinary';
 
+// Ensure environment variables are loaded
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+// Debug environment variables
+console.log('🔧 Cloudinary Config Debug:');
+console.log('  CLOUDINARY_CLOUD_NAME:', cloudName ? '✅ Set' : '❌ Missing');
+console.log('  CLOUDINARY_API_KEY:', apiKey ? '✅ Set' : '❌ Missing');
+console.log('  CLOUDINARY_API_SECRET:', apiSecret ? '✅ Set' : '❌ Missing');
+
+if (!cloudName || !apiKey || !apiSecret) {
+  console.error('❌ Missing Cloudinary environment variables!');
+  console.error('   Please check your .env file contains:');
+  console.error('   CLOUDINARY_CLOUD_NAME=your_cloud_name');
+  console.error('   CLOUDINARY_API_KEY=your_api_key');
+  console.error('   CLOUDINARY_API_SECRET=your_api_secret');
+}
+
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: cloudName,
+  api_key: apiKey,
+  api_secret: apiSecret,
 });
 
 interface CloudinaryUploadResult {
