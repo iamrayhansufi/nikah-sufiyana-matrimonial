@@ -119,6 +119,18 @@ interface PrivacySettingsForm {
   profilePhotos?: string[];
 }
 
+// Helper function to safely handle photo URLs
+const sanitizePhotoUrl = (url: string): string => {
+  if (!url) return url;
+  
+  // If it's a base64 data URL and it has query parameters, remove them
+  if (url.startsWith('data:') && url.includes('?')) {
+    return url.split('?')[0];
+  }
+  
+  return url;
+};
+
 // Helper component for form fields with validation
 interface FormFieldProps {
   label: string;
@@ -1045,9 +1057,17 @@ export default function EditProfilePage() {
         console.error("Invalid response structure:", responseData);
         throw new Error("Server response doesn't contain photo URLs in the expected format");
       }
-      
-      // Update the profile data with the new photo URLs
-      const newPhotoUrls = responseData.urls.map((url: string) => `${url}?t=${new Date().getTime()}`);
+        // Update the profile data with the new photo URLs
+      // Don't add timestamp query parameters to base64 data URLs as they don't support query parameters
+      const newPhotoUrls = responseData.urls.map((url: string) => {
+        if (url.startsWith('data:')) {
+          // Base64 data URLs don't support query parameters
+          return url;
+        } else {
+          // Only add timestamp to regular URLs for cache busting
+          return `${url}?t=${new Date().getTime()}`;
+        }
+      });
       console.log("Setting new photo URLs:", newPhotoUrls);
         // Safely update the profile data
       setProfileData((prev: any) => {
@@ -1202,13 +1222,15 @@ export default function EditProfilePage() {
                   </Badge>
                 )}
                 
-                <div className="relative">
-                  <div className="h-16 w-16 rounded-full border-2 border-primary overflow-hidden bg-slate-200">
+                <div className="relative">                  <div className="h-16 w-16 rounded-full border-2 border-primary overflow-hidden bg-slate-200">
                     {profileData?.profilePhoto ? (
                       <img 
-                        src={profileData.profilePhoto} 
+                        src={sanitizePhotoUrl(profileData.profilePhoto)} 
                         alt="Profile" 
                         className="h-full w-full object-cover"
+                        onError={(e) => {
+                          console.error('Failed to load header profile image:', profileData.profilePhoto);
+                        }}
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-slate-400">
@@ -1906,7 +1928,6 @@ export default function EditProfilePage() {
                                 </td>
                                 <td className="p-2">
                                   <Button 
- 
                                     variant="ghost" 
                                     size="sm"
                                     onClick={() => removeMaternalPaternal(index)}
@@ -2205,13 +2226,15 @@ export default function EditProfilePage() {
                       <div className="space-y-4">
                         <div className="flex flex-wrap gap-4">
                           {/* Main Profile Photo */}
-                          <div className="relative">
-                            <div className="h-32 w-32 rounded-md border-2 border-primary overflow-hidden bg-slate-200">
+                          <div className="relative">                            <div className="h-32 w-32 rounded-md border-2 border-primary overflow-hidden bg-slate-200">
                               {profileData?.profilePhoto ? (
                                 <img 
-                                  src={profileData.profilePhoto} 
+                                  src={sanitizePhotoUrl(profileData.profilePhoto)} 
                                   alt="Profile" 
                                   className="h-full w-full object-cover"
+                                  onError={(e) => {
+                                    console.error('Failed to load profile image:', profileData.profilePhoto);
+                                  }}
                                 />
                               ) : (
                                 <div className="flex h-full w-full items-center justify-center text-slate-400">
@@ -2224,12 +2247,15 @@ export default function EditProfilePage() {
                           
                           {/* Additional Photos */}
                           {profileData?.profilePhotos && profileData.profilePhotos.map((photo: string, index: number) => (
-                            <div key={index} className="relative">
-                              <div className="h-32 w-32 rounded-md border border-gray-200 overflow-hidden">
+                            <div key={index} className="relative">                              <div className="h-32 w-32 rounded-md border border-gray-200 overflow-hidden">
                                 <img 
-                                  src={photo} 
+                                  src={sanitizePhotoUrl(photo)} 
                                   alt={`Photo ${index + 1}`} 
                                   className="h-full w-full object-cover"
+                                  onError={(e) => {
+                                    console.error('Failed to load image:', photo);
+                                    // You could set a placeholder image here if needed
+                                  }}
                                 />
                               </div>                              <button 
                                 type="button"
