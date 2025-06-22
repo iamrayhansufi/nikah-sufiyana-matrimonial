@@ -191,8 +191,7 @@ export const redisTables = {
     
     async get(userId: string): Promise<string[]> {
       return await redis.smembers(`user:${userId}:shortlist`);
-    },
-      async isShortlisted(userId: string, targetUserId: string): Promise<boolean> {
+    },    async isShortlisted(userId: string, targetUserId: string): Promise<boolean> {
       const result = await redis.sismember(`user:${userId}:shortlist`, targetUserId);
       return result === 1;
     }
@@ -201,35 +200,41 @@ export const redisTables = {
   // Notification operations
   notifications: {
     async create(notification: any): Promise<string> {
-      const notificationId = notification.id || `notification:${Date.now()}`;
+      const notificationId = notification.id || `notification:${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
       if (!notification.id) notification.id = notificationId;
       
-      await redis.hset(`notification:${notificationId}`, notification);
-      // Add to user's notifications list
-      await redis.sadd(`user:${notification.userId}:notifications`, notificationId);
+      await redis.hset(notificationId, notification);
+      // Add to user's notifications list (using lpush to match how it's used elsewhere)
+      await redis.lpush(`notifications:${notification.userId}`, notificationId);
       return notificationId;
     },
     
     async get(notificationId: string): Promise<any | null> {
-      const notification = await redis.hgetall(`notification:${notificationId}`);
-      return notification || null;
+      const notification = await redis.hgetall(notificationId);
+      return notification && Object.keys(notification).length > 0 ? notification : null;
     },
     
     async markAsRead(notificationId: string): Promise<boolean> {
-      await redis.hset(`notification:${notificationId}`, { read: true });
+      await redis.hset(notificationId, { read: 'true' });
       return true;
     },
     
     async getUserNotifications(userId: string): Promise<any[]> {
-      const notificationIds = await redis.smembers(`user:${userId}:notifications`);
+      // Get notification IDs from the list (this matches how they're stored)
+      const notificationIds = await redis.lrange(`notifications:${userId}`, 0, -1);
       const notifications = [];
       
       for (const id of notificationIds) {
-        const notification = await redis.hgetall(`notification:${id}`);
-        if (notification) notifications.push(notification);
-      }
-      
-      return notifications;
+        const notification = await redis.hgetall(id);
+        if (notification && Object.keys(notification).length > 0) {
+          notifications.push(notification);
+        }
+      }      // Sort by creation date (newest first)
+      return notifications.sort((a, b) => {
+        const dateA = new Date(a.createdAt ? String(a.createdAt) : Date.now()).getTime();
+        const dateB = new Date(b.createdAt ? String(b.createdAt) : Date.now()).getTime();
+        return dateB - dateA;
+      });
     }
   }
 };

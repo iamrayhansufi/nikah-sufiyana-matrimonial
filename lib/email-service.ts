@@ -190,13 +190,12 @@ const EMAIL_STYLES = {
     box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
     position: relative;
     overflow: hidden;
-  `,
-  otpContainer: `
+  `,  otpContainer: `
     background: linear-gradient(135deg, ${BRAND_COLORS.primary}, ${BRAND_COLORS.primaryDark});
-    padding: 35px;
+    padding: 30px 20px;
     border-radius: 15px;
     text-align: center;
-    margin: 35px 0;
+    margin: 30px 0;
     box-shadow: 0 12px 35px rgba(199, 32, 62, 0.25);
     position: relative;
     overflow: hidden;
@@ -204,19 +203,40 @@ const EMAIL_STYLES = {
   otpCode: `
     background: rgba(255, 255, 255, 0.25);
     border-radius: 12px;
-    padding: 25px;
+    padding: 20px;
     margin: 20px 0;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
   `,
   otpDigits: `
     color: white;
-    font-size: 40px;
+    font-size: 32px;
     font-weight: 700;
-    letter-spacing: 12px;
+    letter-spacing: 8px;
     font-family: ${TYPOGRAPHY.mono};
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     display: block;
+    word-spacing: 4px;
+    line-height: 1.2;
+  `,  otpDigitBox: `
+    display: inline-block;
+    background: rgba(255,255,255,0.3);
+    margin: 0 2px;
+    padding: 8px 6px;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    min-width: 28px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    font-family: ${TYPOGRAPHY.mono};
+    
+    @media (max-width: 480px) {
+      font-size: 18px;
+      padding: 6px 4px;
+      min-width: 24px;
+      margin: 0 1px;
+    }
   `,
   infoCard: `
     background: white;
@@ -252,22 +272,14 @@ const EMAIL_STYLES = {
 function getEmailHeader(title: string, subtitle?: string): string {
   return `
     <div style="${EMAIL_STYLES.header}">
-      <!-- Enhanced header image with Islamic geometric patterns -->
-      <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=200&fit=crop&crop=center&bg=C7203E" 
-           alt="Nikah Sufiyana - Islamic Wedding Header" 
+      <!-- Custom header image -->
+      <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/email-header.png" 
+           alt="Nikah Sufiyana Header" 
            style="${EMAIL_STYLES.headerImage}" />
-      
-      <!-- Islamic geometric pattern overlay -->
-      <div style="${EMAIL_STYLES.headerPattern}"></div>
       
       <!-- Content overlay with enhanced typography -->
       <div style="${EMAIL_STYLES.headerOverlay}">
         <div style="z-index: 2; position: relative;">
-          <!-- Arabic/Urdu branding -->
-          <div style="font-family: ${TYPOGRAPHY.arabic}; font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 5px; letter-spacing: 2px;">
-            نکاح صوفیانہ
-          </div>
-          
           <!-- Main title with enhanced styling -->
           <h1 style="${EMAIL_STYLES.headerTitle}">${title}</h1>
           
@@ -276,13 +288,6 @@ function getEmailHeader(title: string, subtitle?: string): string {
               ${subtitle}
             </p>
           ` : ''}
-          
-          <!-- Decorative Islamic motif -->
-          <div style="margin-top: 12px; opacity: 0.7;">
-            <span style="color: ${BRAND_COLORS.secondary}; font-size: 18px;">✦</span>
-            <span style="color: rgba(255,255,255,0.6); margin: 0 8px; font-size: 14px;">❋</span>
-            <span style="color: ${BRAND_COLORS.secondary}; font-size: 18px;">✦</span>
-          </div>
         </div>
       </div>
     </div>
@@ -383,147 +388,68 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
   const mailOptions = {
     from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
     to: userEmail,
-    subject: "🌙 Welcome to Nikah Sufiyana - Your Sacred Journey Begins",
+    subject: "Welcome to Nikah Sufiyana",
     html: `
       <div style="${EMAIL_STYLES.container}">
-        ${getEmailHeader('Welcome to Nikah Sufiyana', 'Your Sacred Journey to Finding True Love Begins')}
+        ${getEmailHeader('Welcome to Nikah Sufiyana', 'Start your journey to find the perfect match')}
         
         <div style="${EMAIL_STYLES.content}">
           <h2 style="${EMAIL_STYLES.greeting}">
-            <span style="${EMAIL_STYLES.arabicGreeting}">السلام علیکم ورحمة الله وبركاته</span><br>
-            <span style="color: ${BRAND_COLORS.primary}; font-family: ${TYPOGRAPHY.primary};">${userName}</span>
+            Hello ${userName}!
           </h2>
           
           <p style="${EMAIL_STYLES.paragraph}">
-            Welcome to <strong style="color: ${BRAND_COLORS.primary};">Nikah Sufiyana</strong>, where meaningful connections are made with Islamic values at the heart of every relationship. 
-            We are honored to be part of your journey in finding a righteous and compatible life partner.
+            Welcome to <strong style="color: ${BRAND_COLORS.primary};">Nikah Sufiyana</strong>. 
+            We're here to help you find a compatible life partner who shares your values.
           </p>
           
-          <div style="background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.08)); padding: 25px; border-radius: 12px; text-align: center; margin: 30px 0; border: 2px solid rgba(212, 175, 55, 0.3);">
-            <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 20px; font-family: ${TYPOGRAPHY.primary};">
-              🕌 May Allah Bless Your Journey
-            </h3>
-            <p style="margin: 0; color: ${BRAND_COLORS.text}; font-style: italic; line-height: 1.7;">
-              "We pray that Allah guides you to your perfect match and blesses your union with love, understanding, and righteousness."
-            </p>
-          </div>
-          
-          <!-- Profile Status Card -->
+          <!-- Profile Status -->
           <div style="${EMAIL_STYLES.highlightBox}">
-            <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px; display: flex; align-items: center;">
-              <span style="background: ${BRAND_COLORS.secondary}; color: white; border-radius: 50%; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 14px;">⏳</span>
-              Profile Under Review
+            <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px;">
+              ⏳ Profile Under Review
             </h3>
-            <p style="margin: 0 0 15px 0; color: ${BRAND_COLORS.text}; line-height: 1.7;">
-              Your profile has been submitted for verification by our dedicated team. We review each profile carefully to ensure the highest quality matches for all our members.
+            <p style="margin: 0; color: ${BRAND_COLORS.text};">
+              Your profile is being reviewed by our team. You'll receive confirmation within 24-48 hours.
             </p>
-            <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-              <strong style="color: ${BRAND_COLORS.primary};">⌛ Expected Review Time:</strong>
-              <span style="color: ${BRAND_COLORS.text}; margin-left: 5px;">24-48 hours</span>
-            </div>
           </div>
           
-          <!-- Profile Completion Guide -->
+          <!-- Next Steps -->
           <div style="${EMAIL_STYLES.infoCard}">
-            <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 20px 0; font-size: 18px; display: flex; align-items: center;">
-              <span style="background: ${BRAND_COLORS.primary}; color: white; border-radius: 50%; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 14px;">📋</span>
-              Complete Your Profile for Better Matches
+            <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px;">
+              📋 Complete Your Profile
             </h3>
-            
-            <div style="display: grid; gap: 15px;">
-              <div style="display: flex; align-items: flex-start; padding: 12px; background: ${BRAND_COLORS.background}; border-radius: 8px;">
-                <span style="color: ${BRAND_COLORS.success}; margin-right: 12px; font-size: 18px; flex-shrink: 0;">📸</span>
-                <div>
-                  <strong style="color: ${BRAND_COLORS.text};">Upload Profile Photos</strong>
-                  <p style="margin: 5px 0 0 0; color: ${BRAND_COLORS.textLight}; font-size: 14px; line-height: 1.5;">
-                    Add clear, recent photos that represent you authentically while maintaining Islamic modesty
-                  </p>
-                </div>
-              </div>
-              
-              <div style="display: flex; align-items: flex-start; padding: 12px; background: ${BRAND_COLORS.background}; border-radius: 8px;">
-                <span style="color: ${BRAND_COLORS.success}; margin-right: 12px; font-size: 18px; flex-shrink: 0;">📱</span>
-                <div>
-                  <strong style="color: ${BRAND_COLORS.text};">Verify Phone Number</strong>
-                  <p style="margin: 5px 0 0 0; color: ${BRAND_COLORS.textLight}; font-size: 14px; line-height: 1.5;">
-                    Secure your account and increase trust with other members
-                  </p>
-                </div>
-              </div>
-              
-              <div style="display: flex; align-items: flex-start; padding: 12px; background: ${BRAND_COLORS.background}; border-radius: 8px;">
-                <span style="color: ${BRAND_COLORS.success}; margin-right: 12px; font-size: 18px; flex-shrink: 0;">📝</span>
-                <div>
-                  <strong style="color: ${BRAND_COLORS.text};">Add Detailed Information</strong>
-                  <p style="margin: 5px 0 0 0; color: ${BRAND_COLORS.textLight}; font-size: 14px; line-height: 1.5;">
-                    Share your values, interests, and what you're looking for in a life partner
-                  </p>
-                </div>
-              </div>
-              
-              <div style="display: flex; align-items: flex-start; padding: 12px; background: ${BRAND_COLORS.background}; border-radius: 8px;">
-                <span style="color: ${BRAND_COLORS.success}; margin-right: 12px; font-size: 18px; flex-shrink: 0;">⏰</span>
-                <div>
-                  <strong style="color: ${BRAND_COLORS.text};">Set Marriage Timeline</strong>
-                  <p style="margin: 5px 0 0 0; color: ${BRAND_COLORS.textLight}; font-size: 14px; line-height: 1.5;">
-                    Let potential matches know your preferred timeline for marriage
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div style="background: linear-gradient(135deg, ${BRAND_COLORS.primaryLight}, ${BRAND_COLORS.primary}); color: white; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px;">
-              <strong>💡 Pro Tip:</strong> Complete profiles receive <strong>3x more interest</strong> than incomplete ones!
-            </div>
-          </div>
-          
-          <!-- Call to Action -->
-          <div style="text-align: center; margin: 35px 0;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL}/edit-profile" style="${EMAIL_STYLES.button}">
-              🚀 Complete My Profile
-            </a>
-            <div style="margin-top: 15px;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" style="${EMAIL_STYLES.buttonSecondary}">
-                📊 View Dashboard
+            <p style="margin: 0 0 15px 0; color: ${BRAND_COLORS.text};">
+              Complete profiles get 3x more matches. Add photos, verify your phone, and share your preferences.
+            </p>
+            <div style="text-align: center; margin-top: 20px;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL}/edit-profile" style="${EMAIL_STYLES.button}">
+                Complete Profile
               </a>
             </div>
           </div>
           
-          <!-- Islamic Quote -->
-          <div style="${EMAIL_STYLES.quranVerse}">
-            <div style="position: absolute; top: 15px; left: 25px; color: ${BRAND_COLORS.secondary}; font-size: 30px; opacity: 0.3; font-family: ${TYPOGRAPHY.arabic};">"</div>
-            <p style="margin: 0 0 15px 0; color: ${BRAND_COLORS.text}; font-style: italic; font-size: 17px; font-family: ${TYPOGRAPHY.primary}; line-height: 1.6;">
-              <strong>"And among His signs is that He created for you mates from among yourselves, that you may dwell in tranquility with them, and He has put love and mercy between your hearts."</strong>
-            </p>
-            <p style="margin: 0; color: ${BRAND_COLORS.textLight}; font-size: 14px; font-family: ${TYPOGRAPHY.arabic};">
-              - القرآن الكريم ٣٠:٢١ (Quran 30:21)
-            </p>
-            <div style="position: absolute; bottom: 15px; right: 25px; color: ${BRAND_COLORS.secondary}; font-size: 30px; opacity: 0.3; transform: rotate(180deg); font-family: ${TYPOGRAPHY.arabic};">"</div>
-          </div>
-          
-          <!-- What's Next Section -->
-          <div style="background: white; padding: 25px; border-radius: 12px; margin: 25px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-left: 5px solid ${BRAND_COLORS.secondary};">
+          <!-- What's Next -->
+          <div style="background: ${BRAND_COLORS.background}; padding: 20px; border-radius: 8px; margin: 25px 0;">
             <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px;">
-              🌟 What Happens Next?
+              What Happens Next?
             </h3>
-            <div style="color: ${BRAND_COLORS.text}; line-height: 1.7;">
-              <p style="margin: 0 0 10px 0;"><strong>1.</strong> We'll review and approve your profile within 24-48 hours</p>
-              <p style="margin: 0 0 10px 0;"><strong>2.</strong> You'll receive an email confirmation once approved</p>
-              <p style="margin: 0 0 10px 0;"><strong>3.</strong> Start browsing compatible profiles in your area</p>
-              <p style="margin: 0;"><strong>4.</strong> Begin connecting with potential matches through our secure platform</p>
+            <div style="color: ${BRAND_COLORS.text}; line-height: 1.6;">
+              <p style="margin: 0 0 8px 0;">1. Profile review (24-48 hours)</p>
+              <p style="margin: 0 0 8px 0;">2. Browse compatible matches</p>
+              <p style="margin: 0;">3. Start connecting securely</p>
             </div>
           </div>
           
-          <p style="${EMAIL_STYLES.paragraph}; text-align: center; font-size: 17px;">
-            <strong style="color: ${BRAND_COLORS.primary};">May Allah guide you to your perfect match and bless your union with love, understanding, and righteousness.</strong>
-          </p>
-          
-          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(199, 32, 62, 0.2);">
-            <p style="color: ${BRAND_COLORS.textLight}; font-size: 14px; margin: 0;">
-              <span style="font-family: ${TYPOGRAPHY.arabic}; color: ${BRAND_COLORS.secondary};">بارك الله فيكم</span><br>
-              <strong style="color: ${BRAND_COLORS.primary};">The Nikah Sufiyana Team</strong>
-            </p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" style="${EMAIL_STYLES.buttonSecondary}">
+              View Dashboard
+            </a>
           </div>
+          
+          <p style="color: ${BRAND_COLORS.textLight}; font-size: 14px; margin-top: 30px; text-align: center;">
+            Best regards,<br>
+            <strong style="color: ${BRAND_COLORS.primary};">The Nikah Sufiyana Team</strong>
+          </p>
         </div>
         
         ${getEmailFooter()}
@@ -538,14 +464,14 @@ export async function sendProfileApprovalEmail(userEmail: string, userName: stri
   const mailOptions = {
     from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
     to: userEmail,
-    subject: "🎉 Profile Approved - Begin Your Sacred Journey",
+    subject: "Profile Approved - Nikah Sufiyana",
     html: `
       <div style="${EMAIL_STYLES.container}">
         ${getEmailHeader('Profile Approved!', 'Your journey to find the perfect match begins')}
         
         <div style="${EMAIL_STYLES.content}">
           <h2 style="${EMAIL_STYLES.greeting}">
-            Congratulations <span style="color: ${BRAND_COLORS.primary};">${userName}</span>! 🎉
+            Congratulations ${userName}! 🎉
           </h2>
           
           <div style="${EMAIL_STYLES.highlightBox}">
@@ -553,8 +479,8 @@ export async function sendProfileApprovalEmail(userEmail: string, userName: stri
               ✅ Your Profile is Now Live
             </h3>
             <p style="margin: 0; color: ${BRAND_COLORS.text};">
-              Your profile has been approved and is now visible to other members on Nikah Sufiyana. 
-              You can start browsing profiles, sending interests, and connecting with potential matches.
+              Your profile has been approved and is now visible to other members. 
+              You can start browsing profiles and connecting with potential matches.
             </p>
           </div>
           
@@ -562,13 +488,9 @@ export async function sendProfileApprovalEmail(userEmail: string, userName: stri
             <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px;">
               🚀 What You Can Do Now
             </h3>
-            <ul style="color: ${BRAND_COLORS.text}; padding-left: 20px; margin: 0;">
-              <li style="margin-bottom: 8px;"><strong>Browse Profiles:</strong> Discover compatible matches in your area</li>
-              <li style="margin-bottom: 8px;"><strong>Send Interests:</strong> Express interest in profiles you find suitable</li>
-              <li style="margin-bottom: 8px;"><strong>Manage Privacy:</strong> Control who can view your photos</li>
-              <li style="margin-bottom: 8px;"><strong>Receive Matches:</strong> Get notified when someone shows interest</li>
-              <li><strong>Connect Safely:</strong> Build meaningful relationships with Islamic values</li>
-            </ul>
+            <p style="color: ${BRAND_COLORS.text}; margin: 0; line-height: 1.6;">
+              Browse compatible profiles, send interests, manage your privacy settings, and start building meaningful connections.
+            </p>
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
@@ -577,21 +499,14 @@ export async function sendProfileApprovalEmail(userEmail: string, userName: stri
             </a>
           </div>
           
-          <div style="${EMAIL_STYLES.quranVerse}">
-            <p style="margin: 0; color: ${BRAND_COLORS.text}; font-style: italic; font-size: 16px;">
-              <strong>"And Allah has made for you from yourselves mates and has made for you from your mates children and grandchildren."</strong>
-            </p>
-            <p style="margin: 10px 0 0 0; color: ${BRAND_COLORS.textLight}; font-size: 14px;">
-              - Quran 16:72
-            </p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" style="${EMAIL_STYLES.buttonSecondary}">
+              View Dashboard
+            </a>
           </div>
           
-          <p style="${EMAIL_STYLES.paragraph}">
-            <strong>May Allah guide you to your perfect match and bless your search with success.</strong>
-          </p>
-          
           <p style="color: ${BRAND_COLORS.textLight}; font-size: 14px; margin-top: 30px; text-align: center;">
-            <span style="font-family: ${TYPOGRAPHY.arabic}; color: ${BRAND_COLORS.secondary};">بارك الله فيكم</span><br>
+            Best regards,<br>
             <strong style="color: ${BRAND_COLORS.primary};">The Nikah Sufiyana Team</strong>
           </p>
         </div>
@@ -615,7 +530,7 @@ export async function sendProfileRejectionEmail(userEmail: string, userName: str
         
         <div style="${EMAIL_STYLES.content}">
           <h2 style="${EMAIL_STYLES.greeting}">
-            <span style="${EMAIL_STYLES.arabicGreeting}">السلام علیکم</span> ${userName}
+            Hello ${userName}!
           </h2>
           
           <p style="${EMAIL_STYLES.paragraph}">
@@ -632,7 +547,7 @@ export async function sendProfileRejectionEmail(userEmail: string, userName: str
           </div>
           
           <p style="${EMAIL_STYLES.paragraph}">
-            Please update your profile with the necessary information and resubmit for review. Our team is here to help ensure your profile meets our standards for quality matches.
+            Please update your profile with the necessary information and resubmit for review.
           </p>
           
           <div style="text-align: center; margin: 30px 0;">
@@ -646,12 +561,17 @@ export async function sendProfileRejectionEmail(userEmail: string, userName: str
               💡 Need Help?
             </h3>
             <p style="margin: 0; color: ${BRAND_COLORS.text}; line-height: 1.6;">
-              If you have questions about these requirements, please contact our support team at 
+              If you have questions, please contact our support team at 
               <a href="mailto:support@nikahsufiyana.com" style="color: ${BRAND_COLORS.primary}; text-decoration: none;">
                 support@nikahsufiyana.com
               </a>
             </p>
           </div>
+          
+          <p style="color: ${BRAND_COLORS.textLight}; font-size: 14px; margin-top: 30px; text-align: center;">
+            Best regards,<br>
+            <strong style="color: ${BRAND_COLORS.primary};">The Nikah Sufiyana Team</strong>
+          </p>
         </div>
         
         ${getEmailFooter()}
@@ -664,13 +584,13 @@ export async function sendProfileRejectionEmail(userEmail: string, userName: str
 
 export async function sendOTPVerificationEmail(userEmail: string, otp: string, userName: string = 'User', purpose: 'email_verification' | 'password_reset' = 'email_verification'): Promise<boolean> {
   const isPasswordReset = purpose === 'password_reset';
-  const title = isPasswordReset ? '🔒 Password Reset Request' : '🌙 Verify Your Email Address';
-  const subtitle = isPasswordReset ? 'Secure your account with this verification code' : 'Complete your sacred journey setup';
+  const title = isPasswordReset ? 'Reset Your Password' : 'Verify Your Email';
+  const subtitle = isPasswordReset ? 'Enter the code to reset your password' : 'Enter the code to verify your account';
   
-  // Generate individual OTP digits for better visual presentation
+  // Generate individual OTP digits for mobile-friendly display
   const otpDigits = otp.split('');
   const otpDisplay = otpDigits.map(digit => 
-    `<span style="display: inline-block; background: rgba(255,255,255,0.3); margin: 0 4px; padding: 8px 12px; border-radius: 8px; font-size: 28px; font-weight: 700; min-width: 20px; text-align: center;">${digit}</span>`
+    `<span style="${EMAIL_STYLES.otpDigitBox}">${digit}</span>`
   ).join('');
   
   const mailOptions = {
@@ -683,109 +603,62 @@ export async function sendOTPVerificationEmail(userEmail: string, otp: string, u
         
         <div style="${EMAIL_STYLES.content}">
           <h2 style="${EMAIL_STYLES.greeting}">
-            <span style="${EMAIL_STYLES.arabicGreeting}">السلام علیکم</span> ${userName}
+            Hello ${userName}!
           </h2>
           
           <p style="${EMAIL_STYLES.paragraph}">
             ${isPasswordReset 
-              ? 'We received a request to reset your password for your Nikah Sufiyana account. For your security, please use the verification code below to proceed with resetting your password.'
-              : 'Thank you for joining <strong>Nikah Sufiyana</strong>! To complete your account setup and ensure the security of your profile, please verify your email address using the verification code below.'
+              ? 'Use the verification code below to reset your password.'
+              : 'Welcome to Nikah Sufiyana! Please enter this code to verify your email address.'
             }
           </p>
-          
-          <!-- Enhanced OTP Display -->
+            <!-- Simplified OTP Display -->
           <div style="${EMAIL_STYLES.otpContainer}">
-            <!-- Decorative pattern for OTP section -->
-            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;40&quot; height=&quot;40&quot; viewBox=&quot;0 0 40 40&quot;><g fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;><g fill=&quot;%23FFFFFF&quot; fill-opacity=&quot;0.1&quot;><polygon points=&quot;20 0 40 20 20 40 0 20&quot;/></g></g></svg>'); opacity: 0.3;"></div>
-            
             <div style="position: relative; z-index: 2;">
-              <h3 style="color: white; margin: 0 0 20px 0; font-size: 20px; font-weight: 600;">
-                🔐 Your Verification Code
+              <h3 style="color: white; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
+                Your Verification Code
               </h3>
               
               <div style="${EMAIL_STYLES.otpCode}">
-                <div style="margin-bottom: 15px; color: rgba(255,255,255,0.9); font-size: 14px;">
-                  Enter this code to ${isPasswordReset ? 'reset your password' : 'verify your email'}:
+                <!-- Mobile-friendly single row display -->
+                <div style="text-align: center; line-height: 1.2; white-space: nowrap; overflow-x: auto; padding: 5px;">
+                  ${otpDigits.map(digit => 
+                    `<span style="${EMAIL_STYLES.otpDigitBox}">${digit}</span>`
+                  ).join('')}
                 </div>
-                <div style="${EMAIL_STYLES.otpDigits}">
-                  ${otpDisplay}
+                
+                <!-- Fallback text display for very small screens -->
+                <div style="color: white; font-size: 24px; font-weight: 700; font-family: ${TYPOGRAPHY.mono}; letter-spacing: 4px; text-align: center; margin-top: 10px; display: block;">
+                  ${otp}
                 </div>
               </div>
               
-              <div style="margin-top: 20px;">
-                <p style="color: rgba(255, 255, 255, 0.9); margin: 0; font-size: 15px;">
-                  ⏱️ This code expires in <strong>10 minutes</strong>
-                </p>
-                <p style="color: rgba(255, 255, 255, 0.7); margin: 5px 0 0 0; font-size: 13px;">
-                  For your security, never share this code with anyone
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Enhanced Security Information -->
-          <div style="${EMAIL_STYLES.highlightBox}">
-            <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px; display: flex; align-items: center;">
-              🛡️ <span style="margin-left: 8px;">Security Guidelines</span>
-            </h3>
-            <div style="display: grid; gap: 12px;">
-              <div style="display: flex; align-items: flex-start;">
-                <span style="color: ${BRAND_COLORS.success}; margin-right: 10px; font-size: 16px;">✓</span>
-                <span style="color: ${BRAND_COLORS.text};">This code is valid for <strong>10 minutes only</strong></span>
-              </div>
-              <div style="display: flex; align-items: flex-start;">
-                <span style="color: ${BRAND_COLORS.success}; margin-right: 10px; font-size: 16px;">✓</span>
-                <span style="color: ${BRAND_COLORS.text};">Keep this code private and secure</span>
-              </div>
-              <div style="display: flex; align-items: flex-start;">
-                <span style="color: ${BRAND_COLORS.success}; margin-right: 10px; font-size: 16px;">✓</span>
-                <span style="color: ${BRAND_COLORS.text};">Contact support if you didn't request this ${isPasswordReset ? 'password reset' : 'verification'}</span>
-              </div>
+              <p style="color: rgba(255, 255, 255, 0.9); margin: 15px 0 0 0; font-size: 14px;">
+                This code expires in <strong>10 minutes</strong>
+              </p>
             </div>
           </div>
           
           <!-- Call to Action Button -->
-          <div style="text-align: center; margin: 35px 0;">
+          <div style="text-align: center; margin: 30px 0;">
             <a href="${process.env.NEXT_PUBLIC_APP_URL}${isPasswordReset ? '/reset-password' : '/verify-email'}?email=${encodeURIComponent(userEmail)}" 
                style="${EMAIL_STYLES.button}">
-              ${isPasswordReset ? '🔑 Reset My Password' : '✅ Verify Email Address'}
+              ${isPasswordReset ? 'Reset Password' : 'Verify Email'}
             </a>
           </div>
           
-          <!-- Help and Support Section -->
-          <div style="${EMAIL_STYLES.infoCard}">
-            <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px;">
-              💡 Need Assistance?
-            </h3>
-            <p style="margin: 0 0 15px 0; color: ${BRAND_COLORS.text}; line-height: 1.6;">
-              If you're experiencing any issues with ${isPasswordReset ? 'password reset' : 'email verification'}, our support team is here to help you every step of the way.
-            </p>
-            <div style="background: ${BRAND_COLORS.background}; padding: 15px; border-radius: 8px; text-align: center;">
-              <strong>📧 Email:</strong> 
-              <a href="mailto:support@nikahsufiyana.com" style="color: ${BRAND_COLORS.primary}; text-decoration: none; margin-left: 5px;">
+          <!-- Simple Help Section -->
+          <div style="background: ${BRAND_COLORS.background}; padding: 20px; border-radius: 8px; text-align: center; margin: 25px 0;">
+            <p style="margin: 0; color: ${BRAND_COLORS.text};">
+              Need help? Contact us at 
+              <a href="mailto:support@nikahsufiyana.com" style="color: ${BRAND_COLORS.primary}; text-decoration: none;">
                 support@nikahsufiyana.com
               </a>
-            </div>
-          </div>
-          
-          <!-- Islamic Quote -->
-          <div style="${EMAIL_STYLES.quranVerse}">
-            <div style="position: absolute; top: 10px; left: 20px; color: ${BRAND_COLORS.secondary}; font-size: 24px; opacity: 0.3;">"</div>
-            <p style="margin: 0 0 15px 0; color: ${BRAND_COLORS.text}; font-style: italic; font-size: 16px; font-family: ${TYPOGRAPHY.primary};">
-              <strong>"And Allah is the protector of those who have faith."</strong>
             </p>
-            <p style="margin: 0; color: ${BRAND_COLORS.textLight}; font-size: 14px;">
-              - Quran 2:257
-            </p>
-            <div style="position: absolute; bottom: 10px; right: 20px; color: ${BRAND_COLORS.secondary}; font-size: 24px; opacity: 0.3; transform: rotate(180deg);">"</div>
           </div>
-          
-          <p style="${EMAIL_STYLES.paragraph}">
-            <strong>May Allah keep you safe and guide you through this process.</strong>
-          </p>
           
           <p style="color: ${BRAND_COLORS.textLight}; font-size: 14px; margin-top: 30px; text-align: center;">
-            <span style="font-family: ${TYPOGRAPHY.arabic}; color: ${BRAND_COLORS.secondary};">بارك الله فيكم</span><br>
+            Best regards,<br>
             <strong style="color: ${BRAND_COLORS.primary};">The Nikah Sufiyana Team</strong>
           </p>
         </div>
@@ -813,14 +686,14 @@ export async function sendInterestResponseEmail(
   const mailOptions = {
     from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
     to: userEmail,
-    subject: `${isAccepted ? '🎉' : '📩'} ${title} - Nikah Sufiyana`,
+    subject: `${title} - Nikah Sufiyana`,
     html: `
       <div style="${EMAIL_STYLES.container}">
         ${getEmailHeader(title, subtitle)}
         
         <div style="${EMAIL_STYLES.content}">
           <h2 style="${EMAIL_STYLES.greeting}">
-            <span style="${EMAIL_STYLES.arabicGreeting}">السلام علیکم</span> ${userName}
+            Hello ${userName}!
           </h2>
           
           ${isAccepted ? `
@@ -836,11 +709,9 @@ export async function sendInterestResponseEmail(
                 <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px;">
                   📸 Photo Access Granted
                 </h3>
-                <p style="margin: 0 0 10px 0; color: ${BRAND_COLORS.text};">
-                  You now have access to view <strong>${responderName}'s photos</strong> for <strong>${accessDurationText}</strong>.
-                </p>
-                <p style="margin: 0; font-size: 14px; color: ${BRAND_COLORS.textLight};">
-                  After this period, photo access will be automatically revoked for privacy protection.
+                <p style="margin: 0; color: ${BRAND_COLORS.text};">
+                  You can now view <strong>${responderName}'s photos</strong> for <strong>${accessDurationText}</strong>.
+                  Access will be automatically revoked after this period.
                 </p>
               </div>
             ` : ''}
@@ -849,12 +720,9 @@ export async function sendInterestResponseEmail(
               <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px;">
                 🚀 What You Can Do Now
               </h3>
-              <ul style="color: ${BRAND_COLORS.text}; padding-left: 20px; margin: 0; line-height: 1.8;">
-                <li><strong>View Complete Profile:</strong> Access their full profile information</li>
-                <li><strong>Send Messages:</strong> Start a meaningful conversation</li>
-                <li><strong>Connect Safely:</strong> Build your relationship with Islamic values</li>
-                <li><strong>Plan Next Steps:</strong> Consider meeting with family involvement</li>
-              </ul>
+              <p style="color: ${BRAND_COLORS.text}; margin: 0; line-height: 1.6;">
+                View their complete profile, start a conversation, and take the next steps in getting to know each other.
+              </p>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
@@ -862,21 +730,11 @@ export async function sendInterestResponseEmail(
                 View Their Profile
               </a>
             </div>
-            
-            <div style="${EMAIL_STYLES.quranVerse}">
-              <p style="margin: 0; color: ${BRAND_COLORS.text}; font-style: italic; font-size: 16px;">
-                <strong>"And among His signs is that He created for you mates from among yourselves, 
-                that you may dwell in tranquility with them."</strong>
-              </p>
-              <p style="margin: 10px 0 0 0; color: ${BRAND_COLORS.textLight}; font-size: 14px;">
-                - Quran 30:21
-              </p>
-            </div>
           ` : `
             <div style="${EMAIL_STYLES.warningBox}">
               <h3 style="color: #DC2626; margin: 0 0 10px 0; font-size: 18px;">Interest Response</h3>
               <p style="margin: 0; color: #991B1B;">
-                <strong>${responderName}</strong> has respectfully declined your interest request at this time.
+                <strong>${responderName}</strong> has respectfully declined your interest request.
               </p>
             </div>
             
@@ -884,12 +742,9 @@ export async function sendInterestResponseEmail(
               <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px;">
                 🌟 Keep Your Hope Alive
               </h3>
-              <ul style="color: ${BRAND_COLORS.text}; padding-left: 20px; margin: 0; line-height: 1.8;">
-                <li>This is part of Allah's plan - the right person is waiting for you</li>
-                <li>Continue browsing and connecting with other compatible profiles</li>
-                <li>Keep your profile updated and engaging</li>
-                <li>Stay positive and trust in Allah's timing</li>
-              </ul>
+              <p style="color: ${BRAND_COLORS.text}; margin: 0; line-height: 1.6;">
+                This is part of finding the right person. Continue browsing other compatible profiles and keep your hopes up!
+              </p>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
@@ -905,12 +760,8 @@ export async function sendInterestResponseEmail(
             </a>
           </div>
           
-          <p style="${EMAIL_STYLES.paragraph}">
-            <strong>May Allah guide you to your perfect match and bless your journey with success.</strong>
-          </p>
-          
           <p style="color: ${BRAND_COLORS.textLight}; font-size: 14px; margin-top: 30px; text-align: center;">
-            <span style="font-family: ${TYPOGRAPHY.arabic}; color: ${BRAND_COLORS.secondary};">بارك الله فيكم</span><br>
+            Best regards,<br>
             <strong style="color: ${BRAND_COLORS.primary};">The Nikah Sufiyana Team</strong>
           </p>
         </div>
@@ -931,30 +782,29 @@ export async function sendInterestReceivedEmail(
   const mailOptions = {
     from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
     to: userEmail,
-    subject: "💕 New Interest Received - Nikah Sufiyana",
+    subject: "New Interest Received - Nikah Sufiyana",
     html: `
       <div style="${EMAIL_STYLES.container}">
         ${getEmailHeader('New Interest Received!', 'Someone has shown interest in your profile')}
         
         <div style="${EMAIL_STYLES.content}">
           <h2 style="${EMAIL_STYLES.greeting}">
-            <span style="${EMAIL_STYLES.arabicGreeting}">السلام علیکم</span> ${userName}
+            Hello ${userName}!
           </h2>
           
           <div style="background: linear-gradient(135deg, #FDF2F8, #FCE7F3); padding: 25px; border-radius: 12px; text-align: center; margin: 25px 0; border-left: 4px solid ${BRAND_COLORS.primary};">
             <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 20px;">💝 Great News!</h3>
             <p style="margin: 0; color: ${BRAND_COLORS.text}; font-size: 18px;">
-              <strong>${senderName}</strong> has shown interest in your profile on Nikah Sufiyana!
+              <strong>${senderName}</strong> has shown interest in your profile!
             </p>
           </div>
           
           <div style="${EMAIL_STYLES.highlightBox}">
             <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px;">
-              🤔 What would you like to do?
+              What would you like to do?
             </h3>
             <p style="margin: 0 0 15px 0; color: ${BRAND_COLORS.text};">
-              Review their profile carefully and decide whether to accept or decline their interest. 
-              Take your time to make the best decision for yourself.
+              Review their profile and decide whether to accept or decline their interest.
             </p>
             <div style="text-align: center; margin: 20px 0;">
               <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" style="${EMAIL_STYLES.button}">
@@ -967,29 +817,14 @@ export async function sendInterestReceivedEmail(
             <h3 style="color: ${BRAND_COLORS.primary}; margin: 0 0 15px 0; font-size: 18px;">
               🔐 Your Privacy is Protected
             </h3>
-            <ul style="color: ${BRAND_COLORS.text}; padding-left: 20px; margin: 0; line-height: 1.8;">
-              <li><strong>Photo Access Control:</strong> When you accept, choose how long they can view your photos</li>
-              <li><strong>Time Options:</strong> 1 day, 2 days, 1 week, 1 month, or permanent access</li>
-              <li><strong>Revoke Anytime:</strong> You can revoke photo access whenever you want</li>
-              <li><strong>Islamic Values:</strong> All interactions respect Islamic principles of modesty</li>
-            </ul>
-          </div>
-          
-          <div style="${EMAIL_STYLES.quranVerse}">
-            <p style="margin: 0; color: ${BRAND_COLORS.text}; font-style: italic; font-size: 16px;">
-              <strong>"And consult them in affairs. Then when you have decided, trust in Allah."</strong>
-            </p>
-            <p style="margin: 10px 0 0 0; color: ${BRAND_COLORS.textLight}; font-size: 14px;">
-              - Quran 3:159
+            <p style="color: ${BRAND_COLORS.text}; margin: 0; line-height: 1.6;">
+              When you accept, you can choose how long they can view your photos (1 day to permanent). 
+              You can revoke access anytime from your dashboard.
             </p>
           </div>
-          
-          <p style="${EMAIL_STYLES.paragraph}">
-            <strong>Take your time to make an informed decision. May Allah guide you to what is best for your future.</strong>
-          </p>
           
           <p style="color: ${BRAND_COLORS.textLight}; font-size: 14px; margin-top: 30px; text-align: center;">
-            <span style="font-family: ${TYPOGRAPHY.arabic}; color: ${BRAND_COLORS.secondary};">بارك الله فيكم</span><br>
+            Best regards,<br>
             <strong style="color: ${BRAND_COLORS.primary};">The Nikah Sufiyana Team</strong>
           </p>
         </div>

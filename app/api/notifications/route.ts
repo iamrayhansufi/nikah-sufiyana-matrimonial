@@ -38,8 +38,7 @@ export async function GET(request: NextRequest) {
       relatedUserId?: string;
       [key: string]: any;
     }
-    
-    // Handle notifications with relatedUserId to fetch related user info
+      // Handle notifications with relatedUserId to fetch related user info
     const enhancedNotifications = await Promise.all(notificationsArray.map(async notification => {
       let metadata: NotificationMetadata = {};
       let relatedUser = null;
@@ -52,18 +51,30 @@ export async function GET(request: NextRequest) {
           } else {
             metadata = notification.metadata as NotificationMetadata;
           }
-          
-          // Fetch related user if available
-          const relatedUserId = metadata.relatedUserId;
-          if (relatedUserId) {
-            const user = await database.users.getById(relatedUserId);
-            if (user) {
-              relatedUser = {
-                id: user.id,
-                fullName: user.fullName,
-                profilePhoto: user.profilePhoto
-              };
+        }
+        
+        // Also check the 'data' field which is commonly used for interest notifications
+        if (notification.data && typeof notification.data === 'string') {
+          try {
+            const parsedData = JSON.parse(notification.data);
+            if (parsedData.senderId) {
+              metadata.relatedUserId = parsedData.senderId;
             }
+          } catch (e) {
+            // Ignore parsing errors for data field
+          }
+        }
+        
+        // Fetch related user if available
+        const relatedUserId = metadata.relatedUserId;
+        if (relatedUserId) {
+          const user = await database.users.getById(relatedUserId);
+          if (user) {
+            relatedUser = {
+              id: user.id,
+              fullName: user.fullName,
+              profilePhoto: user.profilePhoto
+            };
           }
         }
       } catch (error) {
@@ -75,7 +86,8 @@ export async function GET(request: NextRequest) {
         metadata,
         relatedUser,
         read: notification.read === "true" || notification.read === true
-      };    }));
+      };
+    }));
     
     // Cache the results
     notificationCache.set(userId, {
@@ -113,6 +125,8 @@ export async function POST(request: NextRequest) {
     // Invalidate cache for the user
     const userId = session.user.id;
     notificationCache.delete(userId);
+    
+    console.log(`📱 Marked notification ${notificationId} as read for user ${userId}`);
     
     return NextResponse.json({ success: true });
   } catch (error) {

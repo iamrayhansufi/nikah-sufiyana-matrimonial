@@ -46,16 +46,34 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+      // Get the notification (handle both formats: with and without prefix)
+    let notificationKey = notificationId;
+    if (!notificationId.startsWith('notification:')) {
+      notificationKey = `notification:${notificationId}`;
+    }
     
-    // Get the notification
-    const notification = await redis.hgetall(`notification:${notificationId}`) as RedisNotification;
+    const notification = await redis.hgetall(notificationKey) as RedisNotification;
     
-    if (!notification || notification.userId !== userId) {
+    if (!notification || !notification.userId) {
       return NextResponse.json({ error: "Notification not found" }, { status: 404 });
     }
     
+    // Extract user ID from the notification's userId (remove user: prefix if present)
+    const notificationUserId = notification.userId.startsWith('user:') ? 
+      notification.userId.replace('user:', '') : notification.userId;
+    
+    // Extract session user ID (remove user: prefix if present)
+    const sessionUserId = userId.startsWith('user:') ? 
+      userId.replace('user:', '') : userId;
+    
+    if (notificationUserId !== sessionUserId) {
+      return NextResponse.json({ error: "Unauthorized to mark this notification as read" }, { status: 403 });
+    }
+    
     // Mark the notification as read
-    await redis.hmset(`notification:${notificationId}`, { read: 'true' });
+    await redis.hmset(notificationKey, { read: 'true' });
+    
+    console.log(`📱 Notification ${notificationId} marked as read for user ${userId}`);
     
     return NextResponse.json({ success: true });
   } catch (error) {
