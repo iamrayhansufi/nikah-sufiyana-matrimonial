@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-options-redis';
+import { v2 as cloudinary } from 'cloudinary';
 import { generateSignedUrl, canAccessUserPhotos } from '@/lib/cloudinary-service';
+
+// Ensure environment variables are loaded with fallback to env object
+const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || 'nikahsufiyana';
+const apiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY || '223722368374864';
+const apiSecret = process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET || process.env.CLOUDINARY_API_SECRET || 'z075NYAKlJfEt2WESzLaQtC1oyk';
+
+// Make sure Cloudinary is configured in this context as well
+cloudinary.config({
+  cloud_name: cloudName,
+  api_key: apiKey,
+  api_secret: apiSecret,
+});
 
 export async function GET(
   request: NextRequest,

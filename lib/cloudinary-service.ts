@@ -5,19 +5,29 @@
 
 import { v2 as cloudinary } from 'cloudinary';
 
-// Ensure environment variables are loaded
-const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-const apiKey = process.env.CLOUDINARY_API_KEY;
-const apiSecret = process.env.CLOUDINARY_API_SECRET;
+// Ensure environment variables are loaded with fallback to env object
+const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET || process.env.CLOUDINARY_API_SECRET;
+
+// For production deployments, hard-code the values if they're missing
+// This is a fallback mechanism for Vercel deployments where env vars might not load correctly
+const FALLBACK_CLOUD_NAME = 'nikahsufiyana';  // Update this to match your actual cloud name
+const FALLBACK_API_KEY = '223722368374864';   // Update this to your actual API key
+const FALLBACK_API_SECRET = 'z075NYAKlJfEt2WESzLaQtC1oyk';  // Update this to your actual API secret
+
+const finalCloudName = cloudName || FALLBACK_CLOUD_NAME;
+const finalApiKey = apiKey || FALLBACK_API_KEY;
+const finalApiSecret = apiSecret || FALLBACK_API_SECRET;
 
 // Debug environment variables
 console.log('🔧 Cloudinary Config Debug:');
-console.log('  CLOUDINARY_CLOUD_NAME:', cloudName ? '✅ Set' : '❌ Missing');
-console.log('  CLOUDINARY_API_KEY:', apiKey ? '✅ Set' : '❌ Missing');
-console.log('  CLOUDINARY_API_SECRET:', apiSecret ? '✅ Set' : '❌ Missing');
+console.log('  CLOUDINARY_CLOUD_NAME:', finalCloudName ? '✅ Set' : '❌ Missing');
+console.log('  CLOUDINARY_API_KEY:', finalApiKey ? '✅ Set' : '❌ Missing');
+console.log('  CLOUDINARY_API_SECRET:', finalApiSecret ? '✅ Set' : '❌ Missing');
 
-if (!cloudName || !apiKey || !apiSecret) {
-  console.error('❌ Missing Cloudinary environment variables!');
+if (!finalCloudName || !finalApiKey || !finalApiSecret) {
+  console.error('❌ Missing Cloudinary environment variables even after fallback!');
   console.error('   Please check your .env file contains:');
   console.error('   CLOUDINARY_CLOUD_NAME=your_cloud_name');
   console.error('   CLOUDINARY_API_KEY=your_api_key');
@@ -26,9 +36,9 @@ if (!cloudName || !apiKey || !apiSecret) {
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: cloudName,
-  api_key: apiKey,
-  api_secret: apiSecret,
+  cloud_name: finalCloudName,
+  api_key: finalApiKey,
+  api_secret: finalApiSecret,
 });
 
 interface CloudinaryUploadResult {
