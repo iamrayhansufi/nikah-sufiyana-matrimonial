@@ -681,24 +681,11 @@ export default function ProfilePage({
                             Nikah Sufiyana ensures your journey begins with Haya.
                           </p>
                         </div>
-                        
-                        {/* Action buttons */}
+                          {/* Photo Privacy Notice */}
                         <div className="relative z-10">
-                          {!isInterestSent && (
-                            <Button 
-                              variant="secondary"                              className="royal-shine-button hover:scale-105 text-slate-900 hover:from-amber-300 hover:to-amber-400 font-medium border border-amber-300 shadow-lg transition-all duration-300"
-                              onClick={handleSendInterest}
-                            >
-                              <Heart className="h-4 w-4 mr-2 text-red-600" />
-                              Express Interest
-                            </Button>
-                          )}
-                          
-                          {isInterestSent && (                            <Button variant="secondary" disabled className="bg-emerald-400/90 text-emerald-900 font-medium border border-emerald-300">
-                              <Heart className="h-4 w-4 mr-2 text-red-600 fill-red-600" />
-                              Interest Expressed
-                            </Button>
-                          )}
+                          <p className="text-emerald-100 text-center text-sm">
+                            Send interest below to connect and view photos
+                          </p>
                         </div>
                       </div>
                     )}
@@ -761,10 +748,17 @@ export default function ProfilePage({
                       {formatToTitleCase(profile.location)}
                     </div>
                     <p className="text-lg text-muted-foreground">Member since {profile.joinedDate}</p>
-                  </div>
-                  
-                  {/* Action Buttons */}
-                  <div className="space-y-3">                    {/* Interest Request Response (if user received request from this profile) */}
+                  </div>                  {/* Action Buttons */}
+                  <div className="space-y-3">
+                    
+                    {/* User Tip */}
+                    <div className="text-center p-3 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg">
+                      <p className="text-sm text-emerald-700 font-medium">
+                        💡 Tip: Send interest below to connect and view photos
+                      </p>
+                    </div>
+
+                    {/* Interest Request Response (if user received request from this profile) */}
                     {incomingInterestRequest && (
                       <div className="space-y-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <p className="text-lg text-blue-800 font-medium text-center">

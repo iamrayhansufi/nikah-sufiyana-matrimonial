@@ -3,7 +3,7 @@ import { useSession } from 'next-auth/react';
 import { createNotificationSound } from '@/lib/notification-sound';
 
 interface Notification {
-  id: number;
+  id: string | number;
   type: string;
   message: string;
   link?: string;
@@ -142,15 +142,24 @@ export function useNotifications() {
       clearInterval(interval);
     };
   }, [session?.user?.id]);
-
   // Mark notification as read
-  const markAsRead = async (notificationId: number) => {
+  const markAsRead = async (notificationId: string | number) => {
     try {
-      await fetch('/api/notifications/mark-as-read', {
+      console.log('🔄 Marking notification as read:', { notificationId, type: typeof notificationId });
+      
+      const response = await fetch('/api/notifications/mark-as-read', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notificationId })
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ Failed to mark notification as read:', errorData);
+        throw new Error(errorData.error || 'Failed to mark notification as read');
+      }
+      
+      console.log('✅ Notification marked as read successfully');
       
       setNotifications(prev => 
         prev.map(n => 
@@ -161,6 +170,7 @@ export function useNotifications() {
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
+      throw error; // Re-throw to allow error handling in UI
     }
   };
   // Manual refresh function

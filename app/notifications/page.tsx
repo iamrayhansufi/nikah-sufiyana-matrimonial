@@ -53,26 +53,62 @@ export default function NotificationsPage() {
         id: notification.id,
         type: notification.type,
         link: notification.link,
-        message: notification.message
+        message: notification.message,
+        data: notification.data
       });
       
       if (!notification.read) {
+        console.log('🔄 Marking notification as read...');
         await markAsRead(notification.id);
+        console.log('✅ Notification marked as read');
       }
       
       if (notification.link) {
-        console.log('Navigating to:', notification.link);
+        console.log('🔗 Navigating to:', notification.link);
         router.push(notification.link);
       } else {
-        console.log('No link found in notification');
+        console.log('⚠️ No link found in notification, generating fallback based on type');
+        
+        // Generate fallback links based on notification type
+        let fallbackLink = '/dashboard';
+        switch (notification.type) {
+          case 'interest_received':
+            fallbackLink = '/interests';
+            break;
+          case 'interest_accepted':
+          case 'interest_declined':
+            try {
+              const data = JSON.parse(notification.data || '{}');
+              if (data.responderId) {
+                fallbackLink = `/profile/${data.responderId}`;
+              }
+            } catch (e) {
+              console.log('Could not parse notification data for fallback link');
+            }
+            break;
+          case 'profile_approved':
+            fallbackLink = '/browse';
+            break;
+          case 'profile_rejected':
+            fallbackLink = '/edit-profile';
+            break;
+          case 'message_received':
+            fallbackLink = '/messages';
+            break;
+        }
+        
+        console.log('🔗 Using fallback link:', fallbackLink);
+        router.push(fallbackLink);
       }
     } catch (error) {
       console.error('Failed to handle notification click:', error);
+      alert('Failed to process notification. Please try again.');
     }
   };
-
-  const handleInterestResponse = async (interestId: string, action: 'accept' | 'decline', notificationId: number) => {
+  const handleInterestResponse = async (interestId: string, action: 'accept' | 'decline', notificationId: string | number) => {
     try {
+      console.log('🔄 Handling interest response:', { interestId, action, notificationId });
+      
       const response = await fetch('/api/profiles/respond-interest', {
         method: 'POST',
         headers: {
@@ -87,8 +123,14 @@ export default function NotificationsPage() {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `Failed to ${action} interest`);
-      }        // Mark notification as read
+      }
+      
+      console.log('✅ Interest response successful');
+      
+      // Mark notification as read
+      console.log('🔄 Marking notification as read...');
       await markAsRead(notificationId);
+      console.log('✅ Notification marked as read');
       
       // Show success message based on action
       alert(action === 'accept' 
@@ -96,11 +138,13 @@ export default function NotificationsPage() {
         : 'Interest declined.');
       
       // Refresh notifications to ensure immediate UI update
+      console.log('🔄 Refreshing notifications...');
       await refreshNotifications();
-      
-    } catch (error) {
-      console.error(`Failed to ${action} interest:`, error);
-      alert(`Failed to ${action} interest. Please try again.`);
+      console.log('✅ Notifications refreshed');
+        } catch (error) {
+      console.error('❌ Failed to handle interest response:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Failed to ${action} interest: ${errorMessage}`);
     }
   };
   const getNotificationIcon = (type: string) => {

@@ -37,11 +37,11 @@ export async function GET(request: NextRequest) {
     interface NotificationMetadata {
       relatedUserId?: string;
       [key: string]: any;
-    }
-      // Handle notifications with relatedUserId to fetch related user info
+    }    // Handle notifications with relatedUserId to fetch related user info
     const enhancedNotifications = await Promise.all(notificationsArray.map(async notification => {
       let metadata: NotificationMetadata = {};
       let relatedUser = null;
+      let link = null; // Add link generation
       
       // Parse metadata if it exists
       try {
@@ -59,6 +59,31 @@ export async function GET(request: NextRequest) {
             const parsedData = JSON.parse(notification.data);
             if (parsedData.senderId) {
               metadata.relatedUserId = parsedData.senderId;
+            }
+            
+            // Generate appropriate links based on notification type
+            switch (notification.type) {
+              case 'interest_received':
+                link = '/interests'; // Go to interests page to manage
+                break;
+              case 'interest_accepted':
+              case 'interest_declined':
+                if (parsedData.responderId) {
+                  link = `/profile/${parsedData.responderId}`;
+                }
+                break;
+              case 'profile_approved':
+                link = '/browse';
+                break;
+              case 'profile_rejected':
+                link = '/edit-profile';
+                break;
+              case 'message_received':
+                link = '/messages';
+                break;
+              default:
+                link = '/dashboard';
+                break;
             }
           } catch (e) {
             // Ignore parsing errors for data field
@@ -85,6 +110,7 @@ export async function GET(request: NextRequest) {
         ...notification,
         metadata,
         relatedUser,
+        link, // Add the generated link
         read: notification.read === "true" || notification.read === true
       };
     }));

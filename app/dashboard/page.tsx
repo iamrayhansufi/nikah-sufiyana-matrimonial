@@ -423,7 +423,7 @@ export default function DashboardPage() {
               />
             </div>
             <h1 className={`${elMessiri.className} text-3xl md:text-4xl font-bold text-gray-800 mb-2`}>
-              Welcome to Your Royal Dashboard
+              Welcome to Your Nikah Sufiyana Dashboard
             </h1>
             <div className="flex justify-center mb-4">
               <Image
@@ -478,7 +478,7 @@ export default function DashboardPage() {
                         Royal Member
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="border-royal-primary text-royal-primary">Sacred Plan</Badge>
+                      <Badge variant="outline" className="border-royal-primary text-royal-primary">Sufiyana Premium Plan</Badge>
                     )}
                   </div>
 

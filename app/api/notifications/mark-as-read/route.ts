@@ -27,8 +27,35 @@ export async function POST(request: NextRequest) {
     
     const { notificationId } = await request.json();
     
+    console.log('📱 Mark as read request:', { notificationId, type: typeof notificationId });
+    
     if (!notificationId) {
       return NextResponse.json({ error: "Notification ID is required" }, { status: 400 });
+    }
+    
+    // Convert notification ID to string and handle both formats
+    let cleanNotificationId = String(notificationId);
+    
+    // If it's a number, we need to find the actual notification key
+    if (typeof notificationId === 'number' || !cleanNotificationId.startsWith('notification:')) {
+      // Search through all notifications to find one with matching ID
+      const notificationKeys = await redis.keys('notification:*');
+      let foundKey = null;
+      
+      for (const key of notificationKeys) {
+        const notification = await redis.hgetall(key) as RedisNotification;
+        if (notification && (notification.id === cleanNotificationId || key.endsWith(cleanNotificationId))) {
+          foundKey = key;
+          break;
+        }
+      }
+      
+      if (!foundKey) {
+        console.log('❌ Notification not found for ID:', cleanNotificationId);
+        return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+      }
+      
+      cleanNotificationId = foundKey;
     }
     
     // Get the current user
@@ -45,16 +72,12 @@ export async function POST(request: NextRequest) {
     
     if (!userId) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-      // Get the notification (handle both formats: with and without prefix)
-    let notificationKey = notificationId;
-    if (!notificationId.startsWith('notification:')) {
-      notificationKey = `notification:${notificationId}`;
-    }
-    
-    const notification = await redis.hgetall(notificationKey) as RedisNotification;
+    }    
+    // Get the notification using the found key
+    const notification = await redis.hgetall(cleanNotificationId) as RedisNotification;
     
     if (!notification || !notification.userId) {
+      console.log('❌ Notification data not found for key:', cleanNotificationId);
       return NextResponse.json({ error: "Notification not found" }, { status: 404 });
     }
     
@@ -67,13 +90,14 @@ export async function POST(request: NextRequest) {
       userId.replace('user:', '') : userId;
     
     if (notificationUserId !== sessionUserId) {
+      console.log('❌ Unauthorized access:', { notificationUserId, sessionUserId });
       return NextResponse.json({ error: "Unauthorized to mark this notification as read" }, { status: 403 });
     }
     
     // Mark the notification as read
-    await redis.hmset(notificationKey, { read: 'true' });
+    await redis.hmset(cleanNotificationId, { read: 'true' });
     
-    console.log(`📱 Notification ${notificationId} marked as read for user ${userId}`);
+    console.log(`✅ Notification ${notificationId} marked as read for user ${userId}`);
     
     return NextResponse.json({ success: true });
   } catch (error) {
