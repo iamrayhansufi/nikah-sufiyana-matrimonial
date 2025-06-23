@@ -19,10 +19,13 @@ export async function POST(req: Request) {  try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = session.user.id;
+    }    const userId = session.user.id;
     console.log("Processing multiple photos upload for user ID:", userId);
+    console.log("User ID format check:", userId.startsWith('user:') ? 'Already has prefix' : 'Missing prefix');
+    
+    // Ensure userId has the proper format for Redis
+    const redisUserId = userId.startsWith('user:') ? userId : `user:${userId}`;
+    console.log("Redis user ID:", redisUserId);
     
     const formData = await req.formData();
     
@@ -83,8 +86,7 @@ export async function POST(req: Request) {  try {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
         
-        console.log(`Uploading file ${i + 1} to Cloudinary...`);
-          // Upload to Cloudinary
+        console.log(`Uploading file ${i + 1} to Cloudinary...`);        // Upload to Cloudinary
         const result = await uploadGalleryPhoto(buffer, userId.replace('user:', ''), i);
         
         console.log(`Cloudinary private upload ${i + 1} successful:`, result.secure_url);
@@ -110,16 +112,14 @@ export async function POST(req: Request) {  try {
         { error: "Failed to upload any photos to Cloudinary" },
         { status: 500 }
       );
-    }
-
-    // Get current user data
-    const currentUser = await redis.hgetall(`user:${userId}`);
+    }    // Get current user data
+    const currentUser = await redis.hgetall(redisUserId);
     if (!currentUser || Object.keys(currentUser).length === 0) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
-    }    // Get existing photos
+    }// Get existing photos
     let existingPhotos: string[] = [];
     if (currentUser.photos) {
       if (typeof currentUser.photos === 'string') {
@@ -137,15 +137,22 @@ export async function POST(req: Request) {  try {
       } else {
         console.warn("Unexpected photos format:", typeof currentUser.photos);
       }
-    }
-    
-    console.log(`📸 Existing photos:`, existingPhotos);
+    }    console.log(`📸 Existing photos:`, existingPhotos);
     console.log(`➕ Adding photos:`, photoUrls);
 
     // Combine existing and new photos, limit to 5 total
     const allPhotos = [...existingPhotos, ...photoUrls].slice(0, 5);
     
     console.log(`📸 All photos after upload:`, allPhotos);
+    console.log(`📊 Photo count - Existing: ${existingPhotos.length}, New: ${photoUrls.length}, Total: ${allPhotos.length}`);
+    
+    // Check for duplicates
+    const uniquePhotos = [...new Set(allPhotos)];
+    if (uniquePhotos.length !== allPhotos.length) {
+      console.warn(`⚠️ Duplicate photos detected! All: ${allPhotos.length}, Unique: ${uniquePhotos.length}`);
+      console.warn(`🔍 All photos:`, allPhotos);
+      console.warn(`🔍 Unique photos:`, uniquePhotos);
+    }
 
     // Update user with new photos
     const updateData: { [key: string]: string } = {
@@ -156,12 +163,30 @@ export async function POST(req: Request) {  try {
     // If this is the first photo(s) and no profile photo exists, set the first as main
     if (!currentUser.profilePhoto && allPhotos.length > 0) {
       updateData.profilePhoto = allPhotos[0];
+    }    // Update user profile
+    try {
+      console.log(`💾 Updating user ${redisUserId} with data:`, Object.keys(updateData));
+      const redisResult = await redis.hset(redisUserId, updateData);
+      console.log(`✅ Redis hset result:`, redisResult);
+      
+      // Verify the update was successful
+      const verifyPhotos = await redis.hget(redisUserId, "photos");
+      const verifyProfilePhotos = await redis.hget(redisUserId, "profilePhotos");
+      
+      console.log(`🔍 Verification - photos field after update:`, verifyPhotos);
+      console.log(`🔍 Verification - profilePhotos field after update:`, verifyProfilePhotos);
+      
+      if (!verifyPhotos || (Array.isArray(verifyPhotos) && verifyPhotos.length === 0)) {
+        console.error(`❌ Database update failed - photos field is empty after update`);
+        return NextResponse.json({ error: "Failed to save photos to database" }, { status: 500 });
+      }
+      
+    } catch (redisError) {
+      console.error(`❌ Redis update error:`, redisError);
+      return NextResponse.json({ error: "Failed to save photos to database" }, { status: 500 });
     }
 
-    // Update user profile
-    await redis.hset(`user:${userId}`, updateData);
-
-    console.log(`Successfully uploaded ${photoUrls.length} photos for user:`, userId);
+    console.log(`Successfully uploaded ${photoUrls.length} photos for user:`, redisUserId);
     
     return NextResponse.json({
       message: `Successfully uploaded ${photoUrls.length} photo(s)`,
