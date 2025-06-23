@@ -45,7 +45,24 @@ export async function GET(
     }
 
     const photoType = imageIdParts[0] as 'profile' | 'gallery';
-    const photoOwnerUserId = imageIdParts[1];
+    
+    // For profile: "profile-userId-timestamp" -> userId is at index 1
+    // For gallery: "gallery-userId-index-timestamp" -> userId is at index 1 (need to handle userId with dashes)
+    let photoOwnerUserId: string;
+    
+    if (photoType === 'profile') {
+      // Profile format: profile-1750494368940-v1zhv1x2fb-1750660062020
+      // Extract everything between first dash and last dash
+      const firstDashIndex = imageId.indexOf('-');
+      const lastDashIndex = imageId.lastIndexOf('-');
+      photoOwnerUserId = imageId.substring(firstDashIndex + 1, lastDashIndex);
+    } else {
+      // Gallery format: gallery-1750494368940-v1zhv1x2fb-0-1750659725260
+      // Extract everything between first dash and second-to-last dash (excluding index and timestamp)
+      const parts = imageId.split('-');
+      const indexPos = parts.length - 2; // Index is second to last
+      photoOwnerUserId = parts.slice(1, indexPos).join('-');
+    }
     
     console.log(`🎯 Photo type: ${photoType}, Owner: ${photoOwnerUserId}`);
 

@@ -32,14 +32,27 @@ export async function canAccessUserPhotos(
   photoOwnerUserId: string,
   photoType: 'profile' | 'gallery' = 'profile'
 ): Promise<boolean> {
+  console.log(`🔍 Access check: viewer="${viewerUserId}", owner="${photoOwnerUserId}", type="${photoType}"`);
+  
   // Self-access is always allowed
   if (viewerUserId === photoOwnerUserId) {
+    console.log('✅ Self-access granted');
     return true;
   }
-
+  
+  // Also check without "user:" prefix for compatibility
+  const cleanViewerId = viewerUserId.replace('user:', '');
+  const cleanOwnerId = photoOwnerUserId.replace('user:', '');
+  if (cleanViewerId === cleanOwnerId) {
+    console.log('✅ Self-access granted (clean IDs match)');
+    return true;
+  }
   // Get user privacy settings
   const ownerPrivacySettings = await getUserPrivacySettings(photoOwnerUserId);
   const viewerProfile = await getUserProfile(viewerUserId);
+  
+  console.log('📋 Privacy settings:', ownerPrivacySettings);
+  console.log('👤 Viewer profile:', viewerProfile);
   
   // Check if photo owner has blocked the viewer
   const isBlocked = await isUserBlocked(photoOwnerUserId, viewerUserId);
@@ -47,61 +60,78 @@ export async function canAccessUserPhotos(
     console.log(`🚫 User ${viewerUserId} is blocked by ${photoOwnerUserId}`);
     return false;
   }
-
   // Profile photo access rules
   if (photoType === 'profile') {
+    console.log(`🖼️ Profile photo access check: visibility="${ownerPrivacySettings.profilePhotoVisibility}"`);
     // Check profile photo privacy setting
     switch (ownerPrivacySettings.profilePhotoVisibility) {
       case 'public':
+        console.log('✅ Public access granted');
         return true; // Anyone can see
       
       case 'logged_in_users':
+        console.log('✅ Logged-in user access granted');
         return true; // Any authenticated user can see
       
       case 'interested_users':
         // Only users who showed interest or are connected
         const connection = await getUserConnection(viewerUserId, photoOwnerUserId);
+        console.log(`🔗 Connection status: ${connection}`);
         return connection !== 'none';
       
       case 'connected_users':
         // Only matched/connected users
         const isConnected = await areUsersConnected(viewerUserId, photoOwnerUserId);
+        console.log(`🤝 Connected status: ${isConnected}`);
         return isConnected;
       
       case 'premium_users':
         // Only premium users can see
+        console.log(`💎 Premium check: ${viewerProfile?.isPremium || false}`);
         return viewerProfile?.isPremium || false;
       
       case 'private':
+        console.log('🔒 Private - access denied');
         return false; // No one can see except owner
       
       default:
+        console.log('✅ Default public access granted');
         return true; // Default to public for backward compatibility
     }
   }
-
   // Gallery photo access rules (more restrictive)
   if (photoType === 'gallery') {
+    console.log(`🖼️ Gallery photo access check: visibility="${ownerPrivacySettings.galleryVisibility}"`);
     switch (ownerPrivacySettings.galleryVisibility) {
       case 'connected_users':
-        return await areUsersConnected(viewerUserId, photoOwnerUserId);
+        const isConnected = await areUsersConnected(viewerUserId, photoOwnerUserId);
+        console.log(`🤝 Connected status: ${isConnected}`);
+        return isConnected;
       
       case 'mutual_interest':
         const connection = await getUserConnection(viewerUserId, photoOwnerUserId);
-        return connection === 'mutual_interest' || connection === 'matched' || connection === 'connected';
+        console.log(`🔗 Connection status: ${connection}`);
+        const allowed = connection === 'mutual_interest' || connection === 'matched' || connection === 'connected';
+        console.log(`💕 Mutual interest access: ${allowed}`);
+        return allowed;
       
       case 'premium_users':
+        console.log(`💎 Premium check: ${viewerProfile?.isPremium || false}`);
         return viewerProfile?.isPremium || false;
       
       case 'private':
+        console.log('🔒 Private gallery - access denied');
         return false;
       
       default:
         // Default: only connected users can see gallery
-        return await areUsersConnected(viewerUserId, photoOwnerUserId);
+        const defaultConnected = await areUsersConnected(viewerUserId, photoOwnerUserId);
+        console.log(`🤝 Default connected access: ${defaultConnected}`);
+        return defaultConnected;
     }
   }
 
+  console.log('❌ Access denied - no matching rules');
   return false;
 }
 
