@@ -15,6 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import ScreenshotProtection from "@/components/security/ScreenshotProtection"
 import { 
   User, 
   AlertCircle, 
@@ -673,10 +674,11 @@ export default function EditProfilePage() {
       if (!response.ok) {
         console.error("Failed to fetch profile during refetch:", response.status);
         throw new Error(`Failed to fetch profile: ${response.status}`);
-      }
-        const data = await response.json();
+      }        const data = await response.json();
       console.log("Refetched profile data:", Object.keys(data).length, "fields");
       console.log("Refetched profilePhotos:", data.profilePhotos);
+      console.log("Refetched profilePhotos type:", typeof data.profilePhotos);
+      console.log("Refetched profilePhotos length:", Array.isArray(data.profilePhotos) ? data.profilePhotos.length : 'not an array');
       setProfileData(data);
         // Process siblings data if it exists
       let siblingsArray: SiblingInfo[] = [];
@@ -773,8 +775,12 @@ export default function EditProfilePage() {
         preferredComplexion: data.preferredComplexion || "",
         preferredMaslak: data.preferredMaslak || "",
         expectations: data.expectations || ""
-      });
-        // Privacy settings form data
+      });      // Privacy settings form data
+      const parsedProfilePhotos = Array.isArray(data.profilePhotos) ? data.profilePhotos : 
+                        typeof data.profilePhotos === 'string' ? JSON.parse(data.profilePhotos || '[]') : [];
+      
+      console.log("Setting privacy form profilePhotos:", parsedProfilePhotos);
+      
       setPrivacyForm({
         showContactInfo: data.showContactInfo !== undefined ? data.showContactInfo : true,
         showPhotos: data.showPhotos !== undefined ? data.showPhotos : true,
@@ -785,8 +791,7 @@ export default function EditProfilePage() {
         showMotherNumber: data.showMotherNumber !== undefined ? data.showMotherNumber : false,
         motherMobile: data.motherMobile || "",
         mobileNumber: data.mobileNumber || "",
-        profilePhotos: Array.isArray(data.profilePhotos) ? data.profilePhotos : 
-                          typeof data.profilePhotos === 'string' ? JSON.parse(data.profilePhotos || '[]') : []
+        profilePhotos: parsedProfilePhotos
       });
       
       // And similarly for other form sections
@@ -1233,13 +1238,14 @@ export default function EditProfilePage() {
                   Update your information to make your profile more attractive to potential matches.
                 </CardDescription>
               </div>
-              
-              <div className="mt-4 md:mt-0 flex items-center">                {profileData?.profileStatus && (
+                <div className="mt-4 md:mt-0 flex items-center">
+                {profileData?.profileStatus && (
                   <Badge className="mr-2 bg-green-500">
                     APPROVED
                   </Badge>
                 )}
-                  <div className="relative">
+                
+                <ScreenshotProtection level="basic" className="relative">
                   <div className="h-16 w-16 rounded-full border-2 border-primary overflow-hidden bg-slate-200">
                     {(() => {
                       const photoUrl = profileData?.profilePhoto || 
@@ -1294,11 +1300,10 @@ export default function EditProfilePage() {
                       id="profile-photo" 
                       type="file" 
                       accept="image/*" 
-                      onChange={handlePhotoUpload} 
-                      className="hidden" 
+                      onChange={handlePhotoUpload}                      className="hidden" 
                     />
                   </label>
-                </div>
+                </ScreenshotProtection>
               </div>
             </div>
           </CardHeader>
@@ -2258,11 +2263,19 @@ export default function EditProfilePage() {
                         </div>
                       </div>
                     </div>
-                  
-                    <div className="border p-4 rounded-md bg-blue-50/30 mt-4 space-y-4">
-                      <h3 className="font-medium text-md mb-2">Photo Gallery</h3>
+                    <ScreenshotProtection 
+                      level="maximum" 
+                      watermark="NIKAH SUFIYANA - PRIVATE PROFILE" 
+                      blurOnSuspicious={true}
+                      className="border p-4 rounded-md bg-blue-50/30 mt-4 space-y-4"
+                    >
+                      <h3 className="font-medium text-md mb-2">🔒 Photo Gallery (Protected)</h3>
                       <p className="text-lg text-muted-foreground mb-4">
                         Upload additional photos to showcase in your profile gallery. You can add up to 5 photos.
+                        <br />
+                        <span className="text-sm text-amber-600 font-medium">
+                          ⚠️ This section is protected against screenshots for privacy
+                        </span>
                       </p>
                       
                       {/* Multiple Photo Upload */}
@@ -2325,7 +2338,12 @@ export default function EditProfilePage() {
                               photo && isValidPhotoUrl(photo)
                             );
                             
-                            console.log('Rendering photos:', uniqueValidPhotos);
+                            console.log('Rendering photos - Debug info:', {
+                              profileDataPhotos: profileData?.profilePhotos,
+                              privacyFormPhotos: privacyForm.profilePhotos,
+                              allPhotos,
+                              uniqueValidPhotos
+                            });
                             
                             return uniqueValidPhotos.map((photo: string, index: number) => (
                               <div key={`${photo}-${index}`} className="relative">
@@ -2396,14 +2414,13 @@ export default function EditProfilePage() {
                             return null;
                           })()}
                         </div>
-                        
-                        <div className="text-lg text-muted-foreground">
+                          <div className="text-lg text-muted-foreground">
                           <p>
                             <strong>Note:</strong> Each photo should be less than 5MB. For best results, use square images.
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </ScreenshotProtection>
                   
                   <div className="pt-4">
                     <Alert>

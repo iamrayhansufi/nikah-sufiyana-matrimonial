@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     // Get all user keys
     const userKeys = await redis.keys("user:*")
-    let users: RedisUser[] = []
+    const users: RedisUser[] = []
 
     // Fetch all users
     for (const key of userKeys) {

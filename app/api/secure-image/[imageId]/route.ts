@@ -18,10 +18,11 @@ cloudinary.config({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { imageId: string } }
+  { params }: { params: Promise<{ imageId: string }> }
 ) {
   try {
-    console.log('🔐 Secure image request for:', params.imageId);
+    const { imageId } = await params;
+    console.log('🔐 Secure image request for:', imageId);
     
     // Check if user is authenticated
     const session = await getServerSession(authOptions);
@@ -36,11 +37,9 @@ export async function GET(
     }
 
     const viewerUserId = session.user.id;
-    console.log('👤 Viewer:', viewerUserId);
-
-    // Parse image ID to extract owner and type
+    console.log('👤 Viewer:', viewerUserId);    // Parse image ID to extract owner and type
     // Format: "profile-userId-timestamp" or "gallery-userId-index-timestamp"
-    const imageIdParts = params.imageId.split('-');
+    const imageIdParts = imageId.split('-');
     if (imageIdParts.length < 3) {
       return new NextResponse('Invalid image ID format', { status: 400 });
     }
@@ -61,11 +60,9 @@ export async function GET(
           'Content-Type': 'text/plain'
         }
       });
-    }
-
-    // Generate signed URL for private image
+    }    // Generate signed URL for private image
     const folder = photoType === 'profile' ? 'matrimonial-profiles' : 'matrimonial-gallery';
-    const fullPublicId = `${folder}/${params.imageId}`;
+    const fullPublicId = `${folder}/${imageId}`;
     
     console.log('🔗 Generating signed URL for:', fullPublicId);
     

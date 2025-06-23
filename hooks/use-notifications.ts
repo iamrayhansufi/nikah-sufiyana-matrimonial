@@ -132,14 +132,24 @@ export function useNotifications() {
 
     // Set up polling with longer interval to reduce Redis load
     const interval = setInterval(() => {
-      if (isMounted) {
+      if (isMounted && document.visibilityState === 'visible') {
         fetchNotifications();
       }
     }, 30000); // Changed from 5000 to 30000 (30 seconds)
 
+    // Also listen for visibility changes to reduce unnecessary requests
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isMounted) {
+        fetchNotifications();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       isMounted = false;
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [session?.user?.id]);
   // Mark notification as read

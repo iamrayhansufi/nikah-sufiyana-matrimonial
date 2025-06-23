@@ -15,9 +15,9 @@ interface RedisInterest {
   status: string;
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // Check if user exists
     const userData = await redis.hgetall(`user:${id}`);

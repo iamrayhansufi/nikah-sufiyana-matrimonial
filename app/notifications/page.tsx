@@ -11,7 +11,7 @@ import { playfair } from "../lib/fonts"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { format, isToday, isYesterday, formatDistanceToNow } from "date-fns"
-import { useNotifications } from "@/hooks/use-notifications"
+import { useNotifications } from "@/hooks/notification-provider"
 
 // Group notifications by day
 function groupNotificationsByDate(notifications: any[]) {

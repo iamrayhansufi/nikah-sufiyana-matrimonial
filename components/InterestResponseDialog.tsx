@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Heart, X, Clock, Shield } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useNotifications } from "@/hooks/use-notifications"
+import { useNotifications } from "@/hooks/notification-provider"
 
 interface InterestResponseDialogProps {
   interest: {

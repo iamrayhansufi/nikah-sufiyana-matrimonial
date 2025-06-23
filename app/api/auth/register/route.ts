@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const userData = registerSchema.parse(body);
 
     // Check if user already exists with phone number
-    let userIds = await redis.smembers("users");
+    const userIds = await redis.smembers("users");
     for (const id of userIds) {
       const user = await redis.hgetall(`user:${id}`);
       if (user && user.phone === userData.phone) {

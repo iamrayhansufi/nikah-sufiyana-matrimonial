@@ -28,7 +28,7 @@ import {
   Award,
 } from "lucide-react"
 import { elMessiri } from "../lib/fonts"
-import { useNotifications } from "@/hooks/use-notifications"
+import { useNotifications } from "@/hooks/notification-provider"
 import { PhotoAccessManager } from "@/components/PhotoAccessManager"
 import Image from "next/image"
 

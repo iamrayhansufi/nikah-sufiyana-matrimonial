@@ -87,7 +87,7 @@ export async function POST(req: Request) {
               return pageData.getTextContent()
                 .then(function(textContent: any) {
                   let lastY, text = '';
-                  for (let item of textContent.items) {
+                  for (const item of textContent.items) {
                     if (lastY == item.transform[5] || !lastY) {
                       text += item.str;
                     } else {

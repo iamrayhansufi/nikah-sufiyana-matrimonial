@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { useNotifications } from "@/hooks/use-notifications"
+import { useNotifications } from "@/hooks/notification-provider"
 import { elMessiri } from "@/app/lib/fonts"
 
 interface UserNotification {

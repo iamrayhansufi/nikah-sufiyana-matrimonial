@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     // Collect domain info for debugging
     let parsedNextAuthUrl = null;
-    let rawNextAuthUrl = process.env.NEXTAUTH_URL || 'Not set';
+    const rawNextAuthUrl = process.env.NEXTAUTH_URL || 'Not set';
     try {
       if (process.env.NEXTAUTH_URL) {
         const url = new URL(process.env.NEXTAUTH_URL);

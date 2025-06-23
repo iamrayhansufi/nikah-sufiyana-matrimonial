@@ -32,7 +32,7 @@ import Link from "next/link"
 import { elMessiri } from "../../lib/fonts"
 import { useSession, signIn } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
-import { useNotifications } from "@/hooks/use-notifications"
+import { useNotifications } from "@/hooks/notification-provider"
 import { InterestResponseDialog, QuickInterestResponse } from "@/components/InterestResponseDialog"
 
 // Helper function to safely parse JSON arrays
@@ -107,7 +107,7 @@ const formatToTitleCase = (text: string): string => {
 export default function ProfilePage({ 
   params
 }: { 
-  params: { id: string } 
+  params: Promise<{ id: string }> 
 }) {
   const router = useRouter()
   const { data: session, status } = useSession()
@@ -129,9 +129,16 @@ export default function ProfilePage({
   const [showLightbox, setShowLightbox] = useState(false)
   const [lightboxImage, setLightboxImage] = useState<string>('')
   const [photoAccessInfo, setPhotoAccessInfo] = useState<any>(null)
+  const [id, setId] = useState<string | null>(null)
   
-  // Get the profile ID from params
-  const { id } = params
+  // Resolve params to get the profile ID
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setId(resolvedParams.id);
+    };
+    resolveParams();
+  }, [params]);
   
   // Handle login redirection
   const handleLogin = () => {
@@ -164,12 +171,9 @@ export default function ProfilePage({
       console.error('Error checking photo access:', error)
     }
   }
-
   useEffect(() => {    const fetchProfile = async () => {
       if (!id) {
-        setError("Invalid profile ID")
-        setLoading(false)
-        return
+        return; // Don't set error yet, wait for id to be resolved
       }
         // Validate that ID is a valid format (should be alphanumeric with possible dashes)
       const idString = id.toString().replace('user:', ''); // Remove user: prefix if present
@@ -293,8 +297,8 @@ export default function ProfilePage({
       }
     }
     
-    // Only fetch if we have a session
-    if (status === 'authenticated') {
+    // Only fetch if we have a session and an id
+    if (status === 'authenticated' && id) {
       fetchProfile()
     } else if (status === 'unauthenticated') {
       setError("Please log in to view profiles")

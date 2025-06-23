@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import screenshot protection styles */
+@import '../styles/screenshot-protection.css';
+
 @layer base {
   :root {
     --background: 0 0% 100%;
