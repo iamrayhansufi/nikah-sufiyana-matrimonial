@@ -102,18 +102,65 @@ export async function DELETE(request: NextRequest) {
     }
     
     console.log("💾 Update data to be saved:", updateData);
-    
-    // Update user in Redis
+      // Update user in Redis
     console.log("🔄 Updating user data in Redis...");
-    await redis.hset(userKey, updateData);    // Verify the update
+    try {
+      const hsetResult = await redis.hset(userKey, updateData);
+      console.log("✅ HSET completed with result:", hsetResult);
+      console.log("HSET result type:", typeof hsetResult);
+      
+      if (hsetResult === null || hsetResult === undefined) {
+        console.error("❌ HSET returned null/undefined - operation may have failed");
+        throw new Error("Redis HSET operation failed");
+      }
+    } catch (hsetError) {
+      console.error("❌ HSET operation failed:", hsetError);
+      throw new Error(`Failed to update user photos: ${hsetError}`);
+    }    // Add a small delay to ensure consistency
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Verify the update
     console.log("✅ Verifying update...");
     const verifyUser = await redis.hgetall(userKey);
+    let verifiedPhotos: string[] = [];
+    
     if (verifyUser) {
       console.log("📸 Verified photos:", verifyUser.photos);
       console.log("📸 Verified profilePhotos:", verifyUser.profilePhotos);
       console.log("📸 Verified profilePhoto:", verifyUser.profilePhoto);
+      
+      // Parse and validate the verified data
+      try {
+        if (Array.isArray(verifyUser.photos)) {
+          verifiedPhotos = verifyUser.photos;
+        } else if (typeof verifyUser.photos === 'string') {
+          verifiedPhotos = JSON.parse(verifyUser.photos);
+        }
+        
+        console.log("📊 Verified photos count:", verifiedPhotos.length);
+        console.log("📊 Expected photos count:", updatedPhotos.length);
+        console.log("📊 Counts match?", verifiedPhotos.length === updatedPhotos.length);
+        console.log("📊 Deleted photo still exists?", verifiedPhotos.includes(photoUrl));
+        
+        if (verifiedPhotos.length !== updatedPhotos.length) {
+          console.error("❌ Photo count mismatch after update!");
+          throw new Error("Photo deletion verification failed - count mismatch");
+        }
+        
+        if (verifiedPhotos.includes(photoUrl)) {
+          console.error("❌ Deleted photo still exists in verified data!");
+          throw new Error("Photo deletion verification failed - photo still exists");
+        }
+        
+        console.log("✅ Verification successful - photo was actually deleted");
+        
+      } catch (verifyError) {
+        console.error("❌ Error during verification:", verifyError);
+        throw new Error(`Photo deletion verification failed: ${verifyError}`);
+      }
     } else {
       console.log("❌ Failed to verify update - user not found");
+      throw new Error("Failed to verify photo deletion - user not found after update");
     }
 
     // If this was an image served from our API, also remove it from Redis
@@ -121,14 +168,17 @@ export async function DELETE(request: NextRequest) {
       const filename = photoUrl.replace('/api/images/', '');
       console.log("🗑️ Removing image data from Redis for filename:", filename);
       await redis.del(`image:${filename}`);
-    }
-
-    console.log("✅ Photo deletion completed successfully");
+    }    console.log("✅ Photo deletion completed successfully");
+    
+    // Return the verified count instead of the original filtered count
+    const finalCount = verifiedPhotos.length;
+    console.log("📊 Returning final photo count:", finalCount);
+    
     return NextResponse.json({ 
       success: true, 
       message: "Photo deleted successfully",
-      remainingPhotos: updatedPhotos.length,
-      updatedPhotos: updatedPhotos
+      remainingPhotos: finalCount,
+      updatedPhotos: verifiedPhotos
     });
   } catch (error) {
     console.error("❌ Error deleting photo:", error);
