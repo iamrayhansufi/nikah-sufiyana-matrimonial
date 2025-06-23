@@ -206,12 +206,10 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-royal-gradient">
       <Header />
-      
-      {/* Sufiyana Hero Section with Divine Slider */}
+        {/* Sufiyana Hero Section with Divine Slider */}
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-royal-primary/5 to-transparent"></div>
-        
-        <div className="content-container">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Content */}
             <motion.div 
@@ -285,11 +283,9 @@ export default function HomePage() {
           </motion.div>
         </div>
         </div>
-      </section>
-
-      {/* Sacred Values Section */}
+      </section>      {/* Sacred Values Section */}
       <section className="section-spacing relative">
-        <div className="content-container">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             className="text-center mb-12 lg:mb-16"
             variants={fadeInUp}
@@ -312,10 +308,8 @@ export default function HomePage() {
             <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto font-medium leading-relaxed">
               India's most trusted Islamic matrimonial platform, dedicated to helping Muslim families find the perfect life partners with complete Islamic values and modern convenience.
             </p>
-          </motion.div>
-
-          <motion.div 
-            className="responsive-grid-4"
+          </motion.div>          <motion.div 
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
             variants={staggerContainer}
             initial="initial"
             whileInView="animate"
@@ -342,9 +336,9 @@ export default function HomePage() {
       </section>      {/* Brand Story Section - The Sufiyana Legacy */}
       <section className="section-spacing bg-gradient-to-br from-cream-light/30 to-cream-dark/20 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-5"></div>
-        <div className="content-container relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div 
-            className="max-w-5xl mx-auto"
+            className="max-w-6xl mx-auto"
             variants={fadeInUp}
             initial="initial"
             whileInView="animate"
@@ -365,7 +359,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="responsive-grid-2 items-center">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -442,7 +436,7 @@ export default function HomePage() {
         </div>
       </section>      {/* Premium Profiles Section */}
       <section className="section-spacing bg-gradient-to-br from-cream-light/50 to-cream-dark/30 relative">
-        <div className="content-container">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             className="text-center mb-12 lg:mb-16"
             variants={fadeInUp}
@@ -478,7 +472,7 @@ export default function HomePage() {
           </motion.div>
 
           <motion.div 
-            className="responsive-grid-3 mb-8 lg:mb-12"
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8 lg:mb-12"
             variants={staggerContainer}
             initial="initial"
             whileInView="animate"
@@ -612,11 +606,9 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-      </section>
-
-      {/* Success Stories Section */}
+      </section>      {/* Success Stories Section */}
       <section className="py-20 relative">
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             className="text-center mb-16"
             variants={fadeInUp}
@@ -701,12 +693,10 @@ export default function HomePage() {
               </Button>
             </Link>
           </div></div>
-      </section>
-
-      {/* Sufiyana Philosophy & Community Section */}
+      </section>      {/* Sufiyana Philosophy & Community Section */}
       <section className="py-20 bg-gradient-to-br from-cream-light/40 to-cream-dark/30 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-5"></div>
-        <div className="container mx-auto px-4 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div 
             className="text-center mb-16"
             variants={fadeInUp}
@@ -857,11 +847,9 @@ export default function HomePage() {
             </motion.div>
           </motion.div>
         </div>
-      </section>
-
-      {/* Sufiyana Features Section */}
+      </section>      {/* Sufiyana Features Section */}
       <section className="py-20 relative">
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             className="text-center mb-16"
             variants={fadeInUp}
@@ -963,12 +951,10 @@ export default function HomePage() {
             </motion.div>
           </div>
         </div>
-      </section>
-
-      {/* Call to Action Section */}
+      </section>      {/* Call to Action Section */}
       <section className="py-20 bg-gradient-to-br from-royal-primary to-royal-primary/80 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-10"></div>
-        <div className="container mx-auto px-4 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div 
             className="text-center max-w-4xl mx-auto"
             variants={fadeInUp}
