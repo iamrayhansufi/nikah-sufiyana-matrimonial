@@ -34,14 +34,31 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }    // Update photos array
     let photos: string[] = [];
-    try {
-      photos = user.photos ? JSON.parse(user.photos) : [];
-    } catch (error) {
-      console.error("Error parsing photos:", error);
-      photos = [];
+    
+    // Handle both string (JSON) and object (parsed) formats from Redis
+    if (user.photos) {
+      if (typeof user.photos === 'string') {
+        try {
+          photos = JSON.parse(user.photos);
+        } catch (error) {
+          console.error("Error parsing photos JSON:", error);
+          photos = [];
+        }
+      } else if (Array.isArray(user.photos)) {
+        // Redis client already parsed it as an array
+        photos = user.photos;
+      } else {
+        console.warn("Unexpected photos format:", typeof user.photos, user.photos);
+        photos = [];
+      }
     }
+    
+    console.log(`📸 Current photos before deletion:`, photos);
+    console.log(`🗑️ Deleting photo:`, photoUrl);
 
     const updatedPhotos = photos.filter(p => p !== photoUrl);
+    
+    console.log(`📸 Updated photos after deletion:`, updatedPhotos);
     
     // Update both photos and profilePhotos fields, and handle profile photo
     const updateData: { [key: string]: string } = {

@@ -87,31 +87,38 @@ export async function POST(req: Request) {
       console.log('📷 Existing photos field:', existingPhotosStr);
       console.log('📷 Existing profilePhotos field:', existingProfilePhotosStr);
       
-      let photos: string[] = [];
-
-      const parsePhotoData = (photoData: unknown): string[] => {
-        if (!photoData || typeof photoData !== 'string') return [];
+      let photos: string[] = [];      const parsePhotoData = (photoData: unknown): string[] => {
+        if (!photoData) return [];
         
-        const trimmed = photoData.trim();
-        if (!trimmed) return [];
-        
-        // If it's a single photo string (not a JSON array), wrap it in an array
-        if (trimmed[0] !== '[') {
-          // Check if it's a valid URL string
-          if (trimmed.startsWith('/api/secure-image/') || trimmed.startsWith('http')) {
-            return [trimmed];
-          }
-          return [];
+        // Handle array (when Redis client auto-parses)
+        if (Array.isArray(photoData)) {
+          return photoData.filter((p): p is string => typeof p === 'string');
         }
         
-        try {
-          const parsed = JSON.parse(photoData);
-          if (Array.isArray(parsed)) {
-            return parsed.filter((p): p is string => typeof p === 'string');
+        // Handle string (JSON or single URL)
+        if (typeof photoData === 'string') {
+          const trimmed = photoData.trim();
+          if (!trimmed) return [];
+          
+          // If it's a single photo string (not a JSON array), wrap it in an array
+          if (trimmed[0] !== '[') {
+            // Check if it's a valid URL string
+            if (trimmed.startsWith('/api/secure-image/') || trimmed.startsWith('http')) {
+              return [trimmed];
+            }
+            return [];
           }
-        } catch (e) {
-          console.warn("Could not parse photo data:", e);
+          
+          try {
+            const parsed = JSON.parse(photoData);
+            if (Array.isArray(parsed)) {
+              return parsed.filter((p): p is string => typeof p === 'string');
+            }
+          } catch (e) {
+            console.warn("Could not parse photo data:", e);
+          }
         }
+        
         return [];
       };
 

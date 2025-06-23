@@ -119,23 +119,33 @@ export async function POST(req: Request) {  try {
         { error: "User not found" },
         { status: 404 }
       );
-    }
-
-    // Get existing photos
+    }    // Get existing photos
     let existingPhotos: string[] = [];
     if (currentUser.photos) {
-      try {
-        const parsed = JSON.parse(currentUser.photos as string);
-        if (Array.isArray(parsed)) {
-          existingPhotos = parsed;
+      if (typeof currentUser.photos === 'string') {
+        try {
+          const parsed = JSON.parse(currentUser.photos);
+          if (Array.isArray(parsed)) {
+            existingPhotos = parsed;
+          }
+        } catch (e) {
+          console.warn('Error parsing existing photos JSON:', e);
         }
-      } catch (e) {
-        console.warn('Error parsing existing photos:', e);
+      } else if (Array.isArray(currentUser.photos)) {
+        // Redis client already parsed it as an array
+        existingPhotos = currentUser.photos;
+      } else {
+        console.warn("Unexpected photos format:", typeof currentUser.photos);
       }
     }
+    
+    console.log(`📸 Existing photos:`, existingPhotos);
+    console.log(`➕ Adding photos:`, photoUrls);
 
     // Combine existing and new photos, limit to 5 total
     const allPhotos = [...existingPhotos, ...photoUrls].slice(0, 5);
+    
+    console.log(`📸 All photos after upload:`, allPhotos);
 
     // Update user with new photos
     const updateData: { [key: string]: string } = {
