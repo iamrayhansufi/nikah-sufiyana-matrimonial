@@ -959,24 +959,14 @@ export default function EditProfilePage() {
         console.error("Upload failed with response:", responseData);
         throw new Error(responseData?.error || 'Failed to upload profile photo')
       }      console.log("Upload successful:", responseData);
-      
-      // Ensure responseData contains a URL
+        // Ensure responseData contains a URL
       if (!responseData || !responseData.url) {
         console.error("Missing URL in response data:", responseData);
         throw new Error("Server response is missing the photo URL");
       }
-      
-      // Manually update the local state to show the new photo immediately
-      const newPhotoUrl = responseData.url;
-      if (newPhotoUrl) {
-        setPrivacyForm(prev => {
-          const updatedPhotos = [...(prev.profilePhotos || []), newPhotoUrl];
-          return { ...prev, profilePhotos: updatedPhotos };
-        });
-      }
 
       // Refresh the page data with retry mechanism to ensure the photo appears
-      await refetchProfileWithRetry(newPhotoUrl);
+      await refetchProfileWithRetry(responseData.url);
       
       // Show success message
       toast({
@@ -1133,24 +1123,9 @@ export default function EditProfilePage() {
           // Only add timestamp to regular URLs for cache busting
           return `${url}?t=${new Date().getTime()}`;
         }
-      });
-      console.log("Setting new photo URLs:", newPhotoUrls);
-        // Safely update the profile data
-      setProfileData((prev: any) => {
-        const currentPhotos = Array.isArray(prev?.profilePhotos) ? prev.profilePhotos : [];
-        return {
-          ...prev,
-          profilePhotos: [...currentPhotos, ...newPhotoUrls]
-        };
-      });
+      });      console.log("Setting new photo URLs:", newPhotoUrls);
       
-      // Update the privacy form to include the new photos
-      setPrivacyForm(prev => ({
-        ...prev,
-        profilePhotos: [...(prev.profilePhotos || []), ...newPhotoUrls]
-      }));
-      
-      // Refresh the profile data
+      // Refresh the profile data to get updated photos from server
       await refetchProfile();
       
       toast({
@@ -1189,28 +1164,10 @@ export default function EditProfilePage() {
         const errorData = await response.json();
         throw new Error(errorData?.error || 'Failed to delete photo');
       }
-      
-      const result = await response.json();
+        const result = await response.json();
       console.log("Photo deleted successfully:", result);
       
-      // Update local state immediately for better UX
-      setProfileData((prev: any) => {
-        if (!prev?.profilePhotos) return prev;
-        const updatedPhotos = [...prev.profilePhotos];
-        updatedPhotos.splice(index, 1);
-        return {
-          ...prev,
-          profilePhotos: updatedPhotos
-        };
-      });
-      
-      // Update privacy form state as well
-      setPrivacyForm(prev => ({
-        ...prev,
-        profilePhotos: prev.profilePhotos?.filter((_, i) => i !== index) || []
-      }));
-      
-      // Refresh the profile data to ensure consistency
+      // Refresh the profile data to get updated photos from the server
       await refetchProfile();
       
       toast({
@@ -2357,27 +2314,49 @@ export default function EditProfilePage() {
                               </div>
                             </div>
                             <Badge className="absolute -top-2 -right-2 bg-primary">Main</Badge>
-                          </div>                            {/* Additional Photos */}
+                          </div>                          {/* Additional Photos */}
                           {(() => {
-                            // Get all photos from both sources and filter out invalid ones
-                            const allPhotos = [
-                              ...(Array.isArray(profileData?.profilePhotos) ? profileData.profilePhotos : []),
-                              ...(Array.isArray(privacyForm.profilePhotos) ? privacyForm.profilePhotos : [])
-                            ];
+                            // Get photos only from profileData to avoid duplicates
+                            // privacyForm.profilePhotos should not be used for display as it can cause duplicates
+                            let photosFromData: string[] = [];
                             
-                            // Remove duplicates and filter out invalid URLs
-                            const uniqueValidPhotos = [...new Set(allPhotos)].filter(photo => 
+                            if (profileData?.profilePhotos) {
+                              if (Array.isArray(profileData.profilePhotos)) {
+                                photosFromData = profileData.profilePhotos;
+                              } else if (typeof profileData.profilePhotos === 'string') {
+                                try {
+                                  const parsed = JSON.parse(profileData.profilePhotos);
+                                  if (Array.isArray(parsed)) {
+                                    photosFromData = parsed;
+                                  }
+                                } catch (e) {
+                                  console.warn('Error parsing profilePhotos:', e);
+                                }
+                              }
+                            }
+                            
+                            // Filter out the main profile photo to avoid showing it twice
+                            const mainProfilePhoto = profileData?.profilePhoto;
+                            let galleryPhotos = photosFromData;
+                            
+                            if (mainProfilePhoto) {
+                              galleryPhotos = photosFromData.filter(photo => photo !== mainProfilePhoto);
+                            }
+                            
+                            // Filter out invalid URLs
+                            const validGalleryPhotos = galleryPhotos.filter(photo => 
                               photo && isValidPhotoUrl(photo)
                             );
                             
-                            console.log('Rendering photos - Debug info:', {
+                            console.log('Gallery photos - Debug info:', {
                               profileDataPhotos: profileData?.profilePhotos,
-                              privacyFormPhotos: privacyForm.profilePhotos,
-                              allPhotos,
-                              uniqueValidPhotos
+                              mainProfilePhoto,
+                              photosFromData,
+                              galleryPhotos,
+                              validGalleryPhotos
                             });
                             
-                            return uniqueValidPhotos.map((photo: string, index: number) => (
+                            return validGalleryPhotos.map((photo: string, index: number) => (
                               <div key={`${photo}-${index}`} className="relative">
                                 <div className="h-32 w-32 rounded-md border border-gray-200 overflow-hidden">
                                   <img 
@@ -2406,19 +2385,32 @@ export default function EditProfilePage() {
                                 </button>
                               </div>
                             ));
-                          })()}                            {/* Add More Photos Button */}
+                          })()}                          {/* Add More Photos Button */}
                           {(() => {
-                            // Calculate total valid photos
-                            const allPhotos = [
-                              ...(Array.isArray(profileData?.profilePhotos) ? profileData.profilePhotos : []),
-                              ...(Array.isArray(privacyForm.profilePhotos) ? privacyForm.profilePhotos : [])
-                            ];
-                            const uniqueValidPhotos = [...new Set(allPhotos)].filter(photo => 
+                            // Calculate total valid photos only from profileData
+                            let photosFromData: string[] = [];
+                            
+                            if (profileData?.profilePhotos) {
+                              if (Array.isArray(profileData.profilePhotos)) {
+                                photosFromData = profileData.profilePhotos;
+                              } else if (typeof profileData.profilePhotos === 'string') {
+                                try {
+                                  const parsed = JSON.parse(profileData.profilePhotos);
+                                  if (Array.isArray(parsed)) {
+                                    photosFromData = parsed;
+                                  }
+                                } catch (e) {
+                                  console.warn('Error parsing profilePhotos:', e);
+                                }
+                              }
+                            }
+                            
+                            const validPhotos = photosFromData.filter(photo => 
                               photo && isValidPhotoUrl(photo)
                             );
                             
                             // Show button only if we have less than 5 photos
-                            if (uniqueValidPhotos.length < 5) {
+                            if (validPhotos.length < 5) {
                               return (
                                 <label 
                                   htmlFor="additional-photos" 
