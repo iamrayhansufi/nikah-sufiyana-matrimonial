@@ -25,4 +25,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temp and debug files
+temp/
+temp.*
+scripts/
+*.bak
+*.log
+email-preview*.html
+*.md
+!README.md
+
+# development files
+archive/
+src/
+styles/
+
 .vercel
