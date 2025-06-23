@@ -33,12 +33,11 @@ export default function PrivacyFeaturesPage() {
     {
       icon: Eye,
       title: "Photo Privacy",
-      description: "Advanced photo privacy settings for your security",
-      details: [
+      description: "Advanced photo privacy settings for your security",      details: [
         "Watermarking options",
         "Photo access control",
-        "Screenshot prevention",
         "Selective photo sharing",
+        "Privacy controls",
       ],
     },
     {

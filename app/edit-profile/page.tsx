@@ -15,7 +15,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import ScreenshotProtection from "@/components/security/ScreenshotProtection"
 import { 
   User, 
   AlertCircle, 
@@ -1243,9 +1242,8 @@ export default function EditProfilePage() {
                   <Badge className="mr-2 bg-green-500">
                     APPROVED
                   </Badge>
-                )}
-                
-                <ScreenshotProtection level="basic" className="relative">
+                )}                
+                <div className="relative">
                   <div className="h-16 w-16 rounded-full border-2 border-primary overflow-hidden bg-slate-200">
                     {(() => {
                       const photoUrl = profileData?.profilePhoto || 
@@ -1303,7 +1301,7 @@ export default function EditProfilePage() {
                       onChange={handlePhotoUpload}                      className="hidden" 
                     />
                   </label>
-                </ScreenshotProtection>
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -2261,21 +2259,11 @@ export default function EditProfilePage() {
                             </div>
                           )}
                         </div>
-                      </div>
-                    </div>
-                    <ScreenshotProtection 
-                      level="maximum" 
-                      watermark="NIKAH SUFIYANA - PRIVATE PROFILE" 
-                      blurOnSuspicious={true}
-                      className="border p-4 rounded-md bg-blue-50/30 mt-4 space-y-4"
-                    >
-                      <h3 className="font-medium text-md mb-2">🔒 Photo Gallery (Protected)</h3>
+                      </div>                    </div>
+                    <div className="border p-4 rounded-md bg-blue-50/30 mt-4 space-y-4">
+                      <h3 className="font-medium text-md mb-2">� Photo Gallery</h3>
                       <p className="text-lg text-muted-foreground mb-4">
                         Upload additional photos to showcase in your profile gallery. You can add up to 5 photos.
-                        <br />
-                        <span className="text-sm text-amber-600 font-medium">
-                          ⚠️ This section is protected against screenshots for privacy
-                        </span>
                       </p>
                       
                       {/* Multiple Photo Upload */}
@@ -2418,9 +2406,8 @@ export default function EditProfilePage() {
                           <p>
                             <strong>Note:</strong> Each photo should be less than 5MB. For best results, use square images.
                           </p>
-                        </div>
-                      </div>
-                    </ScreenshotProtection>
+                        </div>                      </div>
+                    </div>
                   
                   <div className="pt-4">
                     <Alert>
