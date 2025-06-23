@@ -966,15 +966,15 @@ export default function EditProfilePage() {
         throw new Error("Server response is missing the photo URL");
       }
       
-      // The upload API already updates the user profile, so we just need to refresh the data
-      console.log("Photo uploaded successfully, refreshing profile data...");
-      
-      toast({
-        title: "Photo Updated",
-        description: "Your profile photo has been successfully uploaded and saved",
-        variant: "default"
-      })
-      
+      // Manually update the local state to show the new photo immediately
+      const newPhotoUrl = responseData.url;
+      if (newPhotoUrl) {
+        setPrivacyForm(prev => {
+          const updatedPhotos = [...(prev.profilePhotos || []), newPhotoUrl];
+          return { ...prev, profilePhotos: updatedPhotos };
+        });
+      }
+
       // Refresh the page data to ensure everything is up to date
       await refetchProfile();
     } catch (error) {
@@ -1876,7 +1876,7 @@ export default function EditProfilePage() {
                                     className="h-8"
                                   />
                                 </td>
-                                <td className="p-2">
+                                                               <td className="p-2">
                                   <Input 
                                     value={brotherInLaw.occupation} 
                                     onChange={(e) => handleBrotherInLawChange(index, 'occupation', e.target.value)} 
