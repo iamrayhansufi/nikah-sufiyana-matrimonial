@@ -79,25 +79,35 @@ export async function POST(req: Request) {  try {
       
       console.log("Generated secure URL:", secureUrl);
       
-      // Get existing photos
-      const existingPhotos = await redis.hget(`user:${userId}`, "photos");
-      let photos = [];
-      
-      // Handle existing photos
-      if (existingPhotos) {
-        if (typeof existingPhotos === 'string') {
-          try {
-            photos = JSON.parse(existingPhotos);
-          } catch (e) {
-            console.warn('Error parsing existing photos:', e);
-            photos = [];
+      // Get existing photos from both `photos` and `profilePhotos` fields for robustness
+      const existingPhotosStr = await redis.hget(`user:${userId}`, "photos");
+      const existingProfilePhotosStr = await redis.hget(`user:${userId}`, "profilePhotos");
+      let photos: string[] = [];
+
+      const parsePhotoData = (photoData: unknown): string[] => {
+        if (typeof photoData !== 'string') return [];
+        try {
+          const parsed = JSON.parse(photoData);
+          if (Array.isArray(parsed)) {
+            return parsed.filter((p): p is string => typeof p === 'string');
           }
-        } else if (Array.isArray(existingPhotos)) {
-          photos = existingPhotos;
+        } catch (e) {
+          console.warn("Could not parse photo data:", e);
         }
+        return [];
+      };
+
+      const fromPhotos = parsePhotoData(existingPhotosStr);
+      const fromProfilePhotos = parsePhotoData(existingProfilePhotosStr);
+
+      // Merge and deduplicate to ensure data integrity
+      const combined = [...new Set([...fromPhotos, ...fromProfilePhotos])];
+      photos = combined;
+      
+      // Add new photo URL if it's not already in the list
+      if (!photos.includes(secureUrl)) {
+        photos.push(secureUrl);
       }
-        // Add new photo URL (use secure URL instead of direct Cloudinary URL)
-      photos.push(secureUrl);
       
       // Update both photos array and profilePhoto field
       const updateData: { [key: string]: string } = {
