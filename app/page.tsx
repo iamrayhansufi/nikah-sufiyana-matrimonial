@@ -205,13 +205,19 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-royal-gradient">
-      <Header />
-        {/* Sufiyana Hero Section with Divine Slider */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-royal-primary/5 to-transparent"></div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left Content */}
+      <Header />        {/* Sufiyana Hero Section with Background Image */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-contain bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url('https://res.cloudinary.com/ddneah55w/image/upload/v1750678274/WEB-SLIDE_1_pgkyfc.jpg')`
+          }}
+        >
+        </div>
+        
+        <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-center min-h-[85vh]">
+            {/* Left Content - Title, Description & Registration Form */}
             <motion.div 
               className="text-center lg:text-left space-y-6 lg:space-y-8"
               initial={{ opacity: 0, x: -50 }}
@@ -219,71 +225,44 @@ export default function HomePage() {
               transition={{ duration: 0.8 }}
             >
               <div className="space-y-4 lg:space-y-6">
-                <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-sm font-medium inline-flex items-center gap-2">
+                <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-sm font-medium inline-flex items-center gap-2 backdrop-blur-sm">
                   <Sparkles className="w-4 h-4" />
-                  {slides[currentSlide].badge}
-                </Badge><h1 className={`${elMessiri.className} text-4xl md:text-6xl lg:text-7xl font-bold text-royal-primary leading-tight`}>
-                {slides[currentSlide].title}
-              </h1>
-                {slides[currentSlide].subtitle && (
-                <h2 className={`${elMessiri.className} text-3xl md:text-4xl text-royal-primary font-semibold`}>
-                  {slides[currentSlide].subtitle}
-                </h2>
-              )}
-              
-              <p className="text-xl md:text-2xl text-gray-700 leading-relaxed max-w-3xl font-medium">
-                {slides[currentSlide].description}
-              </p>
-            </div>
+                  Premium Islamic Matrimonial Service
+                </Badge>
+                
+                <h1 className={`${elMessiri.className} text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight drop-shadow-lg`}>
+                  Find Your Perfect Life Partner
+                </h1>
+                
+                <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl drop-shadow-md">
+                  Join India's most trusted Islamic matrimonial platform. Connect with verified profiles and find your soulmate with complete Islamic values and family traditions.
+                </p>
+                
+                {/* SVG Border */}
+                <div className="flex justify-center lg:justify-start">
+                  <Image
+                    src="/sufiyana-border-ui.svg"
+                    alt="Decorative Border"
+                    width={200}
+                    height={12}
+                    className="opacity-60 filter brightness-0 invert"
+                  />
+                </div>
+              </div>
 
-            {/* SVG Border Under Title */}
-            <div className="flex justify-center lg:justify-start">
-              <Image
-                src="/sufiyana-border-ui.svg"
-                alt="Decorative Border"
-                width={200}
-                height={12}
-                className="opacity-60"
-              />
-            </div>            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link href="/register">
-                <Button size="lg" className="gradient-primary text-white px-8 py-4 text-lg font-semibold shadow-lg">
-                  {slides[currentSlide].cta || "Begin Your Sacred Journey"}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/about#success-stories">
-                <Button variant="outline" size="lg" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white active:bg-royal-primary/90 active:text-white focus:bg-royal-primary focus:text-white px-8 py-4 text-lg font-semibold transition-all duration-300">
-                  Watch Success Stories
-                  <Heart className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
+              {/* Registration Form - full width of column */}
+              <div className="w-full">
+                <HeroRegistrationForm />
+              </div>
+            </motion.div>
 
-            {/* Slide Indicators */}
-            <div className="flex justify-center lg:justify-start gap-2">
-              {slides.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentSlide ? 'bg-royal-primary' : 'bg-gray-300'
-                  }`}
-                />
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Right Content - Registration Form */}          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <HeroRegistrationForm />
-          </motion.div>
+            {/* Right Content - Empty for background image */}
+            <div className="hidden lg:block"></div>
+          </div>
         </div>
-        </div>
-      </section>      {/* Sacred Values Section */}
+      </section>
+
+      {/* Sacred Values Section */}
       <section className="section-spacing relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
@@ -607,7 +586,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>      {/* Success Stories Section */}
-      <section className="py-20 relative">
+      <section className="section-spacing relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             className="text-center mb-16"
@@ -694,7 +673,7 @@ export default function HomePage() {
             </Link>
           </div></div>
       </section>      {/* Sufiyana Philosophy & Community Section */}
-      <section className="py-20 bg-gradient-to-br from-cream-light/40 to-cream-dark/30 relative overflow-hidden">
+      <section className="section-spacing bg-gradient-to-br from-cream-light/40 to-cream-dark/30 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-5"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div 
@@ -848,7 +827,7 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>      {/* Sufiyana Features Section */}
-      <section className="py-20 relative">
+      <section className="section-spacing relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             className="text-center mb-16"
@@ -952,7 +931,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>      {/* Call to Action Section */}
-      <section className="py-20 bg-gradient-to-br from-royal-primary to-royal-primary/80 text-white relative overflow-hidden">
+      <section className="section-spacing bg-gradient-to-br from-royal-primary to-royal-primary/80 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <motion.div 

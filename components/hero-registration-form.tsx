@@ -31,127 +31,104 @@ export function HeroRegistrationForm() {
   }
 
   return (
-    <div className="relative w-full">      
-      <Card className="w-full max-w-lg mx-auto lg:max-w-md box-layout bg-white/95 backdrop-blur-sm shadow-2xl border-0 royal-shadow card-royal-shine">
-        <CardHeader className="text-center pb-4 pt-6 lg:pt-8 px-4 lg:px-6">
-          <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-3 lg:mb-4 royal-glow-effect rounded-full flex items-center justify-center shadow-lg">
-            <Image
-              src="/Nikah-Sufiyana-Icon-white-01.svg"
-              alt="Nikah Sufiyana Icon"
-              width={32}
-              height={32}
-              className="h-6 w-6 lg:h-8 lg:w-8"
-            />
+    <div className="relative w-full">
+      <Card className="w-full bg-white/95 backdrop-blur-sm shadow-2xl border-0 rounded-2xl">
+        <CardHeader className="text-center pb-4 pt-6 px-4 sm:px-6 lg:px-8">
+          <div className="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
+            <Heart className="h-7 w-7 text-white" />
           </div>
-          <CardTitle className={`${elMessiri.className} text-xl lg:text-2xl font-bold text-gray-800 royal-text-shiny`}>
-            Start Your Journey Today
+          <CardTitle className={`${elMessiri.className} text-2xl lg:text-3xl font-bold text-gray-800`}>
+            Quick Registration
           </CardTitle>
-          <p className="text-base lg:text-lg text-gray-600">Find your perfect life partner with Islamic values</p>
-          
-          {/* SVG Border Under Title */}
-          <div className="flex justify-center mt-2 lg:mt-3">
-            <Image
-              src="/sufiyana-border-ui.svg"
-              alt="Decorative Border"
-              width={200}
-              height={20}
-              className="opacity-40 lg:w-[250px]"
-            />
-          </div>
+          <p className="text-base text-gray-600">Find your perfect match today</p>
         </CardHeader>
-
-      <CardContent className="px-4 lg:px-6 pb-6 lg:pb-8">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="fullName" className="text-lg font-medium text-gray-700 font-body">
-              Full Name
-            </Label>
-            <div className="relative mt-1">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                id="fullName"
-                value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                placeholder="Enter your full name"
-                className="pl-10 font-body"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="lookingFor" className="text-lg font-medium text-gray-700 font-body">
-              Looking for
-            </Label>
-            <Select
-              value={formData.lookingFor}
-              onValueChange={(value) => setFormData({ ...formData, lookingFor: value })}
-            >
-              <SelectTrigger className="mt-1 font-body">
-                <SelectValue placeholder="Select preference" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bride">Bride</SelectItem>
-                <SelectItem value="groom">Groom</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="mobile" className="text-lg font-medium text-gray-700 font-body">
-              WhatsApp Mobile Number
-            </Label>
-            <div className="flex mt-1 space-x-2">
-              <Select
-                value={formData.countryCode}
-                onValueChange={(value) => setFormData({ ...formData, countryCode: value })}
-              >
-                <SelectTrigger className="w-20 font-body">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="+91">🇮🇳 +91</SelectItem>
-                  <SelectItem value="+1">🇺🇸 +1</SelectItem>
-                  <SelectItem value="+44">🇬🇧 +44</SelectItem>
-                  <SelectItem value="+971">🇦🇪 +971</SelectItem>
-                  <SelectItem value="+966">🇸🇦 +966</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="relative flex-1">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="mobile"
-                  value={formData.mobileNumber}
-                  onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
-                  placeholder="Enter WhatsApp number"
-                  className="pl-10 font-body"
-                  required
-                />
+        <CardContent className="px-2 sm:px-6 lg:px-8 pb-8 w-full">
+          <form onSubmit={handleSubmit} className="space-y-5 w-full">
+            {/* Row 1: Full Name & Looking For side by side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <div>
+                <Label htmlFor="fullName" className="text-base font-medium text-gray-700">
+                  Full Name
+                </Label>
+                <div className="relative mt-2">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="fullName"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    placeholder="Your full name"
+                    className="pl-11 py-3 text-base"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="lookingFor" className="text-base font-medium text-gray-700">
+                  Looking for
+                </Label>
+                <Select
+                  value={formData.lookingFor}
+                  onValueChange={(value) => setFormData({ ...formData, lookingFor: value })}
+                >
+                  <SelectTrigger className="mt-2 py-3 text-base">
+                    <SelectValue placeholder="Select preference" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bride">Bride</SelectItem>
+                    <SelectItem value="groom">Groom</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          </div>
 
-          <Button
-            type="submit"
-            className="w-full royal-shine-button text-white font-semibold py-3 text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            size="lg"
-          >
-            <Image
-              src="/Nikah-Sufiyana-Icon-white-01.svg"
-              alt="Nikah Sufiyana Icon"
-              width={20}
-              height={20}
-              className="mr-2 h-5 w-5"
-            />
-            Register Free Today
-          </Button>
-        </form>
-
-        <p className={`text-xs text-center text-gray-500 mt-4 ${elMessiri.className}`}>
-          By registering, you agree to our Terms & Privacy Policy
-        </p>
-      </CardContent>
-    </Card>
+            {/* Row 2: Mobile Number - Full Width */}
+            <div>
+              <Label htmlFor="mobile" className="text-base font-medium text-gray-700">
+                WhatsApp Number
+              </Label>
+              <div className="flex mt-2 space-x-3">
+                <Select
+                  value={formData.countryCode}
+                  onValueChange={(value) => setFormData({ ...formData, countryCode: value })}
+                >
+                  <SelectTrigger className="w-24 py-3 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="+91">🇮🇳 +91</SelectItem>
+                    <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                    <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                    <SelectItem value="+971">🇦🇪 +971</SelectItem>
+                    <SelectItem value="+966">🇸🇦 +966</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="relative flex-1">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="mobile"
+                    value={formData.mobileNumber}
+                    onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
+                    placeholder="WhatsApp number"
+                    className="pl-11 py-3 text-base"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <Button
+              type="submit"
+              className="w-full gradient-primary text-white font-semibold py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              size="lg"
+            >
+              <Heart className="mr-2 h-5 w-5" />
+              Register Free Today
+            </Button>
+          </form>
+          <p className={`text-sm text-center text-gray-500 mt-4 ${elMessiri.className}`}>
+            By registering, you agree to our Terms & Privacy Policy
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )
 }
