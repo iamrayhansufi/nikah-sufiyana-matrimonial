@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Shield, Users, Award, CheckCircle, ChurchIcon as Mosque, Globe, ArrowRight, Star, MessageSquare, Target, UserCheck, Calendar, Phone, Eye, TrendingUp, Clock, MapPin } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { elMessiri } from "../lib/fonts"
 
 export default function AboutPage() {
@@ -122,17 +123,50 @@ export default function AboutPage() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
+            </div>            <div className="grid grid-cols-2 gap-6">
               {ourValues.map((value, index) => (
-                <Card key={index} className="border-0 bg-white/90 hover:shadow-lg transition-shadow duration-300">
-                  <CardContent className="p-6 text-center">
+                <Card key={index} className="border-0 bg-white/90 hover:shadow-lg transition-shadow duration-300 relative">
+                  {/* SVG Borders */}
+                  <>
+                    {/* Bottom Left Border */}
+                    <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                      <Image
+                        src="/bottom-left-border.svg"
+                        alt="Bottom Left Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    
+                    {/* Top Right Border */}
+                    <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                      <Image
+                        src="/top-right-border.svg"
+                        alt="Top Right Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  </>
+                  
+                  <CardContent className="p-6 text-center relative">
                     <div className="inline-flex p-3 rounded-full bg-gradient-to-r from-red-500 to-rose-500 mb-4">
                       <value.icon className="h-6 w-6 text-white" />
                     </div>
                     <h3 className={`${elMessiri.className} text-lg font-semibold text-gray-800 mb-3`}>
                       {value.title}
                     </h3>
+                    
+                    {/* Text Bottom Border */}
+                    <div className="flex justify-center mb-4">
+                      <Image
+                        src="/text-bottom-border.svg"
+                        alt="Text Bottom Border"
+                        width={130}
+                        height={13}
+                        className="opacity-60"
+                      />
+                    </div>
                     <p className="text-gray-600 text-sm leading-relaxed">
                       {value.description}
                     </p>
@@ -154,20 +188,51 @@ export default function AboutPage() {
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               We're not just another matrimonial site - we're your trusted partner in finding your perfect match
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          </div>          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {whyChooseUs.map((reason, index) => (
-              <Card key={index} className="group border-0 bg-gradient-to-br from-white to-red-50 hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-8">
+              <Card key={index} className="group border-0 bg-gradient-to-br from-white to-red-50 hover:shadow-xl transition-all duration-300 relative">
+                {/* SVG Borders */}
+                <>
+                  {/* Bottom Left Border */}
+                  <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/bottom-left-border.svg"
+                      alt="Bottom Left Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  
+                  {/* Top Right Border */}
+                  <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/top-right-border.svg"
+                      alt="Top Right Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </>
+                
+                <CardContent className="p-8 relative">
                   <div className="flex items-start gap-4">
                     <div className="inline-flex p-3 rounded-full bg-gradient-to-r from-red-500 to-rose-500 group-hover:scale-110 transition-transform duration-300">
                       <reason.icon className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
+                    </div>                    <div>
                       <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800 mb-3`}>
                         {reason.title}
                       </h3>
+                      
+                      {/* Text Bottom Border */}
+                      <div className="flex justify-start mb-4">
+                        <Image
+                          src="/text-bottom-border.svg"
+                          alt="Text Bottom Border"
+                          width={130}
+                          height={13}
+                          className="opacity-60"
+                        />
+                      </div>
                       <p className="text-gray-600 leading-relaxed">
                         {reason.description}
                       </p>
@@ -227,8 +292,7 @@ export default function AboutPage() {
 
       {/* Call to Action */}
       <section className="py-20 px-4 bg-gradient-to-r from-red-600 to-rose-600">
-        <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className={`${elMessiri.className} text-4xl font-bold mb-6`}>
+        <div className="max-w-4xl mx-auto text-center text-white">          <h2 className={`${elMessiri.className} text-4xl font-bold mb-6 text-white`}>
             Ready to Find Your Life Partner?
           </h2>
           <p className="text-xl text-red-100 mb-8 leading-relaxed">

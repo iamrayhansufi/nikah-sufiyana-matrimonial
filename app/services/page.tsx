@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import { elMessiri } from "../lib/fonts"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function WeddingServicesPage() {
   const weddingServices = [
@@ -91,7 +92,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹800 - ₹2,000 per person",
       popular: true,
-      gradient: "from-orange-600 to-red-700"
+      gradient: "from-red-600 to-rose-700"
     },
     {
       icon: Flower,
@@ -234,11 +235,10 @@ export default function WeddingServicesPage() {
   return (
     <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
       <Header />
-      
-      {/* Hero Section */}
-      <section className="relative py-20 px-4">        <div className="absolute inset-0 bg-gradient-to-r from-amber-600/10 to-orange-600/10"></div>
+        {/* Hero Section */}
+      <section className="relative py-20 px-4">        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-rose-600/10"></div>
         <div className="relative max-w-6xl mx-auto text-center">
-          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-6`}>
+          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-6`}>
             Islamic Wedding Services
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8">
@@ -258,10 +258,8 @@ export default function WeddingServicesPage() {
             </Link>
           </div>
         </div>
-      </section>
-
-      {/* Why Choose Us */}
-      <section className="py-16 px-4 bg-gradient-to-r from-amber-600 to-orange-600">
+      </section>      {/* Why Choose Us */}
+      <section className="py-16 px-4 bg-gradient-to-r from-red-600 to-rose-600">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {whyChooseUs.map((item, index) => (
@@ -287,11 +285,23 @@ export default function WeddingServicesPage() {
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Professional services tailored for Islamic weddings with attention to religious and cultural details
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          </div>          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {weddingServices.map((service, index) => (
-              <Card key={index} className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 dark:bg-gray-800/90">
+              <Card key={index} className="relative group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 dark:bg-gray-800/90">
+                <Image
+                  src="/bottom-left-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute bottom-0 left-0 opacity-70 z-10"
+                />
+                <Image
+                  src="/top-right-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute top-0 right-0 opacity-70 z-10"
+                />
                 <CardContent className="p-8">
                   <div className="flex items-start justify-between mb-6">
                     <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${service.gradient} group-hover:scale-110 transition-transform duration-300`}>
@@ -304,16 +314,28 @@ export default function WeddingServicesPage() {
                   <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800 dark:text-gray-200 mb-4`}>
                     {service.title}
                   </h3>
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt=""
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
                     {service.description}
-                  </p>
-                  <ul className="space-y-3 mb-6">
+                  </p>                  <ul className="space-y-3 mb-6">
                     {service.features.map((feature, i) => (
                       <li key={i} className="flex items-center gap-3">                        <CheckCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
                         <span className="text-gray-700 dark:text-gray-300 text-sm">{feature}</span>
                       </li>
-                    ))}                  </ul>                  <Link href="/contact">
-                    <Button className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700">
+                    ))}                  </ul>
+                  <div className="text-lg font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-4">
+                    {service.pricing}
+                  </div>
+                  <Link href="/contact">
+                    <Button className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700">
                       Get Quote
                     </Button>
                   </Link>
@@ -332,11 +354,23 @@ export default function WeddingServicesPage() {
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Comprehensive wedding packages designed to make your special day perfect and memorable
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          </div>          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {weddingPackages.map((pkg, index) => (
               <Card key={index} className={`relative ${pkg.popular ? 'border-2 border-red-500 shadow-2xl md:scale-105' : 'border-0'} bg-white/90 dark:bg-gray-800/90 hover:shadow-xl transition-all duration-300`}>
+                <Image
+                  src="/bottom-left-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute bottom-0 left-0 opacity-70 z-10"
+                />
+                <Image
+                  src="/top-right-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute top-0 right-0 opacity-70 z-10"
+                />
                 {pkg.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white px-4 py-2">
@@ -354,6 +388,15 @@ export default function WeddingServicesPage() {
                   <CardTitle className={`${elMessiri.className} text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2`}>
                     {pkg.name}
                   </CardTitle>
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt=""
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <p className="text-gray-600 dark:text-gray-300 mb-4">{pkg.description}</p>
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <span className="text-4xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
@@ -396,11 +439,23 @@ export default function WeddingServicesPage() {
             <p className="text-xl text-gray-600 dark:text-gray-300">
               See what our clients say about their wedding experience
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          </div>          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="hover:shadow-xl transition-shadow duration-300 border-0 bg-gradient-to-br from-red-50 to-rose-50 dark:from-gray-800 dark:to-gray-700">
+              <Card key={index} className="relative hover:shadow-xl transition-shadow duration-300 border-0 bg-gradient-to-br from-red-50 to-rose-50 dark:from-gray-800 dark:to-gray-700">
+                <Image
+                  src="/bottom-left-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute bottom-0 left-0 opacity-70 z-10"
+                />
+                <Image
+                  src="/top-right-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute top-0 right-0 opacity-70 z-10"
+                />
                 <CardContent className="p-8">
                   <div className="flex items-center mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
@@ -410,6 +465,15 @@ export default function WeddingServicesPage() {
                   <p className="text-gray-700 dark:text-gray-300 mb-6 italic leading-relaxed">
                     "{testimonial.text}"
                   </p>
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt=""
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <div className="border-t pt-4">
                     <div className={`${elMessiri.className} font-bold text-gray-800 dark:text-gray-200`}>
                       {testimonial.name}

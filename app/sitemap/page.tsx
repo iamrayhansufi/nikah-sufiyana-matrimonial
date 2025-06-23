@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Users, Star, Globe, Settings, Shield, MessageCircle, Calendar, CreditCard, Bell, HelpCircle, FileText, Mail } from 'lucide-react';
 
@@ -108,10 +109,22 @@ export default function SitemapPage() {
       </div>
 
       {/* Sitemap Content */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {siteMapSections.map((section, index) => (
-            <Card key={index} className="group hover:shadow-2xl transition-all duration-300 border-2 border-purple-100 hover:border-purple-300 bg-white/80 backdrop-blur-sm">
+      <div className="container mx-auto px-4 py-16">        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">          {siteMapSections.map((section, index) => (
+            <Card key={index} className="relative group hover:shadow-2xl transition-all duration-300 border-2 border-purple-100 hover:border-purple-300 bg-white/80 backdrop-blur-sm">
+              <Image
+                src="/bottom-left-border.svg"
+                alt=""
+                width={40}
+                height={80}
+                className="absolute bottom-0 left-0 opacity-70 z-10"
+              />
+              <Image
+                src="/top-right-border.svg"
+                alt=""
+                width={40}
+                height={80}
+                className="absolute top-0 right-0 opacity-70 z-10"
+              />
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-xl font-bold text-purple-900 group-hover:text-purple-700 transition-colors">
                   <div className="p-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg group-hover:from-amber-200 group-hover:to-orange-200 transition-all">
@@ -119,6 +132,15 @@ export default function SitemapPage() {
                   </div>
                   {section.title}
                 </CardTitle>
+                <div className="flex justify-center mt-2">
+                  <Image
+                    src="/text-bottom-border.svg"
+                    alt=""
+                    width={130}
+                    height={13}
+                    className="opacity-60"
+                  />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">

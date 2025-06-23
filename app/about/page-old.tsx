@@ -262,12 +262,10 @@ export default function AboutPage() {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* CTA Section */}
+      </section>      {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-emerald-600 to-amber-600">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className={`${elMessiri.className} text-4xl font-bold mb-6`}>
+          <h2 className={`${elMessiri.className} text-4xl font-bold mb-6 text-white`}>
             Ready to Find Your Perfect Match?
           </h2>
           <p className="text-xl text-emerald-100 mb-8 leading-relaxed">

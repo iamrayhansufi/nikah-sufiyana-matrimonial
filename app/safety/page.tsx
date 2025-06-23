@@ -216,11 +216,33 @@ export default function SafetyPage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            {safetyFeatures.map((feature, index) => (
+          >            {safetyFeatures.map((feature, index) => (
               <motion.div key={feature.id} variants={fadeInUp}>
-                <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 h-full">
-                  <CardContent className="p-8">
+                <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 h-full relative">
+                  {/* SVG Borders */}
+                  <>
+                    {/* Bottom Left Border */}
+                    <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                      <Image
+                        src="/bottom-left-border.svg"
+                        alt="Bottom Left Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    
+                    {/* Top Right Border */}
+                    <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                      <Image
+                        src="/top-right-border.svg"
+                        alt="Top Right Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  </>
+                  
+                  <CardContent className="p-8 relative">
                     <div className="flex items-start gap-4 mb-6">
                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-royal-primary/20 to-royal-primary/10 flex items-center justify-center flex-shrink-0">
                         <feature.icon className="h-8 w-8 text-royal-primary" />
@@ -229,6 +251,17 @@ export default function SafetyPage() {
                         <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-3`}>
                           {feature.title}
                         </h3>
+                        
+                        {/* Text Bottom Border */}
+                        <div className="flex justify-start mb-4">
+                          <Image
+                            src="/text-bottom-border.svg"
+                            alt="Text Bottom Border"
+                            width={130}
+                            height={13}
+                            className="opacity-60"
+                          />
+                        </div>
                         <p className="text-gray-600 leading-relaxed">
                           {feature.description}
                         </p>
@@ -275,14 +308,47 @@ export default function SafetyPage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            {safetyTips.map((category, index) => (
+          >            {safetyTips.map((category, index) => (
               <motion.div key={index} variants={fadeInUp}>
-                <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg h-full">
-                  <CardContent className="p-8">
+                <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg h-full relative">
+                  {/* SVG Borders */}
+                  <>
+                    {/* Bottom Left Border */}
+                    <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                      <Image
+                        src="/bottom-left-border.svg"
+                        alt="Bottom Left Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    
+                    {/* Top Right Border */}
+                    <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                      <Image
+                        src="/top-right-border.svg"
+                        alt="Top Right Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  </>
+                  
+                  <CardContent className="p-8 relative">
                     <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-6`}>
                       {category.category}
                     </h3>
+                    
+                    {/* Text Bottom Border */}
+                    <div className="flex justify-start mb-6">
+                      <Image
+                        src="/text-bottom-border.svg"
+                        alt="Text Bottom Border"
+                        width={130}
+                        height={13}
+                        className="opacity-60"
+                      />
+                    </div>
                     <div className="space-y-4">
                       {category.tips.map((tip, tipIndex) => (
                         <div key={tipIndex} className="flex items-start gap-3">
@@ -326,17 +392,50 @@ export default function SafetyPage() {
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
-            >
-              {reportingProcess.map((step, index) => (
+            >              {reportingProcess.map((step, index) => (
                 <motion.div key={step.step} variants={fadeInUp}>
-                  <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg text-center h-full">
-                    <CardContent className="p-6">
+                  <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg text-center h-full relative">
+                    {/* SVG Borders */}
+                    <>
+                      {/* Bottom Left Border */}
+                      <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                        <Image
+                          src="/bottom-left-border.svg"
+                          alt="Bottom Left Border"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                      
+                      {/* Top Right Border */}
+                      <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                        <Image
+                          src="/top-right-border.svg"
+                          alt="Top Right Border"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    </>
+                    
+                    <CardContent className="p-6 relative">
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-royal-primary to-royal-primary/80 flex items-center justify-center">
                         <span className="text-2xl font-bold text-white">{step.step}</span>
                       </div>
                       <h3 className={`${elMessiri.className} text-lg font-bold text-royal-primary mb-3`}>
                         {step.title}
                       </h3>
+                      
+                      {/* Text Bottom Border */}
+                      <div className="flex justify-center mb-4">
+                        <Image
+                          src="/text-bottom-border.svg"
+                          alt="Text Bottom Border"
+                          width={130}
+                          height={13}
+                          className="opacity-60"
+                        />
+                      </div>
                       <p className="text-gray-600 text-sm leading-relaxed">
                         {step.description}
                       </p>
@@ -372,58 +471,154 @@ export default function SafetyPage() {
               variants={fadeInUp}
               initial="initial"
               whileInView="animate"
-              viewport={{ once: true }}
-            >
-              <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg text-center h-full">
-                <CardContent className="p-8">
+              viewport={{ once: true }}            >
+              <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg text-center h-full relative">
+                {/* SVG Borders */}
+                <>
+                  {/* Bottom Left Border */}
+                  <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/bottom-left-border.svg"
+                      alt="Bottom Left Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  
+                  {/* Top Right Border */}
+                  <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/top-right-border.svg"
+                      alt="Top Right Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </>
+                
+                <CardContent className="p-8 relative">
                   <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-500/20 to-green-500/10 flex items-center justify-center">
                     <UserCheck className="h-8 w-8 text-green-600" />
                   </div>
                   <h3 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-4`}>
                     Identity Verification
                   </h3>
+                  
+                  {/* Text Bottom Border */}
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt="Text Bottom Border"
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <p className="text-gray-600 leading-relaxed">
                     Government ID verification, address proof, and background checks ensure authentic profiles on our platform.
                   </p>
                 </CardContent>
               </Card>
-            </motion.div>
-
-            <motion.div
+            </motion.div>            <motion.div
               variants={fadeInUp}
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
             >
-              <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg text-center h-full">
-                <CardContent className="p-8">
+              <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg text-center h-full relative">
+                {/* SVG Borders */}
+                <>
+                  {/* Bottom Left Border */}
+                  <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/bottom-left-border.svg"
+                      alt="Bottom Left Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  
+                  {/* Top Right Border */}
+                  <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/top-right-border.svg"
+                      alt="Top Right Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </>
+                
+                <CardContent className="p-8 relative">
                   <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-500/10 flex items-center justify-center">
                     <Users className="h-8 w-8 text-blue-600" />
                   </div>
                   <h3 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-4`}>
                     Family Verification
                   </h3>
+                  
+                  {/* Text Bottom Border */}
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt="Text Bottom Border"
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <p className="text-gray-600 leading-relaxed">
                     Family involvement and verification adds an extra layer of authenticity and traditional values to the process.
                   </p>
                 </CardContent>
               </Card>
-            </motion.div>
-
-            <motion.div
+            </motion.div>            <motion.div
               variants={fadeInUp}
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
             >
-              <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg text-center h-full">
-                <CardContent className="p-8">
+              <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg text-center h-full relative">
+                {/* SVG Borders */}
+                <>
+                  {/* Bottom Left Border */}
+                  <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/bottom-left-border.svg"
+                      alt="Bottom Left Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  
+                  {/* Top Right Border */}
+                  <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/top-right-border.svg"
+                      alt="Top Right Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </>
+                
+                <CardContent className="p-8 relative">
                   <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-500/10 flex items-center justify-center">
                     <Star className="h-8 w-8 text-purple-600" />
-                  </div>
-                  <h3 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-4`}>
+                  </div>                  <h3 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-4`}>
                     Premium Verification
                   </h3>
+                  
+                  {/* Text Bottom Border */}
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt="Text Bottom Border"
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <p className="text-gray-600 leading-relaxed">
                     Enhanced verification for premium members includes professional and educational background checks.
                   </p>

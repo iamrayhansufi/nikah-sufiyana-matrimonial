@@ -28,9 +28,9 @@ import {
 } from "lucide-react"
 import { elMessiri } from "../lib/fonts"
 import Link from "next/link"
+import Image from "next/image"
 
-export default function WeddingServicesPage() {
-  const weddingServices = [
+export default function WeddingServicesPage() {  const weddingServices = [
     {
       icon: Calendar,
       title: "Nikah Ceremony Planning",
@@ -61,7 +61,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹30,000 - ₹1,00,000",
       popular: true,
-      gradient: "from-blue-500 to-indigo-600"
+      gradient: "from-red-600 to-rose-700"
     },
     {
       icon: FileText,
@@ -77,7 +77,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹8,000 - ₹25,000",
       popular: false,
-      gradient: "from-purple-500 to-pink-600"
+      gradient: "from-rose-500 to-red-600"
     },
     {
       icon: Utensils,
@@ -93,7 +93,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹800 - ₹2,000 per person",
       popular: true,
-      gradient: "from-orange-500 to-red-600"
+      gradient: "from-red-700 to-rose-800"
     },
     {
       icon: Flower,
@@ -109,7 +109,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹35,000 - ₹1,50,000",
       popular: false,
-      gradient: "from-pink-500 to-rose-600"
+      gradient: "from-rose-600 to-red-700"
     },
     {
       icon: Music,
@@ -125,7 +125,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹20,000 - ₹75,000",
       popular: false,
-      gradient: "from-cyan-500 to-blue-600"
+      gradient: "from-red-500 to-rose-700"
     }
   ]
 
@@ -236,12 +236,11 @@ export default function WeddingServicesPage() {
   return (
     <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
       <Header />
-      
-      {/* Hero Section */}
+        {/* Hero Section */}
       <section className="relative py-20 px-4">
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-600/10 to-orange-600/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-rose-600/10"></div>
         <div className="relative max-w-6xl mx-auto text-center">
-          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-6`}>
+          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-6`}>
             Islamic Wedding Services
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8">
@@ -261,10 +260,8 @@ export default function WeddingServicesPage() {
             </Link>
           </div>
         </div>
-      </section>
-
-      {/* Why Choose Us */}
-      <section className="py-16 px-4 bg-gradient-to-r from-amber-600 to-orange-600">
+      </section>      {/* Why Choose Us */}
+      <section className="py-16 px-4 bg-gradient-to-r from-red-600 to-rose-600">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {whyChooseUs.map((item, index) => (
@@ -290,11 +287,22 @@ export default function WeddingServicesPage() {
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Professional services tailored for Islamic weddings with attention to religious and cultural details
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {weddingServices.map((service, index) => (
-              <Card key={index} className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 dark:bg-gray-800/90">
+          </div>          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">            {weddingServices.map((service, index) => (
+              <Card key={index} className="relative group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 dark:bg-gray-800/90">
+                <Image
+                  src="/bottom-left-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute bottom-0 left-0 opacity-70 z-10"
+                />
+                <Image
+                  src="/top-right-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute top-0 right-0 opacity-70 z-10"
+                />
                 <CardContent className="p-8">
                   <div className="flex items-start justify-between mb-6">
                     <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${service.gradient} group-hover:scale-110 transition-transform duration-300`}>
@@ -307,6 +315,15 @@ export default function WeddingServicesPage() {
                   <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800 dark:text-gray-200 mb-4`}>
                     {service.title}
                   </h3>
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt=""
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
                     {service.description}
                   </p>
@@ -317,8 +334,7 @@ export default function WeddingServicesPage() {
                         <span className="text-gray-700 dark:text-gray-300 text-sm">{feature}</span>
                       </li>
                     ))}
-                  </ul>
-                  <div className="text-lg font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-4">
+                  </ul>                  <div className="text-lg font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-4">
                     {service.pricing}
                   </div>
                   <Link href="/contact">
@@ -339,14 +355,24 @@ export default function WeddingServicesPage() {
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Comprehensive wedding packages designed to make your special day perfect and memorable
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {weddingPackages.map((pkg, index) => (
-              <Card key={index} className={`relative ${pkg.popular ? 'border-2 border-amber-500 shadow-2xl md:scale-105' : 'border-0'} bg-white/90 dark:bg-gray-800/90 hover:shadow-xl transition-all duration-300`}>
-                {pkg.popular && (
+          </div>          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">            {weddingPackages.map((pkg, index) => (
+              <Card key={index} className={`relative ${pkg.popular ? 'border-2 border-red-500 shadow-2xl md:scale-105' : 'border-0'} bg-white/90 dark:bg-gray-800/90 hover:shadow-xl transition-all duration-300`}>
+                <Image
+                  src="/bottom-left-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute bottom-0 left-0 opacity-70 z-10"
+                />
+                <Image
+                  src="/top-right-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute top-0 right-0 opacity-70 z-10"
+                />                {pkg.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2">
+                    <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white px-4 py-2">
                       <Star className="h-4 w-4 mr-1" />
                       Most Popular
                     </Badge>
@@ -355,35 +381,42 @@ export default function WeddingServicesPage() {
 
                 <CardHeader className="text-center pb-4 pt-8">
                   <div className="mb-4">
-                    <div className="inline-flex p-4 rounded-full bg-gradient-to-r from-amber-500 to-orange-500">
+                    <div className="inline-flex p-4 rounded-full bg-gradient-to-r from-red-500 to-rose-500">
                       <pkg.icon className="h-8 w-8 text-white" />
                     </div>
                   </div>
                   <CardTitle className={`${elMessiri.className} text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2`}>
                     {pkg.name}
                   </CardTitle>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">{pkg.description}</p>
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <span className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt=""
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">{pkg.description}</p>                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className="text-4xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
                       {pkg.price}
                     </span>
                     {pkg.originalPrice && (
                       <span className="text-lg text-gray-400 line-through">{pkg.originalPrice}</span>
                     )}
                   </div>
-                  <p className="text-sm text-amber-600 dark:text-amber-400">{pkg.guests}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{pkg.guests}</p>
                 </CardHeader>
 
-                <CardContent className="px-8 pb-8">
-                  <ul className="space-y-3 mb-8">
+                <CardContent className="px-8 pb-8">                  <ul className="space-y-3 mb-8">
                     {pkg.services.map((service, i) => (
                       <li key={i} className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700 dark:text-gray-300">{service}</span>
                       </li>
                     ))}
                   </ul>                  <Link href="/contact">
-                    <Button className={`w-full ${pkg.popular ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600' : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'}`} size="lg">
+                    <Button className={`w-full ${pkg.popular ? 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600' : 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'}`} size="lg">
                       Choose Package
                     </Button>
                   </Link>
@@ -404,20 +437,39 @@ export default function WeddingServicesPage() {
             <p className="text-xl text-gray-600 dark:text-gray-300">
               See what our clients say about their wedding experience
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="hover:shadow-xl transition-shadow duration-300 border-0 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
+          </div>          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="relative hover:shadow-xl transition-shadow duration-300 border-0 bg-gradient-to-br from-red-50 to-rose-50 dark:from-gray-800 dark:to-gray-700">
+                <Image
+                  src="/bottom-left-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute bottom-0 left-0 opacity-70 z-10"
+                />
+                <Image
+                  src="/top-right-border.svg"
+                  alt=""
+                  width={40}
+                  height={80}
+                  className="absolute top-0 right-0 opacity-70 z-10"
+                />
+                <CardContent className="p-8">                  <div className="flex items-center mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-amber-400 fill-current" />
+                      <Star key={i} className="h-5 w-5 text-red-400 fill-current" />
                     ))}
                   </div>
                   <p className="text-gray-700 dark:text-gray-300 mb-6 italic leading-relaxed">
                     "{testimonial.text}"
                   </p>
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt=""
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <div className="border-t pt-4">
                     <div className={`${elMessiri.className} font-bold text-gray-800 dark:text-gray-200`}>
                       {testimonial.name}
@@ -433,35 +485,35 @@ export default function WeddingServicesPage() {
           </div>
         </div>
       </section>      {/* Contact Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-amber-600 to-orange-600">
+      <section className="py-20 px-4 bg-gradient-to-r from-red-600 to-rose-600">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className={`${elMessiri.className} text-4xl font-bold mb-6`}>
             Ready to Plan Your Dream Wedding?
           </h2>
-          <p className="text-xl text-amber-100 mb-8 leading-relaxed">
+          <p className="text-xl text-red-100 mb-8 leading-relaxed">
             Let our experienced team help you create the perfect Islamic wedding celebration. Get in touch for a free consultation and custom quote.
           </p>          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
               variant="secondary" 
-              className="bg-white text-amber-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold"
+              className="bg-white text-red-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold"
               onClick={() => window.open('tel:+919876543210')}
             >
               <Phone className="mr-2 h-5 w-5" />
               Call Now: +91-9876543210
             </Button>
             <Link href="/contact">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-amber-600 px-8 py-4 text-lg">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-red-600 px-8 py-4 text-lg">
                 <Mail className="mr-2 h-5 w-5" />
                 Email Consultation
               </Button>
             </Link>
-          </div>          <div className="mt-8 pt-8 border-t border-amber-400/30">
-            <p className="text-amber-200">
+          </div>          <div className="mt-8 pt-8 border-t border-red-400/30">
+            <p className="text-red-200">
               <strong>Also interested in finding your life partner?</strong>
             </p>
             <Link href="/register">
-              <Button variant="outline" className="mt-4 border-white text-white hover:bg-white hover:text-amber-600">
+              <Button variant="outline" className="mt-4 border-white text-white hover:bg-white hover:text-red-600">
                 Create Matrimonial Profile
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

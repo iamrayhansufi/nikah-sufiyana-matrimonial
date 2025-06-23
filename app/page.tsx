@@ -241,17 +241,7 @@ export default function HomePage() {
                 <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700 lg:text-white/90 leading-relaxed max-w-2xl drop-shadow-md">
                   Join India's most trusted Islamic matrimonial platform. Connect with verified profiles and find your soulmate with complete Islamic values and family traditions.
                 </p>
-                
-                {/* SVG Border */}
-                <div className="flex justify-center lg:justify-start">
-                  <Image
-                    src="/sufiyana-border-ui.svg"
-                    alt="Decorative Border"
-                    width={160}
-                    height={10}
-                    className="opacity-60 lg:filter lg:brightness-0 lg:invert sm:w-[200px] sm:h-[12px]"
-                  />
-                </div>
+                                
               </div>
 
               {/* Registration Form - full width of column */}
@@ -295,17 +285,49 @@ export default function HomePage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            {values.map((value, index) => (
+          >            {values.map((value, index) => (
               <motion.div key={index} variants={fadeInUp}>
-                <Card className="h-full group hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm">
-                  <CardContent className="p-8 text-center">
+                <Card className="h-full group hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm relative">
+                  {/* SVG Borders - for all cards */}
+                  <>
+                    {/* Bottom Left Border */}
+                    <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                      <Image
+                        src="/bottom-left-border.svg"
+                        alt="Bottom Left Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    
+                    {/* Top Right Border */}
+                    <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                      <Image
+                        src="/top-right-border.svg"
+                        alt="Top Right Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  </>
+                  
+                  <CardContent className="p-8 text-center relative">
                     <div className={`w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br ${value.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                       <value.icon className="h-8 w-8 text-white" />
                     </div>
                     <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800 mb-4`}>
                       {value.title}
-                    </h3>
+                    </h3>                    {/* Text Bottom Border - for all cards */}
+                    <div className="flex justify-center mb-4">
+                      <Image
+                        src="/text-bottom-border.svg"
+                        alt="Text Bottom Border"
+                        width={130}
+                        height={13}
+                        className="opacity-60"
+                      />
+                    </div>
+                    
                     <p className="text-gray-600 leading-relaxed">
                       {value.description}
                     </p>
@@ -860,16 +882,49 @@ export default function HomePage() {
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
-              className="group"
-            >
-              <Card className="h-full group-hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
-                <CardContent className="p-8 text-center">
+              className="group"            >
+              <Card className="h-full group-hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm overflow-hidden relative">
+                {/* SVG Borders */}
+                <>
+                  {/* Bottom Left Border */}
+                  <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/bottom-left-border.svg"
+                      alt="Bottom Left Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  
+                  {/* Top Right Border */}
+                  <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/top-right-border.svg"
+                      alt="Top Right Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </>
+                
+                <CardContent className="p-8 text-center relative">
                   <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-royal-primary to-royal-primary/80 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Search className="h-8 w-8 text-white" />
                   </div>
                   <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
                     Mystical Match Algorithm
                   </h3>
+                  
+                  {/* Text Bottom Border */}
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt="Text Bottom Border"
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <p className="text-gray-600 leading-relaxed mb-4">
                     Our AI-powered matching system combines spiritual compatibility with personal preferences, ensuring every suggestion feels divinely guided.
                   </p>                  <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white active:bg-royal-primary/90 active:text-white focus:bg-royal-primary focus:text-white transition-all duration-300">
@@ -877,23 +932,55 @@ export default function HomePage() {
                   </Button>
                 </CardContent>
               </Card>
-            </motion.div>
-
-            <motion.div
+            </motion.div>            <motion.div
               variants={fadeInUp}
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
               className="group"
             >
-              <Card className="h-full group-hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
-                <CardContent className="p-8 text-center">
+              <Card className="h-full group-hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm overflow-hidden relative">
+                {/* SVG Borders */}
+                <>
+                  {/* Bottom Left Border */}
+                  <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/bottom-left-border.svg"
+                      alt="Bottom Left Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  
+                  {/* Top Right Border */}
+                  <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/top-right-border.svg"
+                      alt="Top Right Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </>
+                
+                <CardContent className="p-8 text-center relative">
                   <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Shield className="h-8 w-8 text-white" />
                   </div>
                   <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
                     Sacred Privacy Protection
                   </h3>
+                  
+                  {/* Text Bottom Border */}
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt="Text Bottom Border"
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <p className="text-gray-600 leading-relaxed mb-4">
                     Advanced security measures ensure your personal information remains as protected as the secrets of the Sufi masters.
                   </p>                  <Link href="/privacy-features">
@@ -903,23 +990,55 @@ export default function HomePage() {
                   </Link>
                 </CardContent>
               </Card>
-            </motion.div>
-
-            <motion.div
+            </motion.div>            <motion.div
               variants={fadeInUp}
               initial="initial"
               whileInView="animate"
               viewport={{ once: true }}
               className="group"
             >
-              <Card className="h-full group-hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
-                <CardContent className="p-8 text-center">
+              <Card className="h-full group-hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm overflow-hidden relative">
+                {/* SVG Borders */}
+                <>
+                  {/* Bottom Left Border */}
+                  <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/bottom-left-border.svg"
+                      alt="Bottom Left Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  
+                  {/* Top Right Border */}
+                  <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                    <Image
+                      src="/top-right-border.svg"
+                      alt="Top Right Border"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </>
+                
+                <CardContent className="p-8 text-center relative">
                   <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <MessageSquare className="h-8 w-8 text-white" />
                   </div>
                   <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
                     Blessed Communication
                   </h3>
+                  
+                  {/* Text Bottom Border */}
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/text-bottom-border.svg"
+                      alt="Text Bottom Border"
+                      width={130}
+                      height={13}
+                      className="opacity-60"
+                    />
+                  </div>
                   <p className="text-gray-600 leading-relaxed mb-4">
                     Connect with potential matches through our secure messaging system, designed to honor Islamic principles of respectful courtship.
                   </p>                  <Link href="/messages">

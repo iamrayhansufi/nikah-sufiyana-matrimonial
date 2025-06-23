@@ -156,10 +156,32 @@ export default function SuccessStoriesPage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            {successStories.filter(story => story.featured).map((story, index) => (
+          >            {successStories.filter(story => story.featured).map((story, index) => (
               <motion.div key={story.id} variants={fadeInUp}>
-                <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-2xl overflow-hidden">
+                <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-2xl overflow-hidden relative">
+                  {/* SVG Borders */}
+                  <>
+                    {/* Bottom Left Border */}
+                    <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70 z-10">
+                      <Image
+                        src="/bottom-left-border.svg"
+                        alt="Bottom Left Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    
+                    {/* Top Right Border */}
+                    <div className="absolute top-0 right-0 w-10 h-20 opacity-70 z-10">
+                      <Image
+                        src="/top-right-border.svg"
+                        alt="Top Right Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  </>
+                  
                   <div className="relative">
                     <Image
                       src="/Nikah-Sufiyana-box-with-border-01.svg"
@@ -243,11 +265,33 @@ export default function SuccessStoriesPage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            {successStories.map((story, index) => (
+          >            {successStories.map((story, index) => (
               <motion.div key={story.id} variants={fadeInUp}>
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-500 h-full">
-                  <CardContent className="p-6">
+                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-500 h-full relative">
+                  {/* SVG Borders */}
+                  <>
+                    {/* Bottom Left Border */}
+                    <div className="absolute bottom-0 left-0 w-10 h-20 opacity-70">
+                      <Image
+                        src="/bottom-left-border.svg"
+                        alt="Bottom Left Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    
+                    {/* Top Right Border */}
+                    <div className="absolute top-0 right-0 w-10 h-20 opacity-70">
+                      <Image
+                        src="/top-right-border.svg"
+                        alt="Top Right Border"
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  </>
+                  
+                  <CardContent className="p-6 relative">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-royal-primary/20 to-royal-primary/10 flex items-center justify-center">
                         <Heart className="h-6 w-6 text-royal-primary" />
@@ -256,6 +300,17 @@ export default function SuccessStoriesPage() {
                         <h3 className={`${elMessiri.className} text-lg font-bold text-royal-primary`}>
                           {story.couple}
                         </h3>
+                        
+                        {/* Text Bottom Border */}
+                        <div className="flex justify-start mb-2">
+                          <Image
+                            src="/text-bottom-border.svg"
+                            alt="Text Bottom Border"
+                            width={100}
+                            height={10}
+                            className="opacity-60"
+                          />
+                        </div>
                         <p className="text-sm text-gray-600">{story.location}</p>
                       </div>
                     </div>
