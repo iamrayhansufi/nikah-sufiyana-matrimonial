@@ -1,11 +1,28 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
 import { Heart, Phone, Mail, MapPin, Facebook, Instagram, Twitter, Youtube, Download, Send, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { elMessiri } from "@/app/lib/fonts"
+import { useState } from "react"
+import { useToast } from "@/hooks/use-toast"
 
 export function Footer() {
+  const [email, setEmail] = useState("")
+  const { toast } = useToast()
+
+  const handleNewsletterSubscription = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (email) {
+      toast({
+        title: "Subscribed Successfully!",
+        description: "You'll receive updates on blessed matches and success stories.",
+      })
+      setEmail("")
+    }
+  }
   return (
     <footer className="bg-gradient-to-br from-royal-primary to-royal-primary/90 text-white relative overflow-hidden">
       {/* Decorative Elements */}
@@ -30,17 +47,20 @@ export function Footer() {
             <p className="text-white/90 mb-6 text-lg">
               Receive blessed updates on new profiles, success stories, and exclusive matrimonial events
             </p>
-            <div className="flex gap-2 max-w-md mx-auto">
+            <form onSubmit={handleNewsletterSubscription} className="flex gap-2 max-w-md mx-auto">
               <Input 
                 type="email" 
                 placeholder="Enter your email for blessings" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30" 
+                required
               />
-              <Button className="bg-white text-royal-primary hover:bg-white/90 font-semibold">
+              <Button type="submit" className="bg-white text-royal-primary hover:bg-white/90 font-semibold">
                 <Send className="h-4 w-4 mr-2" />
                 Subscribe
               </Button>
-            </div>
+            </form>
           </div>
         </div>
       </div>

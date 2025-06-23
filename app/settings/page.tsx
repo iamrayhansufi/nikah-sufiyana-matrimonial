@@ -10,8 +10,33 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Bell, Lock, Eye, Globe, Moon, Sun, Smartphone } from "lucide-react"
 import { playfair } from "../lib/fonts"
+import { useToast } from "@/hooks/use-toast"
+import Link from "next/link"
 
 export default function SettingsPage() {
+  const { toast } = useToast()
+
+  const handleSaveChanges = () => {
+    toast({
+      title: "Settings Saved",
+      description: "Your account settings have been updated successfully.",
+    })
+  }
+
+  const handleResetDefaults = () => {
+    toast({
+      title: "Reset to Defaults",
+      description: "All settings have been reset to default values.",
+    })
+  }
+
+  const handleDeactivateAccount = () => {
+    toast({
+      title: "Account Deactivation",
+      description: "Please contact support to deactivate your account.",
+      variant: "destructive"
+    })
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />
@@ -166,25 +191,30 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-
-            {/* Security Settings */}
+            </Card>            {/* Security Settings */}
             <Card>
               <CardContent className="p-6">
                 <h2 className={`${playfair.className} text-xl font-semibold mb-4`}>Security</h2>
                 <div className="space-y-4">
                   <div>
-                    <Button variant="outline" className="w-full">
-                      Change Password
-                    </Button>
+                    <Link href="/reset-password">
+                      <Button variant="outline" className="w-full">
+                        Change Password
+                      </Button>
+                    </Link>
                   </div>
                   <div>
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full" onClick={() => {
+                      toast({
+                        title: "Two-Factor Authentication",
+                        description: "This feature will be available in the next update.",
+                      })
+                    }}>
                       Enable Two-Factor Authentication
                     </Button>
                   </div>
                   <div>
-                    <Button variant="outline" className="w-full text-destructive">
+                    <Button variant="outline" className="w-full text-destructive" onClick={handleDeactivateAccount}>
                       Deactivate Account
                     </Button>
                   </div>
@@ -193,8 +223,8 @@ export default function SettingsPage() {
             </Card>
 
             <div className="flex gap-4">
-              <Button className="flex-1">Save Changes</Button>
-              <Button variant="outline" className="flex-1">Reset to Default</Button>
+              <Button className="flex-1" onClick={handleSaveChanges}>Save Changes</Button>
+              <Button variant="outline" className="flex-1" onClick={handleResetDefaults}>Reset to Default</Button>
             </div>
           </div>
         </div>

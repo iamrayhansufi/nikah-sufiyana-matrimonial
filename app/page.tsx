@@ -16,6 +16,19 @@ import { Label } from "@/components/ui/label"
 import Image from "next/image"
 import { motion } from "framer-motion"
 
+// Profile interface for type safety
+interface Profile {
+  id: string
+  name: string
+  age: number
+  profession: string
+  location: string
+  education: string
+  verified: boolean
+  premium: boolean
+  profilePhoto?: string
+}
+
 // Custom Nikah Sufiyana Icon Component
 const NikahSufiyanaIcon = ({ className }: { className?: string }) => (
   <Image
@@ -29,6 +42,8 @@ const NikahSufiyanaIcon = ({ className }: { className?: string }) => (
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [premiumProfiles, setPremiumProfiles] = useState<Profile[]>([])
+  const [profilesLoading, setProfilesLoading] = useState(true)
   const [filters, setFilters] = useState({
     ageRange: [18, 60],
     ageMin: "18",    ageMax: "60",
@@ -109,39 +124,64 @@ export default function HomePage() {
       blessing: "Blessed with son Muhammad Abdullah"
     },
   ]
-
-  const premiumProfiles = [
+  const premiumProfilesFallback = [
     {
-      name: "Maryam A.",
+      id: "fallback-1",
+      name: "Sister Maryam A.",
       age: 26,
       profession: "Software Engineer",
       location: "Hyderabad, Telangana",
       education: "B.Tech Computer Science",
-      image: "/profiles/sister1.jpg",
       verified: true,
       premium: true
     },
     {
+      id: "fallback-2",
       name: "Brother Khalid M.",
       age: 29,
       profession: "Business Analyst",
       location: "Pune, Maharashtra",
       education: "MBA Finance",
-      image: "/profiles/brother1.jpg",
       verified: true,
       premium: true
     },
     {
+      id: "fallback-3",
       name: "Sister Aisha R.",
       age: 24,
       profession: "Doctor",
       location: "Chennai, Tamil Nadu",
       education: "MBBS",
-      image: "/profiles/sister2.jpg",
       verified: true,
       premium: true
     }
   ]
+
+  // Fetch real profiles from database
+  useEffect(() => {
+    const fetchFeaturedProfiles = async () => {
+      try {
+        setProfilesLoading(true)
+        const response = await fetch('/api/profiles/featured?limit=3')
+        const data = await response.json()
+        
+        if (response.ok && data.profiles && data.profiles.length > 0) {
+          setPremiumProfiles(data.profiles)
+        } else {
+          // Use fallback profiles if no real profiles available
+          setPremiumProfiles(premiumProfilesFallback)
+        }
+      } catch (error) {
+        console.error('Error fetching featured profiles:', error)
+        // Use fallback profiles on error
+        setPremiumProfiles(premiumProfilesFallback)
+      } finally {
+        setProfilesLoading(false)
+      }
+    }
+
+    fetchFeaturedProfiles()
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -205,17 +245,19 @@ export default function HomePage() {
                 height={12}
                 className="opacity-60"
               />
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="bg-royal-primary hover:bg-royal-primary/90 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
-                {slides[currentSlide].cta || "Begin Your Sacred Journey"}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button variant="outline" size="lg" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white px-8 py-4 text-lg font-semibold">
-                Watch Success Stories
-                <Heart className="ml-2 h-5 w-5" />
-              </Button>
+            </div>            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link href="/register">
+                <Button size="lg" className="bg-royal-primary hover:bg-royal-primary/90 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+                  {slides[currentSlide].cta || "Begin Your Sacred Journey"}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/about#success-stories">
+                <Button variant="outline" size="lg" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white px-8 py-4 text-lg font-semibold">
+                  Watch Success Stories
+                  <Heart className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
             </div>
 
             {/* Slide Indicators */}
@@ -426,83 +468,139 @@ export default function HomePage() {
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Discover verified premium profiles of accomplished individuals seeking blessed companionship through sacred matrimony.
             </p>
-          </motion.div>
-
-          <motion.div 
+          </motion.div>          <motion.div 
             className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
             variants={staggerContainer}
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
           >
-            {premiumProfiles.map((profile, index) => (
-              <motion.div key={index} variants={fadeInUp}>
-                <Card className="group hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 backdrop-blur-sm overflow-hidden">
-                  <div className="relative">
-                    <div className="h-64 bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 flex items-center justify-center">
-                      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-royal-primary/20 to-royal-primary/10 flex items-center justify-center">
-                        <UserCheck className="h-16 w-16 text-royal-primary" />
+            {profilesLoading ? (
+              // Loading skeleton
+              [1, 2, 3].map((index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card className="group hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 backdrop-blur-sm overflow-hidden">
+                    <div className="relative">
+                      <div className="h-64 bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 flex items-center justify-center animate-pulse">
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-royal-primary/20 to-royal-primary/10"></div>
                       </div>
                     </div>
-                    <div className="absolute top-4 right-4 flex gap-2">
-                      {profile.verified && (
-                        <Badge className="bg-green-500 text-white border-0">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Verified
-                        </Badge>
-                      )}                      {profile.premium && (
-                        <Badge className="bg-royal-primary text-white border-0">
+                    <CardContent className="p-6">
+                      <div className="animate-pulse space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-8 bg-gray-200 rounded w-full mt-4"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))
+            ) : (
+              premiumProfiles.map((profile, index) => (
+                <motion.div key={profile.id || index} variants={fadeInUp}>
+                  <Card className="group hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 backdrop-blur-sm overflow-hidden">
+                    <div className="relative">
+                      {profile.profilePhoto ? (
+                        <div className="h-64 relative">
                           <Image
-                            src="/Nikah-Sufiyana-Icon-white-01.svg"
-                            alt="Nikah Sufiyana Icon"
-                            width={12}
-                            height={12}
-                            className="h-3 w-3 mr-1"
+                            src={profile.profilePhoto}
+                            alt={profile.name}
+                            fill
+                            className="object-cover"                            onError={(e) => {
+                              // Fallback to placeholder if image fails to load
+                              const target = e.currentTarget as HTMLImageElement
+                              const fallbackDiv = target.nextElementSibling as HTMLElement
+                              target.style.display = 'none'
+                              if (fallbackDiv) {
+                                fallbackDiv.style.display = 'flex'
+                              }
+                            }}
                           />
-                          Premium
-                        </Badge>
+                          <div className="hidden h-64 bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 items-center justify-center">
+                            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-royal-primary/20 to-royal-primary/10 flex items-center justify-center">
+                              <UserCheck className="h-16 w-16 text-royal-primary" />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-64 bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 flex items-center justify-center">
+                          <div className="w-32 h-32 rounded-full bg-gradient-to-br from-royal-primary/20 to-royal-primary/10 flex items-center justify-center">
+                            <UserCheck className="h-16 w-16 text-royal-primary" />
+                          </div>
+                        </div>
                       )}
+                      <div className="absolute top-4 right-4 flex gap-2">
+                        {profile.verified && (
+                          <Badge className="bg-green-500 text-white border-0">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Verified
+                          </Badge>
+                        )}                      {profile.premium && (
+                          <Badge className="bg-royal-primary text-white border-0">
+                            <Image
+                              src="/Nikah-Sufiyana-Icon-white-01.svg"
+                              alt="Nikah Sufiyana Icon"
+                              width={12}
+                              height={12}
+                              className="h-3 w-3 mr-1"
+                            />
+                            Premium
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <CardContent className="p-6">
-                    <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800 mb-2`}>
-                      {profile.name}
-                    </h3>
-                    <div className="space-y-2 text-custom-sm text-gray-600 mb-4">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {profile.age} years old
+                    <CardContent className="p-6">
+                      <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800 mb-2`}>
+                        {profile.name}
+                      </h3>
+                      <div className="space-y-2 text-custom-sm text-gray-600 mb-4">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          {profile.age} years old
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          {profile.location}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="h-4 w-4" />
+                          {profile.education}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="h-4 w-4" />
+                          {profile.profession}
+                        </div>
+                      </div>                    <div className="flex gap-2">
+                        <Link href={`/profile/${profile.id}`}>
+                          <Button className="flex-1 royal-shine-button text-white">
+                            View Profile
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="outline" 
+                          className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white"
+                          onClick={() => {
+                            // Handle shortlist functionality
+                            console.log('Shortlisted:', profile.id)
+                          }}
+                        >
+                          <Heart className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        {profile.location}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4" />
-                        {profile.education}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="h-4 w-4" />
-                        {profile.profession}
-                      </div>
-                    </div>                    <div className="flex gap-2">
-                      <Button className="flex-1 royal-shine-button text-white">
-                        View Profile
-                      </Button>
-                      <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <div className="text-center">            <Button size="lg" variant="outline" className="border-royal-primary text-royal-primary hover:royal-shine-button hover:text-white px-8 py-4 text-lg font-semibold">
-              View All Premium Profiles
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))
+            )}
+          </motion.div><div className="text-center">
+            <Link href="/browse">
+              <Button size="lg" variant="outline" className="border-royal-primary text-royal-primary hover:royal-shine-button hover:text-white px-8 py-4 text-lg font-semibold">
+                View All Premium Profiles
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -586,14 +684,14 @@ export default function HomePage() {
                 </div>
               </motion.div>
             ))}
-          </motion.div>
-
-          <div className="text-center mt-12">
-            <Button size="lg" className="bg-royal-primary hover:bg-royal-primary/90 text-white px-8 py-4 text-lg font-semibold">
-              Read More Success Stories
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>        </div>
+          </motion.div>          <div className="text-center mt-12">
+            <Link href="/about#success-stories">
+              <Button size="lg" className="bg-royal-primary hover:bg-royal-primary/90 text-white px-8 py-4 text-lg font-semibold">
+                Read More Success Stories
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div></div>
       </section>
 
       {/* Sufiyana Philosophy & Community Section */}
@@ -821,10 +919,11 @@ export default function HomePage() {
                   </h3>
                   <p className="text-gray-600 leading-relaxed mb-4">
                     Advanced security measures ensure your personal information remains as protected as the secrets of the Sufi masters.
-                  </p>
-                  <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
-                    Privacy Settings
-                  </Button>
+                  </p>                  <Link href="/privacy-features">
+                    <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
+                      Privacy Settings
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             </motion.div>
@@ -846,10 +945,11 @@ export default function HomePage() {
                   </h3>
                   <p className="text-gray-600 leading-relaxed mb-4">
                     Connect with potential matches through our secure messaging system, designed to honor Islamic principles of respectful courtship.
-                  </p>
-                  <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
-                    Start Chatting
-                  </Button>
+                  </p>                  <Link href="/messages">
+                    <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
+                      Start Chatting
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             </motion.div>
@@ -878,13 +978,19 @@ export default function HomePage() {
                 className="opacity-60 filter brightness-0 invert"
               />            </div>            <p className="text-xl md:text-2xl mb-8 leading-relaxed">
               Join thousands of happy couples who found their life partners through Nikah Sufiyana. Start your journey today and connect with verified Muslim profiles from Hyderabad and across India with complete family support.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="secondary" className="bg-white text-royal-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold">
-                Create Free Profile
-                <UserPlus className="ml-2 h-5 w-5" />
-              </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-royal-primary px-8 py-4 text-lg font-semibold">
+            </p>            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/register">
+                <Button size="lg" variant="secondary" className="bg-white text-royal-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold">
+                  Create Free Profile
+                  <UserPlus className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-royal-primary px-8 py-4 text-lg font-semibold"
+                onClick={() => window.open('tel:+919876543210')}
+              >
                 <Phone className="mr-2 h-5 w-5" />
                 Call: +91 9876543210
               </Button>

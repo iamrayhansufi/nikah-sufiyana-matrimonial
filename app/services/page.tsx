@@ -243,16 +243,19 @@ export default function WeddingServicesPage() {
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8">
             Complete wedding solutions that honor Islamic traditions and create beautiful memories for your special day. From nikah ceremonies to grand receptions, we handle every detail with care and cultural respect.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="px-8 py-4 text-lg">
+          </p>          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="px-8 py-4 text-lg" onClick={() => {
+              document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })
+            }}>
               View Our Packages
               <Heart className="ml-2 h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" className="px-8 py-4 text-lg">
-              Get Free Consultation
-              <Phone className="ml-2 h-5 w-5" />
-            </Button>
+            <Link href="/contact">
+              <Button size="lg" variant="outline" className="px-8 py-4 text-lg">
+                Get Free Consultation
+                <Phone className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -309,19 +312,18 @@ export default function WeddingServicesPage() {
                       <li key={i} className="flex items-center gap-3">                        <CheckCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
                         <span className="text-gray-700 dark:text-gray-300 text-sm">{feature}</span>
                       </li>
-                    ))}                  </ul>
-                  <Button className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700">
-                    Get Quote
-                  </Button>
+                    ))}                  </ul>                  <Link href="/contact">
+                    <Button className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700">
+                      Get Quote
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
-      </section>
-
-      {/* Wedding Packages */}
-      <section className="py-20 px-4 bg-gradient-to-br from-gray-50 to-red-50 dark:from-gray-800 dark:to-gray-700">
+      </section>      {/* Wedding Packages */}
+      <section id="packages" className="py-20 px-4 bg-gradient-to-br from-gray-50 to-red-50 dark:from-gray-800 dark:to-gray-700">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className={`${elMessiri.className} text-4xl font-bold text-gray-800 dark:text-gray-200 mb-4`}>
@@ -372,10 +374,11 @@ export default function WeddingServicesPage() {
                         <span className="text-gray-700 dark:text-gray-300">{service}</span>
                       </li>
                     ))}
-                  </ul>
-                  <Button className={`w-full ${pkg.popular ? 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600' : 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'}`} size="lg">
-                    Choose Package
-                  </Button>
+                  </ul>                  <Link href="/contact">
+                    <Button className={`w-full ${pkg.popular ? 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600' : 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'}`} size="lg">
+                      Choose Package
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             ))}
@@ -432,14 +435,21 @@ export default function WeddingServicesPage() {
           <p className="text-xl text-red-100 mb-8 leading-relaxed">
             Let our experienced team help you create the perfect Islamic wedding celebration. Get in touch for a free consultation and custom quote.
           </p>          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-white text-red-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold">
+            <Button 
+              size="lg" 
+              variant="secondary" 
+              className="bg-white text-red-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold"
+              onClick={() => window.open('tel:+919876543210')}
+            >
               <Phone className="mr-2 h-5 w-5" />
               Call Now: +91-9876543210
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-red-600 hover:bg-white hover:text-red-600 px-8 py-4 text-lg font-semibold">
-              <Mail className="mr-2 h-5 w-5" />
-              Email Consultation
-            </Button>
+            <Link href="/contact">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-red-600 px-8 py-4 text-lg font-semibold">
+                <Mail className="mr-2 h-5 w-5" />
+                Email Consultation
+              </Button>
+            </Link>
           </div>
           <div className="mt-8 pt-8 border-t border-red-400/30">
             <p className="text-red-200">
