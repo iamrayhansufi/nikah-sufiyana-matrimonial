@@ -15,24 +15,52 @@ interface RedisUser {
 
 export async function DELETE(request: NextRequest) {
   try {
+    console.log("=== DELETE PHOTO API CALLED ===");
+    console.log("🌐 Request headers:", Object.fromEntries(request.headers.entries()));
+    console.log("🍪 Request cookies:", request.cookies.getAll());
+    
     const session = await getServerSession(authOptions);
+    console.log("🔐 Session check result:", {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      hasUserId: !!session?.user?.id,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email
+    });
+    
     if (!session?.user?.id) {
+      console.log("❌ Unauthorized: No session or user ID");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    console.log("🔐 User authenticated:", session.user.id);
+
     const body = await request.json();
+    console.log("📨 Request body:", body);
+    
     const result = deletePhotoSchema.safeParse(body);
     if (!result.success) {
+      console.log("❌ Invalid request data:", result.error);
       return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
     }
 
     const { photoUrl } = result.data;
+    console.log("🖼️ Photo URL to delete:", photoUrl);
 
     // Get current user
-    const user = await redis.hgetall(`user:${session.user.id}`) as RedisUser;
+    const userKey = `user:${session.user.id}`;
+    console.log("🔍 Fetching user data from Redis key:", userKey);
+    
+    const user = await redis.hgetall(userKey) as RedisUser;
     if (!user) {
+      console.log("❌ User not found in Redis");
       return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }    // Update photos array
+    }    console.log("👤 User found, processing photos...");
+    console.log("📸 Current user.photos:", user.photos);
+    console.log("📸 Current user.profilePhotos:", user.profilePhotos);
+    console.log("📸 Current user.profilePhoto:", user.profilePhoto);
+
+    // Update photos array
     let photos: string[] = [];
     
     // Handle both string (JSON) and object (parsed) formats from Redis
@@ -70,25 +98,40 @@ export async function DELETE(request: NextRequest) {
     if (user.profilePhoto === photoUrl) {
       // Set the first remaining photo as the new profile photo, or empty if no photos left
       updateData.profilePhoto = updatedPhotos.length > 0 ? updatedPhotos[0] : "";
+      console.log("🚨 Updated main profile photo to:", updateData.profilePhoto);
     }
     
+    console.log("💾 Update data to be saved:", updateData);
+    
     // Update user in Redis
-    await redis.hset(`user:${session.user.id}`, updateData);
+    console.log("🔄 Updating user data in Redis...");
+    await redis.hset(userKey, updateData);    // Verify the update
+    console.log("✅ Verifying update...");
+    const verifyUser = await redis.hgetall(userKey);
+    if (verifyUser) {
+      console.log("📸 Verified photos:", verifyUser.photos);
+      console.log("📸 Verified profilePhotos:", verifyUser.profilePhotos);
+      console.log("📸 Verified profilePhoto:", verifyUser.profilePhoto);
+    } else {
+      console.log("❌ Failed to verify update - user not found");
+    }
 
     // If this was an image served from our API, also remove it from Redis
     if (photoUrl.startsWith('/api/images/')) {
       const filename = photoUrl.replace('/api/images/', '');
-      console.log("Removing image data from Redis for filename:", filename);
+      console.log("🗑️ Removing image data from Redis for filename:", filename);
       await redis.del(`image:${filename}`);
     }
 
+    console.log("✅ Photo deletion completed successfully");
     return NextResponse.json({ 
       success: true, 
       message: "Photo deleted successfully",
-      remainingPhotos: updatedPhotos.length 
+      remainingPhotos: updatedPhotos.length,
+      updatedPhotos: updatedPhotos
     });
   } catch (error) {
-    console.error("Error deleting photo:", error);
+    console.error("❌ Error deleting photo:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

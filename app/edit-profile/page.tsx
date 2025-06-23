@@ -656,13 +656,12 @@ export default function EditProfilePage() {
     } finally {
       setSavingTab(null)
     }
-  }
-    // Function to refetch the complete profile
+  }    // Function to refetch the complete profile
   const refetchProfile = async () => {
     if (!session?.user?.id) return;
     
     try {
-      console.log("Refetching profile data for user:", session.user.id);
+      console.log("🔄 Refetching profile data for user:", session.user.id);
       const response = await fetch(`/api/profiles/${session.user.id}`, {
         headers: {
           "Cache-Control": "no-cache, no-store, must-revalidate"
@@ -671,15 +670,21 @@ export default function EditProfilePage() {
       });
       
       if (!response.ok) {
-        console.error("Failed to fetch profile during refetch:", response.status);
+        console.error("❌ Failed to fetch profile during refetch:", response.status);
         throw new Error(`Failed to fetch profile: ${response.status}`);
-      }        const data = await response.json();
-      console.log("Refetched profile data:", Object.keys(data).length, "fields");
-      console.log("Refetched profilePhotos:", data.profilePhotos);
-      console.log("Refetched profilePhotos type:", typeof data.profilePhotos);
-      console.log("Refetched profilePhotos length:", Array.isArray(data.profilePhotos) ? data.profilePhotos.length : 'not an array');
+      }      
+      const data = await response.json();
+      console.log("📊 Refetched profile data keys:", Object.keys(data));
+      console.log("📸 Refetched profilePhotos:", data.profilePhotos);
+      console.log("📸 Refetched profilePhotos type:", typeof data.profilePhotos);
+      console.log("📸 Refetched profilePhotos length:", Array.isArray(data.profilePhotos) ? data.profilePhotos.length : 'not an array');
+      console.log("📸 Refetched profilePhoto:", data.profilePhoto);
+      
+      console.log("💾 Setting profile data...");
       setProfileData(data);
-        // Process siblings data if it exists
+      console.log("✅ Profile data set successfully");
+        
+      // Process siblings data if it exists
       let siblingsArray: SiblingInfo[] = [];
       try {
         if (data.siblings && typeof data.siblings === 'string') {
@@ -1144,12 +1149,14 @@ export default function EditProfilePage() {
       setSavingTab(null)
     }
   }
-  
   // Handle photo deletion
   const handleDeletePhoto = async (photoUrl: string, index: number) => {
     try {
       setSavingTab('photos')
+      console.log("=== PHOTO DELETION DEBUG ===");
       console.log("Deleting photo:", photoUrl, "at index:", index);
+      console.log("Profile data before deletion:", profileData?.profilePhotos);
+      console.log("Session data:", session?.user);
       
       const response = await fetch('/api/profiles/delete-photo', {
         method: 'DELETE',
@@ -1160,15 +1167,21 @@ export default function EditProfilePage() {
         body: JSON.stringify({ photoUrl })
       });
       
+      console.log("Delete response status:", response.status);
+      console.log("Delete response headers:", Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Delete response error:", errorData);
         throw new Error(errorData?.error || 'Failed to delete photo');
       }
         const result = await response.json();
       console.log("Photo deleted successfully:", result);
       
       // Refresh the profile data to get updated photos from the server
+      console.log("Refetching profile after deletion...");
       await refetchProfile();
+      console.log("Profile data after refetch:", profileData?.profilePhotos);
       
       toast({
         title: "Photo Deleted",
