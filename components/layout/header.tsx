@@ -117,9 +117,8 @@ export function Header() {
   return (
     <>
       <MarqueeBanner />
-      <header className="sticky top-0 z-50 w-full border-b border-royal-primary/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 shadow-md">
-        <div className="container mx-auto px-4">
-          <div className="flex h-20 items-center justify-between">
+      <header className="sticky top-0 z-50 w-full border-b border-royal-primary/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 shadow-md">        <div className="content-container">
+          <div className="flex h-16 lg:h-20 items-center justify-between">
             {/* Logo */}            <Link href="/" className="flex items-center space-x-2 hover-lift logo-shine">              <Image 
                 src="/Nikah-Sufiyana-Logo.svg"
                 alt="Nikah Sufiyana" 

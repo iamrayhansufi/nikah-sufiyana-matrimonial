@@ -31,39 +31,36 @@ export function HeroRegistrationForm() {
   }
 
   return (
-    <div className="relative">
-      {/* Decorative SVG Border */}
-      
-      
-      <Card className="w-full max-w-md mx-auto bg-white/95 backdrop-blur-sm shadow-2xl border-0 royal-shadow card-royal-shine">
-        <CardHeader className="text-center pb-4 pt-8">
-          <div className="w-16 h-16 mx-auto mb-4 royal-glow-effect rounded-full flex items-center justify-center shadow-lg">
+    <div className="relative w-full">      
+      <Card className="w-full max-w-lg mx-auto lg:max-w-md box-layout bg-white/95 backdrop-blur-sm shadow-2xl border-0 royal-shadow card-royal-shine">
+        <CardHeader className="text-center pb-4 pt-6 lg:pt-8 px-4 lg:px-6">
+          <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-3 lg:mb-4 royal-glow-effect rounded-full flex items-center justify-center shadow-lg">
             <Image
               src="/Nikah-Sufiyana-Icon-white-01.svg"
               alt="Nikah Sufiyana Icon"
               width={32}
               height={32}
-              className="h-8 w-8"
+              className="h-6 w-6 lg:h-8 lg:w-8"
             />
           </div>
-          <CardTitle className={`${elMessiri.className} text-2xl font-bold text-gray-800 royal-text-shiny`}>
+          <CardTitle className={`${elMessiri.className} text-xl lg:text-2xl font-bold text-gray-800 royal-text-shiny`}>
             Start Your Journey Today
           </CardTitle>
-          <p className="text-lg text-gray-600">Find your perfect life partner with Islamic values</p>
+          <p className="text-base lg:text-lg text-gray-600">Find your perfect life partner with Islamic values</p>
           
           {/* SVG Border Under Title */}
-          <div className="flex justify-center mt-3">
+          <div className="flex justify-center mt-2 lg:mt-3">
             <Image
               src="/sufiyana-border-ui.svg"
               alt="Decorative Border"
-              width={250}
+              width={200}
               height={20}
-              className="opacity-40"
+              className="opacity-40 lg:w-[250px]"
             />
           </div>
         </CardHeader>
 
-      <CardContent>
+      <CardContent className="px-4 lg:px-6 pb-6 lg:pb-8">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="fullName" className="text-lg font-medium text-gray-700 font-body">

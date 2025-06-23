@@ -195,7 +195,6 @@ export default function HomePage() {
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6 }
   }
-
   const staggerContainer = {
     animate: {
       transition: {
@@ -204,25 +203,28 @@ export default function HomePage() {
     }
   }
 
-  return (    <div className="min-h-screen bg-royal-gradient">
+  return (
+    <div className="min-h-screen bg-royal-gradient">
       <Header />
-
+      
       {/* Sufiyana Hero Section with Divine Slider */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-royal-primary/5 to-transparent"></div>
         
-        <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <motion.div 
-            className="text-center lg:text-left space-y-8"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="space-y-6">
-              <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-custom-sm font-medium">
-                {slides[currentSlide].badge}
-              </Badge>                  <h1 className={`${elMessiri.className} text-4xl md:text-6xl lg:text-7xl font-bold text-royal-primary leading-tight`}>
+        <div className="content-container">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left Content */}
+            <motion.div 
+              className="text-center lg:text-left space-y-6 lg:space-y-8"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="space-y-4 lg:space-y-6">
+                <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-sm font-medium inline-flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  {slides[currentSlide].badge}
+                </Badge><h1 className={`${elMessiri.className} text-4xl md:text-6xl lg:text-7xl font-bold text-royal-primary leading-tight`}>
                 {slides[currentSlide].title}
               </h1>
                 {slides[currentSlide].subtitle && (
@@ -247,13 +249,13 @@ export default function HomePage() {
               />
             </div>            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/register">
-                <Button size="lg" className="bg-royal-primary hover:bg-royal-primary/90 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+                <Button size="lg" className="gradient-primary text-white px-8 py-4 text-lg font-semibold shadow-lg">
                   {slides[currentSlide].cta || "Begin Your Sacred Journey"}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link href="/about#success-stories">
-                <Button variant="outline" size="lg" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white px-8 py-4 text-lg font-semibold">
+                <Button variant="outline" size="lg" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white active:bg-royal-primary/90 active:text-white focus:bg-royal-primary focus:text-white px-8 py-4 text-lg font-semibold transition-all duration-300">
                   Watch Success Stories
                   <Heart className="ml-2 h-5 w-5" />
                 </Button>
@@ -274,8 +276,7 @@ export default function HomePage() {
             </div>
           </motion.div>
 
-          {/* Right Content - Registration Form */}
-          <motion.div
+          {/* Right Content - Registration Form */}          <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -283,19 +284,23 @@ export default function HomePage() {
             <HeroRegistrationForm />
           </motion.div>
         </div>
+        </div>
       </section>
 
       {/* Sacred Values Section */}
-      <section className="py-20 relative">
-        <div className="container mx-auto px-4">
+      <section className="section-spacing relative">
+        <div className="content-container">
           <motion.div 
-            className="text-center mb-16"
+            className="text-center mb-12 lg:mb-16"
             variants={fadeInUp}
             initial="initial"
-            whileInView="animate"            viewport={{ once: true }}          >            <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
+            whileInView="animate"
+            viewport={{ once: true }}
+          >
+            <h2 className={`${elMessiri.className} text-3xl md:text-4xl lg:text-5xl font-bold text-royal-primary mb-4 lg:mb-6`}>
               Why Choose Nikah Sufiyana?
             </h2>
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-4 lg:mb-6">
               <Image
                 src="/sufiyana-border-ui.svg"
                 alt="Decorative Border"
@@ -304,13 +309,13 @@ export default function HomePage() {
                 className="opacity-60"
               />
             </div>
-            <p className="text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto font-medium leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto font-medium leading-relaxed">
               India's most trusted Islamic matrimonial platform, dedicated to helping Muslim families find the perfect life partners with complete Islamic values and modern convenience.
             </p>
           </motion.div>
 
           <motion.div 
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="responsive-grid-4"
             variants={staggerContainer}
             initial="initial"
             whileInView="animate"
@@ -334,21 +339,22 @@ export default function HomePage() {
               </motion.div>
             ))}
           </motion.div>        </div>
-      </section>
-
-      {/* Brand Story Section - The Sufiyana Legacy */}
-      <section className="py-20 bg-gradient-to-br from-cream-light/30 to-cream-dark/20 relative overflow-hidden">
+      </section>      {/* Brand Story Section - The Sufiyana Legacy */}
+      <section className="section-spacing bg-gradient-to-br from-cream-light/30 to-cream-dark/20 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-5"></div>
-        <div className="container mx-auto px-4 relative">
+        <div className="content-container relative">
           <motion.div 
-            className="max-w-6xl mx-auto"
+            className="max-w-5xl mx-auto"
             variants={fadeInUp}
             initial="initial"
             whileInView="animate"
-            viewport={{ once: true }}          >            <div className="text-center mb-16">              <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
+            viewport={{ once: true }}
+          >
+            <div className="text-center mb-12 lg:mb-16">
+              <h2 className={`${elMessiri.className} text-3xl md:text-4xl lg:text-5xl font-bold text-royal-primary mb-4 lg:mb-6`}>
                 About Nikah Sufiyana
               </h2>
-              <div className="flex justify-center mb-8">
+              <div className="flex justify-center mb-6 lg:mb-8">
                 <Image
                   src="/sufiyana-border-ui.svg"
                   alt="Decorative Border"
@@ -359,7 +365,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="responsive-grid-2 items-center">
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -434,29 +440,30 @@ export default function HomePage() {
             </div>
           </motion.div>
         </div>
-      </section>
-
-      {/* Premium Profiles Section */}
-      <section className="py-20 bg-gradient-to-br from-cream-light/50 to-cream-dark/30 relative">
-        <div className="container mx-auto px-4">
+      </section>      {/* Premium Profiles Section */}
+      <section className="section-spacing bg-gradient-to-br from-cream-light/50 to-cream-dark/30 relative">
+        <div className="content-container">
           <motion.div 
-            className="text-center mb-16"
+            className="text-center mb-12 lg:mb-16"
             variants={fadeInUp}
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >            <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-custom-sm font-medium mb-4">
+          >
+            <Badge className="bg-royal-primary/10 text-royal-primary border-royal-primary/20 px-4 py-2 text-sm font-medium mb-4 inline-flex items-center gap-2">
               <Image
                 src="/Nikah-Sufiyana-Icon-white-01.svg"
                 alt="Nikah Sufiyana Icon"
                 width={16}
                 height={16}
-                className="h-4 w-4 mr-2"
+                className="h-4 w-4"
               />
-              Premium Verified Profiles            </Badge>            <h2 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
+              Premium Verified Profiles
+            </Badge>
+            <h2 className={`${elMessiri.className} text-3xl md:text-4xl lg:text-5xl font-bold text-royal-primary mb-4 lg:mb-6`}>
               Featured Profiles from Hyderabad
             </h2>
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-4 lg:mb-6">
               <Image
                 src="/sufiyana-border-ui.svg"
                 alt="Decorative Border"
@@ -465,11 +472,13 @@ export default function HomePage() {
                 className="opacity-60"
               />
             </div>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
               Discover verified premium profiles of accomplished individuals seeking blessed companionship through sacred matrimony.
             </p>
-          </motion.div>          <motion.div 
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
+          </motion.div>
+
+          <motion.div 
+            className="responsive-grid-3 mb-8 lg:mb-12"
             variants={staggerContainer}
             initial="initial"
             whileInView="animate"
@@ -572,15 +581,15 @@ export default function HomePage() {
                           <Briefcase className="h-4 w-4" />
                           {profile.profession}
                         </div>
-                      </div>                    <div className="flex gap-2">
+                      </div>                      <div className="flex gap-2">
                         <Link href={`/profile/${profile.id}`}>
-                          <Button className="flex-1 royal-shine-button text-white">
+                          <Button className="flex-1 gradient-primary text-white">
                             View Profile
                           </Button>
                         </Link>
                         <Button 
                           variant="outline" 
-                          className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white"
+                          className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white active:bg-royal-primary/90 active:text-white focus:bg-royal-primary focus:text-white transition-all duration-300"
                           onClick={() => {
                             // Handle shortlist functionality
                             console.log('Shortlisted:', profile.id)
@@ -594,9 +603,9 @@ export default function HomePage() {
                 </motion.div>
               ))
             )}
-          </motion.div><div className="text-center">
+          </motion.div>          <div className="text-center">
             <Link href="/browse">
-              <Button size="lg" variant="outline" className="border-royal-primary text-royal-primary hover:royal-shine-button hover:text-white px-8 py-4 text-lg font-semibold">
+              <Button size="lg" variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white active:bg-royal-primary/90 active:text-white focus:bg-royal-primary focus:text-white px-8 py-4 text-lg font-semibold transition-all duration-300">
                 View All Premium Profiles
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -686,7 +695,7 @@ export default function HomePage() {
             ))}
           </motion.div>          <div className="text-center mt-12">
             <Link href="/about#success-stories">
-              <Button size="lg" className="bg-royal-primary hover:bg-royal-primary/90 text-white px-8 py-4 text-lg font-semibold">
+              <Button size="lg" className="gradient-primary text-white px-8 py-4 text-lg font-semibold">
                 Read More Success Stories
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -894,8 +903,7 @@ export default function HomePage() {
                   </h3>
                   <p className="text-gray-600 leading-relaxed mb-4">
                     Our AI-powered matching system combines spiritual compatibility with personal preferences, ensuring every suggestion feels divinely guided.
-                  </p>
-                  <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
+                  </p>                  <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white active:bg-royal-primary/90 active:text-white focus:bg-royal-primary focus:text-white transition-all duration-300">
                     Explore Matches
                   </Button>
                 </CardContent>
@@ -920,7 +928,7 @@ export default function HomePage() {
                   <p className="text-gray-600 leading-relaxed mb-4">
                     Advanced security measures ensure your personal information remains as protected as the secrets of the Sufi masters.
                   </p>                  <Link href="/privacy-features">
-                    <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
+                    <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white active:bg-royal-primary/90 active:text-white focus:bg-royal-primary focus:text-white transition-all duration-300">
                       Privacy Settings
                     </Button>
                   </Link>
@@ -946,7 +954,7 @@ export default function HomePage() {
                   <p className="text-gray-600 leading-relaxed mb-4">
                     Connect with potential matches through our secure messaging system, designed to honor Islamic principles of respectful courtship.
                   </p>                  <Link href="/messages">
-                    <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white">
+                    <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white active:bg-royal-primary/90 active:text-white focus:bg-royal-primary focus:text-white transition-all duration-300">
                       Start Chatting
                     </Button>
                   </Link>
@@ -980,7 +988,7 @@ export default function HomePage() {
               Join thousands of happy couples who found their life partners through Nikah Sufiyana. Start your journey today and connect with verified Muslim profiles from Hyderabad and across India with complete family support.
             </p>            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/register">
-                <Button size="lg" variant="secondary" className="bg-white text-royal-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold">
+                <Button size="lg" variant="secondary" className="bg-white text-royal-primary hover:bg-gray-100 active:bg-gray-200 focus:bg-gray-100 px-8 py-4 text-lg font-semibold transition-all duration-300">
                   Create Free Profile
                   <UserPlus className="ml-2 h-5 w-5" />
                 </Button>
@@ -988,7 +996,7 @@ export default function HomePage() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-royal-primary px-8 py-4 text-lg font-semibold"
+                className="border-white text-white hover:bg-white hover:text-royal-primary active:bg-gray-100 active:text-royal-primary focus:bg-white focus:text-royal-primary px-8 py-4 text-lg font-semibold transition-all duration-300"
                 onClick={() => window.open('tel:+919876543210')}
               >
                 <Phone className="mr-2 h-5 w-5" />

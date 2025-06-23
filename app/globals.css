@@ -98,6 +98,177 @@
   /* Custom text size replacement for text-lg */
   .text-custom-sm {
     font-size: 1.1rem;
+    line-height: 1.7;
+  }
+
+  /* Responsive Container Classes */
+  .page-container {
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 100%;
+  }
+
+  /* Specific max-widths for different breakpoints */
+  @media (min-width: 640px) {
+    .page-container { max-width: 640px; }
+  }
+  
+  @media (min-width: 768px) {
+    .page-container { max-width: 768px; }
+  }
+  
+  @media (min-width: 1024px) {
+    .page-container { max-width: 1024px; }
+  }
+  
+  @media (min-width: 1280px) {
+    .page-container { max-width: 1200px; }
+  }
+  
+  @media (min-width: 1536px) {
+    .page-container { max-width: 1280px; }
+  }
+
+  /* Content Container with better spacing */
+  .content-container {
+    @apply mx-auto px-6 sm:px-8 lg:px-12 xl:px-16;
+    max-width: 100%;
+  }
+
+  @media (min-width: 640px) {
+    .content-container { max-width: 640px; }
+  }
+  
+  @media (min-width: 768px) {
+    .content-container { max-width: 768px; }
+  }
+  
+  @media (min-width: 1024px) {
+    .content-container { max-width: 1000px; }
+  }
+  
+  @media (min-width: 1280px) {
+    .content-container { max-width: 1100px; }
+  }
+  
+  @media (min-width: 1536px) {
+    .content-container { max-width: 1200px; }
+  }
+
+  /* Box Layout Classes for better responsive design */
+  .box-layout {
+    @apply bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden;
+  }
+
+  .section-spacing {
+    @apply py-12 sm:py-16 lg:py-20 xl:py-24;
+  }
+
+  .card-grid {
+    @apply grid gap-4 sm:gap-6 lg:gap-8;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* Mobile-first responsive grid */
+  .responsive-grid-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8;
+  }
+
+  .responsive-grid-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .responsive-grid-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  /* Button Gradient Classes with Proper Active/Focus States */
+  .gradient-primary {
+    background: linear-gradient(135deg, #C7203E 0%, #A11B35 100%);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+  }
+
+  .gradient-primary:hover {
+    background: linear-gradient(135deg, #A11B35 0%, #8B1538 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(199, 32, 62, 0.3);
+  }
+
+  .gradient-primary:active,
+  .gradient-primary:focus {
+    background: linear-gradient(135deg, #8B1538 0%, #6D1029 100%);
+    color: white;
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(199, 32, 62, 0.4);
+  }
+
+  .gradient-emerald {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+  }
+
+  .gradient-emerald:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .gradient-emerald:active,
+  .gradient-emerald:focus {
+    background: linear-gradient(135deg, #047857 0%, #065F46 100%);
+    color: white;
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  }
+
+  .gradient-gold {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+  }
+
+  .gradient-gold:hover {
+    background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+
+  .gradient-gold:active,
+  .gradient-gold:focus {
+    background: linear-gradient(135deg, #B45309 0%, #92400E 100%);
+    color: white;
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+  }
+
+  .gradient-royal {
+    background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+  }
+
+  .gradient-royal:hover {
+    background: linear-gradient(135deg, #5B21B6 0%, #4C1D95 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  }
+
+  .gradient-royal:active,
+  .gradient-royal:focus {
+    background: linear-gradient(135deg, #4C1D95 0%, #3C1A78 100%);
+    color: white;
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+  }
   }
 
   /* Royal Box Shadow */
@@ -532,6 +703,8 @@
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
+  color: white;
+  border: none;
 }
 
 .royal-shine-button::before {
@@ -553,6 +726,15 @@
   background-position: 100% 50%;
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(199, 32, 62, 0.4);
+  color: white;
+}
+
+.royal-shine-button:active,
+.royal-shine-button:focus {
+  background: linear-gradient(135deg, #A11B35 0%, #8B1538 100%);
+  color: white;
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(199, 32, 62, 0.5);
 }
 
 .royal-glow-effect {

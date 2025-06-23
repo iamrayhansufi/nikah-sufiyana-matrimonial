@@ -30,24 +30,24 @@ export function Footer() {
             
       {/* Newsletter Section */}
       <div className="border-b border-white/20">
-        <div className="container mx-auto px-4 py-12">
+        <div className="content-container section-spacing">
           <div className="max-w-xl mx-auto text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-3 lg:mb-4 bg-white/20 rounded-full flex items-center justify-center">
               <Image
                 src="/Nikah-Sufiyana-Icon-white-01.svg"
                 alt="Nikah Sufiyana Icon"
                 width={32}
                 height={32}
-                className="h-8 w-8"
+                className="h-6 w-6 lg:h-8 lg:w-8"
               />
             </div>
-            <h3 className={`${elMessiri.className} text-3xl font-bold mb-4`}>
+            <h3 className={`${elMessiri.className} text-2xl lg:text-3xl font-bold mb-3 lg:mb-4`}>
               Join Our Royal Newsletter
             </h3>
-            <p className="text-white/90 mb-6 text-lg">
+            <p className="text-white/90 mb-4 lg:mb-6 text-base lg:text-lg">
               Receive blessed updates on new profiles, success stories, and exclusive matrimonial events
             </p>
-            <form onSubmit={handleNewsletterSubscription} className="flex gap-2 max-w-md mx-auto">
+            <form onSubmit={handleNewsletterSubscription} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
               <Input 
                 type="email" 
                 placeholder="Enter your email for blessings" 
@@ -65,21 +65,21 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12 relative">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+      <div className="content-container section-spacing relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-8">
           {/* Brand */}
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2 space-y-4 lg:space-y-6">
             <Link href="/" className="flex items-center space-x-2 hover-lift">
               <Image
                 alt="Nikah Sufiyana"
-                height="48"
-                width="215"
+                height="40"
+                width="180"
                 src="/Nikah-Sufiyana-Logo.svg"
-                className="h-12 w-auto filter brightness-0 invert"
+                className="h-8 lg:h-12 w-auto filter brightness-0 invert"
               />
             </Link>
-            <p className="text-lg text-white/90 max-w-md leading-relaxed">
-              <strong className={`${elMessiri.className} text-lg`}>Nikah Sufiyana</strong> - India's most trusted Islamic matrimonial platform, where hearts unite through divine blessing. We combine sacred Islamic values with modern technology to create meaningful, halal connections that lead to blessed marriages.
+            <p className="text-base lg:text-lg text-white/90 max-w-md leading-relaxed">
+              <strong className={`${elMessiri.className} text-base lg:text-lg`}>Nikah Sufiyana</strong> - India's most trusted Islamic matrimonial platform, where hearts unite through divine blessing. We combine sacred Islamic values with modern technology to create meaningful, halal connections that lead to blessed marriages.
             </p>
             
             {/* SVG Border */}
@@ -93,7 +93,7 @@ export function Footer() {
               />
             </div>
             
-            <div className="flex gap-4">
+            <div className="flex gap-3 lg:gap-4">
               <Link href="https://facebook.com" target="_blank" className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-all duration-300 hover:scale-110">
                 <Facebook className="h-5 w-5" />
               </Link>
