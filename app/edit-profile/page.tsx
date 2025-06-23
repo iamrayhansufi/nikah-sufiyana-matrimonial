@@ -659,14 +659,19 @@ export default function EditProfilePage() {
   }    // Function to refetch the complete profile
   const refetchProfile = async () => {
     if (!session?.user?.id) return;
-    
-    try {
+      try {
       console.log("🔄 Refetching profile data for user:", session.user.id);
-      const response = await fetch(`/api/profiles/${session.user.id}`, {
+      
+      // Add timestamp to prevent caching
+      const timestamp = Date.now();
+      const response = await fetch(`/api/profiles/${session.user.id}?t=${timestamp}`, {
+        method: 'GET',
         headers: {
-          "Cache-Control": "no-cache, no-store, must-revalidate"
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0"
         },
-        next: { revalidate: 0 } // Ensure Next.js doesn't cache this request
+        cache: 'no-store' // Ensure no caching
       });
       
       if (!response.ok) {
@@ -1177,10 +1182,36 @@ export default function EditProfilePage() {
       }
         const result = await response.json();
       console.log("Photo deleted successfully:", result);
-      
-      // Refresh the profile data to get updated photos from the server
+        // Refresh the profile data to get updated photos from the server
       console.log("Refetching profile after deletion...");
-      await refetchProfile();
+      
+      // Add a small delay to ensure the deletion is fully committed
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Multiple attempts to refetch with verification
+      let attempts = 0;
+      const maxAttempts = 3;
+      let currentPhotoCount = profileData?.profilePhotos?.length || 0;
+      
+      while (attempts < maxAttempts) {
+        await refetchProfile();
+        
+        // Check if the photo count has changed
+        const newPhotoCount = profileData?.profilePhotos?.length || 0;
+        console.log(`Attempt ${attempts + 1}: Photo count ${currentPhotoCount} -> ${newPhotoCount}`);
+        
+        if (newPhotoCount < currentPhotoCount) {
+          console.log("✅ Photo count decreased, deletion successful!");
+          break;
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          console.log(`Retrying refetch in 500ms... (attempt ${attempts + 1}/${maxAttempts})`);
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
       console.log("Profile data after refetch:", profileData?.profilePhotos);
       
       toast({
