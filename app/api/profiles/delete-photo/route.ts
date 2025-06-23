@@ -58,9 +58,7 @@ export async function DELETE(request: NextRequest) {
     }    console.log("👤 User found, processing photos...");
     console.log("📸 Current user.photos:", user.photos);
     console.log("📸 Current user.profilePhotos:", user.profilePhotos);
-    console.log("📸 Current user.profilePhoto:", user.profilePhoto);
-
-    // Update photos array
+    console.log("📸 Current user.profilePhoto:", user.profilePhoto);    // Update photos array
     let photos: string[] = [];
     
     // Handle both string (JSON) and object (parsed) formats from Redis
@@ -68,6 +66,7 @@ export async function DELETE(request: NextRequest) {
       if (typeof user.photos === 'string') {
         try {
           photos = JSON.parse(user.photos);
+          console.log("📸 Parsed photos from JSON string");
         } catch (error) {
           console.error("Error parsing photos JSON:", error);
           photos = [];
@@ -75,6 +74,7 @@ export async function DELETE(request: NextRequest) {
       } else if (Array.isArray(user.photos)) {
         // Redis client already parsed it as an array
         photos = user.photos;
+        console.log("📸 Using photos as pre-parsed array");
       } else {
         console.warn("Unexpected photos format:", typeof user.photos, user.photos);
         photos = [];
@@ -117,15 +117,14 @@ export async function DELETE(request: NextRequest) {
       console.error("❌ HSET operation failed:", hsetError);
       throw new Error(`Failed to update user photos: ${hsetError}`);
     }    // Add a small delay to ensure consistency
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Verify the update
+    await new Promise(resolve => setTimeout(resolve, 100));    // Verify the update
     console.log("✅ Verifying update...");
     const verifyUser = await redis.hgetall(userKey);
     let verifiedPhotos: string[] = [];
     
     if (verifyUser) {
       console.log("📸 Verified photos:", verifyUser.photos);
+      console.log("📸 Verified photos type:", typeof verifyUser.photos);
       console.log("📸 Verified profilePhotos:", verifyUser.profilePhotos);
       console.log("📸 Verified profilePhoto:", verifyUser.profilePhoto);
       
@@ -133,8 +132,13 @@ export async function DELETE(request: NextRequest) {
       try {
         if (Array.isArray(verifyUser.photos)) {
           verifiedPhotos = verifyUser.photos;
+          console.log("✅ Using verified photos as pre-parsed array");
         } else if (typeof verifyUser.photos === 'string') {
           verifiedPhotos = JSON.parse(verifyUser.photos);
+          console.log("✅ Parsed verified photos from JSON string");
+        } else {
+          console.warn("⚠️ Unexpected verified photos format:", typeof verifyUser.photos);
+          verifiedPhotos = [];
         }
         
         console.log("📊 Verified photos count:", verifiedPhotos.length);

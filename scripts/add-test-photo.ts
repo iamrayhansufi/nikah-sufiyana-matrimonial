@@ -5,7 +5,7 @@ async function addTestPhoto() {
     console.log('🔍 Adding test photo for deletion testing...\n');
     
     const userId = 'user:1750495215968-bkyhp1mtzhi';
-    const testPhoto = '/api/secure-image/gallery-1750495215968-bkyhp1mtzhi-0-1750672186905';
+    const testPhoto = '/api/secure-image/test-photo-' + Date.now();
     
     // Get current photos
     const user = await redis.hgetall(userId);
