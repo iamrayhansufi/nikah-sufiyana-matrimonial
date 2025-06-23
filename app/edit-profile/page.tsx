@@ -975,8 +975,15 @@ export default function EditProfilePage() {
         });
       }
 
-      // Refresh the page data to ensure everything is up to date
-      await refetchProfile();
+      // Refresh the page data with retry mechanism to ensure the photo appears
+      await refetchProfileWithRetry(newPhotoUrl);
+      
+      // Show success message
+      toast({
+        title: "Photo Uploaded",
+        description: "Your profile photo has been successfully uploaded and saved",
+        variant: "default"
+      })
     } catch (error) {
       console.error("Photo upload error:", error)
       toast({
@@ -987,6 +994,43 @@ export default function EditProfilePage() {
     } finally {
       setSavingTab(null)
     }
+  }
+  
+  // Enhanced refetch with retry mechanism for photo uploads
+  const refetchProfileWithRetry = async (expectedPhotoUrl?: string, maxRetries = 3) => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      console.log(`🔄 Profile refetch attempt ${attempt}/${maxRetries}`);
+      
+      try {
+        await refetchProfile();
+        
+        // If we're looking for a specific photo, check if it's now present
+        if (expectedPhotoUrl) {
+          const hasPhoto = privacyForm.profilePhotos?.includes(expectedPhotoUrl) || 
+                           profileData?.profilePhotos?.includes(expectedPhotoUrl);
+          
+          if (hasPhoto) {
+            console.log('✅ Photo found in profile data after refetch');
+            return;
+          } else if (attempt < maxRetries) {
+            console.log(`⏳ Photo not yet visible, waiting before retry ${attempt + 1}...`);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+            continue;
+          }
+        } else {
+          // No specific photo to check for, just return after refetch
+          return;
+        }
+      } catch (error) {
+        console.error(`❌ Refetch attempt ${attempt} failed:`, error);
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retry
+      }
+    }
+    
+    console.warn('⚠️ Photo may not be visible immediately, but upload was successful');
   }
   // Handle multiple photo uploads
   const handleMultiplePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

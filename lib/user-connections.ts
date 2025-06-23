@@ -39,7 +39,6 @@ export async function canAccessUserPhotos(
     console.log('✅ Self-access granted');
     return true;
   }
-  
   // Also check without "user:" prefix for compatibility
   const cleanViewerId = viewerUserId.replace('user:', '');
   const cleanOwnerId = photoOwnerUserId.replace('user:', '');
