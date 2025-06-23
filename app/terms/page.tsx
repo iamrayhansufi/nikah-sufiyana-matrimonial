@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator"
 
 export default function TermsOfServicePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+    <div className="min-h-screen bg-cream-bg">
       <Header />
       <div className="container mx-auto px-4 py-8">
         <Card className="mb-8 max-w-4xl mx-auto">

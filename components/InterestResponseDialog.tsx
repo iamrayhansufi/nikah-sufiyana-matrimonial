@@ -200,8 +200,7 @@ export function InterestResponseDialog({
                   ))}
                 </SelectContent>
               </Select>
-              
-              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-blue-50 p-2 rounded">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-blue-100 p-2 rounded">
                 <Clock className="h-3 w-3" />
                 <span>
                   You can revoke photo access at any time from your dashboard

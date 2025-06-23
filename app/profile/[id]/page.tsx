@@ -688,7 +688,7 @@ export default function ProfilePage({
                           <div className="w-full h-full islamic-pattern"></div>
                         </div>
                           {/* Main icon with Islamic crescent and star */}
-                        <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-3 rounded-full mb-4 backdrop-blur-sm border border-amber-300/30 relative z-10">
+                        <div className="bg-gradient-to-br from-amber-400/20 to-orange-400/20 p-3 rounded-full mb-4 backdrop-blur-sm border border-amber-300/30 relative z-10">
                           <div className="flex items-center justify-center">
                             <svg className="h-10 w-10 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" opacity="0.1"/>
@@ -774,7 +774,7 @@ export default function ProfilePage({
                   <div className="space-y-3">
                     
                     {/* User Tip */}
-                    <div className="text-center p-3 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg">
+                    <div className="text-center p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg">
                       <p className="text-sm text-emerald-700 font-medium">
                         💡 Tip: Send interest below to connect and view photos
                       </p>

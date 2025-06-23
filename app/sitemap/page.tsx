@@ -88,18 +88,17 @@ export default function SitemapPage() {
       ]
     }
   ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
+    <div className="min-h-screen bg-cream-bg">
       {/* Royal Header */}
-      <div className="bg-gradient-to-r from-purple-900 via-red-900 to-pink-900 text-white py-20">
+      <div className="bg-gradient-to-r from-amber-900 via-orange-900 to-amber-900 text-white py-20">
         <div className="container mx-auto px-4 text-center">
           <div className="flex justify-center mb-6">
             <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm border border-white/20">
               <Globe className="w-12 h-12 text-gold-400" />
             </div>
           </div>
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-gold-400 to-rose-400 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-gold-400 to-amber-400 bg-clip-text text-transparent">
             Sacred Sitemap
           </h1>
           <p className="text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
@@ -115,7 +114,7 @@ export default function SitemapPage() {
             <Card key={index} className="group hover:shadow-2xl transition-all duration-300 border-2 border-purple-100 hover:border-purple-300 bg-white/80 backdrop-blur-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-xl font-bold text-purple-900 group-hover:text-purple-700 transition-colors">
-                  <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg group-hover:from-purple-200 group-hover:to-pink-200 transition-all">
+                  <div className="p-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg group-hover:from-amber-200 group-hover:to-orange-200 transition-all">
                     {section.icon}
                   </div>
                   {section.title}
@@ -127,7 +126,7 @@ export default function SitemapPage() {
                     <div key={pageIndex} className="group/item">
                       <Link 
                         href={page.href}
-                        className="block p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border border-purple-100 hover:border-purple-200 transition-all duration-200 hover:shadow-md"
+                        className="block p-3 rounded-lg bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 border border-amber-100 hover:border-amber-200 transition-all duration-200 hover:shadow-md"
                       >
                         <div className="font-semibold text-purple-800 group-hover/item:text-purple-900 mb-1">
                           {page.name}
@@ -146,7 +145,7 @@ export default function SitemapPage() {
 
         {/* Quick Links Section */}
         <div className="mt-16 text-center">
-          <Card className="max-w-4xl mx-auto bg-gradient-to-r from-purple-900 to-pink-900 text-white border-0">
+          <Card className="max-w-4xl mx-auto bg-gradient-to-r from-amber-900 to-orange-900 text-white border-0">
             <CardHeader>
               <CardTitle className="text-2xl font-bold flex items-center justify-center gap-3">
                 <Heart className="w-6 h-6 text-rose-400" />
@@ -191,7 +190,7 @@ export default function SitemapPage() {
 
         {/* Footer CTA */}
         <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-8 border border-purple-200">
+          <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-2xl p-8 border border-amber-200">
             <h3 className="text-2xl font-bold text-purple-900 mb-4">
               Can't Find What You're Looking For?
             </h3>
@@ -201,7 +200,7 @@ export default function SitemapPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 href="/contact"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-200 hover:shadow-lg hover:scale-105"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-200 hover:shadow-lg hover:scale-105"
               >
                 <Mail className="w-5 h-5" />
                 Contact Support

@@ -253,7 +253,7 @@ export default function HelpPage() {
             <motion.div variants={fadeInUp}>
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 text-center h-full">
                 <CardContent className="p-8">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-500/10 flex items-center justify-center">
                     <MessageSquare className="h-8 w-8 text-emerald-600" />
                   </div>
                   <h3 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-4`}>

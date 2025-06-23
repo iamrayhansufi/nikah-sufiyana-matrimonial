@@ -72,7 +72,7 @@ export default function PaymentPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+    <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
       <Header />
 
       <div className="container mx-auto px-4 py-8">

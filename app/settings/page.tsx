@@ -35,10 +35,9 @@ export default function SettingsPage() {
       title: "Account Deactivation",
       description: "Please contact support to deactivate your account.",
       variant: "destructive"
-    })
-  }
+    })  }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
+    <div className="min-h-screen bg-cream-bg">
       <Header />
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto">

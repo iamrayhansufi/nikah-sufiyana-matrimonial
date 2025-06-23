@@ -146,7 +146,49 @@ export default function DashboardPage() {
       if (ageDiff <= 3) matches++
     }
 
-    return total ? Math.floor((matches / total) * 100) : 50
+    return total ? Math.floor((matches / total) * 100) : 50  }  // Helper to calculate profile completeness
+  const calculateCompleteness = (profile: any) => {
+    if (!profile) return 0
+    
+    // List of important fields for completeness based on actual database schema
+    const fields = [
+      // Basic info (high priority)
+      'fullName', 'age', 'email', 'phone', 'gender', 'height', 'complexion', 'maritalStatus',
+      'city', 'country', 'bio',
+      // Religious info (high priority)
+      'sect', 'prayerHabit', 'quranReading',
+      // Education & Career (medium priority)
+      'education', 'profession',
+      // Family info (medium priority)
+      'fatherOccupation', 'motherOccupation', 'siblings',
+      // Partner preferences (medium priority)
+      'partnerAge', 'partnerHeight', 'partnerEducation', 'partnerProfession',
+      // Profile photos (high priority)
+      'profilePhoto'
+    ]
+    
+    let filled = 0
+    let total = fields.length
+    
+    fields.forEach(field => {
+      const value = profile[field]
+      // Check if field has meaningful value
+      if (value !== null && 
+          value !== undefined && 
+          value !== "" && 
+          value !== "null" && 
+          value !== "undefined" &&
+          String(value).trim() !== "" &&
+          String(value).trim().toLowerCase() !== "null") {
+        filled++
+      }
+    })
+    
+    // Ensure we don't divide by zero and return a valid percentage
+    const percentage = total > 0 ? Math.round((filled / total) * 100) : 0
+    console.log(`📊 Profile Completeness: ${filled}/${total} fields filled = ${percentage}%`)
+    
+    return percentage
   }
 
   useEffect(() => {
@@ -208,10 +250,13 @@ export default function DashboardPage() {
         const cacheTimestamp = sessionStorage.getItem(`${cachedProfileKey}_timestamp`);
         const cacheAge = cacheTimestamp ? Date.now() - parseInt(cacheTimestamp) : null;
         const useCachedProfile = cachedProfile && cacheAge && cacheAge < 30 * 60 * 1000;
-        
-        if (useCachedProfile) {
+          if (useCachedProfile) {
           console.log('Using cached profile data (30-minute cache)');
           const profileData = JSON.parse(cachedProfile);
+          // Calculate completeness if not already present
+          if (!profileData.completeness) {
+            profileData.completeness = calculateCompleteness(profileData);
+          }
           setUserProfile(profileData);
         } else {
           // Add credentials to ensure cookies are sent
@@ -231,18 +276,21 @@ export default function DashboardPage() {
             // Check if this is a data transfer limit error
             if (errorText.includes('data transfer') || errorText.includes('allowance')) {
               setNeonLimitHit(true);
-              sessionStorage.setItem('db_rate_limited', 'true');
-              // If we have cached data, use it even if it's older
+              sessionStorage.setItem('db_rate_limited', 'true');              // If we have cached data, use it even if it's older
               if (cachedProfile) {
                 const profileData = JSON.parse(cachedProfile);
+                // Calculate completeness if not already present
+                if (!profileData.completeness) {
+                  profileData.completeness = calculateCompleteness(profileData);
+                }
                 setUserProfile(profileData);
               }
             }
             
             throw new Error(`Profile fetch failed: ${errorText}`)
-          }
-  
-          const profileData = await res.json()
+          }          const profileData = await res.json()
+          // Calculate and add completeness to profile data
+          profileData.completeness = calculateCompleteness(profileData);
           setUserProfile(profileData)
           
           // Cache the profile data
@@ -366,24 +414,7 @@ export default function DashboardPage() {
         setLoading(false);
       }
     }
-    fetchProfile();
-  }, [session, status]);
-
-  // Helper to calculate profile completeness
-  const calculateCompleteness = (profile: any) => {
-    if (!profile) return 0
-    // List of important fields for completeness
-    const fields = [
-      'fullName', 'age', 'email', 'phone', 'gender', 'city', 'country', 'height', 'complexion', 'maritalStatus',
-      'aboutMe', 'profilePhoto', 'sect', 'education', 'profession', 'motherTongue', 'preferredLocation',
-      'preferredAgeMin', 'preferredAgeMax', 'preferredEducation', 'preferredProfession', 'familyDetails',
-    ]
-    let filled = 0
-    fields.forEach(f => {
-      if (profile[f] && String(profile[f]).trim() !== "") filled++
-    })
-    return Math.round((filled / fields.length) * 100)
-  }
+    fetchProfile();  }, [session, status]);
 
   const handleInterestResponse = async (interestId: string, action: 'accept' | 'decline') => {
     try {
@@ -522,18 +553,35 @@ export default function DashboardPage() {
 
                   <div className="flex items-center gap-2 mb-4">
                     {getStatusIcon(profileStatus)}                    <span className="text-lg font-medium">{getStatusText(profileStatus)}</span>
-                  </div>
-
-                  <div className="space-y-2">
+                  </div>                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-lg">Profile Completeness</span>
-                      <span className="text-lg font-medium">{userProfile.completeness}%</span>
+                      <span className="text-base lg:text-lg font-medium text-gray-700">Profile Completeness</span>
+                      <span className="text-base lg:text-lg font-bold text-royal-primary">
+                        {userProfile?.completeness ? userProfile.completeness : calculateCompleteness(userProfile)}%
+                      </span>
                     </div>
-                    <Progress value={userProfile.completeness} className="h-2" />
-                    {userProfile.completeness < 100 && (
-                      <Link href="/edit-profile">
-                        <Button size="sm" variant="outline" className="mt-2">Complete Your Profile</Button>
-                      </Link>
+                    <Progress 
+                      value={userProfile?.completeness ? userProfile.completeness : calculateCompleteness(userProfile)} 
+                      className="h-2.5 bg-gray-200" 
+                    />
+                    {(userProfile?.completeness ? userProfile.completeness : calculateCompleteness(userProfile)) < 100 && (
+                      <div className="mt-3">
+                        <p className="text-sm text-gray-600 mb-2">
+                          Complete your profile to get more visibility and better matches!
+                        </p>
+                        <Link href="/edit-profile">
+                          <Button size="sm" variant="outline" className="text-royal-primary border-royal-primary hover:bg-royal-primary hover:text-white">
+                            <Edit className="h-4 w-4 mr-1" />
+                            Complete Profile
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                    {(userProfile?.completeness ? userProfile.completeness : calculateCompleteness(userProfile)) === 100 && (
+                      <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
+                        <CheckCircle className="h-4 w-4" />
+                        Profile 100% Complete!
+                      </div>
                     )}
                   </div>
                 </div>

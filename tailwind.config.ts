@@ -30,13 +30,13 @@ const config: Config = {
   		fontFamily: {
   			sans: ['var(--font-el-messiri)', 'El Messiri', 'serif', 'ui-sans-serif', 'system-ui'],
   			'el-messiri': ['var(--font-el-messiri)', 'El Messiri', 'serif'],
-  		},
-  		colors: {
+  		},  		colors: {
   			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
-  			'royal-primary': '#C7203E',
+  			foreground: 'hsl(var(--foreground))',  			'royal-primary': '#C7203E',
   			'cream-light': '#FCF9F2',
   			'cream-dark': '#F2E4C1',
+  			'cream-bg': '#f9f6eb',
+  			'cream-soft': '#f9f6eb',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
