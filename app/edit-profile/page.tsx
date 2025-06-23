@@ -128,9 +128,9 @@ const sanitizePhotoUrl = (url: string): string => {
     return url.split('?')[0];
   }
   
-  // Fix placeholder URL to use relative path for local development
+  // Don't return placeholder URLs - let the component handle missing images
   if (url === '/placeholder-user.jpg' || url.includes('placeholder-user.jpg')) {
-    return '/placeholder-user.jpg';
+    return '';
   }
   
   // If it's a production URL but we're in development, convert to relative
@@ -139,6 +139,14 @@ const sanitizePhotoUrl = (url: string): string => {
   }
   
   return url;
+};
+
+// Helper function to check if a photo URL is valid and should be displayed
+const isValidPhotoUrl = (url: string | null | undefined): boolean => {
+  if (!url) return false;
+  if (url === '/placeholder-user.jpg' || url.includes('placeholder-user.jpg')) return false;
+  if (url.includes('placeholder') || url === '' || url === '/') return false;
+  return true;
 };
 
 // Helper component for form fields with validation
@@ -1231,43 +1239,47 @@ export default function EditProfilePage() {
                     APPROVED
                   </Badge>
                 )}
-                
-                <div className="relative">                  <div className="h-16 w-16 rounded-full border-2 border-primary overflow-hidden bg-slate-200">
-                    {(profileData?.profilePhoto || 
-                      (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
-                      (privacyForm.profilePhotos && privacyForm.profilePhotos[0])) ? (
-                      <img 
-                        src={sanitizePhotoUrl(
-                          profileData?.profilePhoto || 
-                          (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
-                          (privacyForm.profilePhotos && privacyForm.profilePhotos[0]) || 
-                          ''
-                        )} 
-                        alt="Profile" 
-                        className="h-full w-full object-cover"                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          const currentSrc = target.src;
-                          
-                          console.log('🚨 Image load error details:');
-                          console.log('   Current src:', currentSrc);
-                          console.log('   profileData?.profilePhoto:', profileData?.profilePhoto);
-                          console.log('   profileData?.profilePhotos:', profileData?.profilePhotos);
-                          console.log('   privacyForm.profilePhotos:', privacyForm.profilePhotos);
-                          
-                          // Prevent infinite loop by checking if we're already showing placeholder
-                          if (!currentSrc.includes('placeholder-user.jpg')) {
-                            console.error('Failed to load header profile image:', currentSrc);
-                            target.src = '/placeholder-user.jpg';
-                          } else {
-                            console.error('❌ Even placeholder failed to load!');
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-slate-400">
-                        <User size={30} />
-                      </div>
-                    )}
+                  <div className="relative">
+                  <div className="h-16 w-16 rounded-full border-2 border-primary overflow-hidden bg-slate-200">
+                    {(() => {
+                      const photoUrl = profileData?.profilePhoto || 
+                        (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
+                        (privacyForm.profilePhotos && privacyForm.profilePhotos[0]);
+                      
+                      const validPhotoUrl = photoUrl && isValidPhotoUrl(photoUrl);
+                      
+                      return validPhotoUrl ? (
+                        <img 
+                          src={sanitizePhotoUrl(photoUrl)} 
+                          alt="Profile" 
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            console.log('🚨 Header image load error for:', target.src);
+                            // Hide the image on error by setting display to none
+                            target.style.display = 'none';
+                            // Show the fallback icon
+                            const fallbackDiv = target.nextElementSibling as HTMLElement;
+                            if (fallbackDiv) {
+                              fallbackDiv.style.display = 'flex';
+                            }
+                          }}
+                        />
+                      ) : null;
+                    })()}
+                    <div 
+                      className="flex h-full w-full items-center justify-center text-slate-400"
+                      style={{ 
+                        display: (() => {
+                          const photoUrl = profileData?.profilePhoto || 
+                            (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
+                            (privacyForm.profilePhotos && privacyForm.profilePhotos[0]);
+                          return isValidPhotoUrl(photoUrl) ? 'none' : 'flex';
+                        })()
+                      }}
+                    >
+                      <User size={30} />
+                    </div>
                   </div>
                   <label 
                     htmlFor="profile-photo" 
@@ -2255,92 +2267,134 @@ export default function EditProfilePage() {
                       
                       {/* Multiple Photo Upload */}
                       <div className="space-y-4">
-                        <div className="flex flex-wrap gap-4">
-                          {/* Main Profile Photo */}
-                          <div className="relative">                            <div className="h-32 w-32 rounded-md border-2 border-primary overflow-hidden bg-slate-200">
-                              {(profileData?.profilePhoto || 
-                                (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
-                                (privacyForm.profilePhotos && privacyForm.profilePhotos[0])) ? (
-                                <img 
-                                  src={sanitizePhotoUrl(
-                                    profileData?.profilePhoto || 
-                                    (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
-                                    (privacyForm.profilePhotos && privacyForm.profilePhotos[0]) || 
-                                    ''
-                                  )} 
-                                  alt="Profile" 
-                                  className="h-full w-full object-cover"                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    // Prevent infinite loop by checking if we're already showing placeholder
-                                    if (!target.src.includes('placeholder-user.jpg')) {
-                                      console.error('Failed to load profile image:', 
-                                        profileData?.profilePhoto || 
-                                        (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
-                                        (privacyForm.profilePhotos && privacyForm.profilePhotos[0])
-                                      );
-                                      target.src = '/placeholder-user.jpg';
-                                    }
-                                  }}
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center text-slate-400">
-                                  <User size={24} />
-                                </div>
-                              )}
+                        <div className="flex flex-wrap gap-4">                          {/* Main Profile Photo */}
+                          <div className="relative">
+                            <div className="h-32 w-32 rounded-md border-2 border-primary overflow-hidden bg-slate-200">
+                              {(() => {
+                                const photoUrl = profileData?.profilePhoto || 
+                                  (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
+                                  (privacyForm.profilePhotos && privacyForm.profilePhotos[0]);
+                                
+                                const validPhotoUrl = photoUrl && isValidPhotoUrl(photoUrl);
+                                
+                                return validPhotoUrl ? (
+                                  <img 
+                                    src={sanitizePhotoUrl(photoUrl)} 
+                                    alt="Profile" 
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      console.log('🚨 Main profile image load error for:', target.src);
+                                      // Hide the image on error
+                                      target.style.display = 'none';
+                                      // Show the fallback icon
+                                      const fallbackDiv = target.nextElementSibling as HTMLElement;
+                                      if (fallbackDiv) {
+                                        fallbackDiv.style.display = 'flex';
+                                      }
+                                    }}
+                                  />
+                                ) : null;
+                              })()}
+                              <div 
+                                className="flex h-full w-full items-center justify-center text-slate-400 flex-col"
+                                style={{ 
+                                  display: (() => {
+                                    const photoUrl = profileData?.profilePhoto || 
+                                      (profileData?.profilePhotos && profileData.profilePhotos[0]) ||
+                                      (privacyForm.profilePhotos && privacyForm.profilePhotos[0]);
+                                    return isValidPhotoUrl(photoUrl) ? 'none' : 'flex';
+                                  })()
+                                }}
+                              >
+                                <Upload size={24} className="mb-1" />
+                                <span className="text-xs">Upload Photo</span>
+                              </div>
                             </div>
                             <Badge className="absolute -top-2 -right-2 bg-primary">Main</Badge>
-                          </div>
-                            {/* Additional Photos */}
-                          {(profileData?.profilePhotos || privacyForm.profilePhotos).map((photo: string, index: number) => (
-                            <div key={index} className="relative">                              <div className="h-32 w-32 rounded-md border border-gray-200 overflow-hidden">
-                                <img 
-                                  src={sanitizePhotoUrl(photo)} 
-                                  alt={`Photo ${index + 1}`} 
-                                  className="h-full w-full object-cover"
-                                  onError={(e) => {
-                                    console.error('Failed to load image:', photo);
-                                    // You could set a placeholder image here if needed
-                                  }}
-                                />
-                              </div>                              <button 
-                                type="button"
-                                onClick={() => handleDeletePhoto(photo, index)}
-                                disabled={savingTab === 'photos'}
-                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {savingTab === 'photos' ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                  <X className="h-4 w-4" />
-                                )}
-                              </button>
-                            </div>
-                          ))}
-                            {/* Add More Photos Button */}
-                          {((!profileData?.profilePhotos && !privacyForm.profilePhotos) || 
-                            (profileData?.profilePhotos || privacyForm.profilePhotos).length < 5) && (
-                            <label 
-                              htmlFor="additional-photos" 
-                              className="h-32 w-32 rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
-                            >
-                              {savingTab === 'photos' ? (
-                                <Loader2 className="h-8 w-8 mb-2 animate-spin text-primary" />
-                              ) : (
-                                <>
-                                  <Plus className="h-8 w-8 mb-2 text-gray-400" />
-                                  <span className="text-xs text-gray-500">Add Photos</span>
-                                </>
-                              )}
-                              <input 
-                                id="additional-photos" 
-                                type="file" 
-                                accept="image/*"
-                                multiple 
-                                onChange={handleMultiplePhotoUpload} 
-                                className="hidden" 
-                              />
-                            </label>
-                          )}
+                          </div>                            {/* Additional Photos */}
+                          {(() => {
+                            // Get all photos from both sources and filter out invalid ones
+                            const allPhotos = [
+                              ...(Array.isArray(profileData?.profilePhotos) ? profileData.profilePhotos : []),
+                              ...(Array.isArray(privacyForm.profilePhotos) ? privacyForm.profilePhotos : [])
+                            ];
+                            
+                            // Remove duplicates and filter out invalid URLs
+                            const uniqueValidPhotos = [...new Set(allPhotos)].filter(photo => 
+                              photo && isValidPhotoUrl(photo)
+                            );
+                            
+                            console.log('Rendering photos:', uniqueValidPhotos);
+                            
+                            return uniqueValidPhotos.map((photo: string, index: number) => (
+                              <div key={`${photo}-${index}`} className="relative">
+                                <div className="h-32 w-32 rounded-md border border-gray-200 overflow-hidden">
+                                  <img 
+                                    src={sanitizePhotoUrl(photo)} 
+                                    alt={`Photo ${index + 1}`} 
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => {
+                                      console.error('Failed to load gallery image:', photo);
+                                      // Hide the broken image
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = 'none';
+                                    }}
+                                  />
+                                </div>
+                                <button 
+                                  type="button"
+                                  onClick={() => handleDeletePhoto(photo, index)}
+                                  disabled={savingTab === 'photos'}
+                                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {savingTab === 'photos' ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <X className="h-4 w-4" />
+                                  )}
+                                </button>
+                              </div>
+                            ));
+                          })()}                            {/* Add More Photos Button */}
+                          {(() => {
+                            // Calculate total valid photos
+                            const allPhotos = [
+                              ...(Array.isArray(profileData?.profilePhotos) ? profileData.profilePhotos : []),
+                              ...(Array.isArray(privacyForm.profilePhotos) ? privacyForm.profilePhotos : [])
+                            ];
+                            const uniqueValidPhotos = [...new Set(allPhotos)].filter(photo => 
+                              photo && isValidPhotoUrl(photo)
+                            );
+                            
+                            // Show button only if we have less than 5 photos
+                            if (uniqueValidPhotos.length < 5) {
+                              return (
+                                <label 
+                                  htmlFor="additional-photos" 
+                                  className="h-32 w-32 rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+                                >
+                                  {savingTab === 'photos' ? (
+                                    <Loader2 className="h-8 w-8 mb-2 animate-spin text-primary" />
+                                  ) : (
+                                    <>
+                                      <Plus className="h-8 w-8 mb-2 text-gray-400" />
+                                      <span className="text-xs text-gray-500">Add Photos</span>
+                                    </>
+                                  )}
+                                  <input 
+                                    id="additional-photos" 
+                                    type="file" 
+                                    accept="image/*"
+                                    multiple 
+                                    onChange={handleMultiplePhotoUpload} 
+                                    className="hidden" 
+                                  />
+                                </label>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
                         
                         <div className="text-lg text-muted-foreground">
