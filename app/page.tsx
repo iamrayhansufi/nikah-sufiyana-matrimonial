@@ -219,7 +219,7 @@ export default function HomePage() {
         {/* Mobile and tablet gradient background */}
         <div className="absolute inset-0 lg:hidden bg-gradient-to-br from-royal-primary/5 to-royal-primary/15"></div>
         
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 relative z-10 py-12 lg:py-0">
+        <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 relative z-10 py-12 lg:py-0">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-6rem)] lg:min-h-[85vh]">
             {/* Left Content - Title, Description & Registration Form */}
             <motion.div 
@@ -266,7 +266,7 @@ export default function HomePage() {
         </div>
       </section>      {/* Sacred Values Section */}
       <section className="section-spacing relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6">
           <motion.div 
             className="text-center mb-12 lg:mb-16"
             variants={fadeInUp}
@@ -317,7 +317,7 @@ export default function HomePage() {
       </section>      {/* Brand Story Section - The Sufiyana Legacy */}
       <section className="section-spacing bg-gradient-to-br from-cream-light/30 to-cream-dark/20 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-5"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 relative">
           <motion.div 
             className="max-w-6xl mx-auto"
             variants={fadeInUp}
@@ -417,7 +417,7 @@ export default function HomePage() {
         </div>
       </section>      {/* Premium Profiles Section */}
       <section className="section-spacing bg-gradient-to-br from-cream-light/50 to-cream-dark/30 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6">
           <motion.div 
             className="text-center mb-12 lg:mb-16"
             variants={fadeInUp}
@@ -589,7 +589,7 @@ export default function HomePage() {
         </div>
       </section>      {/* Success Stories Section */}
       <section className="section-spacing relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6">
           <motion.div 
             className="text-center mb-16"
             variants={fadeInUp}
@@ -677,7 +677,7 @@ export default function HomePage() {
       </section>      {/* Sufiyana Philosophy & Community Section */}
       <section className="section-spacing bg-gradient-to-br from-cream-light/40 to-cream-dark/30 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-5"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 relative">
           <motion.div 
             className="text-center mb-16"
             variants={fadeInUp}
@@ -830,7 +830,7 @@ export default function HomePage() {
         </div>
       </section>      {/* Sufiyana Features Section */}
       <section className="section-spacing relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6">
           <motion.div 
             className="text-center mb-16"
             variants={fadeInUp}
@@ -935,7 +935,7 @@ export default function HomePage() {
       </section>      {/* Call to Action Section */}
       <section className="section-spacing bg-gradient-to-br from-royal-primary to-royal-primary/80 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-10"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 relative">
           <motion.div 
             className="text-center max-w-4xl mx-auto"
             variants={fadeInUp}
