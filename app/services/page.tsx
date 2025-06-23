@@ -61,7 +61,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹30,000 - ₹1,00,000",
       popular: true,
-      gradient: "from-red-500 to-pink-600"
+      gradient: "from-red-500 to-rose-600"
     },
     {
       icon: FileText,
@@ -76,7 +76,7 @@ export default function WeddingServicesPage() {
         "Premium paper options"
       ],
       pricing: "₹8,000 - ₹25,000",
-      popular: false,      gradient: "from-purple-600 to-indigo-700"
+      popular: false,      gradient: "from-red-600 to-rose-700"
     },
     {
       icon: Utensils,
@@ -108,7 +108,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹35,000 - ₹1,50,000",
       popular: false,
-      gradient: "from-pink-600 to-rose-700"
+      gradient: "from-rose-600 to-red-700"
     },
     {
       icon: Music,

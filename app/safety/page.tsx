@@ -602,9 +602,8 @@ export default function SafetyPage() {
                   </div>
                 </>
                 
-                <CardContent className="p-8 relative">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-500/10 flex items-center justify-center">
-                    <Star className="h-8 w-8 text-purple-600" />
+                <CardContent className="p-8 relative">                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500/20 to-red-500/10 flex items-center justify-center">
+                    <Star className="h-8 w-8 text-red-600" />
                   </div>                  <h3 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-4`}>
                     Premium Verification
                   </h3>

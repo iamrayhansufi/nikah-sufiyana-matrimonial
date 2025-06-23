@@ -208,9 +208,8 @@ export function Header() {
                               )}
                               {notification.type === 'interest_declined' && (
                                 <Heart className="h-4 w-4 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
-                              )}
-                              {notification.type === 'match' && (
-                                <Heart className="h-4 w-4 text-pink-500 mt-0.5 mr-2 fill-pink-500 flex-shrink-0" />
+                              )}                              {notification.type === 'match' && (
+                                <Heart className="h-4 w-4 text-red-500 mt-0.5 mr-2 fill-red-500 flex-shrink-0" />
                               )}
                               {notification.type === 'message' && (
                                 <MessageCircle className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />

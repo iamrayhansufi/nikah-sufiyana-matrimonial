@@ -67,7 +67,7 @@ export default function PremiumPage() {  const coreFeatures = [
       icon: MessageSquare,
       title: "Priority Communication",
       description: "Your messages appear at the top of recipients' inboxes for faster responses",
-      gradient: "from-red-500 to-pink-500"
+      gradient: "from-red-500 to-rose-500"
     },
     {
       icon: Lock,

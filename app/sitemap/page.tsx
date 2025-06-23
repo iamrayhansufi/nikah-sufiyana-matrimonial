@@ -110,7 +110,7 @@ export default function SitemapPage() {
 
       {/* Sitemap Content */}
       <div className="container mx-auto px-4 py-16">        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">          {siteMapSections.map((section, index) => (
-            <Card key={index} className="relative group hover:shadow-2xl transition-all duration-300 border-2 border-purple-100 hover:border-purple-300 bg-white/80 backdrop-blur-sm">
+            <Card key={index} className="relative group hover:shadow-2xl transition-all duration-300 border-2 border-red-100 hover:border-red-300 bg-white/80 backdrop-blur-sm">
               <Image
                 src="/bottom-left-border.svg"
                 alt=""
@@ -126,7 +126,7 @@ export default function SitemapPage() {
                 className="absolute top-0 right-0 opacity-70 z-10"
               />
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-3 text-xl font-bold text-purple-900 group-hover:text-purple-700 transition-colors">
+                <CardTitle className="flex items-center gap-3 text-xl font-bold text-red-900 group-hover:text-red-700 transition-colors">
                   <div className="p-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg group-hover:from-amber-200 group-hover:to-orange-200 transition-all">
                     {section.icon}
                   </div>
@@ -150,10 +150,10 @@ export default function SitemapPage() {
                         href={page.href}
                         className="block p-3 rounded-lg bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 border border-amber-100 hover:border-amber-200 transition-all duration-200 hover:shadow-md"
                       >
-                        <div className="font-semibold text-purple-800 group-hover/item:text-purple-900 mb-1">
+                        <div className="font-semibold text-red-800 group-hover/item:text-red-900 mb-1">
                           {page.name}
                         </div>
-                        <div className="text-sm text-purple-600 group-hover/item:text-purple-700">
+                        <div className="text-sm text-red-600 group-hover/item:text-red-700">
                           {page.description}
                         </div>
                       </Link>
@@ -188,14 +188,14 @@ export default function SitemapPage() {
                   href="/browse"
                   className="p-4 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:shadow-lg backdrop-blur-sm border border-white/20"
                 >
-                  <Heart className="w-8 h-8 mx-auto mb-2 text-pink-400" />
+                  <Heart className="w-8 h-8 mx-auto mb-2 text-red-400" />
                   <div className="font-semibold">Find Love</div>
                 </Link>
                 <Link 
                   href="/contact"
                   className="p-4 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:shadow-lg backdrop-blur-sm border border-white/20"
                 >
-                  <Mail className="w-8 h-8 mx-auto mb-2 text-purple-400" />
+                  <Mail className="w-8 h-8 mx-auto mb-2 text-red-400" />
                   <div className="font-semibold">Contact Us</div>
                 </Link>
                 <Link 
@@ -213,10 +213,10 @@ export default function SitemapPage() {
         {/* Footer CTA */}
         <div className="mt-16 text-center">
           <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-2xl p-8 border border-amber-200">
-            <h3 className="text-2xl font-bold text-purple-900 mb-4">
+            <h3 className="text-2xl font-bold text-red-900 mb-4">
               Can't Find What You're Looking For?
             </h3>
-            <p className="text-purple-700 mb-6 max-w-2xl mx-auto">
+            <p className="text-red-700 mb-6 max-w-2xl mx-auto">
               Our support team is here to help you navigate your journey to finding your perfect match.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -229,7 +229,7 @@ export default function SitemapPage() {
               </Link>
               <Link 
                 href="/help"
-                className="inline-flex items-center gap-2 bg-white border-2 border-purple-300 hover:border-purple-400 text-purple-700 hover:text-purple-800 px-8 py-3 rounded-full font-semibold transition-all duration-200 hover:shadow-lg"
+                className="inline-flex items-center gap-2 bg-white border-2 border-red-300 hover:border-red-400 text-red-700 hover:text-red-800 px-8 py-3 rounded-full font-semibold transition-all duration-200 hover:shadow-lg"
               >
                 <HelpCircle className="w-5 h-5" />
                 Visit Help Center

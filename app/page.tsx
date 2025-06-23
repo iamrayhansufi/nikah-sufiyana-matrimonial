@@ -85,12 +85,12 @@ export default function HomePage() {
       icon: Shield,
       title: "Safe & Secure Platform",
       description: "Your privacy and security are our top priorities. Advanced verification processes and secure communication ensure your matrimonial journey remains safe and protected.",
-      color: "from-blue-500 to-indigo-600"
+      color: "from-red-500 to-rose-600"
     },    {
       icon: NikahSufiyanaIcon,
       title: "Premium Matchmaking Service",
       description: "Get personalized support from our experienced relationship managers who understand Indian Muslim families. Premium features help you find the perfect match faster.",
-      color: "from-purple-500 to-pink-600"
+      color: "from-red-500 to-rose-600"
     },
     {
       icon: Heart,
@@ -795,7 +795,7 @@ export default function HomePage() {
                   className="absolute inset-0 w-full h-full object-cover opacity-20"
                 />
                 <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
                     <Award className="h-8 w-8 text-white" />
                   </div>
                   <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
@@ -1022,7 +1022,7 @@ export default function HomePage() {
                 </>
                 
                 <CardContent className="p-8 text-center relative">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <MessageSquare className="h-8 w-8 text-white" />
                   </div>
                   <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>

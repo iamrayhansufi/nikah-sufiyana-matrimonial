@@ -156,7 +156,7 @@ export default function NotificationsPage() {
       case 'interest_declined':
         return <Heart className="h-5 w-5 text-gray-500" />;
       case 'match':
-        return <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />;
+        return <Heart className="h-5 w-5 text-red-500 fill-red-500" />;
       case 'message':
         return <MessageSquare className="h-5 w-5 text-blue-500" />;
       case 'profile_view':

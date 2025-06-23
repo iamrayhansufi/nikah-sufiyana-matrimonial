@@ -30,7 +30,7 @@ export function Footer() {
             
       {/* Newsletter Section */}
       <div className="border-b border-white/20">
-        <div className="max-w-6xl mx-auto px-4 section-spacing">
+        <div className="max-w-8xl mx-auto px-4 section-spacing">
           <div className="max-w-xl mx-auto text-center">
             <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-3 lg:mb-4 bg-white/20 rounded-full flex items-center justify-center">
               <Image
@@ -65,7 +65,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 section-spacing relative">
+      <div className="max-w-8xl mx-auto px-4 section-spacing relative">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-8">
           {/* Brand */}
           <div className="md:col-span-2 space-y-4 lg:space-y-6">

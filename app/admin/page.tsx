@@ -271,7 +271,7 @@ export default function AdminDashboard() {
                     <p className="text-lg font-medium text-muted-foreground font-body">Success Matches</p>
                     <p className="text-2xl font-bold font-heading">{stats.successfulMatches}</p>
                   </div>
-                  <Activity className="h-8 w-8 text-pink-500" />
+                  <Activity className="h-8 w-8 text-red-500" />
                 </div>
               </CardContent>
             </Card>
