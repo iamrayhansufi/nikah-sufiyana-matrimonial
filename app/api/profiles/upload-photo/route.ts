@@ -86,6 +86,14 @@ export async function POST(req: Request) {  try {
 
       const parsePhotoData = (photoData: unknown): string[] => {
         if (typeof photoData !== 'string') return [];
+        // If it's a single photo string (not a JSON array), wrap it in an array
+        const trimmed = photoData.trim();
+        if (trimmed && trimmed[0] !== '[') {
+          // Defensive: check if it's a valid URL string
+          if (trimmed.startsWith('/api/secure-image/') || trimmed.startsWith('http')) {
+            return [trimmed];
+          }
+        }
         try {
           const parsed = JSON.parse(photoData);
           if (Array.isArray(parsed)) {
