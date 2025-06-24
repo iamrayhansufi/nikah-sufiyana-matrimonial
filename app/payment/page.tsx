@@ -72,7 +72,7 @@ export default function PaymentPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-royal-gradient dark:from-gray-950 dark:to-gray-900">
       <Header />
 
       <div className="container mx-auto px-4 py-8">
@@ -121,7 +121,7 @@ export default function PaymentPage() {
                   <ul className="space-y-3 mb-6">
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-center gap-3">
-                        <Check className="h-5 w-5 text-green-500 shrink-0" />
+                        <Check className="h-5 w-5 text-red-500 shrink-0" />
                         <span className="text-lg">{feature}</span>
                       </li>
                     ))}
@@ -151,7 +151,7 @@ export default function PaymentPage() {
             <CardContent>
               <div className="flex flex-wrap justify-center items-center gap-8">
                 <div className="flex items-center gap-2">
-                  <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-12 h-8 bg-red-600 rounded flex items-center justify-center text-white text-xs font-bold">
                     VISA
                   </div>
                   <span className="text-lg">Visa</span>
@@ -169,13 +169,13 @@ export default function PaymentPage() {
                   <span className="text-lg">UPI</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-12 h-8 bg-green-600 rounded flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-12 h-8 bg-red-600 rounded flex items-center justify-center text-white text-xs font-bold">
                     GPay
                   </div>
                   <span className="text-lg">Google Pay</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-12 h-8 bg-blue-800 rounded flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-12 h-8 bg-red-600 rounded flex items-center justify-center text-white text-xs font-bold">
                     PPay
                   </div>
                   <span className="text-lg">PhonePe</span>

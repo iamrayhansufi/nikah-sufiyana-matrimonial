@@ -76,7 +76,7 @@ export default function PrivacyFeaturesPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-royal-gradient dark:from-gray-950 dark:to-gray-900">
       <Header />
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
@@ -95,7 +95,7 @@ export default function PrivacyFeaturesPage() {
                   <ul className="space-y-2">
                     {feature.details.map((detail, i) => (
                       <li key={i} className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <CheckCircle className="h-5 w-5 text-red-500" />
                         <span>{detail}</span>
                       </li>
                     ))}

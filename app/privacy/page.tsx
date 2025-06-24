@@ -92,27 +92,27 @@ export default function PrivacyPolicyPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-royal-gradient dark:from-gray-950 dark:to-gray-900">
       <Header />
       
       {/* Hero Section */}
       <section className="relative py-20 px-4">
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-600/10 to-orange-600/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-red-700/10"></div>
         <div className="relative max-w-4xl mx-auto text-center">
-          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-6`}>
+          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent mb-6`}>
             Privacy Policy
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
             Your privacy and security are our top priorities. Learn how we protect your personal information and give you control over your data.
           </p>
-          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2">
+          <Badge className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2">
             Last Updated: June 22, 2025
           </Badge>
         </div>
       </section>
 
       {/* Privacy Highlights */}
-      <section className="py-16 px-4 bg-gradient-to-r from-amber-600 to-orange-600">
+      <section className="py-16 px-4 bg-gradient-to-r from-red-600 to-red-700">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {privacyHighlights.map((highlight, index) => (
@@ -121,7 +121,7 @@ export default function PrivacyPolicyPage() {
                   <highlight.icon className="h-8 w-8" />
                 </div>
                 <h3 className={`${elMessiri.className} text-xl font-bold mb-2`}>{highlight.title}</h3>
-                <p className="text-emerald-100 text-sm">{highlight.description}</p>
+                <p className="text-red-100 text-sm">{highlight.description}</p>
               </div>
             ))}
           </div>
@@ -136,7 +136,7 @@ export default function PrivacyPolicyPage() {
               <Card key={index} className="border-0 bg-white/90 dark:bg-gray-800/90 shadow-lg">
                 <CardHeader>
                   <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500">
+                    <div className="p-3 rounded-lg bg-gradient-to-r from-red-600 to-red-700">
                       <section.icon className="h-6 w-6 text-white" />
                     </div>
                     <CardTitle className={`${elMessiri.className} text-2xl font-bold text-gray-800 dark:text-gray-200`}>
@@ -148,7 +148,7 @@ export default function PrivacyPolicyPage() {
                   <ul className="space-y-3">
                     {section.content.map((item, i) => (
                       <li key={i} className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700 dark:text-gray-300">{item}</span>
                       </li>
                     ))}
@@ -161,7 +161,7 @@ export default function PrivacyPolicyPage() {
       </section>
 
       {/* Detailed Privacy Policy */}
-      <section className="py-20 px-4 bg-gradient-to-br from-gray-50 to-emerald-50 dark:from-gray-800 dark:to-gray-700">
+      <section className="py-20 px-4 bg-gradient-to-br from-cream-light to-cream-soft dark:from-gray-800 dark:to-gray-700">
         <div className="max-w-4xl mx-auto">
           <Card className="border-0 bg-white/90 dark:bg-gray-800/90">
             <CardHeader className="text-center">
@@ -302,21 +302,20 @@ export default function PrivacyPolicyPage() {
       </section>
 
       {/* Call to Action */}
-      <section className="py-20 px-4 bg-gradient-to-r from-amber-600 to-orange-600">
+      <section className="py-20 px-4 bg-gradient-to-r from-red-600 to-red-700">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className={`${elMessiri.className} text-4xl font-bold mb-6`}>
             Questions About Your Privacy?
-          </h2>
-          <p className="text-xl text-emerald-100 mb-8 leading-relaxed">
+          </h2>          <p className="text-xl text-red-100 mb-8 leading-relaxed">
             Our privacy team is here to help. Contact us anytime for clarifications about how we protect your information.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-emerald-600 hover:bg-gray-100 px-8 py-4 text-lg">
+            <Button size="lg" className="bg-white text-red-600 hover:bg-red-50 px-8 py-4 text-lg">
               <Mail className="mr-2 h-5 w-5" />
               Contact Privacy Team
             </Button>
             <Link href="/privacy-features">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-emerald-600 px-8 py-4 text-lg">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-red-600 px-8 py-4 text-lg">
                 <Shield className="mr-2 h-5 w-5" />
                 View Privacy Features
               </Button>

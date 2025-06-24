@@ -329,7 +329,7 @@ export default function ProfilePage({
           {status === 'unauthenticated' && (
             <div className="flex flex-col space-y-4">
               <p className="text-gray-700">You need to be logged in to view profiles.</p>
-              <Button onClick={handleLogin} className="w-full bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={handleLogin} className="w-full bg-red-600 hover:bg-red-700">
                 Login to View Profile
               </Button>
               <div className="relative">
@@ -343,7 +343,7 @@ export default function ProfilePage({
                 </div>
               </div>
               <Link href="/register">
-                <Button variant="outline" className="w-full border-emerald-600 text-emerald-600">
+                <Button variant="outline" className="w-full border-red-600 text-red-600">
                   Create an Account
                 </Button>
               </Link>
@@ -681,16 +681,15 @@ export default function ProfilePage({
                           : "U"}
                       </AvatarFallback>
                     </Avatar>                    {/* Islamic-themed blur notice overlay for private photos */}
-                    {shouldBlurPhoto && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">
+                    {shouldBlurPhoto && (                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-900/95 to-red-800/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-red-400/20">
                         {/* Islamic geometric pattern background */}
                         <div className="absolute inset-0 opacity-10">
                           <div className="w-full h-full islamic-pattern"></div>
                         </div>
                           {/* Main icon with Islamic crescent and star */}
-                        <div className="bg-gradient-to-br from-amber-400/20 to-orange-400/20 p-3 rounded-full mb-4 backdrop-blur-sm border border-amber-300/30 relative z-10">
+                        <div className="bg-gradient-to-br from-red-400/20 to-red-400/30 p-3 rounded-full mb-4 backdrop-blur-sm border border-red-300/30 relative z-10">
                           <div className="flex items-center justify-center">
-                            <svg className="h-10 w-10 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg className="h-10 w-10 text-red-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" opacity="0.1"/>
                               <path d="M10 17C7.23858 17 5 14.7614 5 12C5 9.23858 7.23858 7 10 7C9.73179 7.97256 9.5 9.23744 9.5 10C9.5 13.0376 11.3795 15.5 14 15.5C14.2731 15.5 14.5418 15.4809 14.8049 15.4443C13.8186 16.4437 11.9999 17 10 17Z" fill="currentColor"/>
                               <circle cx="17" cy="7" r="2" fill="currentColor"/>
@@ -714,7 +713,7 @@ export default function ProfilePage({
 
                     {/* Badges */}
                     <div className="absolute top-2 left-2 flex flex-col gap-2">
-                      {profile.premium && <Badge className="bg-yellow-500 text-white">⭐ Premium</Badge>}
+                      {profile.premium && <Badge className="bg-red-500 text-white">⭐ Premium</Badge>}
                     </div>
 
                     {/* Match Percentage */}
@@ -774,7 +773,7 @@ export default function ProfilePage({
                   <div className="space-y-3">
                     
                     {/* User Tip */}
-                    <div className="text-center p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg">
+                    <div className="text-center p-3 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-lg">
                       <p className="text-sm text-emerald-700 font-medium">
                         💡 Tip: Send interest below to connect and view photos
                       </p>

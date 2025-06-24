@@ -200,7 +200,7 @@ export function InterestResponseDialog({
                   ))}
                 </SelectContent>
               </Select>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-blue-100 p-2 rounded">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-red-100 p-2 rounded">
                 <Clock className="h-3 w-3" />
                 <span>
                   You can revoke photo access at any time from your dashboard
@@ -213,7 +213,7 @@ export function InterestResponseDialog({
             <Button
               onClick={handleAccept}
               disabled={isLoading}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1 bg-red-600 hover:bg-red-700"
             >
               <Heart className="h-4 w-4 mr-2" />
               Accept Interest
@@ -251,7 +251,7 @@ export function QuickInterestResponse({
         <Button
           size="sm"
           onClick={() => setShowDialog(true)}
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-red-600 hover:bg-red-700"
         >
           <Heart className="h-3 w-3 mr-1" />
           Accept

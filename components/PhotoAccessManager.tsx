@@ -144,7 +144,7 @@ export function PhotoAccessManager() {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <div className="w-8 h-8 border-2 border-t-emerald-600 border-emerald-200 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-8 h-8 border-2 border-t-red-600 border-red-200 rounded-full animate-spin mx-auto mb-4"></div>
             <p>Loading photo access information...</p>
           </div>
         </CardContent>
@@ -195,7 +195,7 @@ export function PhotoAccessManager() {
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-3 w-3" />
                       {item.isPermanent ? (
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        <Badge variant="secondary" className="bg-red-100 text-red-800">
                           Permanent Access
                         </Badge>
                       ) : (
@@ -239,7 +239,7 @@ export function PhotoAccessManager() {
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                          <AlertTriangle className="h-5 w-5 text-amber-500" />
+                          <AlertTriangle className="h-5 w-5 text-red-500" />
                           Revoke Photo Access
                         </DialogTitle>
                       </DialogHeader>

@@ -79,7 +79,7 @@ export default function HomePage() {
       icon: Mosque,
       title: "Islamic Values & Principles",
       description: "Built on authentic Islamic principles with complete respect for halal relationships and Islamic matrimonial traditions. Every connection is guided by Islamic values and family involvement.",
-      color: "from-emerald-500 to-teal-600"
+      color: "from-red-600 to-red-700"
     },
     {
       icon: Shield,
@@ -490,13 +490,12 @@ export default function HomePage() {
                         <div className="w-32 h-32 rounded-full bg-gradient-to-br from-royal-primary/20 to-royal-primary/10"></div>
                       </div>
                     </div>
-                    <CardContent className="p-6">
-                      <div className="animate-pulse space-y-3">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                        <div className="h-8 bg-gray-200 rounded w-full mt-4"></div>
+                    <CardContent className="p-6">                      <div className="animate-pulse space-y-3">
+                        <div className="h-4 bg-red-100 rounded w-3/4"></div>
+                        <div className="h-3 bg-red-100 rounded w-1/2"></div>
+                        <div className="h-3 bg-red-100 rounded w-2/3"></div>
+                        <div className="h-3 bg-red-100 rounded w-1/2"></div>
+                        <div className="h-8 bg-red-100 rounded w-full mt-4"></div>
                       </div>
                     </CardContent>
                   </Card>
@@ -538,7 +537,7 @@ export default function HomePage() {
                       )}
                       <div className="absolute top-4 right-4 flex gap-2">
                         {profile.verified && (
-                          <Badge className="bg-green-500 text-white border-0">
+                          <Badge className="bg-red-500 text-white border-0">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Verified
                           </Badge>
@@ -678,8 +677,8 @@ export default function HomePage() {
                           <span className="font-medium text-royal-primary">{story.date}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-green-600" />
-                          <span className="text-green-600 font-medium">{story.blessing}</span>
+                          <Sparkles className="h-4 w-4 text-red-600" />
+                          <span className="text-red-600 font-medium">{story.blessing}</span>
                         </div>
                       </div>
                     </CardContent>
@@ -766,7 +765,7 @@ export default function HomePage() {
                   className="absolute inset-0 w-full h-full object-cover opacity-20"
                 />
                 <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center">
                     <Users className="h-8 w-8 text-white" />
                   </div>                  <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
                     Trusted Community
@@ -963,7 +962,7 @@ export default function HomePage() {
                 </>
                 
                 <CardContent className="p-8 text-center relative">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Shield className="h-8 w-8 text-white" />
                   </div>
                   <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
@@ -1073,7 +1072,7 @@ export default function HomePage() {
               Join thousands of happy couples who found their life partners through Nikah Sufiyana. Start your journey today and connect with verified Muslim profiles from Hyderabad and across India with complete family support.
             </p>            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/register">
-                <Button size="lg" variant="secondary" className="bg-white text-royal-primary hover:bg-gray-100 active:bg-gray-200 focus:bg-gray-100 px-8 py-4 text-lg font-semibold transition-all duration-300">
+                <Button size="lg" variant="secondary" className="bg-white text-royal-primary hover:bg-red-50 active:bg-red-100 focus:bg-red-50 px-8 py-4 text-lg font-semibold transition-all duration-300">
                   Create Free Profile
                   <UserPlus className="ml-2 h-5 w-5" />
                 </Button>
@@ -1081,7 +1080,7 @@ export default function HomePage() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-royal-primary active:bg-gray-100 active:text-royal-primary focus:bg-white focus:text-royal-primary px-8 py-4 text-lg font-semibold transition-all duration-300"                onClick={() => window.open('tel:+919014633411')}
+                className="border-white text-white hover:bg-white hover:text-royal-primary active:bg-red-50 active:text-royal-primary focus:bg-white focus:text-royal-primary px-8 py-4 text-lg font-semibold transition-all duration-300"                onClick={() => window.open('tel:+919014633411')}
               >
                 <Phone className="mr-2 h-5 w-5" />
                 Call: +91 90146 33411

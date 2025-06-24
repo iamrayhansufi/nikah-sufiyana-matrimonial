@@ -152,16 +152,16 @@ export default function NotificationsPage() {
       case 'interest':
         return <Heart className="h-5 w-5 text-red-500" />;
       case 'interest_accepted':
-        return <Heart className="h-5 w-5 text-green-500 fill-green-500" />;
+        return <Heart className="h-5 w-5 text-red-500 fill-red-500" />;
       case 'interest_declined':
         return <Heart className="h-5 w-5 text-gray-500" />;
       case 'match':
         return <Heart className="h-5 w-5 text-red-500 fill-red-500" />;
       case 'message':
-        return <MessageSquare className="h-5 w-5 text-blue-500" />;      case 'profile_view':
+        return <MessageSquare className="h-5 w-5 text-red-500" />;      case 'profile_view':
         return <Eye className="h-5 w-5 text-red-500" />;
       case 'premium':
-        return <Star className="h-5 w-5 text-yellow-500" />;
+        return <Star className="h-5 w-5 text-red-500" />;
       case 'system':
         return <Bell className="h-5 w-5 text-primary" />;
       default:
@@ -174,7 +174,7 @@ export default function NotificationsPage() {
         <>
           <Button 
             size="sm" 
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="bg-red-600 hover:bg-red-700 text-white"
             onClick={() => handleInterestResponse(
               notification.metadata.interestId, 
               'accept', 
@@ -214,7 +214,7 @@ export default function NotificationsPage() {
   const groupedNotifications = groupNotificationsByDate(notifications);
   
   return (
-    <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-royal-gradient dark:from-gray-950 dark:to-gray-900">
       <Header />
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto">
@@ -264,7 +264,7 @@ export default function NotificationsPage() {
                                   <Button 
                                     size="sm" 
                                     variant="outline"
-                                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                    className="text-red-600 border-red-200 hover:bg-red-50"
                                     onClick={() => handleNotificationClick(notification)}
                                   >
                                     View Profile
@@ -321,7 +321,7 @@ export default function NotificationsPage() {
                                   <Button 
                                     size="sm" 
                                     variant="outline"
-                                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                    className="text-red-600 border-red-200 hover:bg-red-50"
                                     onClick={() => handleNotificationClick(notification)}
                                   >
                                     View Profile
@@ -378,7 +378,7 @@ export default function NotificationsPage() {
                                   <Button 
                                     size="sm" 
                                     variant="outline"
-                                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                    className="text-red-600 border-red-200 hover:bg-red-50"
                                     onClick={() => handleNotificationClick(notification)}
                                   >
                                     View Profile

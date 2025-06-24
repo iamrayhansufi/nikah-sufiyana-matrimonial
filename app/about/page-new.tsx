@@ -238,7 +238,7 @@ export default function AboutPage() {
               </Button>
             </Link>
             <Link href="/browse">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-red-600 px-8 py-4 text-lg">
+              <Button size="lg" variant="outline" className="border-white text-red-600 hover:bg-white hover:text-red-600 px-8 py-4 text-lg">
                 Browse Profiles
                 <Eye className="ml-2 h-5 w-5" />
               </Button>
@@ -249,7 +249,7 @@ export default function AboutPage() {
               <strong>Need help getting started?</strong>
             </p>
             <Link href="/contact">
-              <Button variant="outline" className="mt-4 border-white text-white hover:bg-white hover:text-red-600">
+              <Button variant="outline" className="mt-4 border-white text-red-600 hover:bg-white hover:text-red-600">
                 Contact Our Team
                 <Phone className="ml-2 h-4 w-4" />
               </Button>

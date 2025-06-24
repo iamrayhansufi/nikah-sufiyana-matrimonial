@@ -252,8 +252,8 @@ export default function HelpPage() {
             <motion.div variants={fadeInUp}>
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 text-center h-full">
                 <CardContent className="p-8">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-500/10 flex items-center justify-center">
-                    <MessageSquare className="h-8 w-8 text-emerald-600" />
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500/20 to-red-500/10 flex items-center justify-center">
+                    <MessageSquare className="h-8 w-8 text-red-600" />
                   </div>
                   <h3 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-4`}>
                     Live Chat
@@ -268,7 +268,7 @@ export default function HelpPage() {
                     </div>
                     <div>Average response: 2 minutes</div>
                   </div>
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
                     Start Live Chat
                   </Button>
                 </CardContent>
@@ -278,8 +278,8 @@ export default function HelpPage() {
             <motion.div variants={fadeInUp}>
               <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 text-center h-full">
                 <CardContent className="p-8">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-500/10 flex items-center justify-center">
-                    <Mail className="h-8 w-8 text-blue-600" />
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500/20 to-red-500/10 flex items-center justify-center">
+                    <Mail className="h-8 w-8 text-red-600" />
                   </div>
                   <h3 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-4`}>
                     Email Support
@@ -295,7 +295,7 @@ export default function HelpPage() {
                     <div>Detailed solutions provided</div>
                   </div>
                   <Link href="/contact">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
                       Send Email
                     </Button>
                   </Link>
@@ -497,7 +497,7 @@ export default function HelpPage() {
               Many questions are already answered in our comprehensive FAQ section.
             </p>
             <Link href="/faq">
-              <Button size="lg" variant="secondary" className="bg-white text-royal-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold">
+              <Button size="lg" variant="secondary" className="bg-white text-royal-primary hover:bg-red-50 px-8 py-4 text-lg font-semibold">
                 Browse FAQ
                 <HelpCircle className="ml-2 h-5 w-5" />
               </Button>

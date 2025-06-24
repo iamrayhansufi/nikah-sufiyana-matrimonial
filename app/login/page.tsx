@@ -160,7 +160,7 @@ function LoginFormWithParams() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-royal-gradient dark:from-gray-950 dark:to-gray-900">
       <Header />
 
       <div className="container mx-auto px-4 py-8">
@@ -323,7 +323,7 @@ function LoginFormWithParams() {
 // Loading component for Suspense fallback
 function LoginPageLoading() {
   return (
-    <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-royal-gradient dark:from-gray-950 dark:to-gray-900">
       <Header />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto">

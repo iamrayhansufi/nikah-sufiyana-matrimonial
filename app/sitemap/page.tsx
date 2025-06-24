@@ -92,14 +92,14 @@ export default function SitemapPage() {
   return (
     <div className="min-h-screen bg-cream-bg">
       {/* Royal Header */}
-      <div className="bg-gradient-to-r from-amber-900 via-orange-900 to-amber-900 text-white py-20">
+      <div className="bg-gradient-to-r from-red-900 via-red-800 to-red-900 text-white py-20">
         <div className="container mx-auto px-4 text-center">
           <div className="flex justify-center mb-6">
             <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm border border-white/20">
               <Globe className="w-12 h-12 text-gold-400" />
             </div>
           </div>
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-gold-400 to-amber-400 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-red-400 to-red-500 bg-clip-text text-transparent">
             Sitemap
           </h1>
           <p className="text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
@@ -127,7 +127,7 @@ export default function SitemapPage() {
               />
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-xl font-bold text-red-900 group-hover:text-red-700 transition-colors">
-                  <div className="p-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg group-hover:from-amber-200 group-hover:to-orange-200 transition-all">
+                  <div className="p-2 bg-gradient-to-r from-red-100 to-red-200 rounded-lg group-hover:from-red-200 group-hover:to-red-300 transition-all">
                     {section.icon}
                   </div>
                   {section.title}
@@ -148,7 +148,7 @@ export default function SitemapPage() {
                     <div key={pageIndex} className="group/item">
                       <Link 
                         href={page.href}
-                        className="block p-3 rounded-lg bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 border border-amber-100 hover:border-amber-200 transition-all duration-200 hover:shadow-md"
+                        className="block p-3 rounded-lg bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 border border-red-100 hover:border-red-200 transition-all duration-200 hover:shadow-md"
                       >
                         <div className="font-semibold text-red-800 group-hover/item:text-red-900 mb-1">
                           {page.name}
@@ -167,7 +167,7 @@ export default function SitemapPage() {
 
         {/* Quick Links Section */}
         <div className="mt-16 text-center">
-          <Card className="max-w-4xl mx-auto bg-gradient-to-r from-amber-900 to-orange-900 text-white border-0">
+          <Card className="max-w-4xl mx-auto bg-gradient-to-r from-red-900 to-red-800 text-white border-0">
             <CardHeader>
               <CardTitle className="text-2xl font-bold flex items-center justify-center gap-3">                <Heart className="w-6 h-6 text-red-400" />
                 Quick Actions
@@ -211,7 +211,7 @@ export default function SitemapPage() {
 
         {/* Footer CTA */}
         <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-2xl p-8 border border-amber-200">
+          <div className="bg-gradient-to-r from-red-100 to-red-200 rounded-2xl p-8 border border-red-200">
             <h3 className="text-2xl font-bold text-red-900 mb-4">
               Can't Find What You're Looking For?
             </h3>
@@ -221,7 +221,7 @@ export default function SitemapPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 href="/contact"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-200 hover:shadow-lg hover:scale-105"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-3 rounded-full font-semibold transition-all duration-200 hover:shadow-lg hover:scale-105"
               >
                 <Mail className="w-5 h-5" />
                 Contact Support

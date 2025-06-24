@@ -123,7 +123,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹20,000 - ₹75,000",
       popular: false,
-      gradient: "from-cyan-600 to-blue-700"
+      gradient: "from-red-600 to-red-700"
     }
   ]
 
@@ -232,7 +232,7 @@ export default function WeddingServicesPage() {
     }
   ]
   return (
-    <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-royal-gradient dark:from-gray-950 dark:to-gray-900">
       <Header />
         {/* Hero Section */}
       <section className="relative py-20 px-4">        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-red-700/10"></div>
@@ -286,7 +286,7 @@ export default function WeddingServicesPage() {
             </p>
           </div>          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {weddingServices.map((service, index) => (
-              <Card key={index} className="relative group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 dark:bg-gray-800/90">
+              <Card key={index} className="relative group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 dark:bg-red-900/90">
                 <Image
                   src="/bottom-left-border.svg"
                   alt=""
@@ -343,7 +343,7 @@ export default function WeddingServicesPage() {
           </div>
         </div>
       </section>      {/* Wedding Packages */}
-      <section id="packages" className="py-20 px-4 bg-gradient-to-br from-gray-50 to-red-50 dark:from-gray-800 dark:to-gray-700">
+      <section id="packages" className="py-20 px-4 bg-cream-soft dark:from-gray-800 dark:to-gray-700">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className={`${elMessiri.className} text-4xl font-bold text-gray-800 dark:text-gray-200 mb-4`}>
@@ -354,7 +354,7 @@ export default function WeddingServicesPage() {
             </p>
           </div>          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {weddingPackages.map((pkg, index) => (
-              <Card key={index} className={`relative ${pkg.popular ? 'border-2 border-red-500 shadow-2xl md:scale-105' : 'border-0'} bg-white/90 dark:bg-gray-800/90 hover:shadow-xl transition-all duration-300`}>
+              <Card key={index} className={`relative ${pkg.popular ? 'border-2 border-red-500 shadow-2xl md:scale-105' : 'border-0'} bg-white/90 dark:bg-red-900/90 hover:shadow-xl transition-all duration-300`}>
                 <Image
                   src="/bottom-left-border.svg"
                   alt=""
@@ -489,7 +489,7 @@ export default function WeddingServicesPage() {
       {/* Contact Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-red-600 to-red-700">
         <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className={`${elMessiri.className} text-4xl font-bold mb-6`}>
+          <h2 className={`${elMessiri.className} text-4xl text-white font-bold mb-6`}>
             Ready to Plan Your Dream Wedding?
           </h2>
           <p className="text-xl text-red-100 mb-8 leading-relaxed">
@@ -498,7 +498,7 @@ export default function WeddingServicesPage() {
             <Button 
               size="lg" 
               variant="secondary" 
-              className="bg-white text-red-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold"
+              className="bg-white text-red-600 hover:bg-red-50 border-0 px-8 py-4 text-lg font-semibold"
               onClick={() => window.open('tel:+919876543210')}
             >
               <Phone className="mr-2 h-5 w-5" />

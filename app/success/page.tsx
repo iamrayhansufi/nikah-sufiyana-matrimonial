@@ -17,7 +17,7 @@ export default function SuccessPage() {
           <Card>
             <CardContent className="p-6">
               <div className="text-center">
-                <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                <CheckCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
                 <h1 className={`${playfair.className} text-2xl font-semibold mb-2`}>Registration Successful!</h1>
                 <p className="text-muted-foreground mb-6">
                   Your profile has been created successfully. Start your journey to find your perfect match.

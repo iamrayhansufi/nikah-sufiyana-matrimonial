@@ -33,10 +33,10 @@ const config: Config = {
   		},  		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',  			'royal-primary': '#dc2626',
-  			'cream-light': '#FCF9F2',
-  			'cream-dark': '#F2E4C1',
-  			'cream-bg': '#f9f6eb',
-  			'cream-soft': '#f9f6eb',
+  			'cream-light': '#FDF6E3',
+  			'cream-dark': '#EDD5A3',
+  			'cream-bg': '#F4E4BC',
+  			'cream-soft': '#F1E6C7',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
@@ -91,8 +91,8 @@ const config: Config = {
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},  		backgroundImage: {
-  			'royal-gradient': 'linear-gradient(135deg, #FCF9F2 0%, #F2E4C1 100%)',
-  			'royal-gradient-vertical': 'linear-gradient(to bottom, #FCF9F2 0%, #F2E4C1 100%)',
+  			'royal-gradient': 'linear-gradient(135deg, #FDF6E3 0%, #F4E4BC 25%, #EDD5A3 50%, #F1E6C7 75%, #FAF2E4 100%)',
+  			'royal-gradient-vertical': 'linear-gradient(to bottom, #FDF6E3 0%, #F4E4BC 25%, #EDD5A3 50%, #F1E6C7 75%, #FAF2E4 100%)',
   			'royal-primary-shiny': 'linear-gradient(135deg, #dc2626 0%, #ef4444 25%, #dc2626 50%, #b91c1c 75%, #dc2626 100%)',
   			'royal-primary-glossy': 'linear-gradient(45deg, #A11B35 0%, #C7203E 25%, #E63946 50%, #C7203E 75%, #A11B35 100%)',
   			'royal-primary-metallic': 'linear-gradient(135deg, #8B1538 0%, #A11B35 20%, #C7203E 40%, #E63946 60%, #C7203E 80%, #A11B35 100%)',

@@ -204,23 +204,22 @@ export function Header() {
                               {notification.type === 'interest' && (
                                 <Heart className="h-4 w-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" />
                               )}                              {notification.type === 'interest_accepted' && (
-                                <Heart className="h-4 w-4 text-green-500 mt-0.5 mr-2 fill-green-500 flex-shrink-0" />
+                                <Heart className="h-4 w-4 text-red-500 mt-0.5 mr-2 fill-red-500 flex-shrink-0" />
                               )}
                               {notification.type === 'interest_declined' && (
                                 <Heart className="h-4 w-4 text-gray-500 mt-0.5 mr-2 flex-shrink-0" />
                               )}                              {notification.type === 'match' && (
                                 <Heart className="h-4 w-4 text-red-500 mt-0.5 mr-2 fill-red-500 flex-shrink-0" />
-                              )}
-                              {notification.type === 'message' && (
-                                <MessageCircle className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                              )}                              {notification.type === 'message' && (
+                                <MessageCircle className="h-4 w-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" />
                               )}
                               {notification.type === 'premium' && (
-                                <Star className="h-4 w-4 text-yellow-500 mt-0.5 mr-2 fill-yellow-500 flex-shrink-0" />
+                                <Star className="h-4 w-4 text-red-500 mt-0.5 mr-2 fill-red-500 flex-shrink-0" />
                               )}
                               <div>
                                 <p className="text-muted-foreground">{notification.message}</p>                                <p className="text-xs text-muted-foreground mt-1">
                                   {new Date(notification.createdAt).toLocaleString()}
-                                  {(notification as any).link && <span className="ml-2 text-blue-500">• Click to view</span>}
+                                  {(notification as any).link && <span className="ml-2 text-red-500">• Click to view</span>}
                                 </p>
                               </div>
                             </div>

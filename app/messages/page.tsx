@@ -72,7 +72,7 @@ export default function MessagesPage() {
                       />
                       <div>
                         <h2 className={`${elMessiri.className} font-semibold text-royal-primary`}>Aisha Khan</h2>
-                        <p className="text-lg text-emerald-600 font-medium">Online - Blessed to Connect</p>
+                        <p className="text-lg text-red-600 font-medium">Online - Blessed to Connect</p>
                       </div>
                     </div>
                   </div>

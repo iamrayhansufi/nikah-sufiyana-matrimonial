@@ -222,10 +222,9 @@ export default function SuccessStoriesPage() {
                         </p>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-green-600" />
-                          <span className="text-green-600 font-medium text-sm">{story.children}</span>
+                      <div className="flex items-center justify-between">                        <div className="flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-red-600" />
+                          <span className="text-red-600 font-medium text-sm">{story.children}</span>
                         </div>
                         <Badge className="bg-royal-primary/10 text-royal-primary">
                           <Star className="h-3 w-3 mr-1" />
@@ -323,10 +322,9 @@ export default function SuccessStoriesPage() {
                       <div className="flex items-center gap-2">
                         <Calendar className="h-3 w-3 text-royal-primary" />
                         <span className="text-royal-primary font-medium">{story.marriageDate}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="h-3 w-3 text-green-600" />
-                        <span className="text-green-600 font-medium">{story.children}</span>
+                      </div>                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-3 w-3 text-red-600" />
+                        <span className="text-red-600 font-medium">{story.children}</span>
                       </div>
                     </div>
                   </CardContent>

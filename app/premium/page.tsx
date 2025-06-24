@@ -185,7 +185,7 @@ export default function PremiumPage() {  const coreFeatures = [
   ]
 
   return (
-    <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-royal-gradient dark:from-gray-950 dark:to-gray-900">
       <Header />      {/* Hero Section */}
       <section className="relative py-20 px-4">
         <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-red-700/10"></div>
@@ -234,7 +234,7 @@ export default function PremiumPage() {  const coreFeatures = [
                     />                    {/* Content overlay inside SVG */}
                     <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4">                      <h3 className={`${elMessiri.className} text-3xl font-bold mb-3 ${
                         plan.name === "Nikah Sufiyana Elite" 
-                          ? "bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent" 
+                          ? "bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent" 
                           : "text-red-600"
                       }`}>
                         {plan.name === "Nikah Sufiyana Elite" ? (
@@ -251,9 +251,9 @@ export default function PremiumPage() {  const coreFeatures = [
                           : "text-gray-800"
                       }`}>
                         {plan.description}
-                      </p><div className={`text-5xl font-bold mb-1 ${
+                      </p>                      <div className={`text-5xl font-bold mb-1 ${
                         plan.name === "Nikah Sufiyana Elite" 
-                          ? "bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent" 
+                          ? "bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent" 
                           : "text-red-600"
                       }`}>
                         ₹{plan.price}
@@ -265,7 +265,7 @@ export default function PremiumPage() {  const coreFeatures = [
                   {plan.features.map((feature, i) => (
                     <div key={i} className="flex items-start gap-3 md:text-left text-center">                      <div className={`p-1.5 rounded-full ${
                         plan.name === "Nikah Sufiyana Elite" 
-                          ? "bg-gradient-to-r from-amber-400 to-yellow-500" 
+                          ? "bg-gradient-to-r from-red-500 to-red-600" 
                           : "bg-gradient-to-r from-red-500 to-red-600"
                       }`}>
                         <feature.icon className="h-3 w-3 text-white" />
@@ -276,10 +276,10 @@ export default function PremiumPage() {  const coreFeatures = [
                 </div>
 
                 {/* Golden gradient border line */}
-                <div className="h-[2px] bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 mb-4 rounded-full"></div>
+                <div className="h-[2px] bg-gradient-to-r from-red-500 to-red-600 mb-4 rounded-full"></div>
 
                 {/* Button aligned to bottom */}                <Button 
-                  className={`w-full ${plan.popular ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'} text-white border-2 border-amber-400 hover:border-amber-500 transition-all duration-300 mt-auto`}
+                  className={`w-full ${plan.popular ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'} text-white border-2 border-red-400 hover:border-red-500 transition-all duration-300 mt-auto`}
                   size="lg"
                 >
                   Choose {plan.name}
@@ -302,7 +302,7 @@ export default function PremiumPage() {  const coreFeatures = [
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {coreFeatures.map((feature, index) => (
-              <Card key={index} className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 dark:bg-gray-800/90">
+              <Card key={index} className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 dark:bg-red-900/90">
                 <CardContent className="p-8">
                   <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${feature.gradient} mb-6 group-hover:scale-110 transition-transform duration-300`}>
                     <feature.icon className="h-8 w-8 text-white" />
@@ -332,7 +332,7 @@ export default function PremiumPage() {  const coreFeatures = [
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {successStories.map((story, index) => (
-              <Card key={index} className="hover:shadow-xl transition-shadow duration-300 border-0 bg-white/90 dark:bg-gray-800/90">
+              <Card key={index} className="hover:shadow-xl transition-shadow duration-300 border-0 bg-white/90 dark:bg-red-900/90">
                 <CardContent className="p-8">
                   <div className="flex items-center mb-4">
                     {[...Array(5)].map((_, i) => (
@@ -386,12 +386,11 @@ export default function PremiumPage() {  const coreFeatures = [
           </h2>
           <p className="text-xl text-red-100 mb-8 leading-relaxed">
             Join thousands of successful couples who found their soulmates through our premium matrimonial platform. Start your journey today with enhanced features and personalized support.
-          </p>          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-white text-red-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold">
+          </p>          <div className="flex flex-col sm:flex-row gap-4 justify-center">            <Button size="lg" variant="secondary" className="bg-white text-red-600 hover:bg-red-50 border-0 px-8 py-4 text-lg font-semibold">
               Upgrade to Premium
               <Star className="ml-2 h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-red-600 hover:bg-gray-100 hover:text-red-600 px-8 py-4 text-lg">
+            <Button size="lg" variant="outline" className="border-white text-red-600 hover:bg-red-50 hover:text-red-600 px-8 py-4 text-lg">
               View All Features
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>

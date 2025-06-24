@@ -102,7 +102,7 @@ export default function PhotoDeletionTestPage() {
       <div className="mb-4">
         <button 
           onClick={fetchPhotos}
-          className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+          className="bg-red-500 text-white px-4 py-2 rounded mr-2"
           disabled={loading}
         >
           Refresh Photos

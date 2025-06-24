@@ -958,7 +958,7 @@ export default function BrowseProfilesPage() {
                     <div className="relative">
                       {/* When photos are protected, show a completely different placeholder with increased height */}
                       {blurredPhotoIds.has(profile.id) ? (
-                        <div className={`w-full ${viewMode === "grid" ? "h-80" : "h-40"} bg-gradient-to-br from-slate-200 to-emerald-100 flex items-start justify-center pt-16`}>
+                        <div className={`w-full ${viewMode === "grid" ? "h-80" : "h-40"} bg-gradient-to-br from-cream-light to-cream-soft flex items-start justify-center pt-16`}>
                           {/* No actual photo should be rendered when protected */}
                         </div>
                       ) : (
@@ -972,16 +972,16 @@ export default function BrowseProfilesPage() {
                       {/* Conditional rendering of privacy overlay only if photos are protected */}
                       {blurredPhotoIds.has(profile.id) ? (
                         // Islamic-themed privacy overlay
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-amber-400/20">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-red-900/95 to-red-800/95 rounded-lg text-white p-4 text-center backdrop-blur-sm border border-red-400/20">
                           {/* Islamic geometric pattern background */}
                           <div className="absolute inset-0 opacity-10">
                             <div className="w-full h-full islamic-pattern"></div>
                           </div>
                           
                           {/* Main icon with Islamic crescent and star */}
-                          <div className="bg-gradient-to-br from-amber-400/20 to-emerald-400/20 p-3 rounded-full mb-4 backdrop-blur-sm border border-amber-300/30 relative z-10">
+                          <div className="bg-gradient-to-br from-red-400/20 to-red-400/30 p-3 rounded-full mb-4 backdrop-blur-sm border border-red-300/30 relative z-10">
                             <div className="flex items-center justify-center">
-                              <svg className="h-10 w-10 text-amber-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <svg className="h-10 w-10 text-red-200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="currentColor" opacity="0.1"/>
                                 <path d="M10 17C7.23858 17 5 14.7614 5 12C5 9.23858 7.23858 7 10 7C9.73179 7.97256 9.5 9.23744 9.5 10C9.5 13.0376 11.3795 15.5 14 15.5C14.2731 15.5 14.5418 15.4809 14.8049 15.4443C13.8186 16.4437 11.9999 17 10 17Z" fill="currentColor"/>
                                 <circle cx="17" cy="7" r="2" fill="currentColor"/>
@@ -990,19 +990,18 @@ export default function BrowseProfilesPage() {
                           </div>
                           
                           {/* Updated Islamic text */}
-                          <div className="text-center mb-1 relative z-10">
-                            <h3 className="font-bold text-xl mb-2 text-amber-100 font-arabic">
+                          <div className="text-center mb-1 relative z-10">                            <h3 className="font-bold text-xl mb-2 text-red-100 font-arabic">
                               صور محفوظة بالحشمة
                             </h3>
                             <p className="font-semibold text-lg mb-1 text-white">Photos Protected with Haya</p>
-                            <p className="text-lg text-emerald-100 leading-relaxed max-w-xs mx-auto">
+                            <p className="text-lg text-red-100 leading-relaxed max-w-xs mx-auto">
                               This member follows Islamic principles of modesty and privacy.
                             </p>
                           </div>
                         </div>
                       ) : null}
                       <div className="absolute top-2 left-2 flex gap-2">
-                        <Badge className="bg-yellow-500 text-white">⭐ Premium</Badge>
+                        <Badge className="bg-red-500 text-white">⭐ Premium</Badge>
                       </div>
                       <div className="absolute top-2 right-2">
                         <Badge variant="secondary" className="bg-gradient-to-r from-red-600 to-red-700 text-white">
@@ -1028,11 +1027,10 @@ export default function BrowseProfilesPage() {
                                 togglePhotoVisibility(profile.id);
                               }}
                               title={blurredPhotoIds.has(profile.id) ? "Show Photos" : "Hide Photos"}
-                            >
-                              {blurredPhotoIds.has(profile.id) ? (
-                                <Eye className="h-4 w-4 text-emerald-500" />
+                            >                              {blurredPhotoIds.has(profile.id) ? (
+                                <Eye className="h-4 w-4 text-red-500" />
                               ) : (
-                                <EyeOff className="h-4 w-4 text-amber-500" />
+                                <EyeOff className="h-4 w-4 text-red-500" />
                               )}
                             </Button>
                           )}

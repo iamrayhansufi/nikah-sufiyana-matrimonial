@@ -234,7 +234,7 @@ export default function WeddingServicesPage() {  const weddingServices = [
     }
   ]
   return (
-    <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-royal-gradient dark:from-gray-950 dark:to-gray-900">
       <Header />
         {/* Hero Section */}
       <section className="relative py-20 px-4">
@@ -288,7 +288,7 @@ export default function WeddingServicesPage() {  const weddingServices = [
               Professional services tailored for Islamic weddings with attention to religious and cultural details
             </p>
           </div>          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">            {weddingServices.map((service, index) => (
-              <Card key={index} className="relative group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 dark:bg-gray-800/90">
+              <Card key={index} className="relative group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 dark:bg-red-900/90">
                 <Image
                   src="/bottom-left-border.svg"
                   alt=""
@@ -356,7 +356,7 @@ export default function WeddingServicesPage() {  const weddingServices = [
               Comprehensive wedding packages designed to make your special day perfect and memorable
             </p>
           </div>          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">            {weddingPackages.map((pkg, index) => (
-              <Card key={index} className={`relative ${pkg.popular ? 'border-2 border-red-500 shadow-2xl md:scale-105' : 'border-0'} bg-white/90 dark:bg-gray-800/90 hover:shadow-xl transition-all duration-300`}>
+              <Card key={index} className={`relative ${pkg.popular ? 'border-2 border-red-500 shadow-2xl md:scale-105' : 'border-0'} bg-white/90 dark:bg-red-900/90 hover:shadow-xl transition-all duration-300`}>
                 <Image
                   src="/bottom-left-border.svg"
                   alt=""
@@ -496,7 +496,7 @@ export default function WeddingServicesPage() {  const weddingServices = [
             <Button 
               size="lg" 
               variant="secondary" 
-              className="bg-white text-red-600 hover:bg-gray-100 border-0 px-8 py-4 text-lg font-semibold"              onClick={() => window.open('tel:+919014633411')}
+              className="bg-white text-red-600 hover:bg-red-50 border-0 px-8 py-4 text-lg font-semibold"              onClick={() => window.open('tel:+919014633411')}
             >
               <Phone className="mr-2 h-5 w-5" />
               Call Now: +91-90146 33411

@@ -271,7 +271,7 @@ export default function SafetyPage() {
                     <div className="space-y-3">
                       {feature.benefits.map((benefit, benefitIndex) => (
                         <div key={benefitIndex} className="flex items-center gap-3">
-                          <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                          <CheckCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
                           <span className="text-gray-700">{benefit}</span>
                         </div>
                       ))}
@@ -497,8 +497,8 @@ export default function SafetyPage() {
                 </>
                 
                 <CardContent className="p-8 relative">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-500/20 to-green-500/10 flex items-center justify-center">
-                    <UserCheck className="h-8 w-8 text-green-600" />
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500/20 to-red-500/10 flex items-center justify-center">
+                    <UserCheck className="h-8 w-8 text-red-600" />
                   </div>
                   <h3 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-4`}>
                     Identity Verification
@@ -550,8 +550,8 @@ export default function SafetyPage() {
                 </>
                 
                 <CardContent className="p-8 relative">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-500/10 flex items-center justify-center">
-                    <Users className="h-8 w-8 text-blue-600" />
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500/20 to-red-500/10 flex items-center justify-center">
+                    <Users className="h-8 w-8 text-red-600" />
                   </div>
                   <h3 className={`${elMessiri.className} text-xl font-bold text-royal-primary mb-4`}>
                     Family Verification
@@ -632,13 +632,12 @@ export default function SafetyPage() {
             initial="initial"
             whileInView="animate"
             viewport={{ once: true }}
-          >
-            <div className="bg-green-50 border border-green-200 rounded-lg p-8 max-w-2xl mx-auto">
-              <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className={`${elMessiri.className} text-2xl font-bold text-green-800 mb-4`}>
+          >            <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-2xl mx-auto">
+              <CheckCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+              <h3 className={`${elMessiri.className} text-2xl font-bold text-red-800 mb-4`}>
                 99.2% Verified Profiles
               </h3>
-              <p className="text-green-700 leading-relaxed">
+              <p className="text-red-700 leading-relaxed">
                 Our rigorous verification process ensures that over 99% of profiles on Nikah Sufiyana are authentic and genuine, giving you confidence in every connection.
               </p>
             </div>
@@ -656,7 +655,7 @@ export default function SafetyPage() {
             whileInView="animate"
             viewport={{ once: true }}
           >
-            <AlertTriangle className="h-16 w-16 mx-auto mb-6 text-yellow-300" />
+            <AlertTriangle className="h-16 w-16 mx-auto mb-6 text-red-300" />
             <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold mb-6`}>
               Need Immediate Help?
             </h2>

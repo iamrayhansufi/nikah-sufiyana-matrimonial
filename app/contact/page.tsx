@@ -106,11 +106,11 @@ export default function ContactPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-950">
+    <div className="min-h-screen bg-royal-gradient">
       <Header />
 
       {/* Hero Section */}
-      <section className="relative py-12 overflow-hidden">
+      <section className="relative py-8 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-bg.png')] opacity-5"></div>
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto text-center">
@@ -128,7 +128,7 @@ export default function ContactPage() {
       </section>
 
       {/* Contact Info Cards */}
-      <section className="py-8">
+      <section className="py-6">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {contactInfo.map((item, index) => (
@@ -150,14 +150,14 @@ export default function ContactPage() {
       </section>
 
       {/* Contact Form Section */}
-      <section className="py-12 bg-white/50 dark:bg-black/50">
+      <section className="py-8 bg-white/50 dark:bg-black/50">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Form */}
               <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6">
-                <h2 className={`${elMessiri.className} text-2xl font-semibold mb-4`}>Send us a Message</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <h2 className={`${elMessiri.className} text-2xl font-semibold mb-6`}>Send us a Message</h2>
+                <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="name">Full Name *</Label>
@@ -241,13 +241,13 @@ export default function ContactPage() {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white" size="lg">
+                  <Button type="submit" className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white mt-6" size="lg">
                     <Send className="h-4 w-4 mr-2" />
                     Send Message
                   </Button>
 
                   {isSubmitted && (
-                    <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
+                    <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400 mt-4">
                       <CheckCircle className="h-5 w-5" />
                       <span>Message sent successfully!</span>
                     </div>
@@ -257,7 +257,7 @@ export default function ContactPage() {
 
               {/* FAQ Section */}
               <div>
-                <h2 className={`${elMessiri.className} text-2xl font-semibold mb-4`}>Frequently Asked Questions</h2>
+                <h2 className={`${elMessiri.className} text-2xl font-semibold mb-6`}>Frequently Asked Questions</h2>
                 <div className="space-y-4">
                   {faqItems.map((item, index) => (
                     <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow">
@@ -275,7 +275,7 @@ export default function ContactPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 bg-gradient-to-r from-red-600 to-red-700 text-white relative overflow-hidden">
+      <section className="py-8 bg-gradient-to-r from-red-600 to-red-700 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-10"></div>
         <div className="container mx-auto px-4 relative">
           <div className="text-center max-w-3xl mx-auto">
