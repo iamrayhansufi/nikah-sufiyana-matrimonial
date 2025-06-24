@@ -70,13 +70,13 @@ export default function AboutPage() {
       
       {/* Hero Section */}
       <section className="relative py-20 px-4">
-        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-rose-600/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-amber-50/30"></div>
         <div className="relative max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-6 bg-gradient-to-r from-red-500 to-rose-500 text-white px-6 py-2 text-lg">
+            <Badge className="mb-6 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 text-lg">
               ✨ About Nikah Sufiyana
             </Badge>
-            <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-6`}>
+            <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent mb-6`}>
               Connecting Hearts, <br />Honoring Traditions
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
@@ -87,9 +87,8 @@ export default function AboutPage() {
           {/* Hero Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
             {impactStats.map((stat, index) => (
-              <Card key={index} className="text-center border-0 bg-white/80 backdrop-blur-sm hover:scale-105 transition-transform duration-300">
-                <CardContent className="p-6">
-                  <div className="inline-flex p-3 rounded-full bg-gradient-to-r from-red-500 to-rose-500 mb-4">
+              <Card key={index} className="text-center border-0 bg-white/80 backdrop-blur-sm hover:scale-105 transition-transform duration-300">                <CardContent className="p-6">
+                  <div className="inline-flex p-3 rounded-full bg-gradient-to-r from-red-500 to-red-600 mb-4">
                     <stat.icon className="h-6 w-6 text-white" />
                   </div>
                   <div className={`${elMessiri.className} text-3xl font-bold text-red-600 mb-2`}>
@@ -118,7 +117,7 @@ export default function AboutPage() {
                 We believe that finding a life partner is not just about individual compatibility, but about bringing together families and communities in the spirit of Islamic values.
               </p>
               <Link href="/register">
-                <Button className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white px-8 py-3">
+                <Button className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-3">
                   Join Our Community
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -148,9 +147,8 @@ export default function AboutPage() {
                       />
                     </div>
                   </>
-                  
-                  <CardContent className="p-6 text-center relative">
-                    <div className="inline-flex p-3 rounded-full bg-gradient-to-r from-red-500 to-rose-500 mb-4">
+                    <CardContent className="p-6 text-center relative">
+                    <div className="inline-flex p-3 rounded-full bg-gradient-to-r from-red-500 to-red-600 mb-4">
                       <value.icon className="h-6 w-6 text-white" />
                     </div>
                     <h3 className={`${elMessiri.className} text-lg font-semibold text-gray-800 mb-3`}>
@@ -214,9 +212,8 @@ export default function AboutPage() {
                   </div>
                 </>
                 
-                <CardContent className="p-8 relative">
-                  <div className="flex items-start gap-4">
-                    <div className="inline-flex p-3 rounded-full bg-gradient-to-r from-red-500 to-rose-500 group-hover:scale-110 transition-transform duration-300">
+                <CardContent className="p-8 relative">                  <div className="flex items-start gap-4">
+                    <div className="inline-flex p-3 rounded-full bg-gradient-to-r from-red-500 to-red-600 group-hover:scale-110 transition-transform duration-300">
                       <reason.icon className="h-6 w-6 text-white" />
                     </div>                    <div>
                       <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800 mb-3`}>
@@ -264,15 +261,14 @@ export default function AboutPage() {
               { year: "2020", title: "Digital Innovation", description: "Launched mobile app and advanced matching algorithms while maintaining Islamic authenticity" },
               { year: "2024", title: "Community Leader", description: "Now serving 2,00,000+ verified profiles with 25,000+ successful marriages" }
             ].map((milestone, index) => (
-              <div key={index} className="flex gap-6 items-start">
-                <div className="flex flex-col items-center">
-                  <div className="w-4 h-4 rounded-full bg-gradient-to-r from-red-500 to-rose-500"></div>
-                  {index < 3 && <div className="w-0.5 h-16 bg-gradient-to-b from-red-500 to-rose-500 mt-2"></div>}
+              <div key={index} className="flex gap-6 items-start">                <div className="flex flex-col items-center">
+                  <div className="w-4 h-4 rounded-full bg-gradient-to-r from-red-500 to-red-600"></div>
+                  {index < 3 && <div className="w-0.5 h-16 bg-gradient-to-b from-red-500 to-red-600 mt-2"></div>}
                 </div>
                 <Card className="flex-1 border-0 bg-white/90">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-3">
-                      <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white">
+                      <Badge className="bg-gradient-to-r from-red-500 to-red-600 text-white">
                         {milestone.year}
                       </Badge>
                       <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800`}>
@@ -291,7 +287,7 @@ export default function AboutPage() {
       </section>
 
       {/* Call to Action */}
-      <section className="py-20 px-4 bg-gradient-to-r from-red-600 to-rose-600">
+      <section className="py-20 px-4 bg-gradient-to-r from-red-600 to-red-700">
         <div className="max-w-4xl mx-auto text-center text-white">          <h2 className={`${elMessiri.className} text-4xl font-bold mb-6 text-white`}>
             Ready to Find Your Life Partner?
           </h2>

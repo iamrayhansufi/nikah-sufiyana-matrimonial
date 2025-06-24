@@ -55,7 +55,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" defaultValue="+91 98765 43210" />
+                    <Input id="phone" defaultValue="+91 90146 33411" />
                   </div>
                   <div>
                     <Label htmlFor="language">Language</Label>

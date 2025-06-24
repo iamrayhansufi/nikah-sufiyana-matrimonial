@@ -158,9 +158,8 @@ export default function NotificationsPage() {
       case 'match':
         return <Heart className="h-5 w-5 text-red-500 fill-red-500" />;
       case 'message':
-        return <MessageSquare className="h-5 w-5 text-blue-500" />;
-      case 'profile_view':
-        return <Eye className="h-5 w-5 text-purple-500" />;
+        return <MessageSquare className="h-5 w-5 text-blue-500" />;      case 'profile_view':
+        return <Eye className="h-5 w-5 text-red-500" />;
       case 'premium':
         return <Star className="h-5 w-5 text-yellow-500" />;
       case 'system':

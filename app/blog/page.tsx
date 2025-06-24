@@ -169,7 +169,7 @@ export default function BlogPage() {
               Nikah Sufiyana Blog
             </Badge>
             <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
-              Sacred Wisdom & Modern Guidance
+              Wisdom & Modern Guidance
             </h1>
             <div className="flex justify-center mb-8">
               <Image
@@ -421,7 +421,7 @@ export default function BlogPage() {
             viewport={{ once: true }}
           >
             <h2 className={`${elMessiri.className} text-4xl md:text-5xl font-bold mb-6`}>
-              Stay Updated with Sacred Wisdom
+              Stay Updated
             </h2>
             <p className="text-xl text-white/90 mb-8 leading-relaxed">
               Subscribe to receive the latest articles, matrimonial guidance, and blessed insights directly in your inbox.

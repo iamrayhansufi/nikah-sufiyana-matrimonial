@@ -44,8 +44,7 @@ export default function WeddingServicesPage() {
         "Traditional customs guidance",
         "Timeline management"
       ],
-      pricing: "₹25,000 - ₹75,000",
-      popular: true,      gradient: "from-red-600 to-rose-700"
+      pricing: "₹25,000 - ₹75,000",      popular: true,      gradient: "from-red-600 to-red-700"
     },
     {
       icon: Camera,
@@ -61,7 +60,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹30,000 - ₹1,00,000",
       popular: true,
-      gradient: "from-red-500 to-rose-600"
+      gradient: "from-red-500 to-red-600"
     },
     {
       icon: FileText,
@@ -76,7 +75,7 @@ export default function WeddingServicesPage() {
         "Premium paper options"
       ],
       pricing: "₹8,000 - ₹25,000",
-      popular: false,      gradient: "from-red-600 to-rose-700"
+      popular: false,      gradient: "from-red-600 to-red-700"
     },
     {
       icon: Utensils,
@@ -92,7 +91,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹800 - ₹2,000 per person",
       popular: true,
-      gradient: "from-red-600 to-rose-700"
+      gradient: "from-red-600 to-red-700"
     },
     {
       icon: Flower,
@@ -108,7 +107,7 @@ export default function WeddingServicesPage() {
       ],
       pricing: "₹35,000 - ₹1,50,000",
       popular: false,
-      gradient: "from-rose-600 to-red-700"
+      gradient: "from-red-600 to-red-700"
     },
     {
       icon: Music,
@@ -236,9 +235,9 @@ export default function WeddingServicesPage() {
     <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
       <Header />
         {/* Hero Section */}
-      <section className="relative py-20 px-4">        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-rose-600/10"></div>
+      <section className="relative py-20 px-4">        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-red-700/10"></div>
         <div className="relative max-w-6xl mx-auto text-center">
-          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-6`}>
+          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent mb-6`}>
             Islamic Wedding Services
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8">
@@ -259,7 +258,7 @@ export default function WeddingServicesPage() {
           </div>
         </div>
       </section>      {/* Why Choose Us */}
-      <section className="py-16 px-4 bg-gradient-to-r from-red-600 to-rose-600">
+      <section className="py-16 px-4 bg-gradient-to-r from-red-600 to-red-700">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {whyChooseUs.map((item, index) => (
@@ -330,12 +329,11 @@ export default function WeddingServicesPage() {
                       <li key={i} className="flex items-center gap-3">                        <CheckCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
                         <span className="text-gray-700 dark:text-gray-300 text-sm">{feature}</span>
                       </li>
-                    ))}                  </ul>
-                  <div className="text-lg font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-4">
+                    ))}                  </ul>                  <div className="text-lg font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent mb-4">
                     {service.pricing}
                   </div>
                   <Link href="/contact">
-                    <Button className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700">
+                    <Button className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800">
                       Get Quote
                     </Button>
                   </Link>
@@ -372,8 +370,7 @@ export default function WeddingServicesPage() {
                   className="absolute top-0 right-0 opacity-70 z-10"
                 />
                 {pkg.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white px-4 py-2">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">                    <Badge className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2">
                       <Star className="h-4 w-4 mr-1" />
                       Most Popular
                     </Badge>
@@ -381,7 +378,7 @@ export default function WeddingServicesPage() {
                 )}
 
                 <CardHeader className="text-center pb-4 pt-8">
-                  <div className="mb-4">                    <div className="inline-flex p-4 rounded-full bg-gradient-to-r from-red-500 to-rose-500">
+                  <div className="mb-4">                    <div className="inline-flex p-4 rounded-full bg-gradient-to-r from-red-500 to-red-600">
                       <pkg.icon className="h-8 w-8 text-white" />
                     </div>
                   </div>
@@ -398,8 +395,7 @@ export default function WeddingServicesPage() {
                     />
                   </div>
                   <p className="text-gray-600 dark:text-gray-300 mb-4">{pkg.description}</p>
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <span className="text-4xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
+                  <div className="flex items-center justify-center gap-2 mb-2">                    <span className="text-4xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent">
                       {pkg.price}
                     </span>
                     {pkg.originalPrice && (
@@ -418,7 +414,7 @@ export default function WeddingServicesPage() {
                       </li>
                     ))}
                   </ul>                  <Link href="/contact">
-                    <Button className={`w-full ${pkg.popular ? 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600' : 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'}`} size="lg">
+                    <Button className={`w-full ${pkg.popular ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'}`} size="lg">
                       Choose Package
                     </Button>
                   </Link>
@@ -441,7 +437,7 @@ export default function WeddingServicesPage() {
             </p>
           </div>          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="relative hover:shadow-xl transition-shadow duration-300 border-0 bg-gradient-to-br from-red-50 to-rose-50 dark:from-gray-800 dark:to-gray-700">
+              <Card key={index} className="relative hover:shadow-xl transition-shadow duration-300 border-0 bg-gradient-to-br from-red-50 to-red-100 dark:from-gray-800 dark:to-gray-700">
                 <Image
                   src="/bottom-left-border.svg"
                   alt=""
@@ -491,7 +487,7 @@ export default function WeddingServicesPage() {
       </section>
 
       {/* Contact Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-red-600 to-rose-600">
+      <section className="py-20 px-4 bg-gradient-to-r from-red-600 to-red-700">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className={`${elMessiri.className} text-4xl font-bold mb-6`}>
             Ready to Plan Your Dream Wedding?

@@ -880,7 +880,7 @@ export default function BrowseProfilesPage() {
               <div className="p-6 border-b border-royal-primary/10">
                 <h2 className={`${elMessiri.className} font-bold text-xl text-gray-800 flex items-center gap-2`}>
                   <Filter className="h-5 w-5 text-royal-primary" />
-                  Sacred Filters
+                  Filters
                 </h2>
               </div>
               <FilterContent />

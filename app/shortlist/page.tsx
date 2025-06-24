@@ -22,7 +22,7 @@ export default function ShortlistPage() {
             className="text-center mb-12"
           >
             <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold text-royal-primary mb-6`}>
-              Your Sacred Sufiyana Shortlist
+              Your Sufiyana Shortlist
             </h1>
             <div className="flex justify-center mb-6">
               <Image
@@ -85,7 +85,7 @@ export default function ShortlistPage() {
               </p>
               <Link href="/browse">
                 <Button className="bg-royal-primary hover:bg-royal-primary/90 text-white px-8 py-4 text-lg font-semibold">
-                  Discover Sacred Connections
+                  Discover Sufiyana Connections
                 </Button>
               </Link>
             </div>

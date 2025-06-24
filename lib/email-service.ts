@@ -386,7 +386,7 @@ async function sendEmail(mailOptions: nodemailer.SendMailOptions): Promise<boole
 
 export async function sendWelcomeEmail(userEmail: string, userName: string): Promise<boolean> {
   const mailOptions = {
-    from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
+    from: process.env.FROM_EMAIL || "rishta@nikahsufiyana.com",
     to: userEmail,
     subject: "Welcome to Nikah Sufiyana",
     html: `
@@ -462,7 +462,7 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
 
 export async function sendProfileApprovalEmail(userEmail: string, userName: string): Promise<boolean> {
   const mailOptions = {
-    from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
+    from: process.env.FROM_EMAIL || "rishta@nikahsufiyana.com",
     to: userEmail,
     subject: "Profile Approved - Nikah Sufiyana",
     html: `
@@ -521,7 +521,7 @@ export async function sendProfileApprovalEmail(userEmail: string, userName: stri
 
 export async function sendProfileRejectionEmail(userEmail: string, userName: string, reason: string): Promise<boolean> {
   const mailOptions = {
-    from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
+    from: process.env.FROM_EMAIL || "rishta@nikahsufiyana.com",
     to: userEmail,
     subject: "Profile Review - Action Required",
     html: `
@@ -590,11 +590,10 @@ export async function sendOTPVerificationEmail(userEmail: string, otp: string, u
   // Generate individual OTP digits for mobile-friendly display
   const otpDigits = otp.split('');
   const otpDisplay = otpDigits.map(digit => 
-    `<span style="${EMAIL_STYLES.otpDigitBox}">${digit}</span>`
-  ).join('');
+    `<span style="${EMAIL_STYLES.otpDigitBox}">${digit}</span>`  ).join('');
   
   const mailOptions = {
-    from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
+    from: process.env.FROM_EMAIL || "rishta@nikahsufiyana.com",
     to: userEmail,
     subject: `${title} - Nikah Sufiyana`,
     html: `
@@ -680,11 +679,10 @@ export async function sendInterestResponseEmail(
 ): Promise<boolean> {
   const isAccepted = action === 'accept';
   const accessDurationText = photoAccessDuration ? getDurationText(photoAccessDuration) : '';
-  const title = isAccepted ? 'Interest Accepted!' : 'Interest Response';
-  const subtitle = isAccepted ? 'Great news about your interest request' : 'Update on your interest request';
+  const title = isAccepted ? 'Interest Accepted!' : 'Interest Response';  const subtitle = isAccepted ? 'Great news about your interest request' : 'Update on your interest request';
   
   const mailOptions = {
-    from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
+    from: process.env.FROM_EMAIL || "rishta@nikahsufiyana.com",
     to: userEmail,
     subject: `${title} - Nikah Sufiyana`,
     html: `
@@ -780,7 +778,7 @@ export async function sendInterestReceivedEmail(
   senderName: string
 ): Promise<boolean> {
   const mailOptions = {
-    from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
+    from: process.env.FROM_EMAIL || "rishta@nikahsufiyana.com",
     to: userEmail,
     subject: "New Interest Received - Nikah Sufiyana",
     html: `

@@ -50,19 +50,19 @@ export default function ContactPage() {
     {
       icon: Phone,
       title: "Phone",
-      details: ["+91 98765 43210", "+91 87654 32109"],
+      details: ["+91 90146 33411"],
       description: "Call us for immediate assistance",
     },
     {
       icon: Mail,
       title: "Email",
-      details: ["info@nikahsufiyana.com", "support@nikahsufiyana.com"],
+      details: ["rishta@nikahsufiyana.com", "support@nikahsufiyana.com"],
       description: "Send us your queries anytime",
     },
     {
       icon: MapPin,
       title: "Address",
-      details: ["123 Islamic Center Road", "Bandra West, Mumbai - 400050"],
+      details: ["Hasmathpet, Manovikas Nagar", "& Secunderabad"],
       description: "Visit our office for personal consultation",
     },
     {
@@ -106,7 +106,7 @@ export default function ContactPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-950">
       <Header />
 
       {/* Hero Section */}
@@ -134,7 +134,7 @@ export default function ContactPage() {
             {contactInfo.map((item, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all">
                 <CardContent className="p-6">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-red-600 to-rose-600 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-red-600 to-red-700 flex items-center justify-center mb-4">
                     <item.icon className="h-6 w-6 text-white" />
                   </div>
                   <h3 className={`${elMessiri.className} text-lg font-semibold mb-2`}>{item.title}</h3>
@@ -241,7 +241,7 @@ export default function ContactPage() {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white" size="lg">
+                  <Button type="submit" className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white" size="lg">
                     <Send className="h-4 w-4 mr-2" />
                     Send Message
                   </Button>
@@ -275,7 +275,7 @@ export default function ContactPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 bg-gradient-to-r from-red-600 to-rose-600 text-white relative overflow-hidden">
+      <section className="py-12 bg-gradient-to-r from-red-600 to-red-700 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-10"></div>
         <div className="container mx-auto px-4 relative">
           <div className="text-center max-w-3xl mx-auto">

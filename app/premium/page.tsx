@@ -48,38 +48,37 @@ export default function PremiumPage() {  const coreFeatures = [
     {
       title: "Priority Profile Visibility",
       description: "Your profile appears at the top of search results for maximum exposure",
-      icon: Star,
-      gradient: "from-red-500 to-rose-500"
+      icon: Star,      gradient: "from-red-500 to-red-600"
     },
     {
       icon: Eye,
       title: "See Who Viewed You",
       description: "Discover which members viewed your profile and showed interest",
-      gradient: "from-red-600 to-rose-600"
+      gradient: "from-red-600 to-red-700"
     },
     {
       icon: Search,
       title: "Advanced Search Filters",
       description: "Find your perfect match with detailed criteria including profession, education, family background",
-      gradient: "from-rose-500 to-red-500"
+      gradient: "from-red-500 to-red-600"
     },
     {
       icon: MessageSquare,
       title: "Priority Communication",
       description: "Your messages appear at the top of recipients' inboxes for faster responses",
-      gradient: "from-red-500 to-rose-500"
+      gradient: "from-red-500 to-red-600"
     },
     {
       icon: Lock,
       title: "Contact Information Access",
       description: "View phone numbers and contact details of verified members you connect with",
-      gradient: "from-rose-500 to-red-500"
+      gradient: "from-red-500 to-red-600"
     },
     {
       icon: UserCheck,
       title: "Verification Priority",
       description: "Fast-track verification process for your profile and documents",
-      gradient: "from-red-600 to-rose-600"    }
+      gradient: "from-red-600 to-red-700"}
   ]
     const premiumPlans = [    {
       name: "Spark Connection",
@@ -165,7 +164,7 @@ export default function PremiumPage() {  const coreFeatures = [
     },
     {
       name: "Zainab & Omar",
-      location: "Mumbai",
+      location: "Secunderabad",
       text: "The advanced search filters and priority visibility made all the difference. We connected based on our shared values and family backgrounds.",
       months: "Found match in 3 months", 
       plan: "Premium"
@@ -189,12 +188,12 @@ export default function PremiumPage() {  const coreFeatures = [
     <div className="min-h-screen bg-cream-bg dark:from-gray-950 dark:to-gray-900">
       <Header />      {/* Hero Section */}
       <section className="relative py-20 px-4">
-        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-rose-600/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-red-700/10"></div>
         <div className="relative max-w-6xl mx-auto text-center">
-          <Badge className="mb-6 bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 px-6 py-2 text-lg">
+          <Badge className="mb-6 bg-gradient-to-r from-red-500 to-red-600 text-white border-0 px-6 py-2 text-lg">
             ✨ Premium Matrimonial Features
           </Badge>
-          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-6`}>
+          <h1 className={`${elMessiri.className} text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent mb-6`}>
             Find Your Perfect Match Faster
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed mb-8">
@@ -204,7 +203,7 @@ export default function PremiumPage() {  const coreFeatures = [
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
             {benefits.map((benefit, index) => (
               <div key={index} className="flex flex-col items-center text-center">
-                <div className="p-3 rounded-full bg-gradient-to-r from-red-500 to-rose-500 mb-3">
+                <div className="p-3 rounded-full bg-gradient-to-r from-red-500 to-red-600 mb-3">
                   <benefit.icon className="h-6 w-6 text-white" />
                 </div>
                 <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">{benefit.text}</span>
@@ -264,11 +263,10 @@ export default function PremiumPage() {  const coreFeatures = [
                 </div>                {/* Features list below SVG with no background */}
                 <div className="space-y-3 mb-6 flex-grow">
                   {plan.features.map((feature, i) => (
-                    <div key={i} className="flex items-start gap-3 md:text-left text-center">
-                      <div className={`p-1.5 rounded-full ${
+                    <div key={i} className="flex items-start gap-3 md:text-left text-center">                      <div className={`p-1.5 rounded-full ${
                         plan.name === "Nikah Sufiyana Elite" 
                           ? "bg-gradient-to-r from-amber-400 to-yellow-500" 
-                          : "bg-gradient-to-r from-red-500 to-rose-500"
+                          : "bg-gradient-to-r from-red-500 to-red-600"
                       }`}>
                         <feature.icon className="h-3 w-3 text-white" />
                       </div>
@@ -280,9 +278,8 @@ export default function PremiumPage() {  const coreFeatures = [
                 {/* Golden gradient border line */}
                 <div className="h-[2px] bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 mb-4 rounded-full"></div>
 
-                {/* Button aligned to bottom */}
-                <Button 
-                  className={`w-full ${plan.popular ? 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600' : 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'} text-white border-2 border-amber-400 hover:border-amber-500 transition-all duration-300 mt-auto`} 
+                {/* Button aligned to bottom */}                <Button 
+                  className={`w-full ${plan.popular ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700' : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'} text-white border-2 border-amber-400 hover:border-amber-500 transition-all duration-300 mt-auto`}
                   size="lg"
                 >
                   Choose {plan.name}
@@ -365,7 +362,7 @@ export default function PremiumPage() {  const coreFeatures = [
         </div>
       </section>      {/* Money Back Guarantee */}
       <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">          <Card className="border-2 border-red-200 bg-gradient-to-r from-red-50 to-rose-50 dark:from-gray-800 dark:to-gray-700">
+        <div className="max-w-4xl mx-auto text-center">          <Card className="border-2 border-red-200 bg-gradient-to-r from-red-50 to-red-100 dark:from-gray-800 dark:to-gray-700">
             <CardContent className="p-12">
               <Shield className="h-16 w-16 mx-auto text-red-600 mb-6" />
               <h3 className={`${elMessiri.className} text-3xl font-bold text-gray-800 dark:text-gray-200 mb-4`}>
@@ -382,7 +379,7 @@ export default function PremiumPage() {  const coreFeatures = [
           </Card>
         </div>
       </section>      {/* Call to Action */}
-      <section className="py-20 px-4 bg-gradient-to-r from-red-600 to-rose-600">
+      <section className="py-20 px-4 bg-gradient-to-br from-royal-primary to-royal-primary/90 text-white">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className={`${elMessiri.className} text-4xl font-bold mb-6`}>
             Ready to Find Your Perfect Match?

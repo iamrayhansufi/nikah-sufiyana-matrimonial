@@ -100,7 +100,7 @@ export default function SitemapPage() {
             </div>
           </div>
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-gold-400 to-amber-400 bg-clip-text text-transparent">
-            Sacred Sitemap
+            Sitemap
           </h1>
           <p className="text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
             Navigate through all pages of Nikah Sufiyana with ease. Find exactly what you're looking for.
@@ -169,10 +169,9 @@ export default function SitemapPage() {
         <div className="mt-16 text-center">
           <Card className="max-w-4xl mx-auto bg-gradient-to-r from-amber-900 to-orange-900 text-white border-0">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold flex items-center justify-center gap-3">
-                <Heart className="w-6 h-6 text-rose-400" />
+              <CardTitle className="text-2xl font-bold flex items-center justify-center gap-3">                <Heart className="w-6 h-6 text-red-400" />
                 Quick Actions
-                <Heart className="w-6 h-6 text-rose-400" />
+                <Heart className="w-6 h-6 text-red-400" />
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -181,7 +180,7 @@ export default function SitemapPage() {
                   href="/register"
                   className="p-4 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:shadow-lg backdrop-blur-sm border border-white/20"
                 >
-                  <Users className="w-8 h-8 mx-auto mb-2 text-rose-400" />
+                  <Users className="w-8 h-8 mx-auto mb-2 text-red-400" />
                   <div className="font-semibold">Join Now</div>
                 </Link>
                 <Link 

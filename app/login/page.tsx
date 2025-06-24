@@ -225,7 +225,7 @@ function LoginFormWithParams() {
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="+91 98765 43210"
+                      placeholder="+91 90146 33411"
                       required
                     />
                   </div>

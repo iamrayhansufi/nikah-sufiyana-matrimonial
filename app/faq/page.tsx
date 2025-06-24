@@ -364,10 +364,9 @@ export default function FAQPage() {
                     Speak directly with our customer support team for personalized assistance.
                   </p>
                   <Button 
-                    className="w-full bg-royal-primary hover:bg-royal-primary/90 text-white"
-                    onClick={() => window.open('tel:+919876543210')}
+                    className="w-full bg-royal-primary hover:bg-royal-primary/90 text-white"                    onClick={() => window.open('tel:+919014633411')}
                   >
-                    Call +91-9876543210
+                    Call +91-90146 33411
                   </Button>
                 </CardContent>
               </Card>

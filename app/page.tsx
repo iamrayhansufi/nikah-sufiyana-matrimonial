@@ -83,20 +83,19 @@ export default function HomePage() {
     },
     {
       icon: Shield,
-      title: "Safe & Secure Platform",
-      description: "Your privacy and security are our top priorities. Advanced verification processes and secure communication ensure your matrimonial journey remains safe and protected.",
-      color: "from-red-500 to-rose-600"
+      title: "Safe & Secure Platform",      description: "Your privacy and security are our top priorities. Advanced verification processes and secure communication ensure your matrimonial journey remains safe and protected.",
+      color: "from-red-500 to-red-600"
     },    {
       icon: NikahSufiyanaIcon,
       title: "Premium Matchmaking Service",
       description: "Get personalized support from our experienced relationship managers who understand Indian Muslim families. Premium features help you find the perfect match faster.",
-      color: "from-red-500 to-rose-600"
+      color: "from-red-500 to-red-600"
     },
     {
       icon: Heart,
       title: "Successful Marriages",
       description: "Join thousands of happy couples who found their life partners through Nikah Sufiyana. Our success stories speak for the quality of matches and genuine connections we facilitate.",
-      color: "from-rose-500 to-red-600"
+      color: "from-red-500 to-red-600"
     }
   ]
   const successStories = [
@@ -382,7 +381,7 @@ export default function HomePage() {
                       روحانی شادی - The Spiritual Union
                     </h3>
                     <div className="space-y-6 text-gray-700 leading-relaxed">                      <p className="text-lg">
-                        <strong>Nikah Sufiyana</strong> represents the beautiful harmony between spiritual devotion and matrimonial bliss. Our platform celebrates the sacred bond of marriage as a divine blessing that brings two hearts together in eternal companionship and shared faith.
+                        <strong>Nikah Sufiyana</strong> represents the beautiful harmony between spiritual devotion and matrimonial bliss. Our platform celebrates the Sufiyana bond of marriage as a divine blessing that brings two hearts together in eternal companionship and shared faith.
                       </p>                      <p className="text-lg">
                         We believe that every marriage is a sacred bond blessed by Allah (SWT), uniting not just two individuals, but two families with shared values and aspirations. Our mission is to facilitate these blessed unions with complete respect for Islamic principles and Indian family traditions.
                       </p>
@@ -470,7 +469,7 @@ export default function HomePage() {
               />
             </div>
             <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover verified premium profiles of accomplished individuals seeking blessed companionship through sacred matrimony.
+              Discover verified premium profiles of accomplished individuals seeking blessed companionship through Sufiyana Matrimony.
             </p>
           </motion.div>
 
@@ -795,7 +794,7 @@ export default function HomePage() {
                   className="absolute inset-0 w-full h-full object-cover opacity-20"
                 />
                 <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
                     <Award className="h-8 w-8 text-white" />
                   </div>
                   <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
@@ -828,7 +827,7 @@ export default function HomePage() {
             <motion.div variants={fadeInUp} className="group cursor-pointer">
               <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:-translate-y-2">
                 <div className="text-4xl md:text-5xl font-bold text-royal-primary mb-2">15K+</div>
-                <div className="text-gray-700 font-medium">Sacred Unions</div>
+                <div className="text-gray-700 font-medium">Sufiyana Unions</div>
                 <div className="text-lg text-gray-500">Successful Matches</div>
               </div>
             </motion.div>
@@ -968,7 +967,7 @@ export default function HomePage() {
                     <Shield className="h-8 w-8 text-white" />
                   </div>
                   <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
-                    Sacred Privacy Protection
+                    Privacy Protection
                   </h3>
                   
                   {/* Text Bottom Border */}
@@ -1022,7 +1021,7 @@ export default function HomePage() {
                 </>
                 
                 <CardContent className="p-8 text-center relative">
-                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <MessageSquare className="h-8 w-8 text-white" />
                   </div>
                   <h3 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4`}>
@@ -1082,11 +1081,10 @@ export default function HomePage() {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-royal-primary active:bg-gray-100 active:text-royal-primary focus:bg-white focus:text-royal-primary px-8 py-4 text-lg font-semibold transition-all duration-300"
-                onClick={() => window.open('tel:+919876543210')}
+                className="border-white text-white hover:bg-white hover:text-royal-primary active:bg-gray-100 active:text-royal-primary focus:bg-white focus:text-royal-primary px-8 py-4 text-lg font-semibold transition-all duration-300"                onClick={() => window.open('tel:+919014633411')}
               >
                 <Phone className="mr-2 h-5 w-5" />
-                Call: +91 9876543210
+                Call: +91 90146 33411
               </Button>
             </div>
           </motion.div>

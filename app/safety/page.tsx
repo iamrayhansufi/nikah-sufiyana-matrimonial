@@ -668,7 +668,7 @@ export default function SafetyPage() {
                 size="lg" 
                 variant="secondary" 
                 className="bg-red-600 text-white hover:bg-red-700 border-0 px-8 py-4 text-lg font-semibold"
-                onClick={() => window.open('tel:+919876543210')}
+                onClick={() => window.open('tel:+919014633411')}
               >
                 <Phone className="mr-2 h-5 w-5" />
                 Emergency: +91-9876543210

@@ -48,7 +48,7 @@ const successStories = [
   {
     id: 4,
     couple: "Khalid & Maryam",
-    location: "Mumbai, Maharashtra",
+    location: "Secunderabad, Telangana",
     marriageDate: "October 2023",
     story: "SubhanAllah! Our families were looking for suitable matches for us, and Nikah Sufiyana made the process so much easier. The detailed profiles and family involvement features were exactly what we needed.",
     image: "/success-stories/couple4.jpg",

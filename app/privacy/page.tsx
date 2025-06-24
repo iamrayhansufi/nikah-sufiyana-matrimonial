@@ -293,7 +293,7 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul>
                 <li><strong>Email:</strong> privacy@nikahsufiyana.com</li>
-                <li><strong>Phone:</strong> +91-9876543210</li>
+                <li><strong>Phone:</strong> +91-90146 33411</li>
                 <li><strong>Address:</strong> Hyderabad, Telangana, India</li>
               </ul>
             </CardContent>

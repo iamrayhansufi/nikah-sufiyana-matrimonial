@@ -28,44 +28,7 @@ export function Footer() {
       {/* Decorative Elements */}
       <div className="absolute inset-0 bg-[url('/islamic-pattern-light.png')] opacity-10"></div>
             
-      {/* Newsletter Section */}
-      <div className="border-b border-white/20">
-        <div className="max-w-8xl mx-auto px-4 section-spacing">
-          <div className="max-w-xl mx-auto text-center">
-            <div className="w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-3 lg:mb-4 bg-white/20 rounded-full flex items-center justify-center">
-              <Image
-                src="/Nikah-Sufiyana-Icon-white-01.svg"
-                alt="Nikah Sufiyana Icon"
-                width={32}
-                height={32}
-                className="h-6 w-6 lg:h-8 lg:w-8"
-              />
-            </div>
-            <h3 className={`${elMessiri.className} text-2xl lg:text-3xl font-bold mb-3 lg:mb-4`}>
-              Join Our Royal Newsletter
-            </h3>
-            <p className="text-white/90 mb-4 lg:mb-6 text-base lg:text-lg">
-              Receive blessed updates on new profiles, success stories, and exclusive matrimonial events
-            </p>
-            <form onSubmit={handleNewsletterSubscription} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-              <Input 
-                type="email" 
-                placeholder="Enter your email for blessings" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:bg-white/30" 
-                required
-              />
-              <Button type="submit" className="bg-white text-royal-primary hover:bg-white/90 font-semibold">
-                <Send className="h-4 w-4 mr-2" />
-                Subscribe
-              </Button>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-8xl mx-auto px-4 section-spacing relative">
+       <div className="max-w-8xl mx-auto px-4 section-spacing relative">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-8">
           {/* Brand */}
           <div className="md:col-span-2 space-y-4 lg:space-y-6">
@@ -79,7 +42,7 @@ export function Footer() {
               />
             </Link>
             <p className="text-base lg:text-lg text-white/90 max-w-md leading-relaxed">
-              <strong className={`${elMessiri.className} text-base lg:text-lg`}>Nikah Sufiyana</strong> - India's most trusted Islamic matrimonial platform, where hearts unite through divine blessing. We combine sacred Islamic values with modern technology to create meaningful, halal connections that lead to blessed marriages.
+              <strong className={`${elMessiri.className} text-base lg:text-lg`}>Nikah Sufiyana</strong> - India's most trusted Islamic matrimonial platform, where hearts unite through divine blessing. We combine Islamic values with modern technology to create meaningful, halal connections that lead to blessed marriages.
             </p>
             
             {/* SVG Border */}
@@ -113,7 +76,7 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className={`${elMessiri.className} font-bold text-lg flex items-center gap-2`}>
               <Sparkles className="h-5 w-5" />
-              Sacred Links
+              Quick Links
             </h3>
             <ul className="space-y-3 text-lg">
               <li>
@@ -124,7 +87,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/about" className="hover:text-white/70 transition-colors duration-300">
-                  About Our Sacred Mission
+                  About Our Mission
                 </Link>
               </li>
               <li>
@@ -159,7 +122,7 @@ export function Footer() {
             <ul className="space-y-3 text-lg">
               <li>
                 <Link href="/contact" className="hover:text-white/70 transition-colors duration-300">
-                  Contact Sacred Support
+                  Contact Support
                 </Link>
               </li>
               <li>
@@ -174,12 +137,12 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/privacy" className="hover:text-white/70 transition-colors duration-300">
-                  Privacy & Sacred Trust
+                  Privacy & Trust
                 </Link>
               </li>
               <li>
                 <Link href="/terms" className="hover:text-white/70 transition-colors duration-300">
-                  Terms of Sacred Service
+                  Terms of Service
                 </Link>
               </li>
               <li>
@@ -206,21 +169,21 @@ export function Footer() {
               <div className="flex items-center space-x-3 bg-white/10 p-3 rounded-lg">
                 <Phone className="h-5 w-5 text-white" />
                 <div>
-                  <span className="font-semibold">+91 98765 43210</span>
-                  <p className="text-white/80 text-xs">24/7 Sacred Helpline</p>
+                  <span className="font-semibold">+91 90146 33411</span>
+                  <p className="text-white/80 text-xs">Instand Support Helpline</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3 bg-white/10 p-3 rounded-lg">
                 <Mail className="h-5 w-5 text-white" />
                 <div>
-                  <span className="font-semibold">blessings@nikahsufiyana.com</span>
+                  <span className="font-semibold">rishta@nikahsufiyana.com</span>
                   <p className="text-white/80 text-xs">Royal Support Email</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3 bg-white/10 p-3 rounded-lg">
                 <MapPin className="h-5 w-5 text-white" />
                 <div>
-                  <span className="font-semibold">Mumbai, India</span>
+                  <span className="font-semibold">Hasmathpet, Manovikas Nagar & Secunderabad</span>
                   <p className="text-white/80 text-xs">Sacred Headquarters</p>
                 </div>
               </div>
@@ -240,7 +203,7 @@ export function Footer() {
               />
             </div>
             <p className={`${elMessiri.className} text-lg mb-2`}>
-              <strong>© {new Date().getFullYear()} Nikah Sufiyana</strong> - Where Sacred Hearts Unite
+              <strong>© {new Date().getFullYear()} Nikah Sufiyana</strong> - Where Hearts Unite
             </p>
             <p className="text-white/80 text-lg mb-4">
               Made with <Heart className="inline h-4 w-4 text-red-300" /> for the blessed Muslim Ummah | 

@@ -163,7 +163,7 @@ export default function PaymentPage() {
                   <span className="text-lg">Mastercard</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-12 h-8 bg-purple-600 rounded flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-12 h-8 bg-red-600 rounded flex items-center justify-center text-white text-xs font-bold">
                     UPI
                   </div>
                   <span className="text-lg">UPI</span>

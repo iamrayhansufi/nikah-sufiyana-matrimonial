@@ -383,10 +383,10 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
   const mailOptions = {
     from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
     to: userEmail,
-    subject: "🌙 Welcome to Nikah Sufiyana - Your Sacred Journey Begins",
+    subject: "🌙 Welcome to Nikah Sufiyana - Your Sufiyana Journey Begins",
     html: `
       <div style="${EMAIL_STYLES.container}">
-        ${getEmailHeader('Welcome to Nikah Sufiyana', 'Your Sacred Journey to Finding True Love Begins')}
+        ${getEmailHeader('Welcome to Nikah Sufiyana', 'Your Sufiyana Journey to Finding True Love Begins')}
         
         <div style="${EMAIL_STYLES.content}">
           <h2 style="${EMAIL_STYLES.greeting}">
@@ -538,7 +538,7 @@ export async function sendProfileApprovalEmail(userEmail: string, userName: stri
   const mailOptions = {
     from: process.env.FROM_EMAIL || "noreply@nikahsufiyana.com",
     to: userEmail,
-    subject: "🎉 Profile Approved - Begin Your Sacred Journey",
+    subject: "🎉 Profile Approved - Begin Your Sufiyana Journey",
     html: `
       <div style="${EMAIL_STYLES.container}">
         ${getEmailHeader('Profile Approved!', 'Your journey to find the perfect match begins')}
@@ -665,7 +665,7 @@ export async function sendProfileRejectionEmail(userEmail: string, userName: str
 export async function sendOTPVerificationEmail(userEmail: string, otp: string, userName: string = 'User', purpose: 'email_verification' | 'password_reset' = 'email_verification'): Promise<boolean> {
   const isPasswordReset = purpose === 'password_reset';
   const title = isPasswordReset ? '🔒 Password Reset Request' : '🌙 Verify Your Email Address';
-  const subtitle = isPasswordReset ? 'Secure your account with this verification code' : 'Complete your sacred journey setup';
+  const subtitle = isPasswordReset ? 'Secure your account with this verification code' : 'Complete your sufiyana journey setup';
   
   // Generate individual OTP digits for better visual presentation
   const otpDigits = otp.split('');

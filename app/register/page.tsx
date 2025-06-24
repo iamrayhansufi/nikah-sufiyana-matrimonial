@@ -787,7 +787,7 @@ export default function RegisterPage() {
               />
             </div>
             <h1 className={`${elMessiri.className} text-3xl md:text-4xl font-bold text-gray-800 mb-4`}>
-              Begin Your Sacred Journey
+              Begin Your Sufiyana Journey
             </h1>
             <div className="flex justify-center mb-4">
               <Image
@@ -813,7 +813,7 @@ export default function RegisterPage() {
                       <FileText className="h-8 w-8 text-royal-primary animate-pulse" />
                     </div>
                   </div>
-                  <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800`}>Processing Sacred Bio Data</h3>
+                  <h3 className={`${elMessiri.className} text-xl font-bold text-gray-800`}>Processing Bio Data</h3>
                   <Progress value={processingProgress} className="w-full max-w-xs mx-auto" />
                   <p className="text-lg text-gray-600">
                     {processingProgress < 100 

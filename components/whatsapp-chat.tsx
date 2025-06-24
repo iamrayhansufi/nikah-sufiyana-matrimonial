@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 
 export function WhatsAppChat() {
   const handleWhatsAppClick = () => {
-    const phoneNumber = "919876543210" // Replace with actual WhatsApp number
+    const phoneNumber = "919014633411" // Updated WhatsApp number
     const message = "Hi! I'm interested in Nikah Sufiyana matrimonial services."
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
     window.open(url, "_blank")
