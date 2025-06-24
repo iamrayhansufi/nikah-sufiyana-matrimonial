@@ -719,7 +719,7 @@ export default function ProfilePage({
 
                     {/* Match Percentage */}
                     <div className="absolute top-2 right-2">
-                      <Badge variant="secondary" className="bg-primary text-white">
+                      <Badge variant="secondary" className="bg-gradient-to-r from-red-600 to-red-700 text-white">
                         {profile.matchPercentage}% Match
                       </Badge>                    </div>
 

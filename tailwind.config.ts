@@ -32,7 +32,7 @@ const config: Config = {
   			'el-messiri': ['var(--font-el-messiri)', 'El Messiri', 'serif'],
   		},  		colors: {
   			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',  			'royal-primary': '#C7203E',
+  			foreground: 'hsl(var(--foreground))',  			'royal-primary': '#dc2626',
   			'cream-light': '#FCF9F2',
   			'cream-dark': '#F2E4C1',
   			'cream-bg': '#f9f6eb',
@@ -44,9 +44,8 @@ const config: Config = {
   			popover: {
   				DEFAULT: 'hsl(var(--popover))',
   				foreground: 'hsl(var(--popover-foreground))'
-  			},
-  			primary: {
-  				DEFAULT: '#C7203E',
+  			},  			primary: {
+  				DEFAULT: '#dc2626',
   				foreground: 'hsl(var(--primary-foreground))'
   			},
   			secondary: {
@@ -94,7 +93,7 @@ const config: Config = {
   		},  		backgroundImage: {
   			'royal-gradient': 'linear-gradient(135deg, #FCF9F2 0%, #F2E4C1 100%)',
   			'royal-gradient-vertical': 'linear-gradient(to bottom, #FCF9F2 0%, #F2E4C1 100%)',
-  			'royal-primary-shiny': 'linear-gradient(135deg, #C7203E 0%, #E63946 25%, #C7203E 50%, #A11B35 75%, #C7203E 100%)',
+  			'royal-primary-shiny': 'linear-gradient(135deg, #dc2626 0%, #ef4444 25%, #dc2626 50%, #b91c1c 75%, #dc2626 100%)',
   			'royal-primary-glossy': 'linear-gradient(45deg, #A11B35 0%, #C7203E 25%, #E63946 50%, #C7203E 75%, #A11B35 100%)',
   			'royal-primary-metallic': 'linear-gradient(135deg, #8B1538 0%, #A11B35 20%, #C7203E 40%, #E63946 60%, #C7203E 80%, #A11B35 100%)',
   			'royal-shine-animation': 'linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.3) 50%, transparent 75%)',

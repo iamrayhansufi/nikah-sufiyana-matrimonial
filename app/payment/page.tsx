@@ -91,7 +91,7 @@ export default function PaymentPage() {
               <Card key={index} className={`relative ${plan.popular ? "border-primary shadow-lg scale-105" : ""}`}>
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-primary text-white px-4 py-1">
+                    <Badge className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-1">
                       <Star className="h-4 w-4 mr-1" />
                       Most Popular
                     </Badge>

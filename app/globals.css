@@ -10,7 +10,7 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 344 71% 44%;
+    --primary: 0 84% 51%;
     --primary-foreground: 210 40% 98%;
     --secondary: 18 95% 56%;
     --secondary-foreground: 222.2 84% 4.9%;
@@ -22,7 +22,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 344 71% 44%;
+    --ring: 0 84% 51%;
     --radius: 0.5rem;
   }
 
@@ -45,17 +45,17 @@
   }
   
   ::-webkit-scrollbar-thumb {
-    background: #C7203E;
+    background: #dc2626;
     border-radius: 4px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: #A11B35;
+    background: #b91c1c;
   }
 
   /* Custom Gradient Utilities */
   .gradient-primary {
-    background: linear-gradient(135deg, #C7203E 0%, #A11B35 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   }
   
   .bg-sufiyana-pattern {
@@ -69,7 +69,7 @@
   }
   
   .text-gradient {
-    background: linear-gradient(135deg, #C7203E 0%, #A11B35 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -79,14 +79,14 @@
   h1 {
     font-size: 3.5rem; /* Reduced from text-6xl to text-5xl equivalent */
     line-height: 1.1;
-    color: #C7203E;
+    color: #dc2626;
     font-weight: 700;
   }
   
   h2 {
     font-size: 4rem; /* Set to 4rem as requested */
     line-height: 1.1;
-    color: #C7203E;
+    color: #dc2626;
     font-weight: 600;
   }
 
@@ -132,25 +132,25 @@
 
   /* Button Gradient Classes with Proper Active/Focus States */
   .gradient-primary {
-    background: linear-gradient(135deg, #C7203E 0%, #A11B35 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
     color: white;
     border: none;
     transition: all 0.3s ease;
   }
 
   .gradient-primary:hover {
-    background: linear-gradient(135deg, #A11B35 0%, #8B1538 100%);
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
     color: white;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(199, 32, 62, 0.3);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
   }
 
   .gradient-primary:active,
   .gradient-primary:focus {
-    background: linear-gradient(135deg, #8B1538 0%, #6D1029 100%);
+    background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
     color: white;
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(199, 32, 62, 0.4);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
   }
 
   .gradient-emerald {
@@ -273,17 +273,17 @@
 }
 
 .gradient-primary {
-  background: linear-gradient(135deg, #C7203E 0%, #E63946 25%, #C7203E 50%, #A11B35 75%, #C7203E 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 25%, #dc2626 50%, #b91c1c 75%, #dc2626 100%);
   background-size: 300% 300%;
   animation: gradient-shift 4s ease infinite;
 }
 
 .gradient-primary-light {
-  background: linear-gradient(135deg, rgba(199, 32, 62, 0.1) 0%, rgba(229, 62, 70, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(239, 68, 68, 0.1) 100%);
 }
 
 .islamic-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C7203E' fill-opacity='0.05'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm0 0c0 11.046 8.954 20 20 20s20-8.954 20-20-8.954-20-20-20-20 8.954-20 20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23dc2626' fill-opacity='0.05'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm0 0c0 11.046 8.954 20 20 20s20-8.954 20-20-8.954-20-20-20-20 8.954-20 20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
 /* Enhanced Animations */
@@ -444,7 +444,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(199, 32, 62, 0.05), rgba(229, 62, 70, 0.05));
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.05), rgba(239, 68, 68, 0.05));
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: inherit;
@@ -500,15 +500,15 @@
 
 /* Badge with glow effect */
 .badge-royal-glow {
-  background: linear-gradient(135deg, #C7203E 0%, #E63946 50%, #C7203E 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #dc2626 100%);
   animation: royal-glow 3s ease-in-out infinite;
   border: none;
 }
 
 /* Input focus effects */
 .input-royal-focus:focus {
-  border-color: #C7203E;
-  box-shadow: 0 0 0 2px rgba(199, 32, 62, 0.2);
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
 }
 
 /* Logo and Hover Effects */
@@ -597,7 +597,7 @@
 
 /* Gradient Text Animation */
 .gradient-text-animate {
-  background: linear-gradient(-45deg, #C7203E, #E63946, #FF6B6B, #E63946, #C7203E, #A11B35);
+  background: linear-gradient(-45deg, #dc2626, #ef4444, #f87171, #ef4444, #dc2626, #b91c1c);
   background-size: 600% 600%;
   animation: gradient-shift 6s ease infinite;
   -webkit-background-clip: text;
@@ -619,19 +619,19 @@
 
 /* Royal Primary Shiny Gradient Effects */
 .royal-primary-shiny {
-  background: linear-gradient(135deg, #C7203E 0%, #E63946 25%, #C7203E 50%, #A11B35 75%, #C7203E 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 25%, #dc2626 50%, #b91c1c 75%, #dc2626 100%);
   background-size: 300% 300%;
   animation: gradient-shift 4s ease infinite;
 }
 
 .royal-primary-glossy {
-  background: linear-gradient(45deg, #A11B35 0%, #C7203E 25%, #E63946 50%, #C7203E 75%, #A11B35 100%);
+  background: linear-gradient(45deg, #b91c1c 0%, #dc2626 25%, #ef4444 50%, #dc2626 75%, #b91c1c 100%);
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;
 }
 
 .royal-primary-metallic {
-  background: linear-gradient(135deg, #8B1538 0%, #A11B35 20%, #C7203E 40%, #E63946 60%, #C7203E 80%, #A11B35 100%);
+  background: linear-gradient(135deg, #991b1b 0%, #b91c1c 20%, #dc2626 40%, #ef4444 60%, #dc2626 80%, #b91c1c 100%);
   background-size: 400% 400%;
   animation: gradient-shift 5s ease infinite;
   position: relative;
@@ -650,7 +650,7 @@
 }
 
 .royal-shine-button {
-  background: linear-gradient(135deg, #C7203E 0%, #E63946 50%, #C7203E 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #dc2626 100%);
   background-size: 200% 200%;
   position: relative;
   overflow: hidden;
@@ -677,16 +677,16 @@
 .royal-shine-button:hover {
   background-position: 100% 50%;
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(199, 32, 62, 0.4);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.4);
   color: white;
 }
 
 .royal-shine-button:active,
 .royal-shine-button:focus {
-  background: linear-gradient(135deg, #A11B35 0%, #8B1538 100%);
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
   color: white;
   transform: translateY(0);
-  box-shadow: 0 4px 15px rgba(199, 32, 62, 0.5);
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.5);
 }
 
 .royal-glow-effect {
@@ -702,7 +702,7 @@
 
 /* Shiny Text Effects */
 .royal-text-shiny {
-  background: linear-gradient(135deg, #C7203E 0%, #E63946 25%, #FF6B6B 50%, #E63946 75%, #C7203E 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 25%, #f87171 50%, #ef4444 75%, #dc2626 100%);
   background-size: 300% 300%;
   animation: gradient-shift 4s ease infinite;
   -webkit-background-clip: text;
@@ -711,7 +711,7 @@
 }
 
 .royal-text-metallic {
-  background: linear-gradient(135deg, #8B1538 0%, #A11B35 20%, #C7203E 40%, #E63946 60%, #FF6B6B 70%, #E63946 80%, #C7203E 90%, #A11B35 100%);
+  background: linear-gradient(135deg, #991b1b 0%, #b91c1c 20%, #dc2626 40%, #ef4444 60%, #f87171 70%, #ef4444 80%, #dc2626 90%, #b91c1c 100%);
   background-size: 400% 400%;
   animation: gradient-shift 6s ease infinite;
   -webkit-background-clip: text;
@@ -722,19 +722,19 @@
 
 /* Utility Classes for Easy Use */
 .bg-royal-shiny {
-  background: linear-gradient(135deg, #C7203E 0%, #E63946 25%, #C7203E 50%, #A11B35 75%, #C7203E 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 25%, #dc2626 50%, #b91c1c 75%, #dc2626 100%);
   background-size: 300% 300%;
   animation: gradient-shift 4s ease infinite;
 }
 
 .bg-royal-glossy {
-  background: linear-gradient(45deg, #A11B35 0%, #C7203E 25%, #E63946 50%, #C7203E 75%, #A11B35 100%);
+  background: linear-gradient(45deg, #b91c1c 0%, #dc2626 25%, #ef4444 50%, #dc2626 75%, #b91c1c 100%);
   background-size: 200% 200%;
   animation: gradient-shift 3s ease infinite;
 }
 
 .bg-royal-metallic {
-  background: linear-gradient(135deg, #8B1538 0%, #A11B35 20%, #C7203E 40%, #E63946 60%, #C7203E 80%, #A11B35 100%);
+  background: linear-gradient(135deg, #991b1b 0%, #b91c1c 20%, #dc2626 40%, #ef4444 60%, #dc2626 80%, #b91c1c 100%);
   background-size: 400% 400%;
   animation: gradient-shift 5s ease infinite;
 }

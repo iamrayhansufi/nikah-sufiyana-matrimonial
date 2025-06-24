@@ -35,8 +35,8 @@ export function Footer() {
             <Link href="/" className="flex items-center space-x-2 hover-lift">
               <Image
                 alt="Nikah Sufiyana"
-                height="40"
-                width="180"
+                height="70"
+                width="210"
                 src="/Nikah-Sufiyana-Logo.svg"
                 className="h-8 lg:h-12 w-auto filter brightness-0 invert"
               />
@@ -183,8 +183,7 @@ export function Footer() {
               <div className="flex items-center space-x-3 bg-white/10 p-3 rounded-lg">
                 <MapPin className="h-5 w-5 text-white" />
                 <div>
-                  <span className="font-semibold">Hasmathpet, Manovikas Nagar & Secunderabad</span>
-                  <p className="text-white/80 text-xs">Sacred Headquarters</p>
+                  <span className="font-semibold">Hasmathpet, Manovikas Nagar & Secunderabad</span>                  
                 </div>
               </div>
             </div>

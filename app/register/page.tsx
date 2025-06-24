@@ -843,9 +843,8 @@ export default function RegisterPage() {
                   <div className="flex justify-center space-x-2 mb-4">
                     {[1, 2, 3, 4].map((i) => (
                       <div
-                        key={i}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-medium ${
-                          i <= step ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+                        key={i}                        className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-medium ${
+                          i <= step ? "bg-gradient-to-r from-red-600 to-red-700 text-white" : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {i}
