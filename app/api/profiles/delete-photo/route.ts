@@ -124,6 +124,7 @@ export async function DELETE(request: NextRequest) {
     }
     
     // Update both photos and profilePhotos fields, and handle profile photo
+    // Always store as JSON stringified arrays (never double-encoded)
     const updateData: { [key: string]: string } = {
       photos: JSON.stringify(updatedPhotos),
       profilePhotos: JSON.stringify(updatedPhotos)
@@ -135,15 +136,12 @@ export async function DELETE(request: NextRequest) {
       updateData.profilePhoto = updatedPhotos.length > 0 ? updatedPhotos[0] : "";
       console.log("🚨 Updated main profile photo to:", updateData.profilePhoto);
     }
-    
+
     console.log("💾 Update data to be saved:", updateData);
-      // Update user in Redis
-    console.log("🔄 Updating user data in Redis...");
+    // Overwrite both fields regardless of previous type
     try {
       const hsetResult = await redis.hset(userKey, updateData);
       console.log("✅ HSET completed with result:", hsetResult);
-      console.log("HSET result type:", typeof hsetResult);
-      
       if (hsetResult === null || hsetResult === undefined) {
         console.error("❌ HSET returned null/undefined - operation may have failed");
         throw new Error("Redis HSET operation failed");
@@ -151,55 +149,48 @@ export async function DELETE(request: NextRequest) {
     } catch (hsetError) {
       console.error("❌ HSET operation failed:", hsetError);
       throw new Error(`Failed to update user photos: ${hsetError}`);
-    }    // Add a small delay to ensure consistency
-    await new Promise(resolve => setTimeout(resolve, 100));    // Verify the update
+    }
+    // Add a small delay to ensure consistency
+    await new Promise(resolve => setTimeout(resolve, 100));
+    // Verify the update
     console.log("✅ Verifying update...");
     const verifyUser = await redis.hgetall(userKey);
+    let verifiedProfilePhotos: string[] = [];
     let verifiedPhotos: string[] = [];
-    
-    if (verifyUser) {
-      console.log("📸 Verified photos:", verifyUser.photos);
-      console.log("📸 Verified photos type:", typeof verifyUser.photos);
-      console.log("📸 Verified profilePhotos:", verifyUser.profilePhotos);
-      console.log("📸 Verified profilePhoto:", verifyUser.profilePhoto);
-      
-      // Parse and validate the verified data
-      try {
-        if (Array.isArray(verifyUser.photos)) {
-          verifiedPhotos = verifyUser.photos;
-          console.log("✅ Using verified photos as pre-parsed array");
-        } else if (typeof verifyUser.photos === 'string') {
-          verifiedPhotos = JSON.parse(verifyUser.photos);
-          console.log("✅ Parsed verified photos from JSON string");
-        } else {
-          console.warn("⚠️ Unexpected verified photos format:", typeof verifyUser.photos);
-          verifiedPhotos = [];
+    try {
+      if (verifyUser) {
+        // Always parse as JSON string
+        if (typeof verifyUser.profilePhotos === 'string') {
+          verifiedProfilePhotos = JSON.parse(verifyUser.profilePhotos);
+        } else if (Array.isArray(verifyUser.profilePhotos)) {
+          verifiedProfilePhotos = verifyUser.profilePhotos;
         }
-        
-        console.log("📊 Verified photos count:", verifiedPhotos.length);
-        console.log("📊 Expected photos count:", updatedPhotos.length);
-        console.log("📊 Counts match?", verifiedPhotos.length === updatedPhotos.length);
-        console.log("📊 Deleted photo still exists?", verifiedPhotos.includes(photoUrl));
-        
-        if (verifiedPhotos.length !== updatedPhotos.length) {
-          console.error("❌ Photo count mismatch after update!");
+        if (typeof verifyUser.photos === 'string') {
+          verifiedPhotos = JSON.parse(verifyUser.photos);
+        } else if (Array.isArray(verifyUser.photos)) {
+          verifiedPhotos = verifyUser.photos;
+        }
+        console.log("📸 Verified profilePhotos:", verifiedProfilePhotos);
+        console.log("📸 Verified photos:", verifiedPhotos);
+        // Check both fields for the deleted photo
+        const stillExistsProfilePhotos = verifiedProfilePhotos.includes(photoUrl);
+        const stillExistsPhotos = verifiedPhotos.includes(photoUrl);
+        if (stillExistsProfilePhotos || stillExistsPhotos) {
+          console.error("❌ Deleted photo still exists in verified data!", { stillExistsProfilePhotos, stillExistsPhotos });
+          throw new Error("Photo deletion verification failed - photo still exists in one or both fields");
+        }
+        if (verifiedProfilePhotos.length !== updatedPhotos.length || verifiedPhotos.length !== updatedPhotos.length) {
+          console.error("❌ Photo count mismatch after update!", { verifiedProfilePhotos, verifiedPhotos, updatedPhotos });
           throw new Error("Photo deletion verification failed - count mismatch");
         }
-        
-        if (verifiedPhotos.includes(photoUrl)) {
-          console.error("❌ Deleted photo still exists in verified data!");
-          throw new Error("Photo deletion verification failed - photo still exists");
-        }
-        
-        console.log("✅ Verification successful - photo was actually deleted");
-        
-      } catch (verifyError) {
-        console.error("❌ Error during verification:", verifyError);
-        throw new Error(`Photo deletion verification failed: ${verifyError}`);
+        console.log("✅ Verification successful - photo was actually deleted from all fields");
+      } else {
+        console.log("❌ Failed to verify update - user not found");
+        throw new Error("Failed to verify photo deletion - user not found after update");
       }
-    } else {
-      console.log("❌ Failed to verify update - user not found");
-      throw new Error("Failed to verify photo deletion - user not found after update");
+    } catch (verifyError) {
+      console.error("❌ Error during verification:", verifyError);
+      return NextResponse.json({ error: `Photo deletion verification failed: ${verifyError}` }, { status: 500 });
     }
 
     // If this was an image served from our API, also remove it from Redis
@@ -210,14 +201,13 @@ export async function DELETE(request: NextRequest) {
     }    console.log("✅ Photo deletion completed successfully");
     
     // Return the verified count instead of the original filtered count
-    const finalCount = verifiedPhotos.length;
+    const finalCount = verifiedProfilePhotos.length;
     console.log("📊 Returning final photo count:", finalCount);
-    
     return NextResponse.json({ 
       success: true, 
       message: "Photo deleted successfully",
       remainingPhotos: finalCount,
-      updatedPhotos: verifiedPhotos
+      updatedPhotos: verifiedProfilePhotos
     });
   } catch (error) {
     console.error("❌ Error deleting photo:", error);
