@@ -536,10 +536,15 @@ export default function EditProfilePage() {
   }
   
   const handlePrivacyChange = (field: keyof PrivacySettingsForm, value: boolean | string) => {
-    setPrivacyForm((prev: PrivacySettingsForm) => ({
-      ...prev,
-      [field]: value
-    }))
+    console.log(`🔄 Privacy form field change: ${field} = ${value}`);
+    setPrivacyForm((prev: PrivacySettingsForm) => {
+      const updated = {
+        ...prev,
+        [field]: value
+      };
+      console.log(`📊 Updated privacy form state:`, updated);
+      return updated;
+    })
   }
   // Generic update function for all tabs
   const updateProfile = async (tabData: object, tabName: string) => {
@@ -806,6 +811,17 @@ export default function EditProfilePage() {
                         typeof data.profilePhotos === 'string' ? JSON.parse(data.profilePhotos || '[]') : [];
       
       console.log("Setting privacy form profilePhotos:", parsedProfilePhotos);
+      console.log("Privacy settings from server data:", {
+        showContactInfo: data.showContactInfo,
+        showPhotos: data.showPhotos,
+        hideProfile: data.hideProfile,
+        showOnlineStatus: data.showOnlineStatus,
+        showFatherNumber: data.showFatherNumber,
+        fatherMobile: data.fatherMobile,
+        showMotherNumber: data.showMotherNumber,
+        motherMobile: data.motherMobile,
+        mobileNumber: data.mobileNumber
+      });
       
       setPrivacyForm({
         showContactInfo: data.showContactInfo !== undefined ? data.showContactInfo : true,
@@ -951,6 +967,7 @@ export default function EditProfilePage() {
     const handlePrivacySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     console.log("🔄 Privacy settings form submission started")
+    console.log("📊 Current privacy form state:", privacyForm)
     
     try {
       // Only send parent mobile numbers if the corresponding checkbox is checked
@@ -959,6 +976,8 @@ export default function EditProfilePage() {
         fatherMobile: privacyForm.showFatherNumber ? privacyForm.fatherMobile : "",
         motherMobile: privacyForm.showMotherNumber ? privacyForm.motherMobile : ""
       };
+      
+      console.log("📤 Privacy form data being sent:", formData)
       
       await updateProfile(formData, "privacy settings")
       console.log("✅ Privacy settings form update completed successfully")
@@ -1259,6 +1278,10 @@ export default function EditProfilePage() {
       console.log("Photo deleted successfully:", result);
         // Refresh the profile data to get updated photos from the server
       console.log("Refetching profile after deletion...");
+      console.log("Initial photo count:", profileData?.profilePhotos?.length || 0);
+      
+      // Store initial photo count for comparison
+      const initialPhotoCount = profileData?.profilePhotos?.length || 0;
       
       // Add a small delay to ensure the deletion is fully committed
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -1266,28 +1289,46 @@ export default function EditProfilePage() {
       // Multiple attempts to refetch with verification
       let attempts = 0;
       const maxAttempts = 3;
-      let currentPhotoCount = profileData?.profilePhotos?.length || 0;
+      let deletionConfirmed = false;
       
-      while (attempts < maxAttempts) {
+      while (attempts < maxAttempts && !deletionConfirmed) {
+        console.log(`Refetch attempt ${attempts + 1}/${maxAttempts}`);
+        
         await refetchProfile();
         
-        // Check if the photo count has changed
-        const newPhotoCount = profileData?.profilePhotos?.length || 0;
-        console.log(`Attempt ${attempts + 1}: Photo count ${currentPhotoCount} -> ${newPhotoCount}`);
+        // Wait for state to update after refetch
+        await new Promise(resolve => setTimeout(resolve, 200));
         
-        if (newPhotoCount < currentPhotoCount) {
-          console.log("✅ Photo count decreased, deletion successful!");
+        // Check if the photo count has decreased or if the specific photo is gone
+        const newPhotoCount = privacyForm.profilePhotos?.length || 0;
+        const photoStillExists = privacyForm.profilePhotos?.includes(photoUrl) || false;
+        
+        console.log(`Attempt ${attempts + 1}: Photo count ${initialPhotoCount} -> ${newPhotoCount}`);
+        console.log(`Photo still exists in form data: ${photoStillExists}`);
+        console.log(`Current photos in form:`, privacyForm.profilePhotos);
+        
+        if (newPhotoCount < initialPhotoCount && !photoStillExists) {
+          console.log("✅ Photo deletion confirmed - count decreased and photo removed!");
+          deletionConfirmed = true;
+          break;
+        } else if (!photoStillExists) {
+          console.log("✅ Photo deletion confirmed - photo removed from list!");
+          deletionConfirmed = true;  
           break;
         }
         
         attempts++;
         if (attempts < maxAttempts) {
-          console.log(`Retrying refetch in 500ms... (attempt ${attempts + 1}/${maxAttempts})`);
+          console.log(`Photo still present, retrying in 500ms... (attempt ${attempts + 1}/${maxAttempts})`);
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
       
-      console.log("Profile data after refetch:", profileData?.profilePhotos);
+      if (!deletionConfirmed) {
+        console.warn("⚠️ Could not confirm photo deletion after all attempts");
+      }
+      
+      console.log("Final photo data after refetch:", privacyForm.profilePhotos);
       
       toast({
         title: "Photo Deleted",
