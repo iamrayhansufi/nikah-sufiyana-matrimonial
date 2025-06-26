@@ -31,7 +31,7 @@ export function HeroRegistrationForm() {
   }
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full px-4 sm:px-8 md:px-16 lg:px-24 py-8">
       <Card className="w-full bg-white/95 backdrop-blur-sm shadow-2xl border-0 rounded-xl lg:rounded-2xl">
         <CardHeader className="text-center pb-3 lg:pb-4 pt-4 lg:pt-6 px-3 sm:px-4 lg:px-6 xl:px-8">
           <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 mx-auto mb-3 lg:mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
@@ -51,7 +51,7 @@ export function HeroRegistrationForm() {
                   Full Name
                 </Label>
                 <div className="relative mt-1.5 lg:mt-2">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-gray-400" />
                   <Input
                     id="fullName"
                     value={formData.fullName}
