@@ -1248,116 +1248,43 @@ export default function EditProfilePage() {
       setSavingTab(null)
     }
   }  // Handle photo deletion
-  const handleDeletePhoto = async (photoUrl: string, index: number) => {
+  const handleDeletePhoto = async (photoUrl: string) => {
     try {
-      setSavingTab('photos')
-      console.log("=== PHOTO DELETION DEBUG ===");
-      console.log("Deleting photo:", photoUrl, "at index:", index);
-      console.log("Profile data before deletion:", profileData?.profilePhotos);
-      console.log("Privacy form photos before deletion:", privacyForm.profilePhotos);
-      console.log("Session data:", session?.user);
-      
-      // Validate that the photo exists in our current data before trying to delete
-      const currentPhotos = profileData?.profilePhotos || [];
-      const photoExists = currentPhotos.includes(photoUrl);
-      
-      console.log("Photo exists in current data?", photoExists);
-      console.log("Current photos array:", currentPhotos);
-      
-      if (!photoExists) {
-        console.warn("⚠️ Photo doesn't exist in current data - it may have already been deleted");
+      setSavingTab('photos');
+      // Only proceed if the photo exists in profilePhotos
+      if (!profileData?.profilePhotos?.includes(photoUrl)) {
         toast({
           title: "Photo Already Removed",
-          description: "This photo appears to have been already deleted. Refreshing the page...",
+          description: "This photo appears to have been already deleted.",
           variant: "default"
         });
-        // Force refresh the profile data to sync with backend
         await refetchProfile();
         return;
       }
-      
       const response = await fetch('/api/profiles/delete-photo', {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ photoUrl })
       });
-      
-      console.log("Delete response status:", response.status);
-      console.log("Delete response headers:", Object.fromEntries(response.headers.entries()));
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Delete response error:", errorData);
-        throw new Error(errorData?.error || 'Failed to delete photo');
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result?.error || result?.message || 'Failed to delete photo');
       }
-        const result = await response.json();
-      console.log("Photo deleted successfully:", result);
-        // Refresh the profile data to get updated photos from the server
-      console.log("Refetching profile after deletion...");
-      console.log("Initial photo count:", profileData?.profilePhotos?.length || 0);
-      
-      // Store initial photo count for comparison
-      const initialPhotoCount = profileData?.profilePhotos?.length || 0;
-      
-      // Add a small delay to ensure the deletion is fully committed
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Multiple attempts to refetch with verification
-      let attempts = 0;
-      const maxAttempts = 3;
-      let deletionConfirmed = false;
-      
-      while (attempts < maxAttempts && !deletionConfirmed) {
-        console.log(`Refetch attempt ${attempts + 1}/${maxAttempts}`);
-        
-        await refetchProfile();
-        
-        // Wait for state to update after refetch
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        // Check if the photo count has decreased or if the specific photo is gone
-        const newPhotoCount = privacyForm.profilePhotos?.length || 0;
-        const photoStillExists = privacyForm.profilePhotos?.includes(photoUrl) || false;
-        
-        console.log(`Attempt ${attempts + 1}: Photo count ${initialPhotoCount} -> ${newPhotoCount}`);
-        console.log(`Photo still exists in form data: ${photoStillExists}`);
-        console.log(`Current photos in form:`, privacyForm.profilePhotos);
-        
-        if (newPhotoCount < initialPhotoCount && !photoStillExists) {
-          console.log("✅ Photo deletion confirmed - count decreased and photo removed!");
-          deletionConfirmed = true;
-          break;
-        } else if (!photoStillExists) {
-          console.log("✅ Photo deletion confirmed - photo removed from list!");
-          deletionConfirmed = true;  
-          break;
-        }
-        
-        attempts++;
-        if (attempts < maxAttempts) {
-          console.log(`Photo still present, retrying in 500ms... (attempt ${attempts + 1}/${maxAttempts})`);
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      }
-      
-      if (!deletionConfirmed) {
-        console.warn("⚠️ Could not confirm photo deletion after all attempts");
-        // Force another refetch to ensure sync
-        await refetchProfile();
-      }
-      
-      console.log("Final photo data after refetch:", privacyForm.profilePhotos);
-
+      // Update local state with the new array from the API
+      setProfileData((prev: any) => ({
+        ...prev,
+        profilePhotos: result.updatedPhotos
+      }));
+      setPrivacyForm((prev: any) => ({
+        ...prev,
+        profilePhotos: result.updatedPhotos
+      }));
       toast({
         title: "Photo Deleted",
         description: "Your photo has been successfully deleted",
         variant: "default"
       });
     } catch (error) {
-      console.error("Delete photo error:", error);
       toast({
         title: "Delete Failed",
         description: error instanceof Error ? error.message : "Failed to delete photo. Please try again.",
@@ -2618,7 +2545,7 @@ export default function EditProfilePage() {
                                 </div>
                                 <button 
                                   type="button"
-                                  onClick={() => handleDeletePhoto(photo, index)}
+                                  onClick={() => handleDeletePhoto(photo)}
                                   disabled={savingTab === 'photos'}
                                   className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >

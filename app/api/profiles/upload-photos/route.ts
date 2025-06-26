@@ -119,50 +119,30 @@ export async function POST(req: Request) {  try {
         { error: "User not found" },
         { status: 404 }
       );
-    }// Get existing photos
-    let existingPhotos: string[] = [];
-    if (currentUser.photos) {
-      if (typeof currentUser.photos === 'string') {
+    }// Get existing profilePhotos
+    let existingProfilePhotos: string[] = [];
+    if (currentUser.profilePhotos) {
+      if (typeof currentUser.profilePhotos === 'string') {
         try {
-          const parsed = JSON.parse(currentUser.photos);
-          if (Array.isArray(parsed)) {
-            existingPhotos = parsed;
-          }
-        } catch (e) {
-          console.warn('Error parsing existing photos JSON:', e);
+          existingProfilePhotos = JSON.parse(currentUser.profilePhotos);
+        } catch {
+          existingProfilePhotos = [];
         }
-      } else if (Array.isArray(currentUser.photos)) {
-        // Redis client already parsed it as an array
-        existingPhotos = currentUser.photos;
-      } else {
-        console.warn("Unexpected photos format:", typeof currentUser.photos);
+      } else if (Array.isArray(currentUser.profilePhotos)) {
+        existingProfilePhotos = currentUser.profilePhotos;
       }
-    }    console.log(`📸 Existing photos:`, existingPhotos);
-    console.log(`➕ Adding photos:`, photoUrls);
-
-    // Combine existing and new photos, limit to 5 total
-    const allPhotos = [...existingPhotos, ...photoUrls].slice(0, 5);
-    
-    console.log(`📸 All photos after upload:`, allPhotos);
-    console.log(`📊 Photo count - Existing: ${existingPhotos.length}, New: ${photoUrls.length}, Total: ${allPhotos.length}`);
-    
-    // Check for duplicates
-    const uniquePhotos = [...new Set(allPhotos)];
-    if (uniquePhotos.length !== allPhotos.length) {
-      console.warn(`⚠️ Duplicate photos detected! All: ${allPhotos.length}, Unique: ${uniquePhotos.length}`);
-      console.warn(`🔍 All photos:`, allPhotos);
-      console.warn(`🔍 Unique photos:`, uniquePhotos);
     }
-
-    // Update user with new photos
+    // Combine existing and new photos, limit to 5 total
+    const allPhotos = [...existingProfilePhotos, ...photoUrls].slice(0, 5);
+    // Remove duplicates
+    const uniquePhotos = [...new Set(allPhotos)];
+    // Update user with new profilePhotos only
     const updateData: { [key: string]: string } = {
-      photos: JSON.stringify(allPhotos),
-      profilePhotos: JSON.stringify(allPhotos) // Also update profilePhotos for frontend compatibility
+      profilePhotos: JSON.stringify(uniquePhotos)
     };
-
     // If this is the first photo(s) and no profile photo exists, set the first as main
-    if (!currentUser.profilePhoto && allPhotos.length > 0) {
-      updateData.profilePhoto = allPhotos[0];
+    if (!currentUser.profilePhoto && uniquePhotos.length > 0) {
+      updateData.profilePhoto = uniquePhotos[0];
     }    // Update user profile
     try {
       console.log(`💾 Updating user ${redisUserId} with data:`, Object.keys(updateData));
@@ -170,14 +150,12 @@ export async function POST(req: Request) {  try {
       console.log(`✅ Redis hset result:`, redisResult);
       
       // Verify the update was successful
-      const verifyPhotos = await redis.hget(redisUserId, "photos");
       const verifyProfilePhotos = await redis.hget(redisUserId, "profilePhotos");
       
-      console.log(`🔍 Verification - photos field after update:`, verifyPhotos);
       console.log(`🔍 Verification - profilePhotos field after update:`, verifyProfilePhotos);
       
-      if (!verifyPhotos || (Array.isArray(verifyPhotos) && verifyPhotos.length === 0)) {
-        console.error(`❌ Database update failed - photos field is empty after update`);
+      if (!verifyProfilePhotos || (Array.isArray(verifyProfilePhotos) && verifyProfilePhotos.length === 0)) {
+        console.error(`❌ Database update failed - profilePhotos field is empty after update`);
         return NextResponse.json({ error: "Failed to save photos to database" }, { status: 500 });
       }
       
@@ -191,7 +169,7 @@ export async function POST(req: Request) {  try {
     return NextResponse.json({
       message: `Successfully uploaded ${photoUrls.length} photo(s)`,
       urls: photoUrls,
-      totalPhotos: allPhotos.length
+      totalPhotos: uniquePhotos.length
     });
 
   } catch (error) {

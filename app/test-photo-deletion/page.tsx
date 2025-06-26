@@ -21,14 +21,12 @@ export default function PhotoDeletionTestPage() {
 
       if (response.ok) {
         const data = await response.json()
-        console.log("Profile data:", data)
         setPhotos(data.profilePhotos || [])
         setMessage(`Loaded ${data.profilePhotos?.length || 0} photos`)
       } else {
         setMessage("Failed to load photos")
       }
     } catch (error) {
-      console.error("Error fetching photos:", error)
       setMessage("Error loading photos")
     }
   }

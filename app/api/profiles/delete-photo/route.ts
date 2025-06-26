@@ -8,209 +8,51 @@ const deletePhotoSchema = z.object({
   photoUrl: z.string(),
 });
 
-interface RedisUser {
-  [key: string]: string;
-  id: string;
-}
-
 export async function DELETE(request: NextRequest) {
   try {
-    console.log("=== DELETE PHOTO API CALLED ===");
-    console.log("🌐 Request headers:", Object.fromEntries(request.headers.entries()));
-    console.log("🍪 Request cookies:", request.cookies.getAll());
-    
     const session = await getServerSession(authOptions);
-    console.log("🔐 Session check result:", {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      hasUserId: !!session?.user?.id,
-      userId: session?.user?.id,
-      userEmail: session?.user?.email
-    });
-    
     if (!session?.user?.id) {
-      console.log("❌ Unauthorized: No session or user ID");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    console.log("🔐 User authenticated:", session.user.id);
-
+    const userKey = `user:${session.user.id}`;
+    const user = await redis.hgetall(userKey);
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
     const body = await request.json();
-    console.log("📨 Request body:", body);
-    
     const result = deletePhotoSchema.safeParse(body);
     if (!result.success) {
-      console.log("❌ Invalid request data:", result.error);
       return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
     }
-
     const { photoUrl } = result.data;
-    console.log("🖼️ Photo URL to delete:", photoUrl);
-
-    // Get current user
-    const userKey = `user:${session.user.id}`;
-    console.log("🔍 Fetching user data from Redis key:", userKey);
-    
-    const user = await redis.hgetall(userKey) as RedisUser;
-    if (!user) {
-      console.log("❌ User not found in Redis");
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }    console.log("👤 User found, processing photos...");
-    console.log("📸 Current user.photos:", user.photos);
-    console.log("📸 Current user.profilePhotos:", user.profilePhotos);
-    console.log("📸 Current user.profilePhoto:", user.profilePhoto);    // Update photos array
-    let photos: string[] = [];
-    
-    // Handle both string (JSON) and object (parsed) formats from Redis
-    if (user.photos) {
-      if (typeof user.photos === 'string') {
+    let profilePhotos: string[] = [];
+    if (user.profilePhotos) {
+      if (typeof user.profilePhotos === 'string') {
         try {
-          photos = JSON.parse(user.photos);
-          console.log("📸 Parsed photos from JSON string");
-        } catch (error) {
-          console.error("Error parsing photos JSON:", error);
-          photos = [];
+          profilePhotos = JSON.parse(user.profilePhotos);
+        } catch {
+          profilePhotos = [];
         }
-      } else if (Array.isArray(user.photos)) {
-        // Redis client already parsed it as an array
-        photos = user.photos;
-        console.log("📸 Using photos as pre-parsed array");
-      } else {
-        console.warn("Unexpected photos format:", typeof user.photos, user.photos);
-        photos = [];
+      } else if (Array.isArray(user.profilePhotos)) {
+        profilePhotos = user.profilePhotos;
       }
     }
-    
-    console.log(`📸 Current photos before deletion:`, photos);
-    console.log(`🗑️ Deleting photo:`, photoUrl);
-
-    // Check if the photo actually exists in the current array
-    const photoExists = photos.includes(photoUrl);
-    console.log(`📋 Photo exists in current array:`, photoExists);
-    
-    if (!photoExists) {
-      console.log(`⚠️ Photo ${photoUrl} does not exist in user's photo array`);
-      console.log(`💭 This could mean:`);
-      console.log(`   - Photo was already deleted`);
-      console.log(`   - Photo URL is incorrect`);
-      console.log(`   - Data sync issue between frontend and backend`);
-      
-      // Return success but indicate the photo was already gone
-      return NextResponse.json({ 
-        success: true, 
-        message: "Photo was already deleted or doesn't exist",
-        remainingPhotos: photos.length,
-        updatedPhotos: photos,
-        warning: "Photo not found in user's gallery"
-      });
+    if (!profilePhotos.includes(photoUrl)) {
+      return NextResponse.json({ error: "Photo not found in gallery" }, { status: 404 });
     }
-
-    const updatedPhotos = photos.filter(p => p !== photoUrl);
-    
-    console.log(`📸 Updated photos after deletion:`, updatedPhotos);
-    console.log(`📊 Photo count: ${photos.length} -> ${updatedPhotos.length} (${photos.length - updatedPhotos.length} removed)`);
-    
-    // Verify the deletion actually removed something
-    if (updatedPhotos.length === photos.length) {
-      console.error(`❌ Filter operation failed - no photos were removed!`);
-      return NextResponse.json({ 
-        error: "Photo deletion failed - photo not found in gallery",
-        debug: {
-          photoToDelete: photoUrl,
-          currentPhotos: photos,
-          photoExists: photos.includes(photoUrl)
-        }
-      }, { status: 404 });
-    }
-    
-    // Update both photos and profilePhotos fields, and handle profile photo
-    // Always store as JSON stringified arrays (never double-encoded)
+    const updatedPhotos = profilePhotos.filter(p => p !== photoUrl);
     const updateData: { [key: string]: string } = {
-      photos: JSON.stringify(updatedPhotos),
       profilePhotos: JSON.stringify(updatedPhotos)
     };
-
-    // If the deleted photo was the main profile photo, update it
     if (user.profilePhoto === photoUrl) {
-      // Set the first remaining photo as the new profile photo, or empty if no photos left
       updateData.profilePhoto = updatedPhotos.length > 0 ? updatedPhotos[0] : "";
-      console.log("🚨 Updated main profile photo to:", updateData.profilePhoto);
     }
-
-    console.log("💾 Update data to be saved:", updateData);
-    // Overwrite both fields regardless of previous type
-    try {
-      const hsetResult = await redis.hset(userKey, updateData);
-      console.log("✅ HSET completed with result:", hsetResult);
-      if (hsetResult === null || hsetResult === undefined) {
-        console.error("❌ HSET returned null/undefined - operation may have failed");
-        throw new Error("Redis HSET operation failed");
-      }
-    } catch (hsetError) {
-      console.error("❌ HSET operation failed:", hsetError);
-      throw new Error(`Failed to update user photos: ${hsetError}`);
-    }
-    // Add a small delay to ensure consistency
-    await new Promise(resolve => setTimeout(resolve, 100));
-    // Verify the update
-    console.log("✅ Verifying update...");
-    const verifyUser = await redis.hgetall(userKey);
-    let verifiedProfilePhotos: string[] = [];
-    let verifiedPhotos: string[] = [];
-    try {
-      if (verifyUser) {
-        // Always parse as JSON string
-        if (typeof verifyUser.profilePhotos === 'string') {
-          verifiedProfilePhotos = JSON.parse(verifyUser.profilePhotos);
-        } else if (Array.isArray(verifyUser.profilePhotos)) {
-          verifiedProfilePhotos = verifyUser.profilePhotos;
-        }
-        if (typeof verifyUser.photos === 'string') {
-          verifiedPhotos = JSON.parse(verifyUser.photos);
-        } else if (Array.isArray(verifyUser.photos)) {
-          verifiedPhotos = verifyUser.photos;
-        }
-        console.log("📸 Verified profilePhotos:", verifiedProfilePhotos);
-        console.log("📸 Verified photos:", verifiedPhotos);
-        // Check both fields for the deleted photo
-        const stillExistsProfilePhotos = verifiedProfilePhotos.includes(photoUrl);
-        const stillExistsPhotos = verifiedPhotos.includes(photoUrl);
-        if (stillExistsProfilePhotos || stillExistsPhotos) {
-          console.error("❌ Deleted photo still exists in verified data!", { stillExistsProfilePhotos, stillExistsPhotos });
-          throw new Error("Photo deletion verification failed - photo still exists in one or both fields");
-        }
-        if (verifiedProfilePhotos.length !== updatedPhotos.length || verifiedPhotos.length !== updatedPhotos.length) {
-          console.error("❌ Photo count mismatch after update!", { verifiedProfilePhotos, verifiedPhotos, updatedPhotos });
-          throw new Error("Photo deletion verification failed - count mismatch");
-        }
-        console.log("✅ Verification successful - photo was actually deleted from all fields");
-      } else {
-        console.log("❌ Failed to verify update - user not found");
-        throw new Error("Failed to verify photo deletion - user not found after update");
-      }
-    } catch (verifyError) {
-      console.error("❌ Error during verification:", verifyError);
-      return NextResponse.json({ error: `Photo deletion verification failed: ${verifyError}` }, { status: 500 });
-    }
-
-    // If this was an image served from our API, also remove it from Redis
-    if (photoUrl.startsWith('/api/images/')) {
-      const filename = photoUrl.replace('/api/images/', '');
-      console.log("🗑️ Removing image data from Redis for filename:", filename);
-      await redis.del(`image:${filename}`);
-    }    console.log("✅ Photo deletion completed successfully");
-    
-    // Return the verified count instead of the original filtered count
-    const finalCount = verifiedProfilePhotos.length;
-    console.log("📊 Returning final photo count:", finalCount);
-    return NextResponse.json({ 
-      success: true, 
-      message: "Photo deleted successfully",
-      remainingPhotos: finalCount,
-      updatedPhotos: verifiedProfilePhotos
+    await redis.hset(userKey, updateData);
+    return NextResponse.json({
+      success: true,
+      updatedPhotos
     });
-  } catch (error) {
-    console.error("❌ Error deleting photo:", error);
+  } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

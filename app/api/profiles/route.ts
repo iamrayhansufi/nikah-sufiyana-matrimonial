@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { dbMonitor } from "@/lib/db-monitor";
 import { database } from "@/lib/database-service";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-options-redis";
+import { redis } from "@/lib/redis-client";
 
 type ProfileFilters = {
   profileStatus?: "approved" | "pending" | "rejected"
@@ -122,6 +125,36 @@ export async function GET(request: NextRequest) {
       { error: "An unexpected error occurred" },
       { status: 500 }
     );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const userId = session.user.id;
+    const userKey = `user:${userId}`;
+    const body = await request.json();
+    // Only allow updating specific privacy fields
+    const allowedFields = [
+      "showContactInfo", "showPhotos", "hideProfile", "showOnlineStatus",
+      "showFatherNumber", "fatherMobile", "showMotherNumber", "motherMobile"
+    ];
+    const updateData: { [key: string]: any } = {};
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) {
+        updateData[field] = body[field];
+      }
+    }
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+    }
+    await redis.hset(userKey, updateData);
+    return NextResponse.json({ success: true, updated: updateData });
+  } catch {
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

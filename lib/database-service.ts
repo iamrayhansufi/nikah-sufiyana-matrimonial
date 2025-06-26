@@ -224,45 +224,38 @@ export const database = {
         income: user.income,
         housing: user.housing,        // Handle profile photo - check multiple possible field names
         profilePhoto: (() => {
-          // Priority: profilePhoto -> first photo from photos array -> image -> fallback
+          // Priority: profilePhoto -> first photo from profilePhotos array -> image -> fallback
           if (user.profilePhoto) return user.profilePhoto;
-          if (user.photos) {
-            // Handle both cases: JSON string or already parsed array
+          if (user.profilePhotos) {
             let photosArray;
-            if (typeof user.photos === 'string') {
+            if (typeof user.profilePhotos === 'string') {
               try {
-                photosArray = JSON.parse(user.photos);
+                photosArray = JSON.parse(user.profilePhotos);
               } catch (e) {
-                console.warn('Error parsing photos field:', e);
                 return user.image || '/placeholder-user.jpg';
               }
-            } else if (Array.isArray(user.photos)) {
-              photosArray = user.photos;
+            } else if (Array.isArray(user.profilePhotos)) {
+              photosArray = user.profilePhotos;
             }
-            
             if (Array.isArray(photosArray) && photosArray.length > 0) {
-              return photosArray[0]; // Use first photo as profile photo
+              return photosArray[0];
             }
           }
           return user.image || '/placeholder-user.jpg';
         })(),
         image: (() => {
-          // Same logic as profilePhoto for compatibility
           if (user.profilePhoto) return user.profilePhoto;
-          if (user.photos) {
-            // Handle both cases: JSON string or already parsed array
+          if (user.profilePhotos) {
             let photosArray;
-            if (typeof user.photos === 'string') {
+            if (typeof user.profilePhotos === 'string') {
               try {
-                photosArray = JSON.parse(user.photos);
+                photosArray = JSON.parse(user.profilePhotos);
               } catch (e) {
-                console.warn('Error parsing photos field:', e);
                 return user.image || '/placeholder-user.jpg';
               }
-            } else if (Array.isArray(user.photos)) {
-              photosArray = user.photos;
+            } else if (Array.isArray(user.profilePhotos)) {
+              photosArray = user.profilePhotos;
             }
-            
             if (Array.isArray(photosArray) && photosArray.length > 0) {
               return photosArray[0];
             }
