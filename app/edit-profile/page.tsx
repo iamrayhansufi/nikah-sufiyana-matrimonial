@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -522,45 +522,52 @@ export default function EditProfilePage() {
   }
   // Handle mobile number change in privacy settings
   const handleMobileNumberChange = (value: string) => {
-    setPrivacyForm(prev => ({
+    setPrivacyForm((prev: PrivacySettingsForm) => ({
       ...prev,
       mobileNumber: value
     }))
   }
   
   const handlePartnerChange = (field: keyof PartnerPreferencesForm, value: string) => {
-    setPartnerForm(prev => ({
+    setPartnerForm((prev: PartnerPreferencesForm) => ({
       ...prev,
       [field]: value
     }))
   }
   
   const handlePrivacyChange = (field: keyof PrivacySettingsForm, value: boolean | string) => {
-    setPrivacyForm(prev => ({
+    setPrivacyForm((prev: PrivacySettingsForm) => ({
       ...prev,
-      [field]: value    }))
+      [field]: value
+    }))
   }
   // Generic update function for all tabs
   const updateProfile = async (tabData: object, tabName: string) => {
+    console.log(`🔄 Starting profile update for ${tabName}`)
+    console.log('📊 Form data being processed:', tabData)
+    
     if (!session?.user?.id) {
+      console.error("❌ No session or user ID found")
       toast({
         title: "Authentication Error",
         description: "You must be logged in to update your profile",
         variant: "destructive"
       })
-      return
+      throw new Error("Authentication required")
     }
     
     setSavingTab(tabName)
     
-    try {    // Process the tabData to avoid sending empty strings that would overwrite existing values
+    try {
+      // Process the tabData to avoid sending empty strings that would overwrite existing values
       const cleanedData = Object.entries(tabData).reduce((acc: Record<string, any>, [key, value]) => {
         // Handle special cases first
         if (key === "height" || key === "complexion" || 
             key === "preferredHeight" || key === "preferredComplexion") {
           // Explicitly include these fields, even with empty values
           acc[key] = value; 
-        }        // Special handling for siblings, brothers-in-law, and other arrays
+        }
+        // Special handling for siblings, brothers-in-law, and other arrays
         else if (key === "siblings" || key === "brotherInLaws" || key === "maternalPaternal") {
           // Always include arrays even if empty to ensure proper updating
           // Make sure we send a properly formatted array
@@ -578,12 +585,14 @@ export default function EditProfilePage() {
           } else {
             acc[key] = []; // Default to empty array for other cases
           }
-            // Log sibling data specifically for debugging
+            
+          // Log sibling data specifically for debugging
           if (key === "siblings") {
             console.log(`${key} data being sent (${typeof acc[key]}, length: ${Array.isArray(acc[key]) ? acc[key].length : 'not array'}):`);
             console.log(JSON.stringify(acc[key]));
           }
-        }        // Handle fatherOccupation specifically to ensure it saves properly
+        }
+        // Handle fatherOccupation specifically to ensure it saves properly
         else if (key === "fatherOccupation") {
           // Always include fatherOccupation in the update, send actual value (including empty string)
           acc[key] = value;
@@ -595,8 +604,9 @@ export default function EditProfilePage() {
         }
         return acc;
       }, {});
-        // Log the data we're sending for debugging
-      console.log(`Updating ${tabName} with data:`, JSON.stringify(cleanedData, null, 2));
+        
+      // Log the data we're sending for debugging
+      console.log(`📤 Updating ${tabName} with cleaned data:`, JSON.stringify(cleanedData, null, 2));
       
       // Special logging for height and complexion fields
       if (cleanedData.height !== undefined) {
@@ -621,23 +631,29 @@ export default function EditProfilePage() {
         body: JSON.stringify(cleanedData)
       })
       
+      console.log(`📡 API Response status: ${response.status}`)
+      console.log(`📡 API Response headers:`, Object.fromEntries(response.headers.entries()))
+      
       if (!response.ok) {
-        throw new Error(`Failed to update profile: ${response.status}`)
+        const errorText = await response.text()
+        console.error(`❌ API Error: ${response.status} - ${errorText}`)
+        throw new Error(`Failed to update profile: ${response.status} - ${errorText}`)
       }
       
       const updatedProfile = await response.json()
-      console.log(`Profile update response:`, updatedProfile);
+      console.log(`✅ Profile update response:`, updatedProfile);
       setProfileData({...profileData, ...updatedProfile})
       
       // Store updated data in localStorage to ensure persistence
       const localStorageKey = `profile_${session.user.id}_${tabName.replace(/\s/g, '_')}`;
       localStorage.setItem(localStorageKey, JSON.stringify(tabData));
-        // Refetch the complete profile to ensure all data is in sync
+        
+      // Refetch the complete profile to ensure all data is in sync
       try {
         await refetchProfile();
-        console.log("Profile data refreshed after save");
+        console.log("🔄 Profile data refreshed after save");
       } catch (refreshError) {
-        console.error("Error refreshing profile data:", refreshError);
+        console.error("⚠️ Error refreshing profile data:", refreshError);
         // Continue without failing the overall operation
       }
       
@@ -647,12 +663,13 @@ export default function EditProfilePage() {
         variant: "default"
       })
     } catch (error) {
-      console.error(`Error updating ${tabName} information:`, error)
+      console.error(`❌ Error updating ${tabName} information:`, error)
       toast({
         title: "Update Failed",
         description: error instanceof Error ? error.message : `Failed to update your ${tabName} information`,
         variant: "destructive"
       })
+      throw error // Re-throw to be caught by the form handlers
     } finally {
       setSavingTab(null)
     }
@@ -811,90 +828,148 @@ export default function EditProfilePage() {
     // Tab-specific form submission handlers
   const handleBasicSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await updateProfile(basicForm, "basic")
+    console.log("🔄 Basic form submission started")
+    
+    try {
+      await updateProfile(basicForm, "basic")
+      console.log("✅ Basic form update completed successfully")
+    } catch (error) {
+      console.error("❌ Basic form update failed:", error)
+      toast({
+        title: "Update Failed",
+        description: "Failed to update basic information. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
   
   const handleEducationCareerSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await updateProfile(educationCareerForm, "education and career")
+    console.log("🔄 Education & Career form submission started")
+    
+    try {
+      await updateProfile(educationCareerForm, "education and career")
+      console.log("✅ Education & Career form update completed successfully")
+    } catch (error) {
+      console.error("❌ Education & Career form update failed:", error)
+      toast({
+        title: "Update Failed",
+        description: "Failed to update education & career information. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
   
   const handleFamilySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("🔄 Family form submission started")
     
-    // Handle mother's occupation for "other" selection
-    let finalMotherOccupation = familyForm.motherOccupation;
-    if (familyForm.motherOccupation === "other" && familyForm.motherOccupationOther) {
-      finalMotherOccupation = familyForm.motherOccupationOther;
-    }
-      
-    // Create a copy of the family form data with processed occupation fields
-    const formData = {
-      ...familyForm,
-      // Set final mother occupation based on selection
-      motherOccupation: finalMotherOccupation,
-      // Remove the temporary field used for UI only
-      motherOccupationOther: undefined
-    };
-      // Ensure siblings data is properly formatted as an array
-    console.log("Siblings before submit:", JSON.stringify(formData.siblings));
-    
-    // Make sure siblings is an array before updating
-    if (!Array.isArray(formData.siblings)) {
-      try {
-        // Try to parse if it's a JSON string (first check and cast the type)
-        const siblingsData = formData.siblings as unknown;
-        if (typeof siblingsData === 'string' && 
-            siblingsData && 
-            siblingsData.charAt(0) === '[') {
-          formData.siblings = JSON.parse(siblingsData);
-          console.log("Parsed siblings from JSON string");
-        } else {
-          formData.siblings = [];
-          console.log("Siblings was not an array or valid JSON, fixed to empty array");
-        }
-      } catch (e) {
-        console.error("Error parsing siblings data:", e);
-        formData.siblings = [];
+    try {
+      // Handle mother's occupation for "other" selection
+      let finalMotherOccupation = familyForm.motherOccupation;
+      if (familyForm.motherOccupation === "other" && familyForm.motherOccupationOther) {
+        finalMotherOccupation = familyForm.motherOccupationOther;
       }
+        
+      // Create a copy of the family form data with processed occupation fields
+      const formData = {
+        ...familyForm,
+        // Set final mother occupation based on selection
+        motherOccupation: finalMotherOccupation,
+        // Remove the temporary field used for UI only
+        motherOccupationOther: undefined
+      };
+        // Ensure siblings data is properly formatted as an array
+      console.log("Siblings before submit:", JSON.stringify(formData.siblings));
+      
+      // Make sure siblings is an array before updating
+      if (!Array.isArray(formData.siblings)) {
+        try {
+          // Try to parse if it's a JSON string (first check and cast the type)
+          const siblingsData = formData.siblings as unknown;
+          if (typeof siblingsData === 'string' && 
+              siblingsData && 
+              siblingsData.charAt(0) === '[') {
+            formData.siblings = JSON.parse(siblingsData);
+            console.log("Parsed siblings from JSON string");
+          } else {
+            formData.siblings = [];
+            console.log("Siblings was not an array or valid JSON, fixed to empty array");
+          }
+        } catch (e) {
+          console.error("Error parsing siblings data:", e);
+          formData.siblings = [];
+        }
+      }
+      
+      // Ensure all siblings have the required properties and clean empty entries
+      if (Array.isArray(formData.siblings)) {
+        formData.siblings = formData.siblings
+          .map((sibling: any) => ({
+            name: sibling.name || '',
+            siblingType: sibling.siblingType || 'brother',
+            maritalStatus: sibling.maritalStatus || 'unmarried',
+            occupation: sibling.occupation || ''
+          }))
+          .filter((sibling: any) => 
+            // Keep sibling if they have at least a name OR occupation
+            (sibling.name && sibling.name.trim() !== '') || 
+            (sibling.occupation && sibling.occupation.trim() !== '')
+          );
+      }
+      
+      console.log("Siblings after processing:", JSON.stringify(formData.siblings));
+      
+      await updateProfile(formData, "family");
+      console.log("✅ Family form update completed successfully")
+    } catch (error) {
+      console.error("❌ Family form update failed:", error)
+      toast({
+        title: "Update Failed",
+        description: "Failed to update family information. Please try again.",
+        variant: "destructive"
+      })
     }
-    
-    // Ensure all siblings have the required properties and clean empty entries
-    if (Array.isArray(formData.siblings)) {
-      formData.siblings = formData.siblings
-        .map(sibling => ({
-          name: sibling.name || '',
-          siblingType: sibling.siblingType || 'brother',
-          maritalStatus: sibling.maritalStatus || 'unmarried',
-          occupation: sibling.occupation || ''
-        }))
-        .filter(sibling => 
-          // Keep sibling if they have at least a name OR occupation
-          (sibling.name && sibling.name.trim() !== '') || 
-          (sibling.occupation && sibling.occupation.trim() !== '')
-        );
-    }
-    
-    console.log("Siblings after processing:", JSON.stringify(formData.siblings));
-    
-    await updateProfile(formData, "family");
   }
   
   const handlePartnerSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await updateProfile(partnerForm, "partner preferences")
+    console.log("🔄 Partner preferences form submission started")
+    
+    try {
+      await updateProfile(partnerForm, "partner preferences")
+      console.log("✅ Partner preferences form update completed successfully")
+    } catch (error) {
+      console.error("❌ Partner preferences form update failed:", error)
+      toast({
+        title: "Update Failed",
+        description: "Failed to update partner preferences. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
     const handlePrivacySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("🔄 Privacy settings form submission started")
     
-    // Only send parent mobile numbers if the corresponding checkbox is checked
-    const formData = {
-      ...privacyForm,
-      fatherMobile: privacyForm.showFatherNumber ? privacyForm.fatherMobile : "",
-      motherMobile: privacyForm.showMotherNumber ? privacyForm.motherMobile : ""
-    };
-    
-    await updateProfile(formData, "privacy settings")
+    try {
+      // Only send parent mobile numbers if the corresponding checkbox is checked
+      const formData = {
+        ...privacyForm,
+        fatherMobile: privacyForm.showFatherNumber ? privacyForm.fatherMobile : "",
+        motherMobile: privacyForm.showMotherNumber ? privacyForm.motherMobile : ""
+      };
+      
+      await updateProfile(formData, "privacy settings")
+      console.log("✅ Privacy settings form update completed successfully")
+    } catch (error) {
+      console.error("❌ Privacy settings form update failed:", error)
+      toast({
+        title: "Update Failed",
+        description: "Failed to update privacy settings. Please try again.",
+        variant: "destructive"
+      })
+    }
   }// Handle photo upload
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -1038,12 +1113,12 @@ export default function EditProfilePage() {
     if (!files || files.length === 0) return
     
     // Convert FileList to Array for easier processing
-    const filesArray = Array.from(files);
+    const filesArray: File[] = Array.from(files);
     console.log("Selected files:", filesArray);
     
     // Check total size client-side (limit to 15MB for 3 photos)
     const maxTotalSize = 15 * 1024 * 1024; // 15MB
-    const totalSize = filesArray.reduce((sum, file) => sum + file.size, 0);
+    const totalSize = filesArray.reduce((sum: number, file: File) => sum + file.size, 0);
     if (totalSize > maxTotalSize) {
       toast({
         title: "Files Too Large",
@@ -1054,7 +1129,7 @@ export default function EditProfilePage() {
     }
     
     // Check file types client-side
-    const invalidFiles = filesArray.filter(file => !file.type.startsWith('image/'));
+    const invalidFiles = filesArray.filter((file: File) => !file.type.startsWith('image/'));
     if (invalidFiles.length > 0) {
       toast({
         title: "Invalid File Type",
@@ -1065,7 +1140,7 @@ export default function EditProfilePage() {
     }
     
     const formData = new FormData();
-    filesArray.forEach(file => {
+    filesArray.forEach((file: File) => {
       formData.append('photos', file); // Using 'photos' as the key to match the API
     });
     
