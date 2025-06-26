@@ -263,23 +263,30 @@ export async function PATCH(
       userId = `user:${userId}`;
     }
     
-    console.log(`Attempting to fetch profile ID: ${userId}`);
+    console.log(`🔍 PATCH request details:`);
+    console.log(`  - Parameter ID: ${paramId}`);
+    console.log(`  - Processed User ID: ${userId}`);
+    console.log(`  - Session User ID: ${session?.user?.id}`);
+    
+    console.log(`🔍 Attempting to fetch profile ID: ${userId}`);
     
     // Check if user exists in Redis
     const existingUser = await database.users.getById(userId);
     
     if (!existingUser) {
-      console.log(`Invalid profile ID: ${userId}`);
+      console.log(`❌ Invalid profile ID: ${userId}`);
       return NextResponse.json(
         { error: "Profile not found" },
         { status: 404 }
       )
     }
     
-    console.log(`User ${session?.user?.id || 'anonymous'} is updating profile ${userId}`);
+    console.log(`✅ User found: ${Object.keys(existingUser).length} fields`);
+    console.log(`🔍 User ${session?.user?.id || 'anonymous'} is updating profile ${userId}`);
       
     // Only allow users to update their own profile
     if (session && session.user && session.user.id !== userId) {
+      console.error(`❌ Unauthorized update attempt: ${session.user.id} trying to update ${userId}`);
       return NextResponse.json(
         { error: "You can only update your own profile" },
         { status: 403 }
@@ -288,21 +295,32 @@ export async function PATCH(
     
     const body = await request.json()
     
+    console.log("📨 Request body received:", JSON.stringify(body, null, 2));
+    
+    // Validate the request body
+    if (!body || typeof body !== 'object') {
+      console.error("❌ Invalid request body:", body);
+      return NextResponse.json(
+        { error: "Invalid request data" },
+        { status: 400 }
+      );
+    }
+    
     // Log incoming height and complexion values for debugging
     if (body.height !== undefined) {
-      console.log(`Received height: '${body.height}'`);
+      console.log(`📏 Received height: '${body.height}' (type: ${typeof body.height})`);
     }
     if (body.complexion !== undefined) {
-      console.log(`Received complexion: '${body.complexion}'`);
+      console.log(`🎨 Received complexion: '${body.complexion}' (type: ${typeof body.complexion})`);
     }
     if (body.preferredHeight !== undefined) {
-      console.log(`Received preferredHeight: '${body.preferredHeight}'`);
+      console.log(`📏 Received preferredHeight: '${body.preferredHeight}' (type: ${typeof body.preferredHeight})`);
     }
     if (body.preferredComplexion !== undefined) {
-      console.log(`Received preferredComplexion: '${body.preferredComplexion}'`);
+      console.log(`🎨 Received preferredComplexion: '${body.preferredComplexion}' (type: ${typeof body.preferredComplexion})`);
     }
     if (body.fatherOccupation !== undefined) {
-      console.log(`Received fatherOccupation: '${body.fatherOccupation}'`);
+      console.log(`👨‍💼 Received fatherOccupation: '${body.fatherOccupation}' (type: ${typeof body.fatherOccupation})`);
     }
     
     // Prepare update data
@@ -364,15 +382,40 @@ export async function PATCH(
       fatherMobile: body.fatherMobile || existingUser.fatherMobile,
       motherMobile: body.motherMobile || existingUser.motherMobile,
       mobileNumber: body.mobileNumber || existingUser.mobileNumber,
-      
-      // Update timestamp
+        // Update timestamp
       updatedAt: new Date().toISOString(),
     };
     
+    console.log("🔍 Update data prepared:", JSON.stringify(updateData, null, 2));
+    
+    // Validate updateData before sending to Redis
+    const dataKeys = Object.keys(updateData);
+    const dataValues = Object.values(updateData);
+    
+    console.log(`📊 Update data stats: ${dataKeys.length} fields`);
+    console.log(`📊 Data types:`, dataValues.map(v => typeof v));
+    
+    // Check for any problematic values
+    const problematicFields = [];
+    for (const [key, value] of Object.entries(updateData)) {
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        problematicFields.push({ key, type: typeof value, value });
+      }
+    }
+    
+    if (problematicFields.length > 0) {
+      console.warn("⚠️ Potentially problematic fields:", problematicFields);
+    }
+
     // Update user profile in Redis
+    console.log("🔄 Attempting to update user in database with data:", JSON.stringify(updateData, null, 2));
+    
     const success = await database.users.update(userId, updateData);
     
+    console.log("✅ Database update result:", success);
+    
     if (!success) {
+      console.error("❌ Database update returned false");
       return NextResponse.json(
         { error: "Profile could not be updated" },
         { status: 500 }
@@ -380,11 +423,15 @@ export async function PATCH(
     }
     
     // Fetch the updated user data
+    console.log("🔄 Fetching updated user data...");
     const updatedUser = await database.users.getById(userId);
+    
+    console.log("✅ Updated user data fetched:", updatedUser ? "Success" : "Failed");
     
     return NextResponse.json(updatedUser);
   } catch (error: unknown) {
-    console.error("Update profile error:", error);
+    console.error("❌ Update profile error details:", error);
+    console.error("❌ Error stack:", error instanceof Error ? error.stack : "No stack available");
     
     // Return more detailed error information in development
     const isDev = process.env.NODE_ENV === 'development';

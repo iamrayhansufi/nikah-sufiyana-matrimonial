@@ -59,10 +59,44 @@ export const redisTables = {
       return user || null;
     },
       async update(userId: string, data: Partial<any>): Promise<boolean> {
-      // Remove 'user:' prefix if it exists to avoid double-prefixing
-      const cleanUserId = userId.startsWith('user:') ? userId.replace('user:', '') : userId;
-      await redis.hset(`user:${cleanUserId}`, data);
-      return true;
+      try {
+        // Remove 'user:' prefix if it exists to avoid double-prefixing
+        const cleanUserId = userId.startsWith('user:') ? userId.replace('user:', '') : userId;
+        
+        console.log(`🔄 Redis update for user:${cleanUserId}`);
+        console.log(`📊 Data being written:`, JSON.stringify(data, null, 2));
+        
+        // Validate that we have data to write
+        if (!data || Object.keys(data).length === 0) {
+          console.error(`❌ No data provided for update`);
+          return false;
+        }
+        
+        // Ensure all values are strings (Redis requirement)
+        const sanitizedData: Record<string, string> = {};
+        for (const [key, value] of Object.entries(data)) {
+          if (value !== null && value !== undefined) {
+            sanitizedData[key] = String(value);
+          }
+        }
+        
+        console.log(`📊 Sanitized data:`, JSON.stringify(sanitizedData, null, 2));
+        
+        // Use hset which is the modern way (hmset is deprecated)
+        const result = await redis.hset(`user:${cleanUserId}`, sanitizedData);
+        
+        console.log(`✅ Redis hset result:`, result);
+        
+        return true;
+      } catch (error) {
+        console.error(`❌ Redis update error for user ${userId}:`, error);
+        console.error(`❌ Error details:`, {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : 'No stack trace',
+          name: error instanceof Error ? error.name : 'Unknown error type'
+        });
+        throw error; // Re-throw to be caught by the API route
+      }
     },
     
     async delete(userId: string): Promise<boolean> {
