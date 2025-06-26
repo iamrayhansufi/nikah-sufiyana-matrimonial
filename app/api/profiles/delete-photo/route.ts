@@ -84,9 +84,44 @@ export async function DELETE(request: NextRequest) {
     console.log(`📸 Current photos before deletion:`, photos);
     console.log(`🗑️ Deleting photo:`, photoUrl);
 
+    // Check if the photo actually exists in the current array
+    const photoExists = photos.includes(photoUrl);
+    console.log(`📋 Photo exists in current array:`, photoExists);
+    
+    if (!photoExists) {
+      console.log(`⚠️ Photo ${photoUrl} does not exist in user's photo array`);
+      console.log(`💭 This could mean:`);
+      console.log(`   - Photo was already deleted`);
+      console.log(`   - Photo URL is incorrect`);
+      console.log(`   - Data sync issue between frontend and backend`);
+      
+      // Return success but indicate the photo was already gone
+      return NextResponse.json({ 
+        success: true, 
+        message: "Photo was already deleted or doesn't exist",
+        remainingPhotos: photos.length,
+        updatedPhotos: photos,
+        warning: "Photo not found in user's gallery"
+      });
+    }
+
     const updatedPhotos = photos.filter(p => p !== photoUrl);
     
     console.log(`📸 Updated photos after deletion:`, updatedPhotos);
+    console.log(`📊 Photo count: ${photos.length} -> ${updatedPhotos.length} (${photos.length - updatedPhotos.length} removed)`);
+    
+    // Verify the deletion actually removed something
+    if (updatedPhotos.length === photos.length) {
+      console.error(`❌ Filter operation failed - no photos were removed!`);
+      return NextResponse.json({ 
+        error: "Photo deletion failed - photo not found in gallery",
+        debug: {
+          photoToDelete: photoUrl,
+          currentPhotos: photos,
+          photoExists: photos.includes(photoUrl)
+        }
+      }, { status: 404 });
+    }
     
     // Update both photos and profilePhotos fields, and handle profile photo
     const updateData: { [key: string]: string } = {

@@ -1247,15 +1247,34 @@ export default function EditProfilePage() {
     } finally {
       setSavingTab(null)
     }
-  }
-  // Handle photo deletion
+  }  // Handle photo deletion
   const handleDeletePhoto = async (photoUrl: string, index: number) => {
     try {
       setSavingTab('photos')
       console.log("=== PHOTO DELETION DEBUG ===");
       console.log("Deleting photo:", photoUrl, "at index:", index);
       console.log("Profile data before deletion:", profileData?.profilePhotos);
+      console.log("Privacy form photos before deletion:", privacyForm.profilePhotos);
       console.log("Session data:", session?.user);
+      
+      // Validate that the photo exists in our current data before trying to delete
+      const currentPhotos = profileData?.profilePhotos || [];
+      const photoExists = currentPhotos.includes(photoUrl);
+      
+      console.log("Photo exists in current data?", photoExists);
+      console.log("Current photos array:", currentPhotos);
+      
+      if (!photoExists) {
+        console.warn("⚠️ Photo doesn't exist in current data - it may have already been deleted");
+        toast({
+          title: "Photo Already Removed",
+          description: "This photo appears to have been already deleted. Refreshing the page...",
+          variant: "default"
+        });
+        // Force refresh the profile data to sync with backend
+        await refetchProfile();
+        return;
+      }
       
       const response = await fetch('/api/profiles/delete-photo', {
         method: 'DELETE',
@@ -1326,10 +1345,12 @@ export default function EditProfilePage() {
       
       if (!deletionConfirmed) {
         console.warn("⚠️ Could not confirm photo deletion after all attempts");
+        // Force another refetch to ensure sync
+        await refetchProfile();
       }
       
       console.log("Final photo data after refetch:", privacyForm.profilePhotos);
-      
+
       toast({
         title: "Photo Deleted",
         description: "Your photo has been successfully deleted",
@@ -1344,6 +1365,57 @@ export default function EditProfilePage() {
       });
     } finally {
       setSavingTab(null);
+    }
+  };
+
+  // Force refresh function for data sync issues
+  const forceRefreshProfile = async () => {
+    try {
+      console.log("🔄 Force refreshing profile data...");
+      setSavingTab('refresh');
+      
+      // Clear current state
+      setProfileData(null);
+      
+      // Fetch fresh data
+      await refetchProfile();
+      
+      toast({
+        title: "Profile Refreshed",
+        description: "Profile data has been synchronized with the server",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error("Force refresh error:", error);
+      toast({
+        title: "Refresh Failed",
+        description: "Failed to refresh profile data. Please reload the page.",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingTab(null);
+    }
+  };
+
+  // Debug function to check data sync
+  const debugDataSync = async () => {
+    try {
+      console.log("🔍 Checking data synchronization...");
+      const response = await fetch('/api/debug/photo-sync');
+      if (response.ok) {
+        const debugData = await response.json();
+        console.log("📊 Data sync debug info:", debugData);
+        
+        // Show summary in toast
+        const summary = `Photos: ${debugData.lengths.photos}, ProfilePhotos: ${debugData.lengths.profilePhotos}, Match: ${debugData.comparison.photosMatchProfilePhotos}`;
+        toast({
+          title: "Debug Info",
+          description: summary,
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error("Debug sync error:", error);
     }
   };
 
@@ -2516,7 +2588,20 @@ export default function EditProfilePage() {
                               validGalleryPhotos
                             });
                             
-                            return validGalleryPhotos.map((photo: string, index: number) => (
+                            // Additional validation: check if photos actually exist
+                            // Filter out any photos that might be stale or invalid
+                            const validatedGalleryPhotos = validGalleryPhotos.filter((photo: string) => {
+                              // Basic URL validation
+                              if (!photo || !photo.startsWith('/api/secure-image/')) {
+                                console.warn('Invalid photo URL detected:', photo);
+                                return false;
+                              }
+                              return true;
+                            });
+                            
+                            console.log('Validated gallery photos:', validatedGalleryPhotos);
+                            
+                            return validatedGalleryPhotos.map((photo: string, index: number) => (
                               <div key={`${photo}-${index}`} className="relative">
                                 <div className="h-32 w-32 rounded-md border border-gray-200 overflow-hidden">
                                   <img 
