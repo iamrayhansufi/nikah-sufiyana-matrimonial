@@ -230,10 +230,10 @@ export default function HomePage() {
         </div>
         
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 relative z-10 py-12">
-          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-6rem)] space-y-8 lg:space-y-12">
-            {/* Title & Description - Centered */}
+          <div className="flex flex-col justify-center min-h-[calc(100vh-6rem)] space-y-8 lg:space-y-12">
+            {/* Title & Description - Left Aligned */}
             <motion.div 
-              className="text-center space-y-6 lg:space-y-8 max-w-4xl"
+              className="text-left space-y-6 lg:space-y-8 max-w-4xl"
               initial={{ opacity: 0, y: -50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -254,9 +254,9 @@ export default function HomePage() {
               </div>
             </motion.div>
 
-            {/* Registration Form - Below Title & Description */}
+            {/* Registration Form - Left Aligned, Below Title & Description */}
             <motion.div 
-              className="w-full max-w-2xl"
+              className="max-w-2xl"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
