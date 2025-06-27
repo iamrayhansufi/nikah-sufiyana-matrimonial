@@ -97,13 +97,14 @@ export async function POST(req: Request) {
       // Add the new photo
       const updatedProfilePhotos = [secureUrl, ...profilePhotos].slice(0, 5);
       // Update profilePhotos in Redis
-      await redis.hset(userId, { profilePhotos: JSON.stringify(updatedProfilePhotos) });
-      // If this is the first photo, set as main profile photo
-      if (!existingUser.profilePhoto) {
-        await redis.hset(userId, { profilePhoto: secureUrl });
-      }
+      await redis.hset(userId, { 
+        profilePhotos: JSON.stringify(updatedProfilePhotos),
+        profilePhoto: secureUrl, // Always update main profile photo with latest upload
+        image: secureUrl // Also update image field for compatibility
+      });
       return NextResponse.json({
         success: true,
+        url: secureUrl, // Add this for compatibility with edit profile
         urls: updatedProfilePhotos
       });
       

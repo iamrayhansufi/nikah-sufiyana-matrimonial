@@ -458,6 +458,67 @@ export default function DashboardPage() {
     }
   };
 
+  // Handle dashboard photo upload
+  const handleDashboardPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    
+    const file = files[0]
+    console.log("Dashboard photo upload - Selected file:", file.name, "Type:", file.type, "Size:", file.size);
+    
+    // Check file size client-side
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert("The image file is too large. Please select an image smaller than 5MB.");
+      return;
+    }
+    
+    // Check file type client-side
+    if (!file.type.startsWith('image/')) {
+      alert("Please select an image file (JPG, PNG, GIF, etc.)");
+      return;
+    }
+    
+    const formData = new FormData()
+    formData.append('photo', file)
+    
+    try {
+      console.log("Sending dashboard photo upload request...");
+      
+      const response = await fetch('/api/profiles/upload-photo', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
+      
+      const responseData = await response.json()
+      
+      if (response.ok) {
+        console.log("Dashboard photo uploaded successfully:", responseData.url);
+        alert("Profile photo updated successfully!");
+        
+        // Refresh the profile data to show the new photo
+        if (userProfile) {
+          setUserProfile((prev: any) => ({
+            ...prev,
+            profilePhoto: responseData.url
+          }));
+        }
+        
+        // Clear the input
+        e.target.value = '';
+      } else {
+        console.error("Dashboard photo upload failed:", responseData.error);
+        alert(`Upload failed: ${responseData.error || 'Please try again with a smaller image.'}`);
+      }
+    } catch (error) {
+      console.error("Dashboard photo upload error:", error)
+      alert("Failed to upload photo. Please try again.");
+    }
+  }
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><span>Loading your dashboard...</span></div>
   }
@@ -518,9 +579,19 @@ export default function DashboardPage() {
                         : "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <Button size="icon" className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full bg-royal-primary hover:bg-royal-primary/90 shadow-lg">
-                    <Camera className="h-5 w-5" />
-                  </Button>
+                  <label 
+                    htmlFor="dashboard-photo-upload" 
+                    className="absolute -bottom-2 -right-2 h-10 w-10 rounded-full bg-royal-primary hover:bg-royal-primary/90 shadow-lg flex items-center justify-center cursor-pointer transition-colors"
+                  >
+                    <Camera className="h-5 w-5 text-white" />
+                    <input 
+                      id="dashboard-photo-upload" 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleDashboardPhotoUpload}
+                      className="hidden" 
+                    />
+                  </label>
                 </div>
 
                 <div className="flex-1">
