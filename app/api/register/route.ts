@@ -6,6 +6,7 @@ import { logDbOperation, logDbError } from "@/lib/db-logger";
 import path from 'path';
 import fs from 'fs/promises';
 import { database } from "@/lib/database-service";
+import { rateLimitMiddleware, rateLimitConfigs, getClientIdentifier } from "@/lib/rate-limiter";
 
 // Input validation schema
 const registerSchema = z.object({
@@ -49,6 +50,16 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimitMiddleware(
+      request,
+      rateLimitConfigs.registration
+    );
+    
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     // Parse and validate request body
     const body = await request.json();
     

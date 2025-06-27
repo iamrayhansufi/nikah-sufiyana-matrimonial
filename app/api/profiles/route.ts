@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
     const location = searchParams.get("location")
     const education = searchParams.get("education")
     const sect = searchParams.get("sect")
+    const sortBy = searchParams.get("sortBy") || "match"
 
     // Validate pagination parameters
     if (isNaN(page) || page < 1) {
@@ -92,7 +93,8 @@ export async function GET(request: NextRequest) {
         ageMax: filters.ageMax,
         location: filters.location,
         education: filters.education,
-        sect: filters.sect
+        sect: filters.sect,
+        sortBy: sortBy
       };
       
       const { profiles, total } = await database.profiles.searchProfiles(searchParams);

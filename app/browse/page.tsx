@@ -39,6 +39,7 @@ interface Profile {
   verified?: boolean
   showPhotos?: boolean  // Added showPhotos property for privacy settings
   gender?: string
+  lastActive?: string
 }
 
 export default function BrowseProfilesPage() {
@@ -120,22 +121,108 @@ export default function BrowseProfilesPage() {
   const [sentInterests, setSentInterests] = useState<Set<string>>(new Set())
   const [mutualInterests, setMutualInterests] = useState<Set<string>>(new Set())
   const [blurredPhotoIds, setBlurredPhotoIds] = useState<Set<string>>(new Set())
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalProfiles, setTotalProfiles] = useState(0)
+  const [hasMoreProfiles, setHasMoreProfiles] = useState(false)
+  const [sortBy, setSortBy] = useState("match")
+  const [loadingMore, setLoadingMore] = useState(false)
 
   // Fetch real profiles from API with caching and optimization
   useEffect(() => {
+    // Reset to page 1 when filters change
+    setCurrentPage(1)
+    setProfiles([])
+    
     // Debounce the API call to reduce requests when filters change rapidly
     const timeoutId = setTimeout(() => {
-      fetchProfiles();
+      fetchProfiles(1, true); // true means replace profiles
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [filters])
+  }, [filters, sortBy])
   
   // Import the DataLimitWarning component
   const { DataLimitWarning } = require('@/components/ui/data-limit-warning');
+  
+  // Helper function to calculate match percentage based on user preferences
+  const calculateMatchPercentage = (profile: Profile): number => {
+    if (!session?.user) return Math.floor(Math.random() * 30) + 70; // Random 70-99% for non-logged users
+    
+    let matchScore = 0;
+    let totalCriteria = 0;
+    
+    // Simplified matching logic without accessing session.user properties that don't exist
+    // In a real implementation, you would fetch the current user's preferences from the database
+    
+    // Age preference (weight: 20%) - using a reasonable default
+    const ageDiff = Math.abs(profile.age - 28); // Default age preference
+    if (ageDiff <= 3) matchScore += 20;
+    else if (ageDiff <= 5) matchScore += 15;
+    else if (ageDiff <= 10) matchScore += 10;
+    totalCriteria += 20;
+    
+    // Education level (weight: 15%)
+    if (profile.education) matchScore += 15;
+    totalCriteria += 15;
+    
+    // Sect/Maslak matching (weight: 25%)
+    if (profile.sect) matchScore += 25;
+    totalCriteria += 25;
+    
+    // Profession compatibility (weight: 10%)
+    if (profile.profession) matchScore += 10;
+    totalCriteria += 10;
+    
+    // Marital status preference (weight: 15%)
+    if (profile.maritalStatus === 'never-married') matchScore += 15;
+    else if (profile.maritalStatus) matchScore += 10;
+    totalCriteria += 15;
+    
+    // Location bonus (weight: 15%)
+    if (profile.country || profile.city) matchScore += 15;
+    totalCriteria += 15;
+    
+    // Calculate percentage
+    const percentage = Math.round((matchScore / totalCriteria) * 100);
+    
+    // Ensure minimum 60% and maximum 99%
+    return Math.max(60, Math.min(99, percentage));
+  };
+  
+  // Helper function to sort profiles
+  const sortProfiles = (profiles: Profile[], sortType: string): Profile[] => {
+    const sortedProfiles = [...profiles];
+    
+    switch (sortType) {
+      case 'match':
+        return sortedProfiles.sort((a, b) => (b.match || 0) - (a.match || 0));
+      case 'age':
+        return sortedProfiles.sort((a, b) => a.age - b.age);
+      case 'location':
+        return sortedProfiles.sort((a, b) => (a.location || '').localeCompare(b.location || ''));
+      case 'recent':
+        // Sort by lastActive if available, otherwise by ID (assuming newer IDs are more recent)
+        return sortedProfiles.sort((a, b) => {
+          if (a.lastActive && b.lastActive) {
+            return new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime();
+          }
+          return (b.id || '').localeCompare(a.id || '');
+        });
+      default:
+        return sortedProfiles;
+    }
+  };
+  
+  // Function to load more profiles
+  const handleLoadMore = () => {
+    const nextPage = currentPage + 1;
+    setCurrentPage(nextPage);
+    fetchProfiles(nextPage, false); // false means append to existing profiles
+  };
       
-  const fetchProfiles = () => {
-      setLoading(true)
+  const fetchProfiles = (page: number = 1, replaceProfiles: boolean = true) => {
+      setLoading(replaceProfiles)
+      if (!replaceProfiles) setLoadingMore(true)
       
       // Check if we've hit the database limit via session storage
       const isDbLimitHit = sessionStorage.getItem('db_rate_limited') === 'true';
@@ -144,18 +231,30 @@ export default function BrowseProfilesPage() {
         console.log("Database transfer limit already hit, using cached data only");
       }
       
-      // Cache key based on filters to avoid unnecessary API calls
-      const filterCacheKey = JSON.stringify(filters);
+      // Cache key based on filters and page to avoid unnecessary API calls
+      const filterCacheKey = JSON.stringify({...filters, page, sortBy});
       const cachedProfiles = sessionStorage.getItem(`profiles_${filterCacheKey}`);
+      const cachedTotal = sessionStorage.getItem(`profiles_total_${filterCacheKey}`);
       const cacheTimestamp = sessionStorage.getItem(`profiles_timestamp_${filterCacheKey}`);
       
       // Use cached data if it's less than 30 minutes old (increased cache time)
-      if (cachedProfiles && cacheTimestamp) {
+      if (cachedProfiles && cacheTimestamp && cachedTotal) {
         const age = Date.now() - parseInt(cacheTimestamp);
         if (age < 30 * 60 * 1000) { // 30 minutes instead of 5
           console.log('Using cached profile data');
-          setProfiles(JSON.parse(cachedProfiles));
+          const cachedData = JSON.parse(cachedProfiles);
+          const total = parseInt(cachedTotal);
+          
+          if (replaceProfiles) {
+            setProfiles(cachedData);
+          } else {
+            setProfiles(prev => [...prev, ...cachedData]);
+          }
+          
+          setTotalProfiles(total);
+          setHasMoreProfiles((page * 20) < total);
           setLoading(false);
+          setLoadingMore(false);
           return;
         }
       }
@@ -163,13 +262,18 @@ export default function BrowseProfilesPage() {
       // If we've hit the data transfer limit and have no cache, show an empty state
       if (isDbLimitHit && !cachedProfiles) {
         setProfiles([]);
+        setTotalProfiles(0);
+        setHasMoreProfiles(false);
         setLoading(false);
+        setLoadingMore(false);
         return;
       }
     
     // Build query parameters based on filters
     const params = new URLSearchParams();
+    params.append("page", page.toString());
     params.append("limit", "20"); // Further reduce limit to save data transfer
+    params.append("sortBy", sortBy);
     
     if (filters.ageMin) params.append("ageMin", filters.ageMin);
     if (filters.ageMax) params.append("ageMax", filters.ageMax);
@@ -190,7 +294,9 @@ export default function BrowseProfilesPage() {
     }
     
     // Log the API request for debugging
-    console.log(`Fetching profiles with params: ${params.toString()}`);      fetch(`/api/profiles?${params.toString()}`)
+    console.log(`Fetching profiles with params: ${params.toString()}`);
+    
+    fetch(`/api/profiles?${params.toString()}`)
         .then(res => {
           // Special handling for rate limit errors (HTTP 429)
           if (res.status === 429) {
@@ -208,7 +314,12 @@ export default function BrowseProfilesPage() {
             const anyCachedProfiles = sessionStorage.getItem(`profiles_${JSON.stringify({})}`);
             if (anyCachedProfiles) {
               console.log("Using older cached data due to rate limiting");
-              setProfiles(JSON.parse(anyCachedProfiles));
+              const cachedData = JSON.parse(anyCachedProfiles);
+              if (replaceProfiles) {
+                setProfiles(cachedData);
+              } else {
+                setProfiles(prev => [...prev, ...cachedData]);
+              }
               return { error: "Using cached data due to rate limiting", profiles: [] };
             }
             
@@ -226,24 +337,46 @@ export default function BrowseProfilesPage() {
           if (data.error && data.error.includes("transfer limit")) {
             console.warn("Database transfer limit message:", data.error);
             setLoading(false);
+            setLoadingMore(false);
             return; // Already handled above by using cached data
           }
           
           if (data.profiles && Array.isArray(data.profiles)) {
-            console.log(`Received ${data.profiles.length} profiles from API`);
+            console.log(`Received ${data.profiles.length} profiles from API (page ${page})`);
             
-            // Cache the results - store both filtered and unfiltered versions
-            sessionStorage.setItem(`profiles_${filterCacheKey}`, JSON.stringify(data.profiles));
-            // Also store in a generic key for fallback in case of rate limiting
-            sessionStorage.setItem(`profiles_${JSON.stringify({})}`, JSON.stringify(data.profiles));
+            // Calculate match percentage for each profile
+            const profilesWithMatch = data.profiles.map((profile: any) => ({
+              ...profile,
+              match: calculateMatchPercentage(profile)
+            }));
+            
+            // Apply sorting
+            const sortedProfiles = sortProfiles(profilesWithMatch, sortBy);
+            
+            // Cache the results
+            sessionStorage.setItem(`profiles_${filterCacheKey}`, JSON.stringify(sortedProfiles));
+            sessionStorage.setItem(`profiles_total_${filterCacheKey}`, (data.pagination?.total || 0).toString());
             sessionStorage.setItem(`profiles_timestamp_${filterCacheKey}`, Date.now().toString());
             
-            setProfiles(data.profiles);
+            if (replaceProfiles) {
+              setProfiles(sortedProfiles);
+            } else {
+              setProfiles(prev => [...prev, ...sortedProfiles]);
+            }
+            
+            const total = data.pagination?.total || 0;
+            setTotalProfiles(total);
+            setHasMoreProfiles((page * 20) < total);
           } else {
             console.warn("API returned no profiles array");
-            setProfiles([]);
+            if (replaceProfiles) {
+              setProfiles([]);
+            }
+            setTotalProfiles(0);
+            setHasMoreProfiles(false);
           }
           setLoading(false);
+          setLoadingMore(false);
         })
         .catch((error) => {
           console.error("Error fetching profiles:", error);
@@ -255,19 +388,22 @@ export default function BrowseProfilesPage() {
               if (errorData && errorData.neonLimitHit) {
                 console.warn("Neon database transfer limit hit!");
                 setNeonLimitHit(true);
-                setNeonLimitHit(true); // Set the global tracker
               }
             } catch (parseError) {
               // If we can't parse the response, check the error message
               if (error.message && error.message.includes('data transfer')) {
                 setNeonLimitHit(true);
-                setNeonLimitHit(true);
               }
             }
           }
           
-          setProfiles([]);
+          if (replaceProfiles) {
+            setProfiles([]);
+          }
+          setTotalProfiles(0);
+          setHasMoreProfiles(false);
           setLoading(false);
+          setLoadingMore(false);
         });
     }
 
@@ -299,50 +435,21 @@ export default function BrowseProfilesPage() {
           // Skip if profile doesn't have ID
           if (!profile.id) continue;
           
-          // First, check the profile's privacy settings directly from profile data
-          const showPhotos = profile.showPhotos !== undefined ? profile.showPhotos : true;
-          
-          // TEMPORARY: For testing, let's manually protect photos for specific profiles
-          if (profile.name && (profile.name.toLowerCase().includes('test') || profile.id === '2' || profile.id === '3')) {
-            newBlurredPhotoIds.add(profile.id);
-            continue;
-          }
+          // Check the profile's privacy settings - if showPhotos is false, protect photos
+          // Default to true if not specified (backward compatibility)
+          const showPhotos = profile.showPhotos !== false;
           
           // If photos are disabled by the profile owner, blur them immediately
-          if (showPhotos === false) {
+          if (!showPhotos) {
             newBlurredPhotoIds.add(profile.id);
-            console.log(`✅ Photos protected for profile ${profile.id} (${profile.name}) - showPhotos is explicitly false`);
-            // Skip interest checking if photos are protected
+            console.log(`✅ Photos protected for profile ${profile.id} (${profile.name}) - showPhotos is false`);
             continue;
-          } else {
-            console.log(`📷 Photos visible for profile ${profile.id} (${profile.name}) - showPhotos is ${showPhotos}`);
           }
           
-          // Check interest status for this profile only if photos are not protected
-          const interestRes = await fetch(`/api/profiles/interests?profileId=${profile.id}`, {
-            credentials: 'include'
-          });
-          
-          if (interestRes.ok) {
-            const interestData = await interestRes.json();
-            
-            // Check if interest was sent
-            if (interestData.sentInterests?.length > 0) {
-              newSentInterests.add(profile.id);
-            }
-            
-            // Check if user's interest has been accepted by the profile owner
-            const hasApproval = interestData.sentInterests?.some((interest: any) => 
-              interest.status === 'accepted'
-            );
-            
-            // Check if there's a mutual interest (user received interest from profile as well)
-            if (interestData.receivedInterests?.length > 0 && newSentInterests.has(profile.id)) {
-              newMutualInterests.add(profile.id);
-            }
-            
-            console.log(`Profile ${profile.id}: showPhotos=${showPhotos}, hasApproval=${hasApproval}`);
-          }
+          // For profiles with showPhotos=true, check for any additional privacy logic
+          // (like requiring mutual interests, premium status, etc.)
+          // For now, we'll show photos for all profiles that haven't explicitly disabled them
+          console.log(`📷 Photos visible for profile ${profile.id} (${profile.name}) - showPhotos is true`);
         }
         
         // Update states
@@ -934,7 +1041,7 @@ export default function BrowseProfilesPage() {
 
               <div className="mt-4 flex items-center justify-between">
                 <p className="text-lg text-muted-foreground">Showing {filteredProfiles.length} profiles</p>
-                <Select defaultValue="match">
+                <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
@@ -1013,7 +1120,12 @@ export default function BrowseProfilesPage() {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div>                           <h3 className={`${elMessiri.className} font-semibold text-lg`}>{formatToTitleCase(profile.name)}</h3>
-                          <p className="text-lg text-muted-foreground">{profile.age} years old</p>
+                          <p className="text-lg text-muted-foreground">
+                            {profile.age} years old
+                            {profile.height && (
+                              <span className="text-muted-foreground/80 ml-2">• {profile.height}</span>
+                            )}
+                          </p>
                         </div>
                         <div className="flex gap-1">
                           {/* Photo visibility toggle button - only shown for mutual interests */}
@@ -1121,11 +1233,19 @@ export default function BrowseProfilesPage() {
             )}
 
             {/* Load More */}
-            {filteredProfiles.length > 0 && (
+            {filteredProfiles.length > 0 && hasMoreProfiles && (
               <div className="text-center mt-8">
-                <Button variant="outline" size="lg">
-                  Load More Profiles
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? "Loading..." : "Load More Profiles"}
                 </Button>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Showing {filteredProfiles.length} of {totalProfiles} profiles
+                </p>
               </div>
             )}
           </div>

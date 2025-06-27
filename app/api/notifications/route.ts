@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
                 link = '/edit-profile';
                 break;
               case 'message_received':
-                link = '/messages';
+                link = '/interests';
                 break;
               default:
                 link = '/dashboard';

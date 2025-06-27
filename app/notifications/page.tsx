@@ -93,7 +93,7 @@ export default function NotificationsPage() {
             fallbackLink = '/edit-profile';
             break;
           case 'message_received':
-            fallbackLink = '/messages';
+            fallbackLink = '/interests';
             break;
         }
         

@@ -46,7 +46,6 @@ export default function SitemapPage() {
       title: "Communication",
       icon: <MessageCircle className="w-5 h-5" />,
       pages: [
-        { name: "Messages", href: "/messages", description: "Private conversations" },
         { name: "Notifications", href: "/notifications", description: "Stay updated" },
       ]
     },

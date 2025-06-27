@@ -198,15 +198,14 @@ export const database = {
       // Apply pagination
       const page = parseInt(searchParams.page || '1');
       const limit = parseInt(searchParams.limit || '10');
+      const sortBy = searchParams.sortBy || 'match';
       const offset = (page - 1) * limit;
       
       // Get total before pagination
       const total = filteredUsers.length;
-        // Apply pagination
-      const paginatedUsers = filteredUsers.slice(offset, offset + limit);
       
-      // Map to the expected profile format
-      const profiles = paginatedUsers.map(user => ({
+      // Map to the expected profile format first
+      const profiles = filteredUsers.map(user => ({
         id: (user.id && typeof user.id === 'string') ? user.id.replace('user:', '') : user.id, // Remove user: prefix for cleaner URLs
         name: user.fullName || user.name || 'Unknown', // Map fullName to name for frontend compatibility
         fullName: user.fullName || user.name || 'Unknown',
@@ -222,7 +221,9 @@ export const database = {
         motherTongue: user.motherTongue,
         complexion: user.complexion,
         income: user.income,
-        housing: user.housing,        // Handle profile photo - check multiple possible field names
+        housing: user.housing,
+        showPhotos: user.showPhotos !== 'false' && user.showPhotos !== false, // Convert to boolean properly
+        // Handle profile photo - check multiple possible field names
         profilePhoto: (() => {
           // Priority: profilePhoto -> first photo from profilePhotos array -> image -> fallback
           if (user.profilePhoto) return user.profilePhoto;
@@ -267,9 +268,49 @@ export const database = {
         lastActive: user.lastActive,
         gender: user.gender,
         profileStatus: user.profileStatus,
+        match: 85 + Math.floor(Math.random() * 15), // Random match 85-99% for now
       }));
       
-      return { profiles, total };
+      // Apply sorting
+      let sortedProfiles = [...profiles];
+      switch (sortBy) {
+        case 'match':
+          sortedProfiles.sort((a, b) => (b.match || 0) - (a.match || 0));
+          break;
+        case 'age':
+          sortedProfiles.sort((a, b) => {
+            const ageA = typeof a.age === 'number' ? a.age : parseInt(String(a.age)) || 0;
+            const ageB = typeof b.age === 'number' ? b.age : parseInt(String(b.age)) || 0;
+            return ageA - ageB;
+          });
+          break;
+        case 'location':
+          sortedProfiles.sort((a, b) => {
+            const locA = String(a.location || '');
+            const locB = String(b.location || '');
+            return locA.localeCompare(locB);
+          });
+          break;
+        case 'recent':
+          sortedProfiles.sort((a, b) => {
+            if (a.lastActive && b.lastActive) {
+              const dateA = new Date(String(a.lastActive)).getTime();
+              const dateB = new Date(String(b.lastActive)).getTime();
+              return dateB - dateA;
+            }
+            const idA = String(a.id || '');
+            const idB = String(b.id || '');
+            return idB.localeCompare(idA);
+          });
+          break;
+        default:
+          // Keep original order
+          break;
+      }
+        // Apply pagination
+      const paginatedProfiles = sortedProfiles.slice(offset, offset + limit);
+      
+      return { profiles: paginatedProfiles, total };
     },
     
     async getById(profileId: string): Promise<any | null> {

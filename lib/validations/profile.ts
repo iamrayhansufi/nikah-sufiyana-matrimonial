@@ -72,7 +72,7 @@ export const privacySettingsSchema = z.object({
   showContactInfo: z.boolean(),
   showPhotoToAll: z.boolean(),
   profileVisibility: z.enum(["all-members", "premium-only", "match-criteria"]),
-  allowMessages: z.boolean(),
+  allowInterests: z.boolean(),
 })
 
 // Image Validation

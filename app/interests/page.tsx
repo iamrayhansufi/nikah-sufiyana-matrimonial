@@ -5,7 +5,7 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Heart, MessageSquare, Eye, X, Loader2 } from "lucide-react"
+import { Heart, Eye, X, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { elMessiri } from "../lib/fonts"
 import { useEffect, useState } from "react"
@@ -170,11 +170,6 @@ export default function InterestsPage() {
   // Handle viewing a profile
   const handleViewProfile = (userId: number) => {
     router.push(`/profile/${userId}`)
-  }
-  
-  // Handle messaging a user
-  const handleMessage = (userId: number) => {
-    router.push(`/messages?userId=${userId}`)
   }
   
   // Function to format age and location
@@ -357,16 +352,10 @@ export default function InterestsPage() {
                         <div className="flex gap-2">
                           <Button 
                             className="flex-1 bg-royal-primary hover:bg-royal-primary/90 text-white"
-                            onClick={() => handleMessage(interest.fromUser.id)}
-                          >
-                            <MessageSquare className="h-4 w-4 mr-2" />
-                            Message
-                          </Button>
-                          <Button 
-                            variant="outline"
                             onClick={() => handleViewProfile(interest.fromUser.id)}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Profile
                           </Button>
                         </div>
                       </CardContent>

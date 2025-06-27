@@ -127,7 +127,6 @@ export const config = {
     '/edit-profile', // Added without path wildcard to match exact path
     '/edit-profile/:path*',
     '/settings/:path*',
-    '/messages/:path*',
     '/interests/:path*',
     '/shortlist/:path*'
     // Profile pages are not strictly protected by middleware

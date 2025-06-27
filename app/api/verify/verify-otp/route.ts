@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyOTP } from "@/lib/verification-redis";
 import { z } from "zod";
 import { database } from "@/lib/database-service";
+import { rateLimitMiddleware, rateLimitConfigs } from "@/lib/rate-limiter";
 
 // Input validation schema
 const requestSchema = z.object({
@@ -13,6 +14,16 @@ const requestSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     console.log('🔍 verify-otp API: Request received');
+    
+    // Apply rate limiting for OTP verification attempts
+    const rateLimitResponse = await rateLimitMiddleware(
+      request,
+      rateLimitConfigs.otp
+    );
+    
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
     
     // Parse and validate request body
     let body;

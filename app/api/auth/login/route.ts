@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { signIn } from "next-auth/react";
 import { z } from "zod";
 import { redis, redisTables } from "../../../../lib/redis-client";
 import { database } from "@/lib/database-service";
+import { rateLimitMiddleware, rateLimitConfigs } from "@/lib/rate-limiter";
 
 const loginSchema = z.object({
   email: z.string().email().optional(),
@@ -19,8 +20,18 @@ const loginSchema = z.object({
   message: "Either provide credentials or verification token"
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Apply rate limiting for login attempts
+    const rateLimitResponse = await rateLimitMiddleware(
+      req,
+      rateLimitConfigs.auth
+    );
+    
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const body = await req.json();
     const credentials = loginSchema.parse(body);
 

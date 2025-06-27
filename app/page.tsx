@@ -220,7 +220,7 @@ export default function HomePage() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Full Background Image with overlay */}
         <div 
-          className="absolute inset-0 bg-contain bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url('https://res.cloudinary.com/ddneah55w/image/upload/v1750678274/WEB-SLIDE_1_pgkyfc.jpg')`
           }}
@@ -230,39 +230,45 @@ export default function HomePage() {
         </div>
         
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 relative z-10 py-12">
-          <div className="flex flex-col justify-center min-h-[calc(100vh-6rem)] space-y-8 lg:space-y-12">
-            {/* Title & Description - Left Aligned, 80% width */}
-            <motion.div 
-              className="text-left space-y-6 lg:space-y-8 w-full max-w-[80%]"
-              initial={{ opacity: 0, y: -50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className="space-y-4 lg:space-y-6">
-                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium inline-flex items-center gap-2 backdrop-blur-sm">
-                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
-                  Premium Islamic Matrimonial Service
-                </Badge>
-                
-                <h1 className={`${elMessiri.className} text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight drop-shadow-2xl`}>
-                  Find Your Perfect Life Partner
-                </h1>
-                
-                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-white/95 leading-relaxed drop-shadow-lg">
-                  Join India's most trusted Islamic matrimonial platform. Connect with verified profiles and find your soulmate with complete Islamic values and family traditions.
-                </p>
-              </div>
-            </motion.div>
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-6rem)]">
+            {/* Left Content - Title, Description & Registration Form (50% on desktop) */}
+            <div className="flex flex-col justify-center space-y-8 lg:space-y-12">
+              {/* Title & Description */}
+              <motion.div 
+                className="text-left space-y-6 lg:space-y-8"
+                initial={{ opacity: 0, y: -50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+              >
+                <div className="space-y-4 lg:space-y-6">
+                  <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium inline-flex items-center gap-2 backdrop-blur-sm">
+                    <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Premium Islamic Matrimonial Service
+                  </Badge>
+                  
+                  <h1 className={`${elMessiri.className} text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight drop-shadow-2xl`}>
+                    Find Your Perfect Life Partner
+                  </h1>
+                  
+                  <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-white/95 leading-relaxed drop-shadow-lg">
+                    Join India's most trusted Islamic matrimonial platform. Connect with verified profiles and find your soulmate with complete Islamic values and family traditions.
+                  </p>
+                </div>
+              </motion.div>
 
-            {/* Registration Form - Left Aligned, 40% width */}
-            <motion.div 
-              className="max-w-[40%]"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <HeroRegistrationForm />
-            </motion.div>
+              {/* Registration Form */}
+              <motion.div 
+                className="w-full"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                <HeroRegistrationForm />
+              </motion.div>
+            </div>
+
+            {/* Right Content - Empty space for artwork (50% on desktop, hidden on mobile) */}
+            <div className="hidden lg:block"></div>
           </div>
         </div>
       </section>      {/* Sacred Values Section */}
@@ -429,7 +435,7 @@ export default function HomePage() {
                   <p className="text-gray-700 text-lg leading-relaxed">
                     Our advanced algorithms and personalized approach help you connect with compatible profiles based on your preferences, values, and lifestyle choices.
                   </p>
-                </div><div className="bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 p-6 rounded-xl border border-royal-primary/20">
+                </div>                <div className="bg-gradient-to-br from-royal-primary/10 to-royal-primary/5 p-6 rounded-xl border border-royal-primary/20">
                   <h4 className={`${elMessiri.className} text-2xl font-bold text-royal-primary mb-4 flex items-center gap-3`}>
                     <Image
                       src="/Nikah-Sufiyana-Icon-white-01.svg"
@@ -438,10 +444,10 @@ export default function HomePage() {
                       height={24}
                       className="h-6 w-6"
                     />
-                    Royal Sufi Service
+                    Premium Membership Benefits
                   </h4>
                   <p className="text-gray-700 text-lg leading-relaxed">
-                    Experience matrimonial service inspired by the noble tradition of Sufi hospitality - where every soul is treated with royal dignity and spiritual respect.
+                    Unlock exclusive features with our premium membership including priority profile visibility, advanced search filters, unlimited messaging, and dedicated customer support for a seamless matrimonial experience.
                   </p>
                 </div>
               </motion.div>
@@ -1050,10 +1056,10 @@ export default function HomePage() {
                     />
                   </div>
                   <p className="text-gray-600 leading-relaxed mb-4">
-                    Connect with potential matches through our secure messaging system, designed to honor Islamic principles of respectful courtship.
-                  </p>                  <Link href="/messages">
+                    Connect with potential matches through our secure interest system, designed to honor Islamic principles of respectful courtship.
+                  </p>                  <Link href="/interests">
                     <Button variant="outline" className="border-royal-primary text-royal-primary hover:bg-royal-primary hover:text-white active:bg-royal-primary/90 active:text-white focus:bg-royal-primary focus:text-white transition-all duration-300">
-                      Start Chatting
+                      Express Interest
                     </Button>
                   </Link>
                 </CardContent>
