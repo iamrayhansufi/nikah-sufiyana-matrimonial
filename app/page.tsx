@@ -220,7 +220,7 @@ export default function HomePage() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Full Background Image with overlay */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-contain bg-center bg-no-repeat"
           style={{
             backgroundImage: `url('https://res.cloudinary.com/ddneah55w/image/upload/v1750678274/WEB-SLIDE_1_pgkyfc.jpg')`
           }}
@@ -231,9 +231,9 @@ export default function HomePage() {
         
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 relative z-10 py-12">
           <div className="flex flex-col justify-center min-h-[calc(100vh-6rem)] space-y-8 lg:space-y-12">
-            {/* Title & Description - Left Aligned */}
+            {/* Title & Description - Left Aligned, 80% width */}
             <motion.div 
-              className="text-left space-y-6 lg:space-y-8 max-w-4xl"
+              className="text-left space-y-6 lg:space-y-8 w-full max-w-[80%]"
               initial={{ opacity: 0, y: -50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -254,9 +254,9 @@ export default function HomePage() {
               </div>
             </motion.div>
 
-            {/* Registration Form - Left Aligned, Below Title & Description */}
+            {/* Registration Form - Left Aligned, 40% width */}
             <motion.div 
-              className="max-w-2xl"
+              className="max-w-[40%]"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
