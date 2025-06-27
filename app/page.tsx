@@ -230,12 +230,12 @@ export default function HomePage() {
         </div>
         
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 relative z-10 py-12">
-          <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center min-h-[calc(100vh-6rem)]">
-            {/* Left Content - Title & Description (3 columns) */}
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-6rem)] space-y-8 lg:space-y-12">
+            {/* Title & Description - Centered */}
             <motion.div 
-              className="lg:col-span-3 text-center lg:text-left space-y-6 lg:space-y-8"
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
+              className="text-center space-y-6 lg:space-y-8 max-w-4xl"
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
               <div className="space-y-4 lg:space-y-6">
@@ -248,17 +248,17 @@ export default function HomePage() {
                   Find Your Perfect Life Partner
                 </h1>
                 
-                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-white/95 leading-relaxed max-w-2xl drop-shadow-lg">
+                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-white/95 leading-relaxed drop-shadow-lg">
                   Join India's most trusted Islamic matrimonial platform. Connect with verified profiles and find your soulmate with complete Islamic values and family traditions.
                 </p>
               </div>
             </motion.div>
 
-            {/* Right Content - Registration Form (2 columns) */}
+            {/* Registration Form - Below Title & Description */}
             <motion.div 
-              className="lg:col-span-2"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
+              className="w-full max-w-2xl"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               <HeroRegistrationForm />
