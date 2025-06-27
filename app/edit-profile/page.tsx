@@ -603,6 +603,19 @@ export default function EditProfilePage() {
           acc[key] = value;
           console.log(`fatherOccupation being sent: '${acc[key]}'`);
         }
+        // Handle privacy settings - always include boolean values
+        else if (key === "showContactInfo" || key === "showPhotos" || key === "hideProfile" || 
+                 key === "showOnlineStatus" || key === "showFatherNumber" || key === "showMotherNumber") {
+          // Always include privacy settings regardless of boolean value
+          acc[key] = value;
+          console.log(`Privacy setting ${key} being sent: ${acc[key]} (type: ${typeof acc[key]})`);
+        }
+        // Handle privacy-related contact fields - always include
+        else if (key === "mobileNumber" || key === "fatherMobile" || key === "motherMobile" || key === "profilePhotos") {
+          // Always include contact info and profile photos for privacy settings
+          acc[key] = value;
+          console.log(`Privacy-related field ${key} being sent: ${acc[key]}`);
+        }
         // For other fields, only include if they're not empty
         else if (value !== "") {
           acc[key] = value;

@@ -227,6 +227,22 @@ export async function GET(
       bio: profile.bio || profile.aboutMe,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
+      
+      // Privacy settings
+      showContactInfo: profile.showContactInfo !== undefined ? 
+        (profile.showContactInfo === 'true' || profile.showContactInfo === true) : true,
+      showPhotos: profile.showPhotos !== undefined ? 
+        (profile.showPhotos === 'true' || profile.showPhotos === true) : true,
+      hideProfile: profile.hideProfile !== undefined ? 
+        (profile.hideProfile === 'true' || profile.hideProfile === true) : false,
+      showOnlineStatus: profile.showOnlineStatus !== undefined ? 
+        (profile.showOnlineStatus === 'true' || profile.showOnlineStatus === true) : true,
+      showFatherNumber: profile.showFatherNumber !== undefined ? 
+        (profile.showFatherNumber === 'true' || profile.showFatherNumber === true) : false,
+      showMotherNumber: profile.showMotherNumber !== undefined ? 
+        (profile.showMotherNumber === 'true' || profile.showMotherNumber === true) : false,
+      mobileNumber: profile.mobileNumber,
+      
       // Interaction details
       isShortlisted,
       interestStatus,

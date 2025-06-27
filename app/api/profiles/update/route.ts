@@ -97,6 +97,18 @@ const updateProfileSchema = z.object({
   subscriptionPlan: z.string().optional(),
   subscriptionStartDate: z.string().optional(),
   subscriptionEndDate: z.string().optional(),
+  
+  // Privacy Settings
+  showContactInfo: z.boolean().optional(),
+  showPhotos: z.boolean().optional(),
+  hideProfile: z.boolean().optional(),
+  showOnlineStatus: z.boolean().optional(),
+  showFatherNumber: z.boolean().optional(),
+  showMotherNumber: z.boolean().optional(),
+  mobileNumber: z.string().optional(),
+  
+  // Profile Photos
+  profilePhotos: z.array(z.string()).optional(),
 });
 
 function parseArrayField(field: string | undefined, defaultValue: string[] = []): string[] {
