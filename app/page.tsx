@@ -40,90 +40,102 @@ const NikahSufiyanaIcon = ({ className }: { className?: string }) => (
   />
 )
 
+// Static data arrays moved outside component to prevent re-creation
+const slidesData = [
+  {
+    title: "Nikah Sufiyana - India's Most Trusted Muslim Matrimonial Platform",      
+    description: "Connect with thousands of verified Muslim profiles across India. Find your perfect life partner through our secure and reliable Islamic matrimonial service designed for modern Muslim families.",
+    image: "/placeholder.svg",
+    badge: "✨ Trusted by 100,000+ Muslim Families Across India"
+  },
+  {
+    title: "Your Perfect Match Awaits in Hyderabad",
+    subtitle: "Special Focus on Hyderabad Muslim Community",
+    description: "Join hundreds of successful couples from Hyderabad who found their life partners through Nikah Sufiyana. Connect with verified profiles from your city and surrounding areas with complete family support.",
+    image: "/events-bg.jpg",
+    badge: "🕌 Hyderabad's #1 Choice for Muslim Matrimony",
+    cta: "Find Hyderabad Matches"
+  },
+  {
+    title: "Premium Matchmaking Service",
+    subtitle: "Personalized Support for Serious Marriage Seekers",
+    description: "Get dedicated relationship manager support, verified profiles, and personalized matchmaking assistance. Our premium service ensures you connect with genuine, marriage-minded Muslim singles.",
+    image: "/premium-bg.jpg",
+    badge: "👑 Premium Matrimonial Service",      
+    cta: "Explore Premium Features"
+  }
+]
+
+const valuesData = [
+  {
+    icon: Mosque,
+    title: "Islamic Values & Principles",
+    description: "Built on authentic Islamic principles with complete respect for halal relationships and Islamic matrimonial traditions. Every connection is guided by Islamic values and family involvement.",
+    color: "from-red-600 to-red-700"
+  },
+  {
+    icon: Shield,
+    title: "Safe & Secure Platform",      
+    description: "Your privacy and security are our top priorities. Advanced verification processes and secure communication ensure your matrimonial journey remains safe and protected.",
+    color: "from-red-500 to-red-600"
+  },    
+  {
+    icon: NikahSufiyanaIcon,
+    title: "Premium Matchmaking Service",
+    description: "Get personalized support from our experienced relationship managers who understand Indian Muslim families. Premium features help you find the perfect match faster.",
+    color: "from-red-500 to-red-600"
+  },
+  {
+    icon: Heart,
+    title: "Successful Marriages",
+    description: "Join thousands of happy couples who found their life partners through Nikah Sufiyana. Our success stories speak for the quality of matches and genuine connections we facilitate.",
+    color: "from-red-500 to-red-600"
+  }
+]
+
+const successStoriesData = [
+  {
+    couple: "Ahmed & Fatima",
+    location: "Hyderabad",
+    image: "/success-stories/couple1.jpg",
+    story: "Alhamdulillah! We found each other through Nikah Sufiyana. The platform made it easy to connect with genuine profiles from Hyderabad. Our families are very happy with the match!",
+    date: "Married in 2024",
+    blessing: "Blessed with their first child - Masha'Allah"
+  },
+  {
+    couple: "Omar & Ayesha",
+    location: "Secunderabad",
+    image: "/success-stories/couple2.jpg",      
+    story: "Alhamdulillah! Nikah Sufiyana helped us find each other with complete respect for our Islamic values. The verification process gave our families confidence, and we're very grateful!",
+    date: "Married in 2023",
+    blessing: "Expecting their first child - InshAllah"
+  },
+  {
+    couple: "Yusuf & Zainab",
+    location: "Old City, Hyderabad",
+    image: "/success-stories/couple3.jpg",
+    story: "MashaAllah! The team at Nikah Sufiyana was very supportive throughout our journey. They helped us connect with compatible families and made the process smooth and respectful.",
+    date: "Married in 2022",
+    blessing: "Blessed with son Muhammad Abdullah"
+  },
+]
+
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [premiumProfiles, setPremiumProfiles] = useState<Profile[]>([])
   const [profilesLoading, setProfilesLoading] = useState(true)
   const [filters, setFilters] = useState({
     ageRange: [18, 60],
-    ageMin: "18",    ageMax: "60",
+    ageMin: "18",    
+    ageMax: "60",
     height: ""
   })
   
-  const slides = [
-    {
-      title: "Nikah Sufiyana - India's Most Trusted Muslim Matrimonial Platform",      
-      description: "Connect with thousands of verified Muslim profiles across India. Find your perfect life partner through our secure and reliable Islamic matrimonial service designed for modern Muslim families.",
-      image: "/placeholder.svg",
-      badge: "✨ Trusted by 100,000+ Muslim Families Across India"
-    },
-    {
-      title: "Your Perfect Match Awaits in Hyderabad",
-      subtitle: "Special Focus on Hyderabad Muslim Community",
-      description: "Join hundreds of successful couples from Hyderabad who found their life partners through Nikah Sufiyana. Connect with verified profiles from your city and surrounding areas with complete family support.",
-      image: "/events-bg.jpg",
-      badge: "🕌 Hyderabad's #1 Choice for Muslim Matrimony",
-      cta: "Find Hyderabad Matches"
-    },
-    {
-      title: "Premium Matchmaking Service",
-      subtitle: "Personalized Support for Serious Marriage Seekers",
-      description: "Get dedicated relationship manager support, verified profiles, and personalized matchmaking assistance. Our premium service ensures you connect with genuine, marriage-minded Muslim singles.",
-      image: "/premium-bg.jpg",
-      badge: "👑 Premium Matrimonial Service",      cta: "Explore Premium Features"
-    }
-  ]
-  
-  const values = [
-    {
-      icon: Mosque,
-      title: "Islamic Values & Principles",
-      description: "Built on authentic Islamic principles with complete respect for halal relationships and Islamic matrimonial traditions. Every connection is guided by Islamic values and family involvement.",
-      color: "from-red-600 to-red-700"
-    },
-    {
-      icon: Shield,
-      title: "Safe & Secure Platform",      description: "Your privacy and security are our top priorities. Advanced verification processes and secure communication ensure your matrimonial journey remains safe and protected.",
-      color: "from-red-500 to-red-600"
-    },    {
-      icon: NikahSufiyanaIcon,
-      title: "Premium Matchmaking Service",
-      description: "Get personalized support from our experienced relationship managers who understand Indian Muslim families. Premium features help you find the perfect match faster.",
-      color: "from-red-500 to-red-600"
-    },
-    {
-      icon: Heart,
-      title: "Successful Marriages",
-      description: "Join thousands of happy couples who found their life partners through Nikah Sufiyana. Our success stories speak for the quality of matches and genuine connections we facilitate.",
-      color: "from-red-500 to-red-600"
-    }
-  ]
-  const successStories = [
-    {
-      couple: "Ahmed & Fatima",
-      location: "Hyderabad",
-      image: "/success-stories/couple1.jpg",
-      story: "Alhamdulillah! We found each other through Nikah Sufiyana. The platform made it easy to connect with genuine profiles from Hyderabad. Our families are very happy with the match!",
-      date: "Married in 2024",
-      blessing: "Blessed with their first child - Masha'Allah"
-    },
-    {
-      couple: "Omar & Ayesha",
-      location: "Secunderabad",
-      image: "/success-stories/couple2.jpg",      story: "Alhamdulillah! Nikah Sufiyana helped us find each other with complete respect for our Islamic values. The verification process gave our families confidence, and we're very grateful!",
-      date: "Married in 2023",
-      blessing: "Expecting their first child - InshAllah"
-    },
-    {
-      couple: "Yusuf & Zainab",
-      location: "Old City, Hyderabad",
-      image: "/success-stories/couple3.jpg",
-      story: "MashaAllah! The team at Nikah Sufiyana was very supportive throughout our journey. They helped us connect with compatible families and made the process smooth and respectful.",
-      date: "Married in 2022",
-      blessing: "Blessed with son Muhammad Abdullah"
-    },
-  ]
-  const premiumProfilesFallback = [
+  // Use the static data
+  const slides = slidesData
+  const values = valuesData
+  const successStories = successStoriesData
+  const premiumProfilesFallback: Profile[] = [
     {
       id: "fallback-1",
       name: "Sister Maryam A.",
@@ -180,11 +192,11 @@ export default function HomePage() {
     }
 
     fetchFeaturedProfiles()
-  }, [])
+  }, []) // Remove premiumProfilesFallback from dependencies as it's defined in the same component
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length)
+      setCurrentSlide((prev: number) => (prev + 1) % slides.length)
     }, 5000)
     return () => clearInterval(timer)
   }, [slides.length])
@@ -204,53 +216,53 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-royal-gradient">
-      <Header />      {/* Sufiyana Hero Section with Background Image */}
+      <Header />      {/* Hero Section with Content Background Image */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image - Hidden on mobile for better responsiveness */}
+        {/* Full Background Image with overlay */}
         <div 
-          className="absolute inset-0 hidden lg:block bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url('https://res.cloudinary.com/ddneah55w/image/upload/v1750678274/WEB-SLIDE_1_pgkyfc.jpg')`
           }}
         >
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/30 lg:bg-black/20"></div>
         </div>
         
-        {/* Mobile and tablet gradient background */}
-        <div className="absolute inset-0 lg:hidden bg-gradient-to-br from-royal-primary/5 to-royal-primary/15"></div>
-        
-        <div className="w-full max-w-8xl mx-auto px-4 sm:px-6 relative z-10 py-12 lg:py-0">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-6rem)] lg:min-h-[85vh]">
-            {/* Left Content - Title, Description & Registration Form */}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 relative z-10 py-12">
+          <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center min-h-[calc(100vh-6rem)]">
+            {/* Left Content - Title & Description (3 columns) */}
             <motion.div 
-              className="text-center lg:text-left space-y-6 lg:space-y-8"
+              className="lg:col-span-3 text-center lg:text-left space-y-6 lg:space-y-8"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
               <div className="space-y-4 lg:space-y-6">
-                <Badge className="bg-royal-primary/20 lg:bg-white/20 text-royal-primary lg:text-white border-royal-primary/30 lg:border-white/30 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium inline-flex items-center gap-2 backdrop-blur-sm">
+                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium inline-flex items-center gap-2 backdrop-blur-sm">
                   <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
                   Premium Islamic Matrimonial Service
                 </Badge>
                 
-                <h1 className={`${elMessiri.className} text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-royal-primary lg:text-white leading-tight drop-shadow-lg`}>
+                <h1 className={`${elMessiri.className} text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight drop-shadow-2xl`}>
                   Find Your Perfect Life Partner
                 </h1>
                 
-                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700 lg:text-white/90 leading-relaxed max-w-2xl drop-shadow-md">
+                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-white/95 leading-relaxed max-w-2xl drop-shadow-lg">
                   Join India's most trusted Islamic matrimonial platform. Connect with verified profiles and find your soulmate with complete Islamic values and family traditions.
                 </p>
-                                
-              </div>
-
-              {/* Registration Form - full width of column */}
-              <div className="w-full mt-8 lg:mt-6">
-                <HeroRegistrationForm />
               </div>
             </motion.div>
 
-            {/* Right Content - Empty for background image */}
-            <div className="hidden lg:block"></div>
+            {/* Right Content - Registration Form (2 columns) */}
+            <motion.div 
+              className="lg:col-span-2"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <HeroRegistrationForm />
+            </motion.div>
           </div>
         </div>
       </section>      {/* Sacred Values Section */}

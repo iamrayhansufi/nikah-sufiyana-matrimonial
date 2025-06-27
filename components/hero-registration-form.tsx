@@ -31,18 +31,15 @@ export function HeroRegistrationForm() {
   }
 
   return (
-    <div className="relative w-full px-4 sm:px-8 md:px-16 lg:px-24 py-8">
+    <div className="relative w-full">
       <Card className="w-full bg-white/95 backdrop-blur-sm shadow-2xl border-0 rounded-xl lg:rounded-2xl">
-        <CardHeader className="text-center pb-3 lg:pb-4 pt-4 lg:pt-6 px-3 sm:px-4 lg:px-6 xl:px-8">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 mx-auto mb-3 lg:mb-4 bg-gradient-to-br from-royal-primary to-royal-primary/80 rounded-full flex items-center justify-center shadow-lg">
-            <Heart className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-white" />
-          </div>
-          <CardTitle className={`${elMessiri.className} text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800`}>
+        <CardHeader className="text-center pb-3 lg:pb-4 pt-4 lg:pt-6 px-4 lg:px-6">
+          <CardTitle className={`${elMessiri.className} text-xl sm:text-2xl lg:text-2xl font-bold text-gray-800`}>
             Quick Registration
           </CardTitle>
           <p className="text-sm sm:text-base text-gray-600">Find your perfect match today</p>
         </CardHeader>
-        <CardContent className="px-3 sm:px-4 lg:px-6 xl:px-8 pb-6 lg:pb-8 w-full">
+        <CardContent className="px-4 lg:px-6 pb-6 lg:pb-8 w-full">
           <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5 w-full">
             {/* Row 1: Full Name & Looking For side by side on larger screens */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4 w-full">
@@ -51,11 +48,11 @@ export function HeroRegistrationForm() {
                   Full Name
                 </Label>
                 <div className="relative mt-1.5 lg:mt-2">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 lg:h-7 lg:w-7 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   <Input
                     id="fullName"
                     value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, fullName: e.target.value })}
                     placeholder="Your full name"
                     className="pl-9 sm:pl-11 py-2.5 lg:py-3 text-sm sm:text-base"
                     required
@@ -68,7 +65,7 @@ export function HeroRegistrationForm() {
                 </Label>
                 <Select
                   value={formData.lookingFor}
-                  onValueChange={(value) => setFormData({ ...formData, lookingFor: value })}
+                  onValueChange={(value: string) => setFormData({ ...formData, lookingFor: value })}
                 >
                   <SelectTrigger className="mt-1.5 lg:mt-2 py-2.5 lg:py-3 text-sm sm:text-base">
                     <SelectValue placeholder="Select preference" />
@@ -89,7 +86,7 @@ export function HeroRegistrationForm() {
               <div className="flex mt-1.5 lg:mt-2 space-x-2 lg:space-x-3">
                 <Select
                   value={formData.countryCode}
-                  onValueChange={(value) => setFormData({ ...formData, countryCode: value })}
+                  onValueChange={(value: string) => setFormData({ ...formData, countryCode: value })}
                 >
                   <SelectTrigger className="w-20 sm:w-24 py-2.5 lg:py-3 text-xs sm:text-sm">
                     <SelectValue />
@@ -107,7 +104,7 @@ export function HeroRegistrationForm() {
                   <Input
                     id="mobile"
                     value={formData.mobileNumber}
-                    onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, mobileNumber: e.target.value })}
                     placeholder="WhatsApp number"
                     className="pl-9 sm:pl-11 py-2.5 lg:py-3 text-sm sm:text-base"
                     required
@@ -120,7 +117,6 @@ export function HeroRegistrationForm() {
               className="w-full gradient-primary text-white font-semibold py-3 lg:py-4 text-base lg:text-lg shadow-lg hover:shadow-xl transition-all duration-300"
               size="lg"
             >
-              <Heart className="mr-2 h-4 w-4 lg:h-5 lg:w-5" />
               Register Free Today
             </Button>
           </form>
