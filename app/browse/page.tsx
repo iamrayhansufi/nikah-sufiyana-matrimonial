@@ -344,7 +344,7 @@ export default function BrowseProfilesPage() {
     // If no valid image source, show fallback immediately
     if (!validImageSrc) {
       return (
-        <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
+        <div className={`relative w-full ${viewMode === "grid" ? "h-72" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center p-4">
               <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-royal-primary/10 to-royal-primary/20 rounded-full flex items-center justify-center border-2 border-royal-primary/20">
@@ -378,7 +378,7 @@ export default function BrowseProfilesPage() {
     // If image previously failed, show attractive fallback
     if (imageState === 'error') {
       return (
-        <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
+        <div className={`relative w-full ${viewMode === "grid" ? "h-72" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center p-4">
               <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-royal-primary/10 to-royal-primary/20 rounded-full flex items-center justify-center border-2 border-royal-primary/20">
@@ -395,7 +395,7 @@ export default function BrowseProfilesPage() {
     }
 
     return (
-      <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gray-100 rounded-lg`}>
+      <div className={`relative w-full ${viewMode === "grid" ? "h-72" : "h-40"} overflow-hidden bg-gray-100 rounded-lg`}>
         {imageState === 'loading' && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
             <div className="text-center">
@@ -409,7 +409,7 @@ export default function BrowseProfilesPage() {
           <img
             src={validImageSrc}
             alt={`${profile.name} profile photo`}
-            className={`w-full h-full object-cover object-top transition-opacity duration-300 ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'} rounded-lg`}
+            className={`w-full h-full object-contain object-top transition-opacity duration-300 ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'} rounded-lg`}
             onError={handleImageLoadError}
             onLoad={handleImageLoad}
             loading="lazy"
@@ -419,7 +419,7 @@ export default function BrowseProfilesPage() {
             src={validImageSrc}
             alt={`${profile.name} profile photo`}
             fill
-            className={`object-cover object-top transition-opacity duration-300 ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'} rounded-lg`}
+            className={`object-contain object-top transition-opacity duration-300 ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'} rounded-lg`}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority={false}
             loading="lazy"
@@ -1414,13 +1414,13 @@ export default function BrowseProfilesPage() {
             {loading ? (
               <div className="min-h-screen flex items-center justify-center">Loading profiles...</div>
             ) : (
-              <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-4"}>
+              <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" : "space-y-4"}>
                 {filteredProfiles.map((profile) => (
                   <Card key={profile.id} className="overflow-hidden hover:shadow-lg transition-shadow" data-profile-card={profile.id}>
                     <div className="relative" data-profile-image>
                       {/* When photos are protected, show a completely different placeholder with increased height */}
                       {blurredPhotoIds.has(profile.id) ? (
-                        <div className={`w-full ${viewMode === "grid" ? "h-80" : "h-40"} bg-gradient-to-br from-cream-light to-cream-soft flex items-start justify-center pt-16`}>
+                        <div className={`w-full ${viewMode === "grid" ? "h-72" : "h-40"} bg-gradient-to-br from-cream-light to-cream-soft flex items-start justify-center pt-16`}>
                           {/* No actual photo should be rendered when protected */}
                         </div>
                       ) : (

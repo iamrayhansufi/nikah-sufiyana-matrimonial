@@ -2527,7 +2527,7 @@ export default function EditProfilePage() {
                                   <img 
                                     src={sanitizePhotoUrl(photoUrl)} 
                                     alt="Profile" 
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-contain object-top"
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
                                       console.log('🚨 Main profile image load error for:', target.src);
@@ -2619,7 +2619,7 @@ export default function EditProfilePage() {
                                   <img 
                                     src={sanitizePhotoUrl(photo)} 
                                     alt={`Photo ${index + 1}`} 
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-contain object-top"
                                     onError={(e) => {
                                       console.error('Failed to load gallery image:', photo);
                                       // Hide the broken image

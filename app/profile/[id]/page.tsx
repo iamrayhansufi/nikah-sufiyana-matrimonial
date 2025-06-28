@@ -692,7 +692,7 @@ export default function ProfilePage({
                       <AvatarImage
                         src={profile.profilePhoto || "/placeholder.svg"}
                         alt={profile.name}
-                        className={`object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
+                        className={`object-contain object-top ${shouldBlurPhoto ? 'blur-md' : ''}`}
                       />
                       <AvatarFallback className="text-4xl h-80 rounded-lg">
                         {profile.name && typeof profile.name === 'string' 
@@ -1386,7 +1386,7 @@ export default function ProfilePage({
                             <img 
                               src={profile.profilePhoto || "/placeholder.svg"} 
                               alt={`${profile.name}'s profile photo`}
-                              className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
+                              className={`w-full h-full object-contain object-top ${shouldBlurPhoto ? 'blur-md' : ''}`}
                             />
                             <Badge className="absolute top-2 left-2 bg-primary">Main Photo</Badge>
                             {shouldBlurPhoto && (
@@ -1408,7 +1408,9 @@ export default function ProfilePage({
                           
                           {/* Additional Photos */}
                           {profile.profilePhotos && profile.profilePhotos.length > 0 ? (
-                            safeJsonParse(profile.profilePhotos).map((photo: string, index: number) => (
+                            safeJsonParse(profile.profilePhotos)
+                              .filter((photo: string) => photo !== profile.profilePhoto) // Filter out the main profile photo
+                              .map((photo: string, index: number) => (
                               <div 
                                 key={index} 
                                 className={`aspect-square rounded-lg overflow-hidden bg-gray-100 relative ${!shouldBlurPhoto ? 'cursor-pointer' : ''}`}
@@ -1417,7 +1419,7 @@ export default function ProfilePage({
                                 <img 
                                   src={photo} 
                                   alt={`${profile.name}'s photo ${index + 1}`}
-                                  className={`w-full h-full object-cover ${shouldBlurPhoto ? 'blur-md' : ''}`}
+                                  className={`w-full h-full object-contain object-top ${shouldBlurPhoto ? 'blur-md' : ''}`}
                                 />
                                 {shouldBlurPhoto && (
                                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900/95 to-emerald-900/95 rounded-lg text-white p-3 text-center backdrop-blur-sm border border-amber-400/20">
