@@ -307,45 +307,93 @@ export const database = {
         income: user.income,
         housing: user.housing,
         showPhotos: user.showPhotos !== 'false' && user.showPhotos !== false, // Convert to boolean properly
-        // Handle profile photo - check multiple possible field names
+        // Handle profile photo - check multiple possible field names with proper validation
         profilePhoto: (() => {
+          const validateImageUrl = (url: any): string => {
+            if (!url || url === 'undefined' || url === 'null' || String(url).trim() === '') {
+              return '/placeholder-user.jpg';
+            }
+            
+            const urlStr = String(url);
+            // Check if it's a valid URL format
+            if (urlStr.startsWith('http') || urlStr.startsWith('/')) {
+              return urlStr;
+            }
+            
+            // If it's not a valid URL, return placeholder
+            return '/placeholder-user.jpg';
+          };
+
           // Priority: profilePhoto -> first photo from profilePhotos array -> image -> fallback
-          if (user.profilePhoto) return user.profilePhoto;
+          if (user.profilePhoto) {
+            return validateImageUrl(user.profilePhoto);
+          }
+          
           if (user.profilePhotos) {
             let photosArray;
             if (typeof user.profilePhotos === 'string') {
               try {
                 photosArray = JSON.parse(user.profilePhotos);
               } catch (e) {
-                return user.image || '/placeholder-user.jpg';
+                console.warn('Failed to parse profilePhotos for user:', user.id);
+                return validateImageUrl(user.image || '/placeholder-user.jpg');
               }
             } else if (Array.isArray(user.profilePhotos)) {
               photosArray = user.profilePhotos;
             }
+            
             if (Array.isArray(photosArray) && photosArray.length > 0) {
-              return photosArray[0];
+              const firstPhoto = photosArray.find(photo => photo && String(photo).trim() !== '');
+              if (firstPhoto) {
+                return validateImageUrl(firstPhoto);
+              }
             }
           }
-          return user.image || '/placeholder-user.jpg';
+          
+          return validateImageUrl(user.image || '/placeholder-user.jpg');
         })(),
         image: (() => {
-          if (user.profilePhoto) return user.profilePhoto;
+          const validateImageUrl = (url: any): string => {
+            if (!url || url === 'undefined' || url === 'null' || String(url).trim() === '') {
+              return '/placeholder-user.jpg';
+            }
+            
+            const urlStr = String(url);
+            // Check if it's a valid URL format
+            if (urlStr.startsWith('http') || urlStr.startsWith('/')) {
+              return urlStr;
+            }
+            
+            // If it's not a valid URL, return placeholder
+            return '/placeholder-user.jpg';
+          };
+
+          if (user.profilePhoto) {
+            return validateImageUrl(user.profilePhoto);
+          }
+          
           if (user.profilePhotos) {
             let photosArray;
             if (typeof user.profilePhotos === 'string') {
               try {
                 photosArray = JSON.parse(user.profilePhotos);
               } catch (e) {
-                return user.image || '/placeholder-user.jpg';
+                console.warn('Failed to parse profilePhotos for user:', user.id);
+                return validateImageUrl(user.image || '/placeholder-user.jpg');
               }
             } else if (Array.isArray(user.profilePhotos)) {
               photosArray = user.profilePhotos;
             }
+            
             if (Array.isArray(photosArray) && photosArray.length > 0) {
-              return photosArray[0];
+              const firstPhoto = photosArray.find(photo => photo && String(photo).trim() !== '');
+              if (firstPhoto) {
+                return validateImageUrl(firstPhoto);
+              }
             }
           }
-          return user.image || '/placeholder-user.jpg';
+          
+          return validateImageUrl(user.image || '/placeholder-user.jpg');
         })(),
         premium: user.premium === 'true' || user.premium === true,
         verified: user.verified === 'true' || user.verified === true,

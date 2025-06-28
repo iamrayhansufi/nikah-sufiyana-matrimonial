@@ -122,6 +122,7 @@ export default function BrowseProfilesPage() {
   const [sentInterests, setSentInterests] = useState<Set<string>>(new Set())
   const [mutualInterests, setMutualInterests] = useState<Set<string>>(new Set())
   const [blurredPhotoIds, setBlurredPhotoIds] = useState<Set<string>>(new Set())
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
   const [currentPage, setCurrentPage] = useState(1)
   const [totalProfiles, setTotalProfiles] = useState(0)
   const [hasMoreProfiles, setHasMoreProfiles] = useState(false)
@@ -288,6 +289,87 @@ export default function BrowseProfilesPage() {
     
     // Ensure minimum 60% and maximum 99%
     return Math.max(60, Math.min(99, percentage));
+  };
+
+  // Image error handling function
+  const handleImageError = (profileId: string) => {
+    console.log('Image failed to load for profile:', profileId);
+    setImageErrors(prev => new Set([...prev, profileId]));
+  };
+
+  // Image component with better error handling
+  const ProfileImage = ({ profile, viewMode }: { profile: Profile, viewMode: string }) => {
+    const [hasError, setHasError] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const getImageSrc = () => {
+      if (hasError || imageErrors.has(profile.id)) {
+        return "/placeholder-user.jpg";
+      }
+      
+      // Validate and clean the image URL
+      const imageSrc = profile.profilePhoto || profile.image;
+      if (!imageSrc || imageSrc === "undefined" || imageSrc === "null") {
+        return "/placeholder-user.jpg";
+      }
+      
+      // Check if it's a valid URL
+      try {
+        if (imageSrc.startsWith('http') || imageSrc.startsWith('/')) {
+          return imageSrc;
+        } else {
+          return "/placeholder-user.jpg";
+        }
+      } catch (error) {
+        return "/placeholder-user.jpg";
+      }
+    };
+
+    const handleError = () => {
+      console.log('Image error for profile:', profile.id, 'URL:', profile.profilePhoto);
+      setHasError(true);
+      setIsLoading(false);
+      handleImageError(profile.id);
+    };
+
+    const handleLoad = () => {
+      setIsLoading(false);
+      setHasError(false);
+    };
+
+    return (
+      <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gray-100`}>
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-royal-primary"></div>
+          </div>
+        )}
+        <Image
+          src={getImageSrc()}
+          alt={`${profile.name} profile photo`}
+          fill
+          className={`object-cover object-top transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={false}
+          loading="lazy"
+          onError={handleError}
+          onLoad={handleLoad}
+          unoptimized={hasError || imageErrors.has(profile.id)} // Use unoptimized for placeholder
+        />
+        {(hasError || imageErrors.has(profile.id)) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="text-center p-4">
+              <div className="w-16 h-16 mx-auto mb-2 bg-gray-300 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-xs text-gray-500">Photo not available</p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
   
   // Helper function to sort profiles
@@ -1282,24 +1364,7 @@ export default function BrowseProfilesPage() {
                           {/* No actual photo should be rendered when protected */}
                         </div>
                       ) : (
-                        <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gray-100`}>
-                          <Image
-                            src={profile.profilePhoto || "/placeholder-user.jpg"}
-                            alt={`${profile.name} profile photo`}
-                            fill
-                            className="object-cover object-top"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            priority={false}
-                            loading="lazy"
-                            placeholder="blur"
-                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-                            onError={(e) => {
-                              console.log('Image load error for profile:', profile.id);
-                              const target = e.target as HTMLImageElement;
-                              target.src = "/placeholder-user.jpg";
-                            }}
-                          />
-                        </div>
+                        <ProfileImage profile={profile} viewMode={viewMode} />
                       )}
                       
                       {/* Conditional rendering of privacy overlay only if photos are protected */}

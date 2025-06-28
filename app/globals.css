@@ -884,3 +884,108 @@ img[src] {
   opacity: 1 !important;
   visibility: visible !important;
 }
+
+/* Enhanced Image Loading and Error Handling */
+.image-loading-container {
+  position: relative;
+  overflow: hidden;
+  background-color: #f3f4f6;
+}
+
+.image-loading-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Image error states */
+.image-error-fallback {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.image-error-icon {
+  color: #9ca3af;
+  opacity: 0.7;
+}
+
+/* Next.js Image component fixes */
+[data-nextjs-image] {
+  transition: opacity 0.3s ease;
+}
+
+[data-nextjs-image][data-loading="true"] {
+  opacity: 0;
+}
+
+[data-nextjs-image][data-loading="false"] {
+  opacity: 1;
+}
+
+/* Prevent layout shift during image loading */
+.profile-image-container {
+  aspect-ratio: 3/4;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+/* Loading spinner for images */
+.image-loading-spinner {
+  animation: spin 1s linear infinite;
+  color: #dc2626;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Image quality optimization */
+img[loading="lazy"] {
+  transition: opacity 0.3s ease;
+}
+
+/* Ensure images don't break layout on error */
+img {
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Profile card specific image handling */
+.profile-card-image {
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(circle at 25% 25%, #f1f5f9 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, #e2e8f0 0%, transparent 50%);
+}
+
+/* Better error message styling */
+.image-error-message {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+  padding: 0.5rem;
+}
