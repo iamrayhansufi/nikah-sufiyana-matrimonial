@@ -306,7 +306,8 @@ export const database = {
         complexion: user.complexion,
         income: user.income,
         housing: user.housing,
-        showPhotos: user.showPhotos !== 'false' && user.showPhotos !== false, // Convert to boolean properly
+        showPhotos: user.showPhotos !== undefined ? 
+          (user.showPhotos === 'true' || user.showPhotos === true) : true, // Convert to boolean with proper default
         // Handle profile photo - check multiple possible field names with proper validation
         profilePhoto: (() => {
           const validateImageUrl = (url: any): string => {
@@ -405,6 +406,12 @@ export const database = {
         gender: user.gender,
         profileStatus: user.profileStatus,
         match: 85 + Math.floor(Math.random() * 15), // Random match 85-99% for now
+        
+        // Additional privacy settings for consistency
+        showContactInfo: user.showContactInfo !== undefined ? 
+          (user.showContactInfo === 'true' || user.showContactInfo === true) : true,
+        hideProfile: user.hideProfile !== undefined ? 
+          (user.hideProfile === 'true' || user.hideProfile === true) : false
       }));
       
       // Apply sorting with smart prioritization

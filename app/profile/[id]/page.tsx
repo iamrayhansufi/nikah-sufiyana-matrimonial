@@ -256,13 +256,17 @@ export default function ProfilePage({
             // Determine if photo should be blurred based on privacy settings
             // Photos should be blurred if:
             // 1. User has set showPhotos to false (privacy setting)
-            // 2. AND the current user's interest hasn't been accepted by the profile owner
-              // Check if current user's sent interest has been accepted
+            // 2. AND the current user doesn't have special access (interests, etc.)
+            
+            // Check if current user's sent interest has been accepted (for photo access)
             const hasApproval = interestData.sentInterests?.some((interest: any) => {
               if (!interest || typeof interest !== 'object') return false;
               return interest.status === 'accepted';
             });
             
+            // Logic for photo visibility:
+            // - If showPhotos is true, photos should be visible to everyone (like browse page)
+            // - If showPhotos is false, photos should only be visible to approved users
             const shouldBlurBasedOnPrivacy = !data.showPhotos && !hasApproval;
             setShouldBlurPhoto(shouldBlurBasedOnPrivacy);
             
