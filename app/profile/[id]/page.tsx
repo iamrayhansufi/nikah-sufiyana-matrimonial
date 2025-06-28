@@ -261,7 +261,7 @@ export default function ProfilePage({
             // Check if current user's sent interest has been accepted (for photo access)
             const hasApproval = interestData.sentInterests?.some((interest: any) => {
               if (!interest || typeof interest !== 'object') return false;
-              return interest.status === 'accepted';
+              return interest.receiverId === id && interest.status === 'accepted';
             });
             
             // Logic for photo visibility:
@@ -276,6 +276,17 @@ export default function ProfilePage({
               shouldBlurBasedOnPrivacy,
               sentInterests: interestData.sentInterests || [],
               sentInterestsLength: interestData.sentInterests?.length || 0
+            });
+            
+            // Detailed debugging for photo visibility issue
+            console.log('Photo visibility details:', {
+              profileId: id,
+              sentInterests: interestData.sentInterests?.map((int: any) => ({
+                receiverId: int.receiverId,
+                status: int.status,
+                matchesProfile: int.receiverId === id,
+                grantedAccess: int.receiverId === id && int.status === 'accepted'
+              }))
             });
           }
           
