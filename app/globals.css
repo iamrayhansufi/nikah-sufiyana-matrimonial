@@ -740,3 +740,62 @@
   background-size: 400% 400%;
   animation: gradient-shift 5s ease infinite;
 }
+
+/* Mobile Image Optimization */
+/* Ensure images load properly on mobile devices */
+@media (max-width: 768px) {
+  /* Profile images in browse page */
+  [data-profile-image] img,
+  .profile-image img,
+  img[alt*="profile"] {
+    max-width: 100% !important;
+    height: auto !important;
+    object-fit: cover !important;
+    display: block !important;
+    width: 100% !important;
+  }
+  
+  /* Ensure Next.js Image components work on mobile */
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  /* Fix for profile cards on mobile */
+  .profile-card img,
+  [data-testid="profile-image"] img {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* General image loading fixes */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: auto;
+}
+
+/* Lazy loading optimization */
+img[loading="lazy"] {
+  content-visibility: auto;
+}
+
+/* Fix for images not loading on slower connections */
+img {
+  background-color: #f3f4f6; /* Fallback background */
+}
+
+/* Profile image specific fixes */
+.profile-photo,
+.profile-image {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Ensure images are always visible */
+img[src] {
+  opacity: 1 !important;
+  visibility: visible !important;
+}

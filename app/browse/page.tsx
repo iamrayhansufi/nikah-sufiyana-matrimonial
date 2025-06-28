@@ -17,6 +17,7 @@ import { elMessiri } from "../lib/fonts"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { useSession } from "next-auth/react"
 import { DataLimitWarning } from "@/components/ui/data-limit-warning"
+import { MobileImageDebug } from "@/components/debug/mobile-image-debug"
 import Image from "next/image"
 
 interface Profile {
@@ -1273,19 +1274,32 @@ export default function BrowseProfilesPage() {
             ) : (
               <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-4"}>
                 {filteredProfiles.map((profile) => (
-                  <Card key={profile.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="relative">
+                  <Card key={profile.id} className="overflow-hidden hover:shadow-lg transition-shadow" data-profile-card={profile.id}>
+                    <div className="relative" data-profile-image>
                       {/* When photos are protected, show a completely different placeholder with increased height */}
                       {blurredPhotoIds.has(profile.id) ? (
                         <div className={`w-full ${viewMode === "grid" ? "h-80" : "h-40"} bg-gradient-to-br from-cream-light to-cream-soft flex items-start justify-center pt-16`}>
                           {/* No actual photo should be rendered when protected */}
                         </div>
                       ) : (
-                        <img
-                          src={profile.profilePhoto || "/placeholder-user.jpg"}
-                          alt={profile.name}
-                          className={`w-full object-cover object-top ${viewMode === "grid" ? "h-80" : "h-40"}`}
-                        />
+                        <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gray-100`}>
+                          <Image
+                            src={profile.profilePhoto || "/placeholder-user.jpg"}
+                            alt={`${profile.name} profile photo`}
+                            fill
+                            className="object-cover object-top"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            priority={false}
+                            loading="lazy"
+                            placeholder="blur"
+                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                            onError={(e) => {
+                              console.log('Image load error for profile:', profile.id);
+                              const target = e.target as HTMLImageElement;
+                              target.src = "/placeholder-user.jpg";
+                            }}
+                          />
+                        </div>
                       )}
                       
                       {/* Conditional rendering of privacy overlay only if photos are protected */}
@@ -1504,6 +1518,9 @@ export default function BrowseProfilesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Mobile Image Debug Component (Development only) */}
+      <MobileImageDebug />
     </div>
   )
 }
