@@ -2,7 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('../styles/google-translate.css');
+/* Google Translate Widget Styling */
+.goog-te-banner-frame,
+.goog-te-menu-frame {
+  display: none !important;
+}
+
+.goog-te-gadget-simple {
+  display: none !important;
+}
+
+.goog-te-combo {
+  display: none !important;
+}
+
+.goog-te-banner {
+  display: none !important;
+}
+
+/* Hide Google Translate top banner */
+body > .skiptranslate {
+  display: none !important;
+}
+
+/* Hide Google Translate iframe */
+.goog-te-balloon-frame {
+  display: none !important;
+}
+
+/* Remove Google Translate branding */
+.goog-logo-link {
+  display: none !important;
+}
+
+.goog-te-gadget img {
+  display: none !important;
+}
+
+/* Translation loading indicator */
+.translation-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+/* RTL Support */
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+html[dir="rtl"] body {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .rtl-reverse {
+  direction: ltr !important;
+}
+
+/* Ensure Arabic/Urdu fonts display correctly */
+*[lang="ar"], *[lang="ur"] {
+  font-family: 'El Messiri', 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', 'Urdu Typesetting', serif !important;
+  line-height: 1.8;
+}
+
+/* Improved text rendering for Urdu/Arabic */
+.font-arabic {
+  font-family: 'El Messiri', 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
+  line-height: 1.8;
+  text-align: right;
+}
+
+/* Hide Google Translate notification */
+.VIpgJd-ZVi9od-ORHb-OEVmcd {
+  display: none !important;
+}
+
+.VIpgJd-ZVi9od-OEVmcd-tB-R {
+  display: none !important;
+}
 
 @layer base {
   :root {
