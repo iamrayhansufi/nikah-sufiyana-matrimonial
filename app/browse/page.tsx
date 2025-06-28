@@ -1459,7 +1459,7 @@ export default function BrowseProfilesPage() {
                         </div>
                       ) : null}
                       <div className="absolute top-2 left-2 flex gap-2">
-                        <Badge className="bg-red-500 text-white">⭐ Premium</Badge>
+                        {/* Premium badge removed - should only show for admin-approved premium users */}
                       </div>
                       <div className="absolute top-2 right-2">
                         <Badge variant="secondary" className="bg-gradient-to-r from-red-600 to-red-700 text-white">

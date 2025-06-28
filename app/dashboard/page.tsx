@@ -600,7 +600,9 @@ export default function DashboardPage() {
                     {userProfile.verified && <Badge className="bg-green-500 text-white flex items-center gap-1">
                       <CheckCircle className="h-3 w-3" />
                       Blessed & Verified
-                    </Badge>}                    {userProfile.premium ? (
+                    </Badge>}
+                    {/* Premium badge removed - requires admin approval verification */}
+                    {/* {userProfile.premium ? (
                       <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white flex items-center gap-1">
                         <Image
                           src="/Nikah-Sufiyana-Icon-white-01.svg"
@@ -613,7 +615,7 @@ export default function DashboardPage() {
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="border-royal-primary text-royal-primary">Sufiyana Premium Plan</Badge>
-                    )}
+                    )} */}
                   </div>
 
                   <p className="text-gray-600 mb-2 flex items-center gap-2">

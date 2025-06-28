@@ -395,7 +395,11 @@ export const database = {
           
           return validateImageUrl(user.image || '/placeholder-user.jpg');
         })(),
-        premium: user.premium === 'true' || user.premium === true,
+        premium: false, // Premium status should be false by default - requires admin approval
+        premiumPlan: user.premiumPlan || null,
+        premiumExpiry: user.premiumExpiry || null,
+        premiumAdminApproved: user.premiumAdminApproved === 'true' || false,
+        premiumApprovedBy: user.premiumApprovedBy || null,
         verified: user.verified === 'true' || user.verified === true,
         lastActive: user.lastActive,
         gender: user.gender,

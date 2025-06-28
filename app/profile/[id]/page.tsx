@@ -713,7 +713,7 @@ export default function ProfilePage({
 
                     {/* Badges */}
                     <div className="absolute top-2 left-2 flex flex-col gap-2">
-                      {profile.premium && <Badge className="bg-red-500 text-white">⭐ Premium</Badge>}
+                      {/* Premium badge removed - requires admin approval verification */}
                     </div>
 
                     {/* Match Percentage */}

@@ -575,18 +575,8 @@ export default function HomePage() {
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Verified
                           </Badge>
-                        )}                      {profile.premium && (
-                          <Badge className="bg-royal-primary text-white border-0">
-                            <Image
-                              src="/Nikah-Sufiyana-Icon-white-01.svg"
-                              alt="Nikah Sufiyana Icon"
-                              width={12}
-                              height={12}
-                              className="h-3 w-3 mr-1"
-                            />
-                            Premium
-                          </Badge>
                         )}
+                      {/* Premium badge removed - requires admin approval verification */}
                       </div>
                     </div>
                     <CardContent className="p-6">
