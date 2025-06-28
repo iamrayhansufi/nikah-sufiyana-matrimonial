@@ -22,34 +22,48 @@
    })
    const [isSubmitting, setIsSubmitting] = useState(false)
    const [isSubmitted, setIsSubmitted] = useState(false)
- 
    const handleSubmit = async (e: React.FormEvent) => {
-     e.preventDefault()
-     setIsSubmitting(true)
- 
-     try {
-       // Here you would implement the actual password reset request
-       // For now, we'll simulate a successful request
-       await new Promise(resolve => setTimeout(resolve, 1500))
-       
-       setIsSubmitted(true)
-       toast({
-         title: "Reset Link Sent",
-         description: resetMethod === "email" 
-           ? "Check your email for instructions to reset your password." 
-           : "Check your phone for an SMS with instructions to reset your password.",
-       })
-     } catch (error) {
-       console.error("Password reset error:", error)
-       toast({
-         title: "Request Failed",
-         description: "Something went wrong. Please try again.",
-         variant: "destructive",
-       })
-     } finally {
-       setIsSubmitting(false)
-     }
-   }
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    try {
+      const payload = {
+        method: resetMethod,
+        ...(resetMethod === 'email' ? { email: formData.email } : { phone: formData.phone })
+      }
+
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send reset instructions')
+      }
+
+      setIsSubmitted(true)
+      toast({
+        title: "Reset Code Sent",
+        description: resetMethod === "email" 
+          ? "Check your email for the verification code to reset your password." 
+          : "Check your phone for an SMS with the verification code to reset your password.",
+      })
+    } catch (error) {
+      console.error("Password reset error:", error)
+      toast({
+        title: "Request Failed",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
  
    return (
      <div className="min-h-screen bg-cream-bg">

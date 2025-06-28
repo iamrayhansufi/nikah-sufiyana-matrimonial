@@ -109,7 +109,7 @@ const EMAIL_STYLES = {
   `,
   greeting: `
     font-size: 24px;
-    color: ${BRAND_COLORS.text};
+    color: ${BRAND_COLORS.text} !important;
     margin-bottom: 24px;
     font-weight: 600;
     font-family: ${TYPOGRAPHY.primary};
@@ -125,7 +125,7 @@ const EMAIL_STYLES = {
     text-shadow: 0 1px 2px rgba(212, 175, 55, 0.3);
   `,
   paragraph: `
-    color: ${BRAND_COLORS.text};
+    color: ${BRAND_COLORS.text} !important;
     font-size: 16px;
     margin-bottom: 20px;
     line-height: 1.7;
@@ -134,7 +134,7 @@ const EMAIL_STYLES = {
   button: `
     display: inline-block;
     background: linear-gradient(135deg, ${BRAND_COLORS.primary}, ${BRAND_COLORS.primaryLight});
-    color: white;
+    color: white !important;
     padding: 16px 40px;
     text-decoration: none;
     border-radius: 8px;
@@ -272,22 +272,35 @@ const EMAIL_STYLES = {
 function getEmailHeader(title: string, subtitle?: string): string {
   return `
     <div style="${EMAIL_STYLES.header}">
-      <!-- Custom header image -->
-      <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/email-header.png" 
-           alt="Nikah Sufiyana Header" 
-           style="${EMAIL_STYLES.headerImage}" />
-      
-      <!-- Content overlay with enhanced typography -->
-      <div style="${EMAIL_STYLES.headerOverlay}">
-        <div style="z-index: 2; position: relative;">
-          <!-- Main title with enhanced styling -->
-          <h1 style="${EMAIL_STYLES.headerTitle}">${title}</h1>
-          
-          ${subtitle ? `
-            <p style="${EMAIL_STYLES.headerSubtitle}">
-              ${subtitle}
-            </p>
-          ` : ''}
+      <!-- Fallback background for dark mode compatibility -->
+      <div style="background: linear-gradient(135deg, ${BRAND_COLORS.primary} 0%, ${BRAND_COLORS.primaryDark} 50%, ${BRAND_COLORS.accent} 100%); min-height: 200px; position: relative;">
+        
+        <!-- Islamic pattern background -->
+        <div style="${EMAIL_STYLES.headerPattern}"></div>
+        
+        <!-- Content overlay with enhanced typography -->
+        <div style="${EMAIL_STYLES.headerOverlay}">
+          <div style="z-index: 2; position: relative; text-align: center; padding: 40px 20px;">
+            
+            <!-- Brand Logo/Text -->
+            <div style="margin-bottom: 20px;">
+              <div style="font-family: ${TYPOGRAPHY.primary}; font-size: 28px; font-weight: 700; color: white; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                Nikah Sufiyana
+              </div>
+              <div style="font-family: ${TYPOGRAPHY.arabic}; font-size: 14px; color: ${BRAND_COLORS.secondary}; opacity: 0.9;">
+                نکاح صوفیانہ
+              </div>
+            </div>
+            
+            <!-- Main title with enhanced styling -->
+            <h1 style="${EMAIL_STYLES.headerTitle}">${title}</h1>
+            
+            ${subtitle ? `
+              <p style="${EMAIL_STYLES.headerSubtitle}">
+                ${subtitle}
+              </p>
+            ` : ''}
+          </div>
         </div>
       </div>
     </div>
@@ -611,28 +624,23 @@ export async function sendOTPVerificationEmail(userEmail: string, otp: string, u
               : 'Welcome to Nikah Sufiyana! Please enter this code to verify your email address.'
             }
           </p>
-            <!-- Simplified OTP Display -->
+            <!-- Enhanced OTP Display with Dark Mode Support -->
           <div style="${EMAIL_STYLES.otpContainer}">
-            <div style="position: relative; z-index: 2;">
-              <h3 style="color: white; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">
+            <div style="position: relative; z-index: 2; background: rgba(255,255,255,0.1); border-radius: 12px; padding: 25px; backdrop-filter: blur(10px);">
+              <h3 style="color: white; margin: 0 0 20px 0; font-size: 18px; font-weight: 600; text-align: center;">
                 Your Verification Code
               </h3>
               
-              <div style="${EMAIL_STYLES.otpCode}">
-                <!-- Mobile-friendly single row display -->
-                <div style="text-align: center; line-height: 1.2; white-space: nowrap; overflow-x: auto; padding: 5px;">
-                  ${otpDigits.map(digit => 
-                    `<span style="${EMAIL_STYLES.otpDigitBox}">${digit}</span>`
-                  ).join('')}
-                </div>
-                
-                <!-- Fallback text display for very small screens -->
-                <div style="color: white; font-size: 24px; font-weight: 700; font-family: ${TYPOGRAPHY.mono}; letter-spacing: 4px; text-align: center; margin-top: 10px; display: block;">
-                  ${otp}
+              <!-- Single, Clean OTP Display -->
+              <div style="text-align: center; margin: 20px 0;">
+                <div style="display: inline-block; background: rgba(255,255,255,0.95); border-radius: 8px; padding: 15px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                  <span style="font-family: ${TYPOGRAPHY.mono}; font-size: 32px; font-weight: 700; color: ${BRAND_COLORS.primary}; letter-spacing: 8px; text-shadow: none;">
+                    ${otp}
+                  </span>
                 </div>
               </div>
               
-              <p style="color: rgba(255, 255, 255, 0.9); margin: 15px 0 0 0; font-size: 14px;">
+              <p style="color: rgba(255, 255, 255, 0.9); margin: 15px 0 0 0; font-size: 14px; text-align: center;">
                 This code expires in <strong>10 minutes</strong>
               </p>
             </div>

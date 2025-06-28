@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { WhatsAppChat } from "@/components/whatsapp-chat"
 import { HeroRegistrationForm } from "@/components/hero-registration-form"
+import { MobileSlider } from "@/components/mobile-slider"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -216,60 +217,75 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-royal-gradient">
-      <Header />      {/* Hero Section with Content Background Image */}
+      <Header />      {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Full Background Image with overlay */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('https://res.cloudinary.com/ddneah55w/image/upload/v1750678274/WEB-SLIDE_1_pgkyfc.jpg')`
-          }}
-        >
-          {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-black/30 lg:bg-black/20"></div>
+        {/* Mobile Slider - Only visible on mobile screens */}
+        <div className="block md:hidden w-full">
+          <MobileSlider />
         </div>
-        
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 relative z-10 py-12">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-6rem)]">
-            {/* Left Content - Title, Description & Registration Form (50% on desktop) */}
-            <div className="flex flex-col justify-center space-y-8 lg:space-y-12">
-              {/* Title & Description */}
-              <motion.div 
-                className="text-left space-y-6 lg:space-y-8"
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-              >
-                <div className="space-y-4 lg:space-y-6">
-                  <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium inline-flex items-center gap-2 backdrop-blur-sm">
-                    <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
-                    Premium Islamic Matrimonial Service
-                  </Badge>
-                  
-                  <h1 className={`${elMessiri.className} text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight drop-shadow-2xl`}>
-                    Find Your Perfect Life Partner
-                  </h1>
-                  
-                  <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-white/95 leading-relaxed drop-shadow-lg">
-                    Join India's most trusted Islamic matrimonial platform. Connect with verified profiles and find your soulmate with complete Islamic values and family traditions.
-                  </p>
-                </div>
-              </motion.div>
 
-              {/* Registration Form */}
-              <motion.div 
-                className="w-full"
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                <HeroRegistrationForm />
-              </motion.div>
-            </div>
-
-            {/* Right Content - Empty space for artwork (50% on desktop, hidden on mobile) */}
-            <div className="hidden lg:block"></div>
+        {/* Desktop Hero - Only visible on md screens and above */}
+        <div className="hidden md:block w-full h-full">
+          {/* Full Background Image with overlay */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url('https://res.cloudinary.com/ddneah55w/image/upload/v1750678274/WEB-SLIDE_1_pgkyfc.jpg')`
+            }}
+          >
+            {/* Overlay for better text readability */}
+            <div className="absolute inset-0 bg-black/30 lg:bg-black/20"></div>
           </div>
+          
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 relative z-10 py-12">
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-6rem)]">
+              {/* Left Content - Title, Description & Registration Form (50% on desktop) */}
+              <div className="flex flex-col justify-center space-y-8 lg:space-y-12">
+                {/* Title & Description */}
+                <motion.div 
+                  className="text-left space-y-6 lg:space-y-8"
+                  initial={{ opacity: 0, y: -50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8 }}
+                >
+                  <div className="space-y-4 lg:space-y-6">
+                    <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium inline-flex items-center gap-2 backdrop-blur-sm">
+                      <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+                      Premium Islamic Matrimonial Service
+                    </Badge>
+                    
+                    <h1 className={`${elMessiri.className} text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight drop-shadow-2xl`}>
+                      Find Your Perfect Life Partner
+                    </h1>
+                    
+                    <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-white/95 leading-relaxed drop-shadow-lg">
+                      Join India's most trusted Islamic matrimonial platform. Connect with verified profiles and find your soulmate with complete Islamic values and family traditions.
+                    </p>
+                  </div>
+                </motion.div>
+
+                {/* Registration Form */}
+                <motion.div 
+                  className="w-full"
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                >
+                  <HeroRegistrationForm />
+                </motion.div>
+              </div>
+
+              {/* Right Content - Empty space for artwork (50% on desktop, hidden on mobile) */}
+              <div className="hidden lg:block"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mobile Registration Form - Positioned below slider on mobile */}
+      <section className="block md:hidden px-4 py-8 bg-cream-bg">
+        <div className="max-w-sm mx-auto">
+          <HeroRegistrationForm />
         </div>
       </section>      {/* Sacred Values Section */}
       <section className="section-spacing relative">

@@ -255,6 +255,9 @@ export function Header() {
                     <DropdownMenuItem asChild>
                       <Link href="/edit-profile">Edit Profile</Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings">Settings</Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
                   </DropdownMenuContent>

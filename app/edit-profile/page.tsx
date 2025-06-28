@@ -41,6 +41,10 @@ interface BasicProfileForm {
   fullName: string;
   age: string;
   gender: string;
+  email: string;
+  phone: string;
+  countryCode: string;
+  whatsappNumber: string;
   location: string;
   maritalStatus: string;
   maritalStatusOther?: string;
@@ -185,6 +189,10 @@ export default function EditProfilePage() {
     fullName: "",
     age: "",
     gender: "",
+    email: "",
+    phone: "",
+    countryCode: "+91",
+    whatsappNumber: "",
     location: "",
     maritalStatus: "",
     sect: "",
@@ -297,6 +305,10 @@ export default function EditProfilePage() {
             fullName: data.fullName || "",
             age: data.age ? String(data.age) : "",
             gender: data.gender || "",
+            email: data.email || "",
+            phone: data.phone || data.mobileNumber || "",
+            countryCode: data.countryCode || "+91",
+            whatsappNumber: data.whatsappNumber || data.phone || data.mobileNumber || "",
             location: data.location || "",
             maritalStatus: data.maritalStatus || "",
             maritalStatusOther: data.maritalStatusOther || "",
@@ -774,6 +786,10 @@ export default function EditProfilePage() {
         fullName: data.fullName || "",
         age: data.age ? String(data.age) : "",
         gender: data.gender || "",
+        email: data.email || "",
+        phone: data.phone || data.mobileNumber || "",
+        countryCode: data.countryCode || "+91",
+        whatsappNumber: data.whatsappNumber || data.phone || data.mobileNumber || "",
         location: data.location || "",
         maritalStatus: data.maritalStatus || "",
         maritalStatusOther: data.maritalStatusOther || "",
@@ -1530,8 +1546,64 @@ export default function EditProfilePage() {
                         </SelectContent>
                       </Select>
                     </FormField>
+
+                    {/* 3. Email Address */}
+                    <FormField label="Email Address" filled={!!basicForm.email}>
+                      <Input 
+                        id="email"
+                        type="email"
+                        value={basicForm.email}
+                        onChange={(e) => handleBasicChange('email', e.target.value)}
+                        placeholder="your@email.com"
+                        className={basicForm.email ? "border-green-200 focus:border-green-300" : ""}
+                      />
+                    </FormField>
+
+                    {/* 4. Phone Number */}
+                    <FormField label="Phone Number" filled={!!basicForm.phone}>
+                      <div className="flex gap-2">
+                        <Select 
+                          value={basicForm.countryCode} 
+                          onValueChange={(value) => handleBasicChange('countryCode', value)}
+                        >
+                          <SelectTrigger className="w-24">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="+91">+91</SelectItem>
+                            <SelectItem value="+1">+1</SelectItem>
+                            <SelectItem value="+44">+44</SelectItem>
+                            <SelectItem value="+971">+971</SelectItem>
+                            <SelectItem value="+966">+966</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input 
+                          id="phone"
+                          type="tel"
+                          value={basicForm.phone}
+                          onChange={(e) => handleBasicChange('phone', e.target.value.replace(/\D/g, ''))}
+                          placeholder="9012345678"
+                          className={`flex-1 ${basicForm.phone ? "border-green-200 focus:border-green-300" : ""}`}
+                        />
+                      </div>
+                    </FormField>
+
+                    {/* 5. WhatsApp Number */}
+                    <FormField label="WhatsApp Number (Optional)" filled={!!basicForm.whatsappNumber}>
+                      <Input 
+                        id="whatsappNumber"
+                        type="tel"
+                        value={basicForm.whatsappNumber}
+                        onChange={(e) => handleBasicChange('whatsappNumber', e.target.value.replace(/\D/g, ''))}
+                        placeholder="Same as phone or different"
+                        className={basicForm.whatsappNumber ? "border-green-200 focus:border-green-300" : ""}
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Leave empty to use same as phone number
+                      </p>
+                    </FormField>
                     
-                    {/* 3. Age */}
+                    {/* 6. Age */}
                     <FormField label="Age" filled={!!basicForm.age}>
                       <Input 
                         id="age"
@@ -1545,7 +1617,7 @@ export default function EditProfilePage() {
                       />
                     </FormField>
                     
-                    {/* 4. Height */}
+                    {/* 7. Height */}
                     <FormField label="Height" filled={!!basicForm.height}>
                       <Input 
                         id="height"
@@ -1556,7 +1628,7 @@ export default function EditProfilePage() {
                       />
                     </FormField>
                     
-                    {/* 5. Complexion */}
+                    {/* 8. Complexion */}
                     <FormField label="Complexion" filled={!!basicForm.complexion}>
                       <Select 
                         value={basicForm.complexion} 
@@ -1575,7 +1647,7 @@ export default function EditProfilePage() {
                         </SelectContent>                      </Select>
                     </FormField>
                     
-                    {/* 6. Marriage Timeline */}
+                    {/* 9. Marriage Timeline */}
                     <FormField label="How soon are you planning to marry?" filled={!!basicForm.marriageTimeline}>
                       <Select 
                         value={basicForm.marriageTimeline} 
@@ -1595,7 +1667,7 @@ export default function EditProfilePage() {
                       </Select>
                     </FormField>
                     
-                    {/* 7. Marital Status */}
+                    {/* 10. Marital Status */}
                     <FormField label="Marital Status" filled={!!basicForm.maritalStatus}>
                       <Select 
                         value={basicForm.maritalStatus} 
