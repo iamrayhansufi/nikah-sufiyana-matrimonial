@@ -291,83 +291,127 @@ export default function BrowseProfilesPage() {
     return Math.max(60, Math.min(99, percentage));
   };
 
-  // Image error handling function
+  // Image error handling function - prevents duplicate logging
   const handleImageError = (profileId: string) => {
-    console.log('Image failed to load for profile:', profileId);
-    setImageErrors(prev => new Set([...prev, profileId]));
+    if (!imageErrors.has(profileId)) {
+      console.log('Image failed to load for profile:', profileId);
+      setImageErrors(prev => new Set([...prev, profileId]));
+    }
   };
 
-  // Image component with better error handling
+  // Robust image component with zero console errors
   const ProfileImage = ({ profile, viewMode }: { profile: Profile, viewMode: string }) => {
-    const [hasError, setHasError] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const getImageSrc = () => {
-      if (hasError || imageErrors.has(profile.id)) {
-        return "/placeholder-user.jpg";
+    const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
+    
+    // Pre-validate image URL to prevent any attempts to load invalid URLs
+    const getValidImageSrc = () => {
+      // If this profile has already failed, don't try again
+      if (imageErrors.has(profile.id)) {
+        return null;
       }
       
-      // Validate and clean the image URL
-      const imageSrc = profile.profilePhoto || profile.image;
-      if (!imageSrc || imageSrc === "undefined" || imageSrc === "null") {
-        return "/placeholder-user.jpg";
+      // Get the raw image source
+      const rawSrc = profile.profilePhoto || profile.image;
+      
+      // Check if it's a valid, non-empty string
+      if (!rawSrc || 
+          rawSrc === "undefined" || 
+          rawSrc === "null" || 
+          rawSrc.trim() === "" ||
+          rawSrc === "/placeholder-user.jpg") { // Don't load placeholder recursively
+        return null;
       }
       
-      // Check if it's a valid URL
+      // Validate URL format
       try {
-        if (imageSrc.startsWith('http') || imageSrc.startsWith('/')) {
-          return imageSrc;
-        } else {
-          return "/placeholder-user.jpg";
+        const urlStr = String(rawSrc).trim();
+        
+        // Accept valid HTTP/HTTPS URLs or absolute paths
+        if (urlStr.startsWith('http://') || 
+            urlStr.startsWith('https://') || 
+            urlStr.startsWith('/')) {
+          return urlStr;
         }
+        
+        return null;
       } catch (error) {
-        return "/placeholder-user.jpg";
+        return null;
       }
     };
 
-    const handleError = () => {
-      console.log('Image error for profile:', profile.id, 'URL:', profile.profilePhoto);
-      setHasError(true);
-      setIsLoading(false);
-      handleImageError(profile.id);
-    };
-
-    const handleLoad = () => {
-      setIsLoading(false);
-      setHasError(false);
-    };
-
-    return (
-      <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gray-100`}>
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-royal-primary"></div>
-          </div>
-        )}
-        <Image
-          src={getImageSrc()}
-          alt={`${profile.name} profile photo`}
-          fill
-          className={`object-cover object-top transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          priority={false}
-          loading="lazy"
-          onError={handleError}
-          onLoad={handleLoad}
-          unoptimized={hasError || imageErrors.has(profile.id)} // Use unoptimized for placeholder
-        />
-        {(hasError || imageErrors.has(profile.id)) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+    const validImageSrc = getValidImageSrc();
+    
+    // If no valid image source, show fallback immediately without attempting to load
+    if (!validImageSrc) {
+      return (
+        <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
+          <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center p-4">
-              <div className="w-16 h-16 mx-auto mb-2 bg-gray-300 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+              <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-royal-primary/10 to-royal-primary/20 rounded-full flex items-center justify-center border-2 border-royal-primary/20">
+                <svg className="w-8 h-8 text-royal-primary/60" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                 </svg>
               </div>
+              <p className="text-sm text-gray-700 font-medium mb-1">{profile.name}</p>
               <p className="text-xs text-gray-500">Photo not available</p>
             </div>
           </div>
+        </div>
+      );
+    }
+
+    // Handle image load error - never retry to prevent console spam
+    const handleImageLoadError = () => {
+      // Mark this profile as having failed images
+      handleImageError(profile.id);
+      setImageState('error');
+    };
+
+    const handleImageLoad = () => {
+      setImageState('loaded');
+    };
+
+    // If image previously failed, show fallback
+    if (imageState === 'error') {
+      return (
+        <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center p-4">
+              <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-royal-primary/10 to-royal-primary/20 rounded-full flex items-center justify-center border-2 border-royal-primary/20">
+                <svg className="w-8 h-8 text-royal-primary/60" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-700 font-medium mb-1">{profile.name}</p>
+              <p className="text-xs text-gray-500">Photo not available</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gray-100 rounded-lg`}>
+        {imageState === 'loading' && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-royal-primary mx-auto mb-2"></div>
+              <p className="text-xs text-gray-500">Loading...</p>
+            </div>
+          </div>
         )}
+        <Image
+          src={validImageSrc}
+          alt={`${profile.name} profile photo`}
+          fill
+          className={`object-cover object-top transition-opacity duration-300 ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'} rounded-lg`}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={false}
+          loading="lazy"
+          onError={handleImageLoadError}
+          onLoad={handleImageLoad}
+          unoptimized={validImageSrc.startsWith('http')} // Disable optimization for external URLs
+        />
       </div>
     );
   };

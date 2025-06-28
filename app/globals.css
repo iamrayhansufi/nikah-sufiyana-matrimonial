@@ -989,3 +989,152 @@ img {
   text-align: center;
   padding: 0.5rem;
 }
+
+/* SVG Image Fixes - Comprehensive Solution */
+/* Remove white background from ALL SVG images */
+svg {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Target SVG files by source attribute */
+img[src$=".svg"],
+img[src*=".svg"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Ensure SVG icons have transparent backgrounds */
+.svg-icon,
+[data-svg],
+img[alt*="icon" i],
+img[alt*="logo" i],
+img[src*="icon" i],
+img[src*="logo" i],
+img[src*="Icon" i],
+img[src*="Logo" i] {
+  background: transparent !important;
+  background-color: transparent !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Fix for decorative SVG borders and patterns */
+img[src*="border" i],
+img[src*="pattern" i],
+img[src*="decorative" i],
+img[src*="Border" i],
+img[src*="Pattern" i] {
+  background: none !important;
+  background-color: transparent !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Ensure logo and branding SVGs are transparent */
+.logo img,
+.brand img,
+.header img[src$=".svg"],
+.footer img[src$=".svg"],
+nav img[src$=".svg"],
+.navbar img[src$=".svg"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Target specific Nikah Sufiyana SVG assets */
+img[src*="Nikah-Sufiyana"],
+img[src*="sufiyana"],
+img[src*="border"],
+img[src*="Elite"],
+img[src*="Premium"],
+img[src*="Standard"],
+img[src*="Spark"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  filter: none !important;
+}
+
+/* Force transparent background on all decorative elements */
+.decorative,
+.border-element,
+.pattern-element {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Override any possible background properties from other styles */
+img {
+  &[src$=".svg"], &[src*=".svg"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+  }
+}
+
+/* Image Optimization and Error Prevention */
+/* Ensure all images render properly without console errors */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Prevent broken image icons from showing */
+img[src=""],
+img:not([src]),
+img[src="undefined"],
+img[src="null"] {
+  display: none !important;
+}
+
+/* Next.js Image component optimizations */
+img[data-nimg] {
+  background: transparent !important;
+}
+
+/* Profile image containers */
+.profile-image-container {
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Loading placeholder styling */
+.image-loading-placeholder {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Ensure fallback UI is accessible and attractive */
+.image-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+}
+
+.image-fallback svg {
+  opacity: 0.6;
+}
+
+/* Mobile-specific image optimizations */
+@media (max-width: 768px) {
+  .profile-image-container {
+    max-height: 200px;
+  }
+  
+  img[data-nimg] {
+    object-fit: cover;
+    object-position: center top;
+  }
+}
