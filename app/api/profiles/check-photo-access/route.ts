@@ -73,6 +73,15 @@ export async function GET(request: NextRequest) {
       }, { status: 404 })
     }
     
+    // Check if the profile has showPhotos set to true, in which case we can grant access immediately
+    const showPhotos = targetUser.showPhotos === 'true';
+    if (showPhotos) {
+      return NextResponse.json({ 
+        hasPhotoAccess: true,
+        reason: "Profile owner allows photos to be viewed by all members"
+      });
+    }
+    
     // Find interest where current user sent interest to target user and it was accepted
     const interestKeys = await redis.keys(`interest:*`)
     let relevantInterest: RedisInterest | null = null

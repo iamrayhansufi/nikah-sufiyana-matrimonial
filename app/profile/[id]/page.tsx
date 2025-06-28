@@ -160,11 +160,10 @@ export default function ProfilePage({
         const data = await response.json()
         setPhotoAccessInfo(data)
         
-        // Update blur state based on photo access
-        if (data.hasPhotoAccess && profile?.showPhotos !== false) {
+        // We'll only modify photo visibility here if we explicitly have access
+        // Otherwise let the interest check logic handle it
+        if (data.hasPhotoAccess) {
           setShouldBlurPhoto(false)
-        } else if (!data.hasPhotoAccess || profile?.showPhotos === false) {
-          setShouldBlurPhoto(true)
         }
       }
     } catch (error) {
@@ -265,11 +264,19 @@ export default function ProfilePage({
             });
             
             // Logic for photo visibility:
-            // - If showPhotos is true, photos should be visible to everyone (like browse page)
+            // - If showPhotos is true, photos should always be visible to everyone (like browse page)
             // - If showPhotos is false, photos should only be visible to approved users
-            const shouldBlurBasedOnPrivacy = !data.showPhotos && !hasApproval;
-            setShouldBlurPhoto(shouldBlurBasedOnPrivacy);
             
+            // Simple logical check - show photos if the user has showPhotos set to true
+            if (data.showPhotos === true) {
+              setShouldBlurPhoto(false);
+            } else {
+              // Otherwise, only show if the user has approval
+              const shouldBlurBasedOnPrivacy = !hasApproval;
+              setShouldBlurPhoto(shouldBlurBasedOnPrivacy);
+            }
+            
+            const shouldBlurBasedOnPrivacy = !hasApproval;
             console.log('Photo blur logic:', {
               showPhotos: data.showPhotos,
               hasApproval,

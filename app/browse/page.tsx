@@ -724,9 +724,9 @@ export default function BrowseProfilesPage() {
           // Skip if profile doesn't have ID
           if (!profile.id) continue;
           
-          // Check the profile's privacy settings - if showPhotos is false, protect photos
+          // Check the profile's privacy settings - if showPhotos is explicitly false, protect photos
           // Default to true if not specified (backward compatibility)
-          const showPhotos = profile.showPhotos !== false;
+          const showPhotos = profile.showPhotos === false ? false : true;
           
           // If photos are disabled by the profile owner, blur them immediately
           if (!showPhotos) {
