@@ -299,11 +299,11 @@ export default function BrowseProfilesPage() {
     }
   };
 
-  // Robust image component with zero console errors
+  // Enhanced image component with proper secure image handling
   const ProfileImage = ({ profile, viewMode }: { profile: Profile, viewMode: string }) => {
     const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
     
-    // Pre-validate image URL to prevent any attempts to load invalid URLs
+    // Get and validate image source with comprehensive error handling
     const getValidImageSrc = () => {
       // If this profile has already failed, don't try again
       if (imageErrors.has(profile.id)) {
@@ -318,7 +318,7 @@ export default function BrowseProfilesPage() {
           rawSrc === "undefined" || 
           rawSrc === "null" || 
           rawSrc.trim() === "" ||
-          rawSrc === "/placeholder-user.jpg") { // Don't load placeholder recursively
+          rawSrc === "/placeholder-user.jpg") {
         return null;
       }
       
@@ -341,7 +341,7 @@ export default function BrowseProfilesPage() {
 
     const validImageSrc = getValidImageSrc();
     
-    // If no valid image source, show fallback immediately without attempting to load
+    // If no valid image source, show fallback immediately
     if (!validImageSrc) {
       return (
         <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
@@ -361,8 +361,12 @@ export default function BrowseProfilesPage() {
     }
 
     // Handle image load error - never retry to prevent console spam
-    const handleImageLoadError = () => {
-      // Mark this profile as having failed images
+    const handleImageLoadError = (event: any) => {
+      // Check if this is a secure image API error
+      if (validImageSrc.startsWith('/api/secure-image/')) {
+        console.log(`� Secure image failed for profile ${profile.id}, falling back to placeholder`);
+      }
+      
       handleImageError(profile.id);
       setImageState('error');
     };
@@ -371,7 +375,7 @@ export default function BrowseProfilesPage() {
       setImageState('loaded');
     };
 
-    // If image previously failed, show fallback
+    // If image previously failed, show attractive fallback
     if (imageState === 'error') {
       return (
         <div className={`relative w-full ${viewMode === "grid" ? "h-80" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
@@ -383,7 +387,7 @@ export default function BrowseProfilesPage() {
                 </svg>
               </div>
               <p className="text-sm text-gray-700 font-medium mb-1">{profile.name}</p>
-              <p className="text-xs text-gray-500">Photo not available</p>
+              <p className="text-xs text-gray-500">Photo protected</p>
             </div>
           </div>
         </div>
@@ -400,18 +404,30 @@ export default function BrowseProfilesPage() {
             </div>
           </div>
         )}
-        <Image
-          src={validImageSrc}
-          alt={`${profile.name} profile photo`}
-          fill
-          className={`object-cover object-top transition-opacity duration-300 ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'} rounded-lg`}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          priority={false}
-          loading="lazy"
-          onError={handleImageLoadError}
-          onLoad={handleImageLoad}
-          unoptimized={validImageSrc.startsWith('http')} // Disable optimization for external URLs
-        />
+        {/* For secure API routes, use regular img tag to avoid Next.js optimization issues */}
+        {validImageSrc.startsWith('/api/') ? (
+          <img
+            src={validImageSrc}
+            alt={`${profile.name} profile photo`}
+            className={`w-full h-full object-cover object-top transition-opacity duration-300 ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'} rounded-lg`}
+            onError={handleImageLoadError}
+            onLoad={handleImageLoad}
+            loading="lazy"
+          />
+        ) : (
+          <Image
+            src={validImageSrc}
+            alt={`${profile.name} profile photo`}
+            fill
+            className={`object-cover object-top transition-opacity duration-300 ${imageState === 'loaded' ? 'opacity-100' : 'opacity-0'} rounded-lg`}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={false}
+            loading="lazy"
+            onError={handleImageLoadError}
+            onLoad={handleImageLoad}
+            unoptimized={validImageSrc.startsWith('http')}
+          />
+        )}
       </div>
     );
   };

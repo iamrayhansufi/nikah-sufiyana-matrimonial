@@ -40,7 +40,10 @@ export async function GET(
     console.log('👤 Viewer:', viewerUserId);    // Parse image ID to extract owner and type
     // Format: "profile-userId-timestamp" or "gallery-userId-index-timestamp"
     const imageIdParts = imageId.split('-');
+    console.log('🔍 Image ID parts:', imageIdParts);
+    
     if (imageIdParts.length < 3) {
+      console.log('❌ Invalid image ID format - too few parts');
       return new NextResponse('Invalid image ID format', { status: 400 });
     }
 
@@ -67,34 +70,50 @@ export async function GET(
     console.log(`🎯 Photo type: ${photoType}, Owner: ${photoOwnerUserId}`);
 
     // Check access permissions
-    const hasAccess = await canAccessUserPhotos(viewerUserId, `user:${photoOwnerUserId}`, photoType);
+    console.log('🔐 Checking access permissions...');
+    const hasAccess = await canAccessUserPhotos(viewerUserId, photoOwnerUserId, photoType);
+    console.log(`🔐 Access result: ${hasAccess}`);
     
     if (!hasAccess) {
-      console.log('🚫 Access denied for user:', viewerUserId);
+      console.log('🚫 Access denied for user:', viewerUserId, 'trying to access photos of:', photoOwnerUserId);
       return new NextResponse('Access denied - You do not have permission to view this image', { 
         status: 403,
         headers: {
           'Content-Type': 'text/plain'
         }
       });
-    }    // Generate signed URL for private image
+    }
+    
+    console.log('✅ Access granted, proceeding to fetch image...');    // Generate signed URL for private image
     const folder = photoType === 'profile' ? 'matrimonial-profiles' : 'matrimonial-gallery';
     const fullPublicId = `${folder}/${imageId}`;
     
     console.log('🔗 Generating signed URL for:', fullPublicId);
     
-    const signedUrl = generateSignedUrl(fullPublicId, {
-      width: photoType === 'profile' ? 400 : 800,
-      height: photoType === 'profile' ? 400 : 600,
-      expiresIn: 3600 // 1 hour
-    });
-
-    // Fetch the image from Cloudinary
-    const imageResponse = await fetch(signedUrl);
-    
-    if (!imageResponse.ok) {
-      console.error('❌ Failed to fetch image from Cloudinary:', imageResponse.statusText);
-      return new NextResponse('Image not found', { status: 404 });
+    let imageResponse: Response;
+    try {
+      const signedUrl = generateSignedUrl(fullPublicId, {
+        width: photoType === 'profile' ? 400 : 800,
+        height: photoType === 'profile' ? 400 : 600,
+        expiresIn: 3600 // 1 hour
+      });
+      
+      console.log('✅ Signed URL generated:', signedUrl.substring(0, 100) + '...');
+      
+      // Fetch the image from Cloudinary
+      console.log('📥 Fetching image from Cloudinary...');
+      imageResponse = await fetch(signedUrl);
+      
+      if (!imageResponse.ok) {
+        console.error('❌ Failed to fetch image from Cloudinary:', imageResponse.status, imageResponse.statusText);
+        return new NextResponse('Image not found', { status: 404 });
+      }
+      
+      console.log('✅ Image fetched successfully from Cloudinary');
+      
+    } catch (error) {
+      console.error('❌ Error generating signed URL or fetching image:', error);
+      return new NextResponse('Error processing image', { status: 500 });
     }
 
     const imageBuffer = await imageResponse.arrayBuffer();
