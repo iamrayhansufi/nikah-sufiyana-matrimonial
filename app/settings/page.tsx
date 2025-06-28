@@ -26,12 +26,7 @@ interface UserSettings {
   language: string
   profileVisibility: string
   photoPrivacy: string
-  showContactInfo: boolean
-  emailNotifications: boolean
-  smsNotifications: boolean
-  whatsappNotifications: boolean
   theme: string
-  twoFactorEnabled: boolean
 }
 
 interface PasswordData {
@@ -53,12 +48,7 @@ export default function SettingsPage() {
     language: 'english',
     profileVisibility: 'all',
     photoPrivacy: 'all',
-    showContactInfo: true,
-    emailNotifications: true,
-    smsNotifications: true,
-    whatsappNotifications: true,
-    theme: 'system',
-    twoFactorEnabled: false
+    theme: 'system'
   })
   
   const [passwordData, setPasswordData] = useState<PasswordData>({
@@ -189,31 +179,6 @@ export default function SettingsPage() {
     }
   }
 
-  const handleNotificationUpdate = async (type: keyof UserSettings, enabled: boolean) => {
-    try {
-      const response = await fetch('/api/settings/notifications', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [type]: enabled })
-      })
-
-      if (response.ok) {
-        setSettings(prev => ({ ...prev, [type]: enabled }))
-        toast({
-          title: "Success",
-          description: "Notification settings updated.",
-        })
-      }
-    } catch (error) {
-      console.error('Error updating notifications:', error)
-      toast({
-        title: "Error",
-        description: "Failed to update notification settings.",
-        variant: "destructive"
-      })
-    }
-  }
-
   const handlePrivacyUpdate = async (field: keyof UserSettings, value: any) => {
     try {
       const response = await fetch('/api/settings/privacy', {
@@ -289,7 +254,7 @@ export default function SettingsPage() {
           <h1 className={`${playfair.className} text-3xl font-semibold text-center mb-8`}>Account Settings</h1>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="account" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Account
@@ -298,17 +263,13 @@ export default function SettingsPage() {
                 <Shield className="h-4 w-4" />
                 Security
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell className="h-4 w-4" />
-                Notifications
-              </TabsTrigger>
               <TabsTrigger value="privacy" className="flex items-center gap-2">
                 <Eye className="h-4 w-4" />
                 Privacy
               </TabsTrigger>
-              <TabsTrigger value="danger" className="flex items-center gap-2">
+              <TabsTrigger value="delete" className="flex items-center gap-2">
                 <Trash2 className="h-4 w-4" />
-                Danger Zone
+                Delete Account
               </TabsTrigger>
             </TabsList>
 
@@ -437,78 +398,6 @@ export default function SettingsPage() {
                   </Button>
                 </CardContent>
               </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Two-Factor Authentication</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Two-Factor Authentication</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Add an extra layer of security to your account
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {settings.twoFactorEnabled && <Badge variant="secondary">Enabled</Badge>}
-                      <Switch 
-                        checked={settings.twoFactorEnabled}
-                        onCheckedChange={(checked) => handleAccountUpdate('twoFactorEnabled', checked)}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Notifications Tab */}
-            <TabsContent value="notifications" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notification Preferences</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Email Notifications</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Receive updates via email
-                      </div>
-                    </div>
-                    <Switch 
-                      checked={settings.emailNotifications}
-                      onCheckedChange={(checked) => handleNotificationUpdate('emailNotifications', checked)}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>SMS Notifications</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Receive updates via SMS
-                      </div>
-                    </div>
-                    <Switch 
-                      checked={settings.smsNotifications}
-                      onCheckedChange={(checked) => handleNotificationUpdate('smsNotifications', checked)}
-                    />
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>WhatsApp Notifications</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Receive updates via WhatsApp
-                      </div>
-                    </div>
-                    <Switch 
-                      checked={settings.whatsappNotifications}
-                      onCheckedChange={(checked) => handleNotificationUpdate('whatsappNotifications', checked)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
 
             {/* Privacy Tab */}
@@ -561,39 +450,32 @@ export default function SettingsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Contact Information</Label>
-                      <div className="text-sm text-muted-foreground">
-                        Show contact details to matched profiles
-                      </div>
-                    </div>
-                    <Switch 
-                      checked={settings.showContactInfo}
-                      onCheckedChange={(checked) => handlePrivacyUpdate('showContactInfo', checked)}
-                    />
-                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            {/* Danger Zone Tab */}
-            <TabsContent value="danger" className="space-y-6">
+            {/* Delete Account Tab */}
+            <TabsContent value="delete" className="space-y-6">
               <Card className="border-destructive">
                 <CardHeader>
-                  <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                  <CardTitle className="text-destructive">Delete Account</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4">
-                    <h3 className="font-semibold text-destructive">Delete Account</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Once you delete your account, there is no going back. This action cannot be undone.
+                  <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-6">
+                    <h3 className="font-semibold text-destructive mb-2">Permanently Delete Your Account</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Once you delete your account, there is no going back. This action cannot be undone and will permanently remove:
                     </p>
+                    <ul className="text-sm text-muted-foreground mb-4 space-y-1">
+                      <li>• Your profile and all personal information</li>
+                      <li>• All photos and documents</li>
+                      <li>• Message history and connections</li>
+                      <li>• Subscription and payment history</li>
+                    </ul>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="mt-3">
-                          Delete My Account
+                        <Button variant="destructive" size="lg">
+                          Delete My Account Permanently
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
@@ -601,7 +483,8 @@ export default function SettingsPage() {
                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                           <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete your account
-                            and remove your data from our servers.
+                            and remove all your data from our servers including your profile, photos,
+                            messages, and subscription details.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -610,7 +493,7 @@ export default function SettingsPage() {
                             onClick={handleDeleteAccount}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
-                            Yes, delete my account
+                            Yes, delete my account permanently
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>

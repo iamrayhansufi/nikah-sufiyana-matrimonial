@@ -30,8 +30,7 @@ export async function PUT(request: NextRequest) {
       'phone', 
       'whatsappNumber', 
       'language', 
-      'theme', 
-      'twoFactorEnabled'
+      'theme'
     ]
 
     const updates: Record<string, string> = {}

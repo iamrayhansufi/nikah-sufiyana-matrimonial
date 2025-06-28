@@ -60,8 +60,7 @@ export async function PUT(request: NextRequest) {
     // New settings format (for settings page)
     const allowedFields = {
       'profileVisibility': ['all', 'premium', 'matches'],
-      'photoPrivacy': ['all', 'premium', 'matches'],
-      'showContactInfo': ['true', 'false']
+      'photoPrivacy': ['all', 'premium', 'matches']
     };
 
     for (const [key, value] of Object.entries(updateData)) {
@@ -69,10 +68,7 @@ export async function PUT(request: NextRequest) {
         const validValues = allowedFields[key as keyof typeof allowedFields];
         const stringValue = String(value);
         
-        if (key === 'showContactInfo') {
-          const boolValue = value === true || value === 'true';
-          updates[key] = String(boolValue);
-        } else if (validValues.includes(stringValue)) {
+        if (validValues.includes(stringValue)) {
           updates[key] = stringValue;
         } else {
           return NextResponse.json({ 

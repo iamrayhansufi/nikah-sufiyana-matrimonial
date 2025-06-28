@@ -31,12 +31,7 @@ export async function GET(request: NextRequest) {
       language: userData.language || 'english',
       profileVisibility: userData.profileVisibility || 'all',
       photoPrivacy: userData.photoPrivacy || 'all',
-      showContactInfo: userData.showContactInfo === 'true' || userData.showContactInfo === true,
-      emailNotifications: userData.emailNotifications === 'true' || userData.emailNotifications === true || userData.emailNotifications === undefined,
-      smsNotifications: userData.smsNotifications === 'true' || userData.smsNotifications === true || userData.smsNotifications === undefined,
-      whatsappNotifications: userData.whatsappNotifications === 'true' || userData.whatsappNotifications === true || userData.whatsappNotifications === undefined,
-      theme: userData.theme || 'system',
-      twoFactorEnabled: userData.twoFactorEnabled === 'true' || userData.twoFactorEnabled === true
+      theme: userData.theme || 'system'
     }
 
     return NextResponse.json(userSettings, { status: 200 })
