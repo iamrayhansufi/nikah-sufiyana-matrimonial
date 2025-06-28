@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 import { playfair } from "../lib/fonts"
@@ -14,7 +14,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Eye, EyeOff, Lock, Shield, Check } from "lucide-react"
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -300,4 +300,29 @@ export default function ResetPasswordPage() {
       <Footer />
     </div>
   )
-} 
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-cream-bg">
+      <Header />
+      <div className="container mx-auto px-4 py-16">
+        <div className="max-w-md mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ResetPasswordContent />
+    </Suspense>
+  )
+}
