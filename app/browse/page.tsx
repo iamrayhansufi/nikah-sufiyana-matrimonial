@@ -144,44 +144,144 @@ export default function BrowseProfilesPage() {
   // Import the DataLimitWarning component
   const { DataLimitWarning } = require('@/components/ui/data-limit-warning');
   
-  // Helper function to calculate match percentage based on user preferences
+  // State to track current user's preferences for smart matching
+  const [userPreferences, setUserPreferences] = useState<any>(null);
+
+  // Fetch current user's preferences
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchUserPreferences();
+    }
+  }, [session?.user?.id]);
+
+  const fetchUserPreferences = async () => {
+    try {
+      const response = await fetch(`/api/profiles/${session?.user?.id}`);
+      if (response.ok) {
+        const userData = await response.json();
+        setUserPreferences(userData);
+      }
+    } catch (error) {
+      console.error("Error fetching user preferences:", error);
+    }
+  };
+
+  // Enhanced smart matching algorithm based on user preferences
   const calculateMatchPercentage = (profile: Profile): number => {
     if (!session?.user) return Math.floor(Math.random() * 30) + 70; // Random 70-99% for non-logged users
     
     let matchScore = 0;
     let totalCriteria = 0;
-    
-    // Simplified matching logic without accessing session.user properties that don't exist
-    // In a real implementation, you would fetch the current user's preferences from the database
-    
-    // Age preference (weight: 20%) - using a reasonable default
-    const ageDiff = Math.abs(profile.age - 28); // Default age preference
-    if (ageDiff <= 3) matchScore += 20;
-    else if (ageDiff <= 5) matchScore += 15;
-    else if (ageDiff <= 10) matchScore += 10;
-    totalCriteria += 20;
-    
-    // Education level (weight: 15%)
-    if (profile.education) matchScore += 15;
-    totalCriteria += 15;
-    
-    // Sect/Maslak matching (weight: 25%)
-    if (profile.sect) matchScore += 25;
+
+    // Age preference matching (weight: 25%)
+    if (userPreferences?.preferredAgeMin && userPreferences?.preferredAgeMax) {
+      const minAge = parseInt(userPreferences.preferredAgeMin);
+      const maxAge = parseInt(userPreferences.preferredAgeMax);
+      if (profile.age >= minAge && profile.age <= maxAge) {
+        matchScore += 25;
+      } else {
+        // Partial score for being close to range
+        const ageDiff = Math.min(
+          Math.abs(profile.age - minAge),
+          Math.abs(profile.age - maxAge)
+        );
+        if (ageDiff <= 2) matchScore += 15;
+        else if (ageDiff <= 5) matchScore += 8;
+      }
+    } else {
+      // Fallback: reasonable age compatibility
+      const currentUserAge = userPreferences?.age ? parseInt(userPreferences.age) : 28;
+      const ageDiff = Math.abs(profile.age - currentUserAge);
+      if (ageDiff <= 3) matchScore += 20;
+      else if (ageDiff <= 5) matchScore += 15;
+      else if (ageDiff <= 8) matchScore += 10;
+    }
     totalCriteria += 25;
-    
-    // Profession compatibility (weight: 10%)
-    if (profile.profession) matchScore += 10;
+
+    // Sect/Maslak matching (weight: 30% - most important for Islamic matrimony)
+    if (userPreferences?.preferredMaslak && profile.sect) {
+      if (userPreferences.preferredMaslak === profile.sect || 
+          userPreferences.preferredMaslak === 'no-preference') {
+        matchScore += 30;
+      } else if (userPreferences.preferredMaslak === 'other') {
+        matchScore += 20; // Partial match for "other"
+      }
+    } else if (userPreferences?.sect && profile.sect) {
+      // If no preferred sect specified, match with user's own sect
+      if (userPreferences.sect === profile.sect) {
+        matchScore += 25;
+      }
+    } else {
+      matchScore += 15; // Default score if sect info is incomplete
+    }
+    totalCriteria += 30;
+
+    // Education level matching (weight: 15%)
+    if (userPreferences?.preferredEducation && profile.education) {
+      const preferredEd = userPreferences.preferredEducation.toLowerCase();
+      const profileEd = profile.education.toLowerCase();
+      
+      if (preferredEd.includes('any') || profileEd.includes(preferredEd) || 
+          preferredEd.includes(profileEd)) {
+        matchScore += 15;
+      } else {
+        matchScore += 8; // Partial score for having education
+      }
+    } else if (profile.education) {
+      matchScore += 10; // Default score for having education
+    }
+    totalCriteria += 15;
+
+    // Location preference matching (weight: 10%)
+    if (userPreferences?.preferredLocation && (profile.city || profile.location)) {
+      const preferredLoc = userPreferences.preferredLocation.toLowerCase();
+      const profileLoc = (profile.city || profile.location || '').toLowerCase();
+      
+      if (profileLoc.includes(preferredLoc) || preferredLoc.includes(profileLoc)) {
+        matchScore += 10;
+      } else {
+        matchScore += 5; // Partial score for having location
+      }
+    } else if (userPreferences?.city && profile.city) {
+      // Match with user's own city if no preference specified
+      if (userPreferences.city.toLowerCase() === profile.city.toLowerCase()) {
+        matchScore += 8;
+      }
+    } else if (profile.city || profile.location) {
+      matchScore += 5; // Default score for having location
+    }
     totalCriteria += 10;
-    
-    // Marital status preference (weight: 15%)
-    if (profile.maritalStatus === 'never-married') matchScore += 15;
-    else if (profile.maritalStatus) matchScore += 10;
-    totalCriteria += 15;
-    
-    // Location bonus (weight: 15%)
-    if (profile.country || profile.city) matchScore += 15;
-    totalCriteria += 15;
-    
+
+    // Profession preference matching (weight: 10%)
+    if (userPreferences?.preferredOccupation && profile.profession) {
+      const preferredProf = userPreferences.preferredOccupation.toLowerCase();
+      const profileProf = profile.profession.toLowerCase();
+      
+      if (profileProf.includes(preferredProf) || preferredProf.includes(profileProf)) {
+        matchScore += 10;
+      } else {
+        matchScore += 5; // Partial score for having profession
+      }
+    } else if (profile.profession) {
+      matchScore += 6; // Default score for having profession
+    }
+    totalCriteria += 10;
+
+    // Marital status preference matching (weight: 10%)
+    if (userPreferences?.maritalPreferences && profile.maritalStatus) {
+      if (userPreferences.maritalPreferences === 'any' || 
+          userPreferences.maritalPreferences === profile.maritalStatus) {
+        matchScore += 10;
+      } else {
+        matchScore += 5; // Partial score for compatibility
+      }
+    } else if (profile.maritalStatus === 'never-married') {
+      matchScore += 8; // Default preference for never married
+    } else if (profile.maritalStatus) {
+      matchScore += 6;
+    }
+    totalCriteria += 10;
+
     // Calculate percentage
     const percentage = Math.round((matchScore / totalCriteria) * 100);
     
@@ -220,6 +320,7 @@ export default function BrowseProfilesPage() {
     fetchProfiles(nextPage, false); // false means append to existing profiles
   };
       
+  // Enhanced fetch profiles with smart filtering
   const fetchProfiles = (page: number = 1, replaceProfiles: boolean = true) => {
       setLoading(replaceProfiles)
       if (!replaceProfiles) setLoadingMore(true)
@@ -275,13 +376,58 @@ export default function BrowseProfilesPage() {
     params.append("limit", "20"); // Further reduce limit to save data transfer
     params.append("sortBy", sortBy);
     
-    if (filters.ageMin) params.append("ageMin", filters.ageMin);
-    if (filters.ageMax) params.append("ageMax", filters.ageMax);
-    if (filters.country) params.append("country", filters.country);
-    if (filters.city) params.append("city", filters.city);
+    // Smart gender filtering based on current user's gender
+    if (session?.user && userPreferences?.gender) {
+      // If user is male, show female profiles; if user is female, show male profiles
+      const targetGender = userPreferences.gender === 'male' ? 'female' : 'male';
+      params.append("gender", targetGender);
+    } else if (filters.gender) {
+      // Use manual filter if set
+      params.append("gender", filters.gender);
+    }
+    
+    // Apply user preference-based filtering automatically
+    if (userPreferences) {
+      // Auto-apply age range from user preferences if not manually filtered
+      if (!filters.ageMin && !filters.ageMax && userPreferences.preferredAgeMin && userPreferences.preferredAgeMax) {
+        params.append("ageMin", userPreferences.preferredAgeMin);
+        params.append("ageMax", userPreferences.preferredAgeMax);
+      } else {
+        if (filters.ageMin) params.append("ageMin", filters.ageMin);
+        if (filters.ageMax) params.append("ageMax", filters.ageMax);
+      }
+      
+      // Auto-apply sect preference if not manually filtered
+      if (!filters.sect && userPreferences.preferredMaslak && userPreferences.preferredMaslak !== 'no-preference') {
+        params.append("sect", userPreferences.preferredMaslak);
+      } else if (filters.sect) {
+        params.append("sect", filters.sect);
+      }
+      
+      // Auto-apply location preference if not manually filtered
+      if (!filters.city && !filters.country && userPreferences.preferredLocation) {
+        // Try to split preferred location into city/country
+        const locationParts = userPreferences.preferredLocation.split(',');
+        if (locationParts.length > 1) {
+          params.append("city", locationParts[0].trim());
+        } else {
+          params.append("location", userPreferences.preferredLocation);
+        }
+      } else {
+        if (filters.country) params.append("country", filters.country);
+        if (filters.city) params.append("city", filters.city);
+      }
+    } else {
+      // Apply manual filters
+      if (filters.ageMin) params.append("ageMin", filters.ageMin);
+      if (filters.ageMax) params.append("ageMax", filters.ageMax);
+      if (filters.country) params.append("country", filters.country);
+      if (filters.city) params.append("city", filters.city);
+      if (filters.sect) params.append("sect", filters.sect);
+    }
+    
+    // Always apply manual filters for education, profession, marital status, housing
     if (filters.education) params.append("education", filters.education);
-    if (filters.sect) params.append("sect", filters.sect);
-    if (filters.gender) params.append("gender", filters.gender);
     if (filters.maritalStatus) params.append("maritalStatus", filters.maritalStatus);
     if (filters.profession) params.append("profession", filters.profession);
     if (filters.housing) params.append("housing", filters.housing);
@@ -294,7 +440,7 @@ export default function BrowseProfilesPage() {
     }
     
     // Log the API request for debugging
-    console.log(`Fetching profiles with params: ${params.toString()}`);
+    console.log(`Fetching profiles with smart filtering: ${params.toString()}`);
     
     fetch(`/api/profiles?${params.toString()}`)
         .then(res => {
@@ -950,6 +1096,69 @@ export default function BrowseProfilesPage() {
       </div>
     </div>
   )
+  
+  // Smart filtering indicator component
+  const SmartFilteringIndicator = () => {
+    if (!session?.user || !userPreferences) return null;
+
+    const appliedFilters = [];
+    
+    // Check which smart filters are being applied
+    if (userPreferences.gender) {
+      const targetGender = userPreferences.gender === 'male' ? 'Female' : 'Male';
+      appliedFilters.push(`Showing ${targetGender} profiles`);
+    }
+    
+    if (!filters.ageMin && !filters.ageMax && userPreferences.preferredAgeMin && userPreferences.preferredAgeMax) {
+      appliedFilters.push(`Age: ${userPreferences.preferredAgeMin}-${userPreferences.preferredAgeMax} years`);
+    }
+    
+    if (!filters.sect && userPreferences.preferredMaslak && userPreferences.preferredMaslak !== 'no-preference') {
+      appliedFilters.push(`Sect: ${formatToTitleCase(userPreferences.preferredMaslak)}`);
+    }
+    
+    if (!filters.city && !filters.country && userPreferences.preferredLocation) {
+      appliedFilters.push(`Location: ${userPreferences.preferredLocation}`);
+    }
+
+    if (appliedFilters.length === 0) return null;
+
+    return (
+      <div className="mb-4 p-3 bg-royal-primary/10 border border-royal-primary/20 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="h-4 w-4 text-royal-primary" />
+          <span className="text-sm font-medium text-royal-primary">Smart Filtering Active</span>
+        </div>
+        <p className="text-sm text-gray-600">
+          Showing profiles based on your preferences: {appliedFilters.join(' • ')}
+        </p>
+        <button 
+          onClick={() => {
+            // Reset to show all profiles
+            setFilters({
+              ageRange: [18, 45],
+              country: "",
+              city: "",
+              education: "",
+              profession: "",
+              sect: "",
+              ageMin: "",
+              ageMax: "",
+              heightMin: "",
+              heightMax: "",
+              maritalStatus: "",
+              housing: "",
+              gender: ""
+            });
+          }}
+          className="text-xs text-royal-primary hover:underline mt-1"
+        >
+          Show all profiles
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-royal-gradient">
       <Header />
@@ -1054,6 +1263,9 @@ export default function BrowseProfilesPage() {
                 </Select>
               </div>
             </div>
+
+            {/* Smart Filtering Indicator */}
+            <SmartFilteringIndicator />
 
             {/* Profiles Grid/List */}
             {loading ? (

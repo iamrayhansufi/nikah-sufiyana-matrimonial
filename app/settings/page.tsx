@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { Bell, Lock, Eye, Globe, Moon, Sun, Smartphone, User, Shield, Trash2, Save, RotateCcw } from "lucide-react"
 import { playfair } from "../lib/fonts"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage, SUPPORTED_LANGUAGES } from "@/lib/language-context"
 
 interface UserSettings {
   email: string
@@ -39,6 +40,7 @@ export default function SettingsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { toast } = useToast()
+  const { currentLanguage, setLanguage: changeLanguage } = useLanguage()
   
   const [loading, setLoading] = useState(false)
   const [settings, setSettings] = useState<UserSettings>({
@@ -312,17 +314,21 @@ export default function SettingsPage() {
                   <div>
                     <Label htmlFor="language">Language</Label>
                     <Select 
-                      value={settings.language} 
-                      onValueChange={(value) => handleAccountUpdate('language', value)}
+                      value={currentLanguage} 
+                      onValueChange={(value) => {
+                        changeLanguage(value as keyof typeof SUPPORTED_LANGUAGES)
+                        handleAccountUpdate('language', value)
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select language" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="english">English</SelectItem>
-                        <SelectItem value="urdu">Urdu</SelectItem>
-                        <SelectItem value="hindi">Hindi</SelectItem>
-                        <SelectItem value="arabic">Arabic</SelectItem>
+                        {Object.entries(SUPPORTED_LANGUAGES).map(([code, lang]) => (
+                          <SelectItem key={code} value={code}>
+                            {lang.flag} {lang.native}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

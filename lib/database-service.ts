@@ -150,12 +150,27 @@ export const database = {
       // Get all users
       for (const userId of userIds) {
         const user = await redis.hgetall(`user:${userId}`);
-        if (user) allUsers.push(user);
+        if (user && Object.keys(user).length > 0) {
+          allUsers.push(user);
+        }
       }
         
       // Filter users based on search criteria
       let filteredUsers = [...allUsers];
       
+      // Filter by approved profiles only
+      filteredUsers = filteredUsers.filter(user => 
+        !user.profileStatus || user.profileStatus === 'approved'
+      );
+      
+      // Gender filtering (most important for matrimonial)
+      if (searchParams.gender) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.gender === searchParams.gender
+        );
+      }
+      
+      // Age filtering with improved logic
       if (searchParams.ageMin && searchParams.ageMax) {
         filteredUsers = filteredUsers.filter(user => {
           const age = parseInt(String(user.age || '0'));
@@ -163,38 +178,107 @@ export const database = {
             age >= parseInt(searchParams.ageMin) && 
             age <= parseInt(searchParams.ageMax);
         });
+      } else if (searchParams.ageMin) {
+        filteredUsers = filteredUsers.filter(user => {
+          const age = parseInt(String(user.age || '0'));
+          return !isNaN(age) && age >= parseInt(searchParams.ageMin);
+        });
+      } else if (searchParams.ageMax) {
+        filteredUsers = filteredUsers.filter(user => {
+          const age = parseInt(String(user.age || '0'));
+          return !isNaN(age) && age <= parseInt(searchParams.ageMax);
+        });
       }
       
+      // Location filtering with improved matching
       if (searchParams.location) {
-        filteredUsers = filteredUsers.filter(user => 
-          user.location && String(user.location).toLowerCase().includes(searchParams.location.toLowerCase())
-        );
+        filteredUsers = filteredUsers.filter(user => {
+          const location = String(user.location || '').toLowerCase();
+          const city = String(user.city || '').toLowerCase();
+          const country = String(user.country || '').toLowerCase();
+          const searchLoc = searchParams.location.toLowerCase();
+          
+          return location.includes(searchLoc) || 
+                 city.includes(searchLoc) || 
+                 country.includes(searchLoc) ||
+                 searchLoc.includes(location) ||
+                 searchLoc.includes(city);
+        });
       }
       
+      if (searchParams.city) {
+        filteredUsers = filteredUsers.filter(user => {
+          const city = String(user.city || '').toLowerCase();
+          const searchCity = searchParams.city.toLowerCase();
+          return city.includes(searchCity) || searchCity.includes(city);
+        });
+      }
+      
+      if (searchParams.country) {
+        filteredUsers = filteredUsers.filter(user => {
+          const country = String(user.country || '').toLowerCase();
+          const searchCountry = searchParams.country.toLowerCase();
+          return country.includes(searchCountry) || searchCountry.includes(country);
+        });
+      }
+      
+      // Education filtering with flexible matching
       if (searchParams.education) {
-        filteredUsers = filteredUsers.filter(user => 
-          user.education === searchParams.education
-        );
+        filteredUsers = filteredUsers.filter(user => {
+          if (!user.education) return false;
+          const education = String(user.education).toLowerCase();
+          const searchEd = searchParams.education.toLowerCase();
+          
+          // Exact match or contains matching
+          return education === searchEd || 
+                 education.includes(searchEd) ||
+                 searchEd.includes(education);
+        });
       }
       
+      // Profession filtering
       if (searchParams.profession) {
-        filteredUsers = filteredUsers.filter(user => 
-          user.profession === searchParams.profession
-        );
+        filteredUsers = filteredUsers.filter(user => {
+          if (!user.profession) return false;
+          const profession = String(user.profession).toLowerCase();
+          const searchProf = searchParams.profession.toLowerCase();
+          
+          return profession.includes(searchProf) || searchProf.includes(profession);
+        });
       }
       
+      // Sect/Maslak filtering (very important for Islamic matrimony)
       if (searchParams.sect) {
         filteredUsers = filteredUsers.filter(user => 
           user.sect === searchParams.sect
         );
       }
       
+      // Marital status filtering
       if (searchParams.maritalStatus) {
         filteredUsers = filteredUsers.filter(user => 
           user.maritalStatus === searchParams.maritalStatus
         );
       }
       
+      // Height filtering (if provided)
+      if (searchParams.heightMin) {
+        filteredUsers = filteredUsers.filter(user => {
+          if (!user.height) return false;
+          // Convert height to comparable format (assuming format like "5'6\"" or "170cm")
+          const height = String(user.height);
+          // For now, just check if height exists - could be enhanced with proper height parsing
+          return true; // Placeholder - implement height comparison logic if needed
+        });
+      }
+      
+      // Housing filtering
+      if (searchParams.housing) {
+        filteredUsers = filteredUsers.filter(user => 
+          user.housing === searchParams.housing || user.housingStatus === searchParams.housing
+        );
+      }
+
       // Apply pagination
       const page = parseInt(searchParams.page || '1');
       const limit = parseInt(searchParams.limit || '10');
@@ -271,11 +355,23 @@ export const database = {
         match: 85 + Math.floor(Math.random() * 15), // Random match 85-99% for now
       }));
       
-      // Apply sorting
+      // Apply sorting with smart prioritization
       let sortedProfiles = [...profiles];
       switch (sortBy) {
         case 'match':
-          sortedProfiles.sort((a, b) => (b.match || 0) - (a.match || 0));
+          // Smart match sorting: prioritize compatible gender profiles with higher match scores
+          sortedProfiles.sort((a, b) => {
+            // First, prioritize gender compatibility
+            const aGenderScore = this.getGenderCompatibilityScore(a, searchParams);
+            const bGenderScore = this.getGenderCompatibilityScore(b, searchParams);
+            
+            if (aGenderScore !== bGenderScore) {
+              return bGenderScore - aGenderScore;
+            }
+            
+            // Then sort by match percentage
+            return (b.match || 0) - (a.match || 0);
+          });
           break;
         case 'age':
           sortedProfiles.sort((a, b) => {
@@ -286,8 +382,8 @@ export const database = {
           break;
         case 'location':
           sortedProfiles.sort((a, b) => {
-            const locA = String(a.location || '');
-            const locB = String(b.location || '');
+            const locA = String(a.location || a.city || '');
+            const locB = String(b.location || b.city || '');
             return locA.localeCompare(locB);
           });
           break;
@@ -304,13 +400,39 @@ export const database = {
           });
           break;
         default:
-          // Keep original order
+          // Default sorting: prioritize gender compatibility, then match score
+          sortedProfiles.sort((a, b) => {
+            const aGenderScore = this.getGenderCompatibilityScore(a, searchParams);
+            const bGenderScore = this.getGenderCompatibilityScore(b, searchParams);
+            
+            if (aGenderScore !== bGenderScore) {
+              return bGenderScore - aGenderScore;
+            }
+            
+            return (b.match || 0) - (a.match || 0);
+          });
           break;
       }
         // Apply pagination
       const paginatedProfiles = sortedProfiles.slice(offset, offset + limit);
       
       return { profiles: paginatedProfiles, total };
+    },
+    
+    // Helper function to calculate gender compatibility score
+    getGenderCompatibilityScore(profile: any, searchParams: any): number {
+      // If gender filtering is applied, profiles already match the desired gender
+      if (searchParams.gender && profile.gender === searchParams.gender) {
+        return 100; // Perfect match
+      }
+      
+      // For matrimonial purposes, opposite gender gets higher priority
+      // This is a fallback in case gender filtering isn't applied
+      if (profile.gender === 'female' || profile.gender === 'male') {
+        return 50; // Good match
+      }
+      
+      return 0; // No gender info or unknown
     },
     
     async getById(profileId: string): Promise<any | null> {

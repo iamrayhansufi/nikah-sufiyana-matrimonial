@@ -22,6 +22,8 @@ import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useNotifications } from "@/hooks/notification-provider"
 import { elMessiri } from "@/app/lib/fonts"
+import { useLanguage, SUPPORTED_LANGUAGES } from "@/lib/language-context"
+import { LanguageSelector } from "@/components/language-selector"
 
 interface UserNotification {
   id: string | number;
@@ -35,13 +37,13 @@ interface UserNotification {
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false)
-  const [language, setLanguage] = useState("en")
   const [mounted, setMounted] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { data: session, status } = useSession()
   const { theme, setTheme } = useTheme()
   const router = useRouter()
-    // Use the new notifications hook
+  const { currentLanguage, setLanguage: changeLanguage, isTranslating } = useLanguage()
+  // Use the new notifications hook
   const { notifications, unreadCount, markAsRead, enableAudio } = useNotifications()
 
   const isLoggedIn = status === "authenticated" && !!session
@@ -51,16 +53,6 @@ export function Header() {
     setMounted(true)
   }, [])
 
-  useEffect(() => {
-    // Apply RTL styling for Urdu
-    if (language === "ur") {
-      document.documentElement.dir = "rtl"
-      document.documentElement.classList.add("rtl")
-    } else {
-      document.documentElement.dir = "ltr"
-      document.documentElement.classList.remove("rtl")
-    }  }, [language])
-  
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Browse Profiles", href: "/browse" },
@@ -71,7 +63,7 @@ export function Header() {
   ]
 
   const handleLanguageChange = (value: string) => {
-    setLanguage(value)
+    changeLanguage(value as keyof typeof SUPPORTED_LANGUAGES)
   }
   
   const handleLogout = async () => {
@@ -139,7 +131,7 @@ export function Header() {
                   className={`${elMessiri.className} nav-menu-item font-medium transition-all duration-300 hover:text-royal-primary relative group`}
                 >
                   <span className="relative z-10">
-                    {language === "en" ? item.name : (
+                    {currentLanguage === "en" ? item.name : (
                       <span className="font-arabic" style={{ fontFamily: "Jameel Noori Nastaleeq, serif" }}>
                         {item.name === "Home" ? "ہوم" : 
                          item.name === "Browse Profiles" ? "پروفائل دیکھیں" :
@@ -157,18 +149,7 @@ export function Header() {
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center space-x-4">
               {/* Language Selector */}
-              <Select value={language} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="w-24 h-9">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    <span className="text-xs">{language === "en" ? "EN" : "اردو"}</span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">🇺🇸 English</SelectItem>
-                  <SelectItem value="ur">Urdu اردو</SelectItem>
-                </SelectContent>
-              </Select>              <Button
+              <LanguageSelector variant="desktop" />              <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -266,11 +247,11 @@ export function Header() {
                 <>
                   <Link href="/login">
                     <Button variant="outline" className="font-body">
-                      {language === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
+                      {currentLanguage === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
                     </Button>
                   </Link>                  <Link href="/register">
                     <Button className="royal-shine-button text-white btn-hover font-body">
-                      {language === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
+                      {currentLanguage === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
                     </Button>
                   </Link>
                 </>
@@ -305,7 +286,7 @@ export function Header() {
                           className="block px-2 py-2 text-base font-medium rounded-md hover:bg-muted transition-colors"
                           onClick={() => setIsOpen(false)}
                         >
-                          {language === "en" ? item.name : (
+                          {currentLanguage === "en" ? item.name : (
                             <span className="font-arabic" style={{ fontFamily: "Jameel Noori Nastaleeq, serif" }}>
                               {item.name === "Home" ? "ہوم" : 
                               item.name === "Browse Profiles" ? "پروفائل دیکھیں" :
@@ -321,18 +302,7 @@ export function Header() {
                     {/* Language Selector */}
                     <div className="mb-6 px-2">
                       <p className="text-lg mb-2 font-medium">Language</p>
-                      <Select value={language} onValueChange={handleLanguageChange}>
-                        <SelectTrigger className="w-full">
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-4 w-4" />
-                            <span>{language === "en" ? "English" : "اردو"}</span>
-                          </div>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">🇺🇸 English</SelectItem>
-                          <SelectItem value="ur">Urdu اردو</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <LanguageSelector variant="mobile" />
                     </div>
                     
                     {/* Theme Toggle */}
@@ -379,11 +349,11 @@ export function Header() {
                         <div className="space-y-3">
                           <Link href="/login" onClick={() => setIsOpen(false)}>
                             <Button variant="outline" className="w-full font-body">
-                              {language === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
+                              {currentLanguage === "en" ? "Sign In" : <span className="font-arabic">لاگ ان</span>}
                             </Button>
                           </Link>                          <Link href="/register" onClick={() => setIsOpen(false)}>
                             <Button className="w-full royal-shine-button text-white font-body">
-                              {language === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
+                              {currentLanguage === "en" ? "Register Now" : <span className="font-arabic">رجسٹر کریں</span>}
                             </Button>
                           </Link>
                         </div>

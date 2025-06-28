@@ -11,8 +11,15 @@ type ProfileFilters = {
   ageMin?: string
   ageMax?: string
   location?: string
+  city?: string
+  country?: string
   education?: string
+  profession?: string
   sect?: string
+  maritalStatus?: string
+  housing?: string
+  heightMin?: string
+  heightMax?: string
   useDummy?: string
 }
 
@@ -39,8 +46,15 @@ export async function GET(request: NextRequest) {
     const ageMin = searchParams.get("ageMin")
     const ageMax = searchParams.get("ageMax")
     const location = searchParams.get("location")
+    const city = searchParams.get("city")
+    const country = searchParams.get("country")
     const education = searchParams.get("education")
+    const profession = searchParams.get("profession")
     const sect = searchParams.get("sect")
+    const maritalStatus = searchParams.get("maritalStatus")
+    const housing = searchParams.get("housing")
+    const heightMin = searchParams.get("heightMin")
+    const heightMax = searchParams.get("heightMax")
     const sortBy = searchParams.get("sortBy") || "match"
 
     // Validate pagination parameters
@@ -78,8 +92,15 @@ export async function GET(request: NextRequest) {
     }
     
     if (location) filters.location = location;
+    if (city) filters.city = city;
+    if (country) filters.country = country;
     if (education) filters.education = education;
+    if (profession) filters.profession = profession;
     if (sect) filters.sect = sect;
+    if (maritalStatus) filters.maritalStatus = maritalStatus;
+    if (housing) filters.housing = housing;
+    if (heightMin) filters.heightMin = heightMin;
+    if (heightMax) filters.heightMax = heightMax;
 
     // Get profiles from database using Redis
     try {
@@ -92,8 +113,15 @@ export async function GET(request: NextRequest) {
         ageMin: filters.ageMin,
         ageMax: filters.ageMax,
         location: filters.location,
+        city: city,
+        country: country,
         education: filters.education,
+        profession: profession,
         sect: filters.sect,
+        maritalStatus: maritalStatus,
+        housing: housing,
+        heightMin: heightMin,
+        heightMax: heightMax,
         sortBy: sortBy
       };
       

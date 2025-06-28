@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { SessionProvider } from "@/components/auth/session-provider"
 import { NotificationProvider } from "@/hooks/notification-provider"
+import { LanguageProvider } from "@/lib/language-context"
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -53,12 +54,14 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${playfair.variable} ${elMessiri.variable} font-el-messiri antialiased bg-royal-gradient min-h-screen`} suppressHydrationWarning>
         <SessionProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            <NotificationProvider>
-              {children}
-              <Toaster />
-            </NotificationProvider>
-          </ThemeProvider>
+          <LanguageProvider>
+            <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+              <NotificationProvider>
+                {children}
+                <Toaster />
+              </NotificationProvider>
+            </ThemeProvider>
+          </LanguageProvider>
         </SessionProvider>
       </body>
     </html>
