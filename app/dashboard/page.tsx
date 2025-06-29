@@ -379,7 +379,7 @@ export default function DashboardPage() {
             setStats(prevStats => ({
               ...prevStats,
               interests: parsedInterests.received?.length || 0,
-              matches: parsedInterests.recent?.filter((interest: any) => interest.status === 'accepted').length || 0
+              matches: parsedInterests.accepted?.length || 0
             }));
           } else {
             // Fetch recent interests
@@ -405,8 +405,10 @@ export default function DashboardPage() {
                 status: interest.status,
                 time: formatTimeAgo(interest.createdAt),
               })))
-                // Map all received interests for the Interests Received tab (only pending ones)
+              // Map all received interests for the Interests Received tab (only pending ones)
               const pendingInterests = interests.filter((interest: any) => interest.status === 'pending');
+              const acceptedInterests = interests.filter((interest: any) => interest.status === 'accepted');
+              
               setReceivedInterests(pendingInterests.map((interest: any) => ({
                 id: interest.id,
                 name: interest.fromUser.fullName,
@@ -439,6 +441,16 @@ export default function DashboardPage() {
                   image: interest.fromUser.profilePhoto || "/placeholder.svg?height=60&width=60",
                   status: interest.status,
                   time: formatTimeAgo(interest.createdAt),
+                })),
+                accepted: acceptedInterests.map((interest: any) => ({
+                  id: interest.id,
+                  name: interest.fromUser.fullName,
+                  age: interest.fromUser.age,
+                  location: interest.fromUser.location,
+                  profession: interest.fromUser.profession,
+                  image: interest.fromUser.profilePhoto || "/placeholder.svg?height=60&width=60",
+                  status: interest.status,
+                  time: formatTimeAgo(interest.createdAt),
                 }))
               };
               sessionStorage.setItem(cachedInterestsKey, JSON.stringify(interestsToCache));
@@ -448,7 +460,7 @@ export default function DashboardPage() {
               setStats(prevStats => ({
                 ...prevStats,
                 interests: pendingInterests.length, // Count of pending received interests
-                matches: interests.filter((interest: any) => interest.status === 'accepted').length
+                matches: acceptedInterests.length // Count of accepted interests (mutual matches)
               }));
             }
             

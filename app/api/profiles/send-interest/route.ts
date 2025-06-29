@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
     }
     
     console.log('🎯 Target profile ID:', targetProfileId)
+    console.log('🎯 Original profile ID:', profileId)
 
     // Get the current user (sender)
     const userKeys = await redis.keys("user:*")
@@ -87,10 +88,18 @@ export async function POST(request: NextRequest) {
         error: "Sender user not found" 
       }, { status: 404 })
     }    // Get the target user (receiver)
-    const targetUser = await redis.hgetall(targetProfileId) as RedisUser
+    let targetUser = await redis.hgetall(targetProfileId) as RedisUser
+    
+    // If not found with user: prefix, try without it
+    if (!targetUser || !targetUser.id) {
+      const cleanProfileId = profileId.replace('user:', '');
+      targetUser = await redis.hgetall(`user:${cleanProfileId}`) as RedisUser
+      targetProfileId = `user:${cleanProfileId}`;
+    }
     
     console.log('🎯 Target user lookup:', {
       targetProfileId,
+      originalId: profileId,
       found: !!targetUser,
       id: targetUser?.id,
       email: targetUser?.email,
