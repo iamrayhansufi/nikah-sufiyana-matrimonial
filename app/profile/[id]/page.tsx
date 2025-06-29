@@ -223,18 +223,43 @@ export default function ProfilePage({
           
           if (interestRes.ok) {
             const interestData = await interestRes.json()
-              // Set interest sent status
-            if (interestData.sentInterests?.length > 0) {
-              setIsInterestSent(true)
+            
+            // Check if current user has sent interest to this specific profile
+            const sentInterestToThisProfile = interestData.sentInterests?.find((interest: any) => {
+              if (!interest || typeof interest !== 'object') return false;
+              if (!interest.receiverId) return false;
+              
+              try {
+                return interest.receiverId.toString() === id;
+              } catch (e) {
+                console.warn('Error comparing receiverId:', e, interest);
+                return false;
+              }
+            });
+            
+            if (sentInterestToThisProfile) {
+              setIsInterestSent(true);
+              console.log('Interest already sent to this profile:', sentInterestToThisProfile);
             }
             
-            // Check if mutual interest exists
-            if (interestData.receivedInterests?.length > 0) {
-              setInterestMutual(true)
+            // Check if mutual interest exists (both users have sent interest to each other)
+            const receivedInterestFromThisProfile = interestData.receivedInterests?.find((interest: any) => {
+              if (!interest || typeof interest !== 'object') return false;
+              if (!interest.senderId) return false;
+              
+              try {
+                return interest.senderId.toString() === id;
+              } catch (e) {
+                console.warn('Error comparing senderId:', e, interest);
+                return false;
+              }
+            });
+            
+            if (sentInterestToThisProfile && receivedInterestFromThisProfile) {
+              setInterestMutual(true);
             }
 
             // Check for incoming interest request (profile owner sent interest to viewing user)
-            // Add extra safety checks for senderId to prevent toString() errors
             const incomingInterest = interestData.receivedInterests?.find((interest: any) => {
               if (!interest || typeof interest !== 'object') return false;
               if (!interest.senderId) return false;
@@ -398,10 +423,27 @@ export default function ProfilePage({
     );
   }  const handleSendInterest = async () => {
     // Don't allow sending interest if already sent
-    if (isInterestSent) return
+    if (isInterestSent) {
+      toast({
+        title: "Interest Already Sent",
+        description: "You have already sent interest to this profile",
+        variant: "default"
+      });
+      return;
+    }
+    
+    // Don't allow if no session
+    if (!session?.user?.id) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to send interest",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
-      setIsInterestSent(true)
+      console.log('Sending interest to profile:', id);
       
       // Send API request to send interest
       const response = await fetch(`/api/profiles/send-interest`, {
@@ -423,6 +465,17 @@ export default function ProfilePage({
         try {
           const errorData = JSON.parse(responseText)
           errorMessage = errorData.error || errorMessage
+          
+          // If it's a duplicate interest error, update the UI state
+          if (errorMessage.includes('already sent interest')) {
+            setIsInterestSent(true);
+            toast({
+              title: "Interest Already Sent",
+              description: "You have already sent interest to this profile",
+              variant: "default"
+            });
+            return;
+          }
         } catch (e) {
           console.error('Failed to parse error response:', responseText)
         }
@@ -439,6 +492,9 @@ export default function ProfilePage({
       }
       
       const result = JSON.parse(responseText)
+      
+      // Update UI state
+      setIsInterestSent(true);
       
       // Check if it resulted in a mutual match
       if (result.isMutual) {
@@ -463,11 +519,14 @@ export default function ProfilePage({
       
     } catch (error) {
       console.error("Failed to send interest:", error)
-      setIsInterestSent(false)
+      
+      // Don't set isInterestSent to false if the error was about duplicate interest
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      if (!errorMessage.includes('already sent interest')) {
+        setIsInterestSent(false)
+      }
       
       // Show more specific error message
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      
       toast({
         title: "Error",
         description: errorMessage,
@@ -475,12 +534,12 @@ export default function ProfilePage({
       })
     }
   }
-  
+
   // Function to toggle photo visibility
   const togglePhotoVisibility = () => {
     try {
       // Toggle the blur state for immediate UI feedback
-      setShouldBlurPhoto(prevState => !prevState)
+      setShouldBlurPhoto((prevState: boolean) => !prevState)
       
       // Show toast with appropriate message based on the previous state
       toast({
@@ -494,7 +553,7 @@ export default function ProfilePage({
     } catch (error) {
       console.error("Failed to toggle photo visibility:", error)
       // Revert if there's an error
-      setShouldBlurPhoto(prevState => !prevState)
+      setShouldBlurPhoto((prevState: boolean) => !prevState)
       
       toast({
         title: "Error",
@@ -510,7 +569,8 @@ export default function ProfilePage({
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-        },        body: JSON.stringify({
+        },
+        body: JSON.stringify({
           profileId: id
         })
       });
@@ -519,7 +579,8 @@ export default function ProfilePage({
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to undo interest');
       }
-        // Update UI state
+        
+      // Update UI state
       setIsInterestSent(false);
       setInterestMutual(false);
       
@@ -537,7 +598,7 @@ export default function ProfilePage({
       console.error("Failed to undo interest:", error);
       toast({
         title: "Failed to Undo Interest",
-        description: error instanceof Error ? error.message : "Please try again.",        
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive"
       });
     }
@@ -587,6 +648,7 @@ export default function ProfilePage({
       })
     }
   }
+  
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -607,6 +669,7 @@ export default function ProfilePage({
       setShowLightbox(true)
     }
   }
+  
   // Handle accept/decline interest request
   const handleRespondToInterest = async (action: 'accept' | 'decline', duration?: string) => {
     if (!incomingInterestRequest) return;
