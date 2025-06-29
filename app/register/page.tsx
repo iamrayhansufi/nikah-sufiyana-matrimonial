@@ -65,6 +65,8 @@ interface FormData {
   preferredEducation: string;
   preferredProfession: string;
   preferredLocation: string;
+  preferredCountry: string;
+  preferredCity: string;
   housing: string;
   aboutMe: string;
   familyDetails: string;
@@ -101,6 +103,131 @@ const selectTriggerStyles = cn(
   "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
   "transition-colors focus:ring-2 focus:ring-primary/20 data-[filled=true]:bg-primary/5 data-[filled=true]:border-primary/30"
 )
+
+// Countries and their top cities data
+const COUNTRIES_CITIES = {
+  'india': {
+    name: 'India',
+    cities: [
+      { value: 'mumbai', label: 'Mumbai' },
+      { value: 'delhi', label: 'Delhi' },
+      { value: 'bangalore', label: 'Bangalore' },
+      { value: 'hyderabad', label: 'Hyderabad' },
+      { value: 'chennai', label: 'Chennai' },
+      { value: 'kolkata', label: 'Kolkata' },
+      { value: 'pune', label: 'Pune' },
+      { value: 'ahmedabad', label: 'Ahmedabad' },
+      { value: 'jaipur', label: 'Jaipur' },
+      { value: 'lucknow', label: 'Lucknow' },
+      { value: 'surat', label: 'Surat' },
+      { value: 'kanpur', label: 'Kanpur' },
+      { value: 'nagpur', label: 'Nagpur' },
+      { value: 'indore', label: 'Indore' },
+      { value: 'thane', label: 'Thane' },
+      { value: 'bhopal', label: 'Bhopal' },
+      { value: 'vadodara', label: 'Vadodara' },
+      { value: 'other', label: 'Other City' }
+    ]
+  },
+  'uae': {
+    name: 'UAE',
+    cities: [
+      { value: 'dubai', label: 'Dubai' },
+      { value: 'abu-dhabi', label: 'Abu Dhabi' },
+      { value: 'sharjah', label: 'Sharjah' },
+      { value: 'al-ain', label: 'Al Ain' },
+      { value: 'ajman', label: 'Ajman' },
+      { value: 'ras-al-khaimah', label: 'Ras Al Khaimah' },
+      { value: 'fujairah', label: 'Fujairah' },
+      { value: 'umm-al-quwain', label: 'Umm Al Quwain' },
+      { value: 'other', label: 'Other City' }
+    ]
+  },
+  'saudi-arabia': {
+    name: 'Saudi Arabia',
+    cities: [
+      { value: 'riyadh', label: 'Riyadh' },
+      { value: 'jeddah', label: 'Jeddah' },
+      { value: 'mecca', label: 'Mecca' },
+      { value: 'medina', label: 'Medina' },
+      { value: 'dammam', label: 'Dammam' },
+      { value: 'taif', label: 'Taif' },
+      { value: 'tabuk', label: 'Tabuk' },
+      { value: 'khobar', label: 'Khobar' },
+      { value: 'other', label: 'Other City' }
+    ]
+  },
+  'usa': {
+    name: 'USA',
+    cities: [
+      { value: 'new-york', label: 'New York' },
+      { value: 'los-angeles', label: 'Los Angeles' },
+      { value: 'chicago', label: 'Chicago' },
+      { value: 'houston', label: 'Houston' },
+      { value: 'phoenix', label: 'Phoenix' },
+      { value: 'philadelphia', label: 'Philadelphia' },
+      { value: 'san-antonio', label: 'San Antonio' },
+      { value: 'san-diego', label: 'San Diego' },
+      { value: 'dallas', label: 'Dallas' },
+      { value: 'san-jose', label: 'San Jose' },
+      { value: 'other', label: 'Other City' }
+    ]
+  },
+  'canada': {
+    name: 'Canada',
+    cities: [
+      { value: 'toronto', label: 'Toronto' },
+      { value: 'montreal', label: 'Montreal' },
+      { value: 'vancouver', label: 'Vancouver' },
+      { value: 'calgary', label: 'Calgary' },
+      { value: 'edmonton', label: 'Edmonton' },
+      { value: 'ottawa', label: 'Ottawa' },
+      { value: 'winnipeg', label: 'Winnipeg' },
+      { value: 'quebec-city', label: 'Quebec City' },
+      { value: 'hamilton', label: 'Hamilton' },
+      { value: 'kitchener', label: 'Kitchener' },
+      { value: 'other', label: 'Other City' }
+    ]
+  },
+  'uk': {
+    name: 'United Kingdom',
+    cities: [
+      { value: 'london', label: 'London' },
+      { value: 'birmingham', label: 'Birmingham' },
+      { value: 'manchester', label: 'Manchester' },
+      { value: 'leeds', label: 'Leeds' },
+      { value: 'glasgow', label: 'Glasgow' },
+      { value: 'liverpool', label: 'Liverpool' },
+      { value: 'edinburgh', label: 'Edinburgh' },
+      { value: 'bristol', label: 'Bristol' },
+      { value: 'cardiff', label: 'Cardiff' },
+      { value: 'coventry', label: 'Coventry' },
+      { value: 'other', label: 'Other City' }
+    ]
+  },
+  'australia': {
+    name: 'Australia',
+    cities: [
+      { value: 'sydney', label: 'Sydney' },
+      { value: 'melbourne', label: 'Melbourne' },
+      { value: 'brisbane', label: 'Brisbane' },
+      { value: 'perth', label: 'Perth' },
+      { value: 'adelaide', label: 'Adelaide' },
+      { value: 'gold-coast', label: 'Gold Coast' },
+      { value: 'newcastle', label: 'Newcastle' },
+      { value: 'canberra', label: 'Canberra' },
+      { value: 'sunshine-coast', label: 'Sunshine Coast' },
+      { value: 'wollongong', label: 'Wollongong' },
+      { value: 'other', label: 'Other City' }
+    ]
+  },
+  'other': {
+    name: 'Other',
+    cities: [
+      { value: 'other', label: 'Other City' }
+    ]
+  }
+}
 
 export default function RegisterPage() {
   const [step, setStep] = useState(0)
@@ -140,6 +267,8 @@ export default function RegisterPage() {
     preferredEducation: "",
     preferredProfession: "",
     preferredLocation: "",
+    preferredCountry: "",
+    preferredCity: "",
     location: "", // Added location field
     housing: "",
     aboutMe: "",
@@ -272,12 +401,14 @@ export default function RegisterPage() {
         {
           preferredAgeMin: formData.preferredAgeMin,
           preferredAgeMax: formData.preferredAgeMax,
-          preferredLocation: formData.preferredLocation // Add preferredLocation for validation
+          preferredCountry: formData.preferredCountry,
+          preferredCity: formData.preferredCity
         },
         {
           preferredAgeMin: "Minimum Preferred Age",
           preferredAgeMax: "Maximum Preferred Age",
-          preferredLocation: "Preferred Location" // Add label for error message
+          preferredCountry: "Preferred Country",
+          preferredCity: "Preferred City"
         }
       );
 
@@ -286,9 +417,6 @@ export default function RegisterPage() {
         if (parseInt(formData.preferredAgeMin) >= parseInt(formData.preferredAgeMax)) {
           errors.preferredAgeMax = "Maximum age should be greater than minimum age";
         }
-      }
-      if (!formData.preferredLocation.trim()) {
-        errors.preferredLocation = "Preferred location is required.";
       }
     }
 
@@ -1494,74 +1622,64 @@ export default function RegisterPage() {
                       </div>
                     </div>                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="preferredLocation">Preferred Location *</Label>
-                        {formData.country !== '' ? (
-                          <Select
-                            value={formData.preferredLocation}
-                            onValueChange={(value) => {
-                              setFormData({ ...formData, preferredLocation: value });
-                              if (fieldErrors.preferredLocation) {
-                                setFieldErrors({ ...fieldErrors, preferredLocation: "" });
-                              }
-                            }}
-                          >
-                            <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.preferredLocation && "border-red-500")} data-filled={isFieldFilled(formData.preferredLocation)}>
-                              <SelectValue placeholder="Select preferred location" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {/* Based on country selected in step 1, show relevant cities */}
-                              {formData.country === 'india' && [
-                                <SelectItem key="any-india" value="anywhere-in-india">Anywhere in India</SelectItem>,
-                                <SelectItem key="mumbai" value="mumbai">Mumbai</SelectItem>,
-                                <SelectItem key="delhi" value="delhi">Delhi</SelectItem>,
-                                <SelectItem key="bangalore" value="bangalore">Bangalore</SelectItem>,
-                                <SelectItem key="hyderabad" value="hyderabad">Hyderabad</SelectItem>,
-                                <SelectItem key="chennai" value="chennai">Chennai</SelectItem>,
-                                <SelectItem key="kolkata" value="kolkata">Kolkata</SelectItem>,
-                                <SelectItem key="pune" value="pune">Pune</SelectItem>,
-                                <SelectItem key="ahmedabad" value="ahmedabad">Ahmedabad</SelectItem>,
-                                <SelectItem key="jaipur" value="jaipur">Jaipur</SelectItem>,
-                                <SelectItem key="lucknow" value="lucknow">Lucknow</SelectItem>,
-                                <SelectItem key="other-india" value="other-in-india">Other in India</SelectItem>
-                              ]}                              {formData.country === 'uae' && [
-                                <SelectItem key="any-uae" value="anywhere-in-uae">Anywhere in UAE</SelectItem>,
-                                <SelectItem key="dubai" value="dubai">Dubai</SelectItem>,
-                                <SelectItem key="abu-dhabi" value="abu-dhabi">Abu Dhabi</SelectItem>,
-                                <SelectItem key="sharjah" value="sharjah">Sharjah</SelectItem>,
-                                <SelectItem key="ajman" value="ajman">Ajman</SelectItem>,
-                                <SelectItem key="ras-al-khaimah" value="ras-al-khaimah">Ras Al Khaimah</SelectItem>,
-                                <SelectItem key="other-uae" value="other-in-uae">Other in UAE</SelectItem>
-                              ]}
-                              {formData.country === 'saudi-arabia' && [
-                                <SelectItem key="any-saudi" value="anywhere-in-saudi">Anywhere in Saudi Arabia</SelectItem>,
-                                <SelectItem key="riyadh" value="riyadh">Riyadh</SelectItem>,
-                                <SelectItem key="jeddah" value="jeddah">Jeddah</SelectItem>,
-                                <SelectItem key="mecca" value="mecca">Mecca</SelectItem>,
-                                <SelectItem key="medina" value="medina">Medina</SelectItem>,
-                                <SelectItem key="dammam" value="dammam">Dammam</SelectItem>,
-                                <SelectItem key="other-saudi" value="other-in-saudi">Other in Saudi Arabia</SelectItem>
-                              ]}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <Input
-                            id="preferredLocation"
-                            className={cn(inputStyles, fieldErrors.preferredLocation && "border-red-500")}
-                            data-filled={isFieldFilled(formData.preferredLocation)}
-                            value={formData.preferredLocation}
-                            onChange={(e) => {
-                              setFormData({ ...formData, preferredLocation: e.target.value });
-                              if (fieldErrors.preferredLocation) {
-                                setFieldErrors({ ...fieldErrors, preferredLocation: "" });
-                              }
-                            }}
-                            placeholder="e.g., Mumbai, Maharashtra, India"
-                          />
-                        )}
-                        {fieldErrors.preferredLocation && (
-                          <p className="text-lg text-red-500 mt-1">{fieldErrors.preferredLocation}</p>
+                        <Label htmlFor="preferredCountry">Preferred Country *</Label>
+                        <Select 
+                          value={formData.preferredCountry} 
+                          onValueChange={(value) => {
+                            setFormData({ ...formData, preferredCountry: value, preferredCity: "" });
+                            if (fieldErrors.preferredCountry) {
+                              setFieldErrors({ ...fieldErrors, preferredCountry: "" });
+                            }
+                          }}
+                        >
+                          <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.preferredCountry && "border-red-500")} data-filled={isFieldFilled(formData.preferredCountry)}>
+                            <SelectValue placeholder="Select preferred country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="india">India</SelectItem>
+                            <SelectItem value="uae">UAE</SelectItem>
+                            <SelectItem value="saudi-arabia">Saudi Arabia</SelectItem>
+                            <SelectItem value="usa">USA</SelectItem>
+                            <SelectItem value="canada">Canada</SelectItem>
+                            <SelectItem value="uk">United Kingdom</SelectItem>
+                            <SelectItem value="australia">Australia</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {fieldErrors.preferredCountry && (
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.preferredCountry}</p>
                         )}
                       </div>
+                      <div>
+                        <Label htmlFor="preferredCity">Preferred City *</Label>
+                        <Select 
+                          value={formData.preferredCity} 
+                          onValueChange={(value) => {
+                            setFormData({ ...formData, preferredCity: value });
+                            if (fieldErrors.preferredCity) {
+                              setFieldErrors({ ...fieldErrors, preferredCity: "" });
+                            }
+                          }}
+                          disabled={!formData.preferredCountry}
+                        >
+                          <SelectTrigger className={cn(selectTriggerStyles, fieldErrors.preferredCity && "border-red-500")} data-filled={isFieldFilled(formData.preferredCity)}>
+                            <SelectValue placeholder={formData.preferredCountry ? "Select preferred city" : "Select country first"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {formData.preferredCountry && COUNTRIES_CITIES[formData.preferredCountry as keyof typeof COUNTRIES_CITIES]?.cities.map((city) => (
+                              <SelectItem key={city.value} value={city.value}>
+                                {city.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {fieldErrors.preferredCity && (
+                          <p className="text-lg text-red-500 mt-1">{fieldErrors.preferredCity}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="maritalPreferences">Marital Preferences</Label>
                         <Select value={formData.maritalPreferences} onValueChange={(value) => setFormData({ ...formData, maritalPreferences: value })}>

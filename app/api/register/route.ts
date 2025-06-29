@@ -21,7 +21,9 @@ const registerSchema = z.object({
   // Make location optional or derive from preferredLocation if available
   location: z.string().optional().default(""),
   // Also accept preferredLocation as a potential location value
-  preferredLocation: z.string().optional(),  education: z.string().min(1, "Qualification is required"),
+  preferredLocation: z.string().optional(),
+  preferredCountry: z.string().optional(),
+  preferredCity: z.string().optional(),  education: z.string().min(1, "Qualification is required"),
   sect: z.string().min(1, "Sect is required"),
   // Additional fields
   countryCode: z.string().optional(),
