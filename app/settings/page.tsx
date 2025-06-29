@@ -209,24 +209,50 @@ export default function SettingsPage() {
   const handleDeleteAccount = async () => {
     try {
       setLoading(true)
+      console.log('🗑️ Attempting to delete account...')
+      
       const response = await fetch('/api/settings/delete-account', {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      console.log('🔍 Delete account response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
       })
 
       if (response.ok) {
+        const data = await response.json()
+        console.log('✅ Account deletion successful:', data)
+        
         toast({
           title: "Account Deleted",
           description: "Your account has been permanently deleted.",
         })
         router.push('/')
       } else {
-        throw new Error('Failed to delete account')
+        const errorData = await response.text()
+        console.error('❌ Delete account failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        })
+        
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
     } catch (error) {
-      console.error('Error deleting account:', error)
+      console.error('❌ Error deleting account:', error)
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Unknown error occurred'
+      
       toast({
         title: "Error",
-        description: "Failed to delete account. Please try again.",
+        description: `Failed to delete account: ${errorMessage}`,
         variant: "destructive"
       })
     } finally {
