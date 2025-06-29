@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { profileId, message } = body
     
-    console.log('📝 Request body:', { profileId, message })
+    console.log('📝 Request body:', { profileId, message, bodyKeys: Object.keys(body) })
     
     if (!profileId) {
       console.log('❌ No profileId provided')
@@ -60,10 +60,14 @@ export async function POST(request: NextRequest) {
     // Get the current user (sender)
     const userKeys = await redis.keys("user:*")
     let senderUser: RedisUser | null = null
-      for (const key of userKeys) {
+    
+    console.log(`🔍 Searching through ${userKeys.length} users for sender`);
+    
+    for (const key of userKeys) {
       const user = await redis.hgetall(key) as RedisUser
       if (user && user.email === session.user.email) {
         senderUser = user
+        console.log('✅ Found sender user:', key)
         break
       }
     }
@@ -85,34 +89,52 @@ export async function POST(request: NextRequest) {
     }    // Get the target user (receiver)
     const targetUser = await redis.hgetall(targetProfileId) as RedisUser
     
-    console.log('🎯 Target user:', {
+    console.log('🎯 Target user lookup:', {
+      targetProfileId,
       found: !!targetUser,
       id: targetUser?.id,
       email: targetUser?.email,
-      fullName: targetUser?.fullName
+      fullName: targetUser?.fullName,
+      hasRequiredFields: !!(targetUser?.id && targetUser?.email)
     })
     
-    if (!targetUser) {
+    if (!targetUser || !targetUser.id) {
       console.log('❌ Target user not found for ID:', targetProfileId)
       return NextResponse.json({ 
         error: "Target user not found" 
       }, { status: 404 })
     }    // Check if sender has basic required profile information
-    if (!senderUser.fullName || !senderUser.age || !senderUser.gender) {
+    const requiredFields = ['fullName', 'age', 'gender'];
+    const missingFields = requiredFields.filter(field => !senderUser[field]);
+    
+    if (missingFields.length > 0) {
       console.log('❌ Sender profile incomplete:', {
+        missingFields,
         hasFullName: !!senderUser.fullName,
         hasAge: !!senderUser.age,
         hasGender: !!senderUser.gender
       })
       return NextResponse.json({ 
-        error: "Please complete your profile before sending interest" 
+        error: "Please complete your profile before sending interest. Missing: " + missingFields.join(', ')
       }, { status: 403 })
     }    // Check for existing interest
     const interestKeys = await redis.keys(`interest:*`)
     let existingInterest = false
     
+    console.log(`🔍 Checking ${interestKeys.length} existing interests for duplicates`);
+    
     for (const key of interestKeys) {
       const interest = await redis.hgetall(key) as RedisInterest
+      console.log('🔍 Checking interest:', {
+        key,
+        senderId: interest?.senderId,
+        receiverId: interest?.receiverId,
+        status: interest?.status,
+        matches: interest?.senderId === senderUser.id && 
+                interest?.receiverId === targetUser.id &&
+                interest?.status !== 'declined'
+      });
+      
       if (interest && 
           interest.senderId === senderUser.id && 
           interest.receiverId === targetUser.id &&
@@ -149,10 +171,30 @@ export async function POST(request: NextRequest) {
 
     await redis.hmset(interestId, interestData)
 
-    // Add interest to lists for both users    await redis.lpush(`sent_interests:${senderUser.id}`, interestId)
+    // Add interest to lists for both users    
+    await redis.lpush(`sent_interests:${senderUser.id}`, interestId)
     await redis.lpush(`received_interests:${targetUser.id}`, interestId)
     
     console.log('✅ Interest created successfully:', interestId)
+    
+    // Check for mutual interest (if target user also sent interest to sender)
+    let isMutual = false
+    for (const key of interestKeys) {
+      const mutualInterest = await redis.hgetall(key) as RedisInterest
+      if (mutualInterest && 
+          mutualInterest.senderId === targetUser.id && 
+          mutualInterest.receiverId === senderUser.id &&
+          mutualInterest.status === 'pending') {
+        isMutual = true
+        console.log('🎉 Mutual interest detected!')
+        
+        // Update both interests to accepted status
+        await redis.hset(interestId, { status: 'accepted' })
+        await redis.hset(key, { status: 'accepted' })
+        
+        break
+      }
+    }
     
     console.log('📧 Sending notification and email...')
 
@@ -194,9 +236,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       message: "Interest sent successfully",
+      isMutual: isMutual,
       data: {
         interestId,
-        status: 'pending',
+        status: isMutual ? 'accepted' : 'pending',
         createdAt: new Date().toISOString()
       }
     })

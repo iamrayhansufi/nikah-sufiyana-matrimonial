@@ -38,20 +38,56 @@ async function handleUndoInterest(request: NextRequest) {
       }
     }
 
+    console.log('🔄 Undo Interest Debug:', {
+      sessionUserId: session.user.id,
+      receiverId,
+      rawBody: body
+    });
+
+    // Normalize the receiverId format
+    let normalizedReceiverId = receiverId;
+    if (!normalizedReceiverId.startsWith('user:')) {
+      normalizedReceiverId = `user:${normalizedReceiverId}`;
+    }
+
+    console.log('🔄 Normalized receiver ID:', normalizedReceiverId);
+
     // Find relevant interest
     const interestKeys = await redis.keys("interest:*");
+    console.log(`🔍 Found ${interestKeys.length} interests to check`);
+
     for (const key of interestKeys) {
       const interest = await redis.hgetall(key);
+      
+      console.log('🔍 Checking interest:', {
+        key,
+        senderId: interest?.senderId,
+        receiverId: interest?.receiverId,
+        status: interest?.status,
+        matches: interest?.senderId === session.user.id && 
+                interest?.receiverId === normalizedReceiverId &&
+                interest?.status === "pending"
+      });
+
       if (interest &&
           interest.senderId === session.user.id &&
-          interest.receiverId === receiverId &&
+          interest.receiverId === normalizedReceiverId &&
           interest.status === "pending") {
+        
+        console.log('✅ Found matching interest to delete:', key);
+        
         // Delete the interest
         await redis.del(key);
+        
+        // Also remove from user interest lists
+        await redis.lrem(`sent_interests:${session.user.id}`, 0, key);
+        await redis.lrem(`received_interests:${normalizedReceiverId}`, 0, key);
+        
         return NextResponse.json({ success: true, message: "Interest removed successfully" });
       }
     }
 
+    console.log('❌ No matching interest found');
     return NextResponse.json({ error: "Interest not found or already processed" }, { status: 404 });
   } catch (error) {
     console.error("Error undoing interest:", error);
