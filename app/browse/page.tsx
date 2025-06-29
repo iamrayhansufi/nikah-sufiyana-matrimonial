@@ -344,7 +344,7 @@ export default function BrowseProfilesPage() {
     // If no valid image source, show fallback immediately
     if (!validImageSrc) {
       return (
-        <div className={`relative w-full ${viewMode === "grid" ? "h-72" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
+        <div className={`relative w-full ${viewMode === "grid" ? "h-60" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center p-4">
               <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-royal-primary/10 to-royal-primary/20 rounded-full flex items-center justify-center border-2 border-royal-primary/20">
@@ -378,7 +378,7 @@ export default function BrowseProfilesPage() {
     // If image previously failed, show attractive fallback
     if (imageState === 'error') {
       return (
-        <div className={`relative w-full ${viewMode === "grid" ? "h-72" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
+        <div className={`relative w-full ${viewMode === "grid" ? "h-60" : "h-40"} overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg`}>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center p-4">
               <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-royal-primary/10 to-royal-primary/20 rounded-full flex items-center justify-center border-2 border-royal-primary/20">
@@ -395,7 +395,7 @@ export default function BrowseProfilesPage() {
     }
 
     return (
-      <div className={`relative w-full ${viewMode === "grid" ? "h-72" : "h-40"} overflow-hidden bg-gray-100 rounded-lg`}>
+      <div className={`relative w-full ${viewMode === "grid" ? "h-60" : "h-40"} overflow-hidden bg-gray-100 rounded-lg`}>
         {imageState === 'loading' && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
             <div className="text-center">
@@ -1420,7 +1420,7 @@ export default function BrowseProfilesPage() {
                     <div className="relative" data-profile-image>
                       {/* When photos are protected, show a completely different placeholder with increased height */}
                       {blurredPhotoIds.has(profile.id) ? (
-                        <div className={`w-full ${viewMode === "grid" ? "h-72" : "h-40"} bg-gradient-to-br from-cream-light to-cream-soft flex items-start justify-center pt-16`}>
+                        <div className={`w-full ${viewMode === "grid" ? "h-60" : "h-40"} bg-gradient-to-br from-cream-light to-cream-soft flex items-start justify-center pt-16`}>
                           {/* No actual photo should be rendered when protected */}
                         </div>
                       ) : (
@@ -1529,12 +1529,12 @@ export default function BrowseProfilesPage() {
                       </div>
 
                       <div className="flex gap-2 mt-4">
-                        <Button className="flex-1" onClick={() => handleContactInfo(profile)}>
-                          <MessageSquare className="h-4 w-4 mr-2" />
-                          Contact Info
+                        <Button className="flex-1 px-2 sm:px-4" onClick={() => handleContactInfo(profile)}>
+                          <MessageSquare className="h-4 w-4 mr-1 sm:mr-2" />
+                          <span className="whitespace-nowrap text-sm sm:text-base">Contact</span>
                         </Button>
-                        <Link href={`/profile/${profile.id}`}>
-                          <Button variant="outline" className="flex-1">
+                        <Link href={`/profile/${profile.id}`} className="flex-1">
+                          <Button variant="outline" className="w-full">
                             View Profile
                           </Button>
                         </Link>

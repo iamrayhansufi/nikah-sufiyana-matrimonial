@@ -1043,7 +1043,7 @@ export default function ProfilePage({
                           </div>
                           <div>
                             <p className="font-medium mb-1">Height</p>
-                            <p className="text-lg text-muted-foreground">{profile.height && profile.height.trim() !== "" ? profile.height : "Not Specified"}</p>
+                            <p className="text-lg text-muted-foreground">{profile.height && typeof profile.height === 'string' && profile.height.trim() !== "" ? profile.height : "Not Specified"}</p>
                           </div>
                           <div>
                             <p className="font-medium mb-1">Complexion</p>
@@ -1190,7 +1190,7 @@ export default function ProfilePage({
                           </div>                          <div>
                             <p className="font-medium mb-1">Preferred Height</p>
                             <p className="text-lg text-muted-foreground">
-                              {profile.preferredHeight && profile.preferredHeight.trim() !== "" ? formatToTitleCase(profile.preferredHeight) : "Not specified"}
+                              {profile.preferredHeight && typeof profile.preferredHeight === 'string' && profile.preferredHeight.trim() !== "" ? formatToTitleCase(profile.preferredHeight) : "Not specified"}
                             </p>
                           </div>
                           <div>
@@ -1252,7 +1252,7 @@ export default function ProfilePage({
                           </div>                          <div>
                             <p className="font-medium mb-1">Father's Occupation</p>
                             <p className="text-lg text-muted-foreground">
-                              {profile.fatherOccupation && profile.fatherOccupation.trim() !== "" ? 
+                              {profile.fatherOccupation && typeof profile.fatherOccupation === 'string' && profile.fatherOccupation.trim() !== "" ? 
                                formatToTitleCase(profile.fatherOccupation) : "Not Specified"}
                             </p>
                           </div>
