@@ -63,61 +63,59 @@ function LoginFormWithParams() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!formData.password) {
+      toast({
+        title: "Password Required",
+        description: "Please enter your password.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (loginMethod === "email" && !formData.email) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (loginMethod === "phone" && !formData.phone) {
+      toast({
+        title: "Phone Required",
+        description: "Please enter your phone number.",
+        variant: "destructive",
+      })
+      return
+    }
+
     try {
-      // Debug login attempt
-      console.log('🔐 Login Debug - Login attempt:', {
-        method: loginMethod,
-        email: loginMethod === "email" ? formData.email : undefined,
-        phone: loginMethod === "phone" ? formData.phone : undefined,
-        hasPassword: !!formData.password,
-        callbackUrl
-      });
-        
-      // Use NextAuth credentials provider for login with proper redirect
       // Create a full URL for the callbackUrl to ensure absolute path redirect works correctly
       const absoluteCallbackUrl = callbackUrl.startsWith('http') 
         ? callbackUrl 
         : new URL(callbackUrl, window.location.origin).toString();
-      
-      console.log('🔐 Login Debug - Using callback URL:', absoluteCallbackUrl);
         
-      // Set redirect to false temporarily for debugging
+      // Use NextAuth credentials provider for login
       const res = await signIn("credentials", {
-        email: loginMethod === "email" ? formData.email : undefined,
+        email: loginMethod === "email" ? formData.email : formData.phone, // Use email field for both
         phone: loginMethod === "phone" ? formData.phone : undefined,
         password: formData.password,
         callbackUrl: absoluteCallbackUrl,
-        redirect: false, // Temporarily change to false to see response
+        redirect: false, // Handle redirect manually to show proper error messages
       })
       
-      // Log the response
-      console.log('🔐 Login Debug - Sign in response:', res);
-      
-      // Handle errors
+      // Handle authentication errors
       if (res?.error) {
-        let errorMessage = "Invalid credentials. Please check your email/phone and password.";
+        let errorMessage = "The email or password you entered is incorrect. Please try again.";
         
         if (res.error === "CredentialsSignin") {
-          console.error("Authentication failed - likely incorrect password or email not found");
-          
-          // For development/debug only - in production, use a generic error message
-          if (process.env.NODE_ENV !== 'production') {
-            errorMessage = "Authentication failed. This could be due to:";
-            errorMessage += "\n1. Incorrect email or password";
-            errorMessage += "\n2. User does not exist";
-            errorMessage += "\n3. Database connection issue";
-            
-            // Add troubleshooting steps
-            console.log("🔧 Troubleshooting steps:");
-            console.log("1. Verify the user exists in the database");
-            console.log("2. Reset the user's password using SQL");
-            console.log("3. Check the server logs for database connection errors");
-            console.log(`4. Run the SQL in fix-user.sql for ${formData.email}`);
-          } else {
-            errorMessage = "The email or password you entered is incorrect. Please try again.";
-          }
-        } else {
-          console.error(`Login error: ${res.error}`);
+          errorMessage = loginMethod === "email" 
+            ? "The email or password you entered is incorrect. Please try again."
+            : "The phone number or password you entered is incorrect. Please try again.";
+        } else if (res.error === "Configuration") {
+          errorMessage = "Login service is temporarily unavailable. Please try again later.";
         }
         
         toast({
@@ -129,26 +127,29 @@ function LoginFormWithParams() {
         return;
       }
       
-      // Now handle the redirect manually
-      if (res?.ok && res?.url) {
-        window.location.href = res.url;
-      }
-      
-      // This code will only run if redirect: false and there's an error
-      if (res?.error) {
+      // Handle successful login
+      if (res?.ok) {
         toast({
-          title: "Login Failed",
-          description: res.error || "Invalid credentials. Please try again.",
-          variant: "destructive",
+          title: "Login Successful",
+          description: "Welcome back to Nikah Sufiyana!",
         })
+        
+        // Redirect to callback URL or dashboard
+        if (res?.url) {
+          window.location.href = res.url;
+        } else {
+          window.location.href = absoluteCallbackUrl;
+        }
         return
       }
       
-      // Success toast - this may not show due to redirect
+      // Fallback error
       toast({
-        title: "Login Successful",
-        description: "Welcome back to Nikah Sufiyana!",
+        title: "Login Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
       })
+      
     } catch (error) {
       console.error("Login error:", error)
       toast({

@@ -281,6 +281,14 @@ export default function DashboardPage() {
             profileData.completeness = calculateCompleteness(profileData);
           }
           setUserProfile(profileData);
+          
+          // Update profile views from cached data
+          if (profileData.profileViews || profileData.views) {
+            setStats(prevStats => ({
+              ...prevStats,
+              profileViews: profileData.profileViews || profileData.views || 0
+            }));
+          }
         } else {
           // Add credentials to ensure cookies are sent
           const fetchOptions = {
@@ -315,6 +323,14 @@ export default function DashboardPage() {
           // Calculate and add completeness to profile data
           profileData.completeness = calculateCompleteness(profileData);
           setUserProfile(profileData)
+          
+          // Update profile views in stats if available
+          if (profileData.profileViews || profileData.views) {
+            setStats(prevStats => ({
+              ...prevStats,
+              profileViews: profileData.profileViews || profileData.views || 0
+            }));
+          }
           
           // Cache the profile data
           sessionStorage.setItem(cachedProfileKey, JSON.stringify(profileData));
@@ -358,11 +374,25 @@ export default function DashboardPage() {
             const parsedInterests = JSON.parse(cachedInterests);
             setRecentInterests(parsedInterests.recent);
             setReceivedInterests(parsedInterests.received);
+            
+            // Update stats from cached data
+            setStats(prevStats => ({
+              ...prevStats,
+              interests: parsedInterests.received?.length || 0,
+              matches: parsedInterests.recent?.filter((interest: any) => interest.status === 'accepted').length || 0
+            }));
           } else {
             // Fetch recent interests
             const interestsRes = await fetch('/api/profiles/interests?type=received')
+            
             if (interestsRes.ok) {
               const interests = await interestsRes.json()
+              
+              console.log('Dashboard: Fetched interests:', {
+                total: interests.length,
+                pending: interests.filter((interest: any) => interest.status === 'pending').length,
+                accepted: interests.filter((interest: any) => interest.status === 'accepted').length
+              });
               
               // Map interests for the My Interests tab (showing just 3)
               setRecentInterests(interests.slice(0, 3).map((interest: any) => ({
@@ -411,8 +441,15 @@ export default function DashboardPage() {
                   time: formatTimeAgo(interest.createdAt),
                 }))
               };
-                sessionStorage.setItem(cachedInterestsKey, JSON.stringify(interestsToCache));
+              sessionStorage.setItem(cachedInterestsKey, JSON.stringify(interestsToCache));
               sessionStorage.setItem(`${cachedInterestsKey}_timestamp`, Date.now().toString());
+              
+              // Update stats with actual counts
+              setStats(prevStats => ({
+                ...prevStats,
+                interests: pendingInterests.length, // Count of pending received interests
+                matches: interests.filter((interest: any) => interest.status === 'accepted').length
+              }));
             }
             
             // Fetch shortlisted profiles
@@ -428,6 +465,12 @@ export default function DashboardPage() {
                 image: item.shortlistedUser.profilePhoto || "/placeholder.svg?height=80&width=80",
                 match: calculateMatchPercentage(userProfile, item.shortlistedUser),
               })));
+              
+              // Update shortlisted count in stats
+              setStats(prevStats => ({
+                ...prevStats,
+                shortlisted: shortlisted.length
+              }));
             }
           }
         }
@@ -457,7 +500,17 @@ export default function DashboardPage() {
         throw new Error(errorData.error || `Failed to ${action} interest`);
       }
         // Remove the interest from the list since it's been handled
-      setReceivedInterests(prev => prev.filter(interest => interest.id !== interestId));
+      setReceivedInterests(prev => {
+        const updatedInterests = prev.filter(interest => interest.id !== interestId);
+        
+        // Update stats count
+        setStats(prevStats => ({
+          ...prevStats,
+          interests: updatedInterests.length
+        }));
+        
+        return updatedInterests;
+      });
       
       // Clear cached interests since data has changed
       const userId = session?.user?.id;

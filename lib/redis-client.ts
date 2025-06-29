@@ -130,6 +130,35 @@ export const redisTables = {
         console.error('findByEmail: Error during search:', { error, email });
         throw error;
       }
+    },
+
+    async findByPhone(phone: string): Promise<any | null> {
+      // Validate phone parameter
+      if (!phone || typeof phone !== 'string') {
+        console.error('findByPhone: Invalid phone parameter:', { phone, type: typeof phone });
+        return null;
+      }
+      
+      try {
+        // First get all user IDs
+        const userIds = await redis.smembers('users');
+        
+        // Search through users to find one with matching phone
+        for (const userId of userIds) {
+          const user = await redis.hgetall(`user:${userId}`);
+          if (user && (
+            (user.phone && typeof user.phone === 'string' && user.phone === phone) ||
+            (user.mobileNumber && typeof user.mobileNumber === 'string' && user.mobileNumber === phone)
+          )) {
+            return user;
+          }
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('findByPhone: Error during search:', { error, phone });
+        throw error;
+      }
     }
   },
   

@@ -566,18 +566,35 @@ export default function ProfilePage({
   const handleUndoInterest = async () => {
     try {
       const response = await fetch(`/api/profiles/undo-interest`, {
-        method: 'DELETE',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          profileId: id
+          receiverId: id
         })
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to undo interest');
+        let errorMessage = 'Failed to undo interest';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (jsonError) {
+          // If JSON parsing fails, use the response status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      // Try to parse the success response
+      let successData;
+      try {
+        successData = await response.json();
+      } catch (jsonError) {
+        // If JSON parsing fails but response was ok, still consider it successful
+        console.warn('Response was successful but could not parse JSON:', jsonError);
+        successData = { success: true };
       }
         
       // Update UI state

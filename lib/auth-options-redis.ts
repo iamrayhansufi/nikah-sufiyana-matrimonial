@@ -53,19 +53,36 @@ export const authOptions: NextAuthOptions = {
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
+        phone: { label: "Phone", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          console.log("Missing email or password")
-          throw new Error("Missing email or password")
+        if (!credentials?.password) {
+          console.log("Missing password")
+          throw new Error("Missing password")
+        }
+
+        const emailOrPhone = credentials.email || credentials.phone;
+        if (!emailOrPhone) {
+          console.log("Missing email or phone")
+          throw new Error("Missing email or phone")
         }
 
         try {
-          const user = await redisTables.users.findByEmail(credentials.email)
+          let user;
+          
+          // Determine if the input is an email or phone number
+          const isEmail = emailOrPhone.includes('@');
+          
+          if (isEmail) {
+            user = await redisTables.users.findByEmail(emailOrPhone);
+          } else {
+            // Find user by phone number
+            user = await redisTables.users.findByPhone(emailOrPhone);
+          }
           
           if (!user) {
-            console.log(`User not found: ${credentials.email}`)
+            console.log(`User not found: ${emailOrPhone}`)
             throw new Error("User not found")
           }
 

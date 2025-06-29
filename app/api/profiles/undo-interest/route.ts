@@ -8,7 +8,12 @@ const undoInterestSchema = z.object({
   receiverId: z.string(),
 });
 
-export async function POST(request: NextRequest) {
+// Also accept legacy profileId parameter for backwards compatibility
+const undoInterestLegacySchema = z.object({
+  profileId: z.string(),
+});
+
+async function handleUndoInterest(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -16,12 +21,22 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const result = undoInterestSchema.safeParse(body);
-    if (!result.success) {
-      return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
+    
+    // Try new schema first, then legacy
+    let receiverId: string;
+    const newResult = undoInterestSchema.safeParse(body);
+    if (newResult.success) {
+      receiverId = newResult.data.receiverId;
+    } else {
+      const legacyResult = undoInterestLegacySchema.safeParse(body);
+      if (legacyResult.success) {
+        receiverId = legacyResult.data.profileId;
+      } else {
+        return NextResponse.json({ 
+          error: "Invalid request data. Expected receiverId or profileId." 
+        }, { status: 400 });
+      }
     }
-
-    const { receiverId } = result.data;
 
     // Find relevant interest
     const interestKeys = await redis.keys("interest:*");
@@ -33,13 +48,24 @@ export async function POST(request: NextRequest) {
           interest.status === "pending") {
         // Delete the interest
         await redis.del(key);
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true, message: "Interest removed successfully" });
       }
     }
 
-    return NextResponse.json({ error: "Interest not found" }, { status: 404 });
+    return NextResponse.json({ error: "Interest not found or already processed" }, { status: 404 });
   } catch (error) {
     console.error("Error undoing interest:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Internal server error", 
+      details: error instanceof Error ? error.message : "Unknown error" 
+    }, { status: 500 });
   }
+}
+
+export async function POST(request: NextRequest) {
+  return handleUndoInterest(request);
+}
+
+export async function DELETE(request: NextRequest) {
+  return handleUndoInterest(request);
 }
