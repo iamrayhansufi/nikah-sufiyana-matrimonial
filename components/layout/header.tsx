@@ -24,6 +24,7 @@ import { useNotifications } from "@/hooks/notification-provider"
 import { elMessiri } from "@/app/lib/fonts"
 import { useLanguage, SUPPORTED_LANGUAGES } from "@/lib/language-context"
 import { LanguageSelector } from "@/components/language-selector"
+import { useAccountDeletion } from "@/hooks/account-deletion-context"
 
 interface UserNotification {
   id: string | number;
@@ -45,8 +46,9 @@ export function Header() {
   const { currentLanguage, setLanguage: changeLanguage, isTranslating } = useLanguage()
   // Use the new notifications hook
   const { notifications, unreadCount, markAsRead, enableAudio } = useNotifications()
+  const { isDeletingAccount } = useAccountDeletion()
 
-  const isLoggedIn = status === "authenticated" && !!session
+  const isLoggedIn = status === "authenticated" && !!session && !isDeletingAccount
   const user = session?.user
   
   useEffect(() => {

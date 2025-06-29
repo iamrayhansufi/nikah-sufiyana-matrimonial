@@ -7,6 +7,9 @@ import { Toaster } from "@/components/ui/toaster"
 import { SessionProvider } from "@/components/auth/session-provider"
 import { NotificationProvider } from "@/hooks/notification-provider"
 import { LanguageProvider } from "@/lib/language-context"
+import { AccountDeletionProvider } from "@/hooks/account-deletion-context"
+import { CacheProvider } from "@/hooks/cache-provider"
+import ServiceWorkerManager from "@/components/service-worker-manager"
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -54,14 +57,19 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${playfair.variable} ${elMessiri.variable} font-el-messiri antialiased bg-royal-gradient min-h-screen`} suppressHydrationWarning>
         <SessionProvider>
-          <LanguageProvider>
-            <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-              <NotificationProvider>
-                {children}
-                <Toaster />
-              </NotificationProvider>
-            </ThemeProvider>
-          </LanguageProvider>
+          <CacheProvider>
+            <LanguageProvider>
+              <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+                <NotificationProvider>
+                  <AccountDeletionProvider>
+                    <ServiceWorkerManager />
+                    {children}
+                    <Toaster />
+                  </AccountDeletionProvider>
+                </NotificationProvider>
+              </ThemeProvider>
+            </LanguageProvider>
+          </CacheProvider>
         </SessionProvider>
       </body>
     </html>

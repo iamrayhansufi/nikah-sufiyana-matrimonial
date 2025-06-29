@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdminAuth } from "@/lib/auth"
+import { redis } from "@/lib/redis-client"
 
 interface RecentRegistration {
   id: string
@@ -74,15 +75,49 @@ export async function GET(request: NextRequest) {
 
 // Helper functions for statistics
 async function getTotalUsers(): Promise<number> {
-  return 15420 // Placeholder
+  try {
+    const userKeys = await redis.keys("user:*")
+    return userKeys.length
+  } catch (error) {
+    console.error("Error getting total users:", error)
+    return 0
+  }
 }
 
 async function getActiveSubscriptions(): Promise<number> {
-  return 3240 // Placeholder
+  try {
+    const userKeys = await redis.keys("user:*")
+    let activeSubscriptions = 0
+    
+    for (const key of userKeys) {
+      const user = await redis.hgetall(key) as Record<string, string>
+      if (user && user.subscription && ["premium", "vip"].includes(user.subscription)) {
+        activeSubscriptions++
+      }
+    }
+    return activeSubscriptions
+  } catch (error) {
+    console.error("Error getting active subscriptions:", error)
+    return 0
+  }
 }
 
 async function getPendingApprovals(): Promise<number> {
-  return 156 // Placeholder
+  try {
+    const userKeys = await redis.keys("user:*")
+    let pendingApprovals = 0
+    
+    for (const key of userKeys) {
+      const user = await redis.hgetall(key) as Record<string, string>
+      if (user && user.profileStatus === "pending") {
+        pendingApprovals++
+      }
+    }
+    return pendingApprovals
+  } catch (error) {
+    console.error("Error getting pending approvals:", error)
+    return 0
+  }
 }
 
 async function getTotalRevenue(): Promise<number> {
@@ -98,18 +133,79 @@ async function getSuccessfulMatches(): Promise<number> {
 }
 
 async function getRecentRegistrations(): Promise<RecentRegistration[]> {
-  return [] // Placeholder
+  try {
+    const userKeys = await redis.keys("user:*")
+    const recentUsers: RecentRegistration[] = []
+    
+    for (const key of userKeys) {
+      const user = await redis.hgetall(key) as Record<string, string>
+      if (user && user.createdAt) {
+        recentUsers.push({
+          id: user.id || key.replace('user:', ''),
+          name: user.fullName || 'Unknown',
+          email: user.email || 'Unknown',
+          date: user.createdAt
+        })
+      }
+    }
+    
+    // Sort by creation date (newest first) and return top 10
+    return recentUsers
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 10)
+  } catch (error) {
+    console.error("Error getting recent registrations:", error)
+    return []
+  }
 }
 
 async function getTopActiveUsers(): Promise<TopActiveUser[]> {
-  return [] // Placeholder
+  try {
+    const userKeys = await redis.keys("user:*")
+    const activeUsers: TopActiveUser[] = []
+    
+    for (const key of userKeys) {
+      const user = await redis.hgetall(key) as Record<string, string>
+      if (user && user.lastActive) {
+        activeUsers.push({
+          id: user.id || key.replace('user:', ''),
+          name: user.fullName || 'Unknown',
+          profileViews: parseInt(user.profileViews || '0'),
+          interests: parseInt(user.interestsSent || '0'),
+          lastActive: user.lastActive
+        })
+      }
+    }
+    
+    // Sort by last active (most recent first) and return top 10
+    return activeUsers
+      .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
+      .slice(0, 10)
+  } catch (error) {
+    console.error("Error getting top active users:", error)
+    return []
+  }
 }
 
 async function getSubscriptionBreakdown(): Promise<SubscriptionBreakdown> {
-  return {
-    free: 12180,
-    premium: 2640,
-    vip: 600,
+  try {
+    const userKeys = await redis.keys("user:*")
+    const breakdown = { free: 0, premium: 0, vip: 0 }
+    
+    for (const key of userKeys) {
+      const user = await redis.hgetall(key) as Record<string, string>
+      if (user) {
+        const subscription = user.subscription || 'free'
+        if (subscription === 'premium') breakdown.premium++
+        else if (subscription === 'vip') breakdown.vip++
+        else breakdown.free++
+      }
+    }
+    
+    return breakdown
+  } catch (error) {
+    console.error("Error getting subscription breakdown:", error)
+    return { free: 0, premium: 0, vip: 0 }
   }
 }
 

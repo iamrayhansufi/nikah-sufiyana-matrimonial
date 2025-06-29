@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -19,6 +19,8 @@ import { Bell, Lock, Eye, Globe, Moon, Sun, Smartphone, User, Shield, Trash2, Sa
 import { playfair } from "../lib/fonts"
 import { useToast } from "@/hooks/use-toast"
 import { useLanguage, SUPPORTED_LANGUAGES } from "@/lib/language-context"
+import { useAccountDeletion } from "@/hooks/account-deletion-context"
+import { useCache } from "@/hooks/cache-provider"
 
 interface UserSettings {
   email: string
@@ -41,6 +43,8 @@ export default function SettingsPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { currentLanguage, setLanguage: changeLanguage } = useLanguage()
+  const { setIsDeletingAccount } = useAccountDeletion()
+  const { clearAllStorage } = useCache()
   
   const [loading, setLoading] = useState(false)
   const [settings, setSettings] = useState<UserSettings>({
@@ -209,6 +213,7 @@ export default function SettingsPage() {
   const handleDeleteAccount = async () => {
     try {
       setLoading(true)
+      setIsDeletingAccount(true) // Set account deletion flag
       console.log('🗑️ Attempting to delete account...')
       
       const response = await fetch('/api/settings/delete-account', {
@@ -228,11 +233,22 @@ export default function SettingsPage() {
         const data = await response.json()
         console.log('✅ Account deletion successful:', data)
         
+        // Use the cache manager for comprehensive cleanup
+        console.log('🧹 Clearing all caches and storage...')
+        await clearAllStorage()
+        
         toast({
           title: "Account Deleted",
-          description: "Your account has been permanently deleted.",
+          description: "Your account has been permanently deleted. You will be logged out.",
         })
-        router.push('/')
+        
+        // Sign out the user to clear the session completely
+        console.log('🔓 Signing out user after account deletion...')
+        await signOut({ 
+          redirect: true, // Force redirect to clear any remaining state
+          callbackUrl: '/' // Redirect to home page
+        })
+        
       } else {
         const errorData = await response.text()
         console.error('❌ Delete account failed:', {
@@ -257,6 +273,7 @@ export default function SettingsPage() {
       })
     } finally {
       setLoading(false)
+      setIsDeletingAccount(false) // Clear account deletion flag
     }
   }
 

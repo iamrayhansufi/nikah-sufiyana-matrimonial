@@ -74,10 +74,21 @@ export async function generateOTP(): Promise<string> {
 }
 
 export async function verifyAdminAuth(request: NextRequest): Promise<boolean> {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
+  try {
+    const authHeader = request.headers.get("authorization")
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return false
+    }
+
+    const token = authHeader.substring(7)
+    const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"
+    
+    const decoded = jwt.verify(token, JWT_SECRET) as any
+    
+    // Check if it's an admin token
+    return decoded.role === "admin" && decoded.adminId
+  } catch (error) {
+    console.error("Admin auth verification error:", error)
     return false
   }
-  
-  return session.user.role === "admin"
 }

@@ -30,6 +30,7 @@ import { Search, MoreHorizontal, Mail, Phone, MapPin } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [notificationMessage, setNotificationMessage] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
@@ -40,6 +41,40 @@ export default function AdminDashboard() {
   const [pendingUsers, setPendingUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+
+  // Check admin authentication
+  useEffect(() => {
+    const adminToken = localStorage.getItem("adminToken")
+    const adminUser = localStorage.getItem("adminUser")
+    
+    if (!adminToken || !adminUser) {
+      router.push("/admin/login")
+      return
+    }
+
+    // Optional: Verify token validity
+    try {
+      const user = JSON.parse(adminUser)
+      if (!user.role || user.role !== "admin") {
+        localStorage.removeItem("adminToken")
+        localStorage.removeItem("adminUser")
+        router.push("/admin/login")
+        return
+      }
+    } catch (err) {
+      localStorage.removeItem("adminToken")
+      localStorage.removeItem("adminUser")
+      router.push("/admin/login")
+      return
+    }
+  }, [router])
+
+  // Logout function
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken")
+    localStorage.removeItem("adminUser")
+    router.push("/admin/login")
+  }
 
   // Remove mock stats and fetch real stats from API
   const [stats, setStats] = useState({
@@ -181,15 +216,6 @@ export default function AdminDashboard() {
     // Handle sending email logic
   }
 
-  // Admin authentication check
-  const router = useRouter();
-  useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem("adminToken") : null;
-    if (!token) {
-      router.replace("/admin/login");
-    }
-  }, []);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 dark:from-emerald-950 dark:to-amber-950">
       <Header />
@@ -197,9 +223,14 @@ export default function AdminDashboard() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8 animate-fade-in">
-            <h1 className="text-3xl font-bold font-heading mb-2">Admin Dashboard</h1>
-            <p className="text-muted-foreground font-body">Manage users, subscriptions, and platform analytics</p>
+          <div className="mb-8 animate-fade-in flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold font-heading mb-2">Admin Dashboard</h1>
+              <p className="text-muted-foreground font-body">Manage users, subscriptions, and platform analytics</p>
+            </div>
+            <Button onClick={handleLogout} variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+              Logout
+            </Button>
           </div>
 
           {/* Stats Cards */}

@@ -173,12 +173,17 @@ export async function DELETE(request: NextRequest) {
         }
       }
       
-      // Delete session data
+      // Delete session data - comprehensive NextAuth cleanup
       if (key.startsWith('session:') || 
           key.startsWith('user_session:') ||
           key.startsWith('next-auth.session') ||
           key.startsWith('next-auth.csrf-token') ||
-          key.startsWith('next-auth.callback-url')) {
+          key.startsWith('next-auth.callback-url') ||
+          key.startsWith('nextauth.') ||
+          key.includes('session-token') ||
+          key.includes('csrf-token') ||
+          (userEmail && key.includes(userEmail) && key.includes('session')) ||
+          (userDataId && key.includes(userDataId) && key.includes('session'))) {
         shouldDelete = true
       }
       
@@ -241,15 +246,61 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
+    // Final cleanup: Ensure all session-related data is removed
+    console.log('🧹 Final session cleanup...')
+    const sessionPatterns = [
+      `*${sessionUserId}*session*`,
+      `*${cleanUserId}*session*`,
+      `*session*${sessionUserId}*`,
+      `*session*${cleanUserId}*`,
+      `*${userEmail}*session*`,
+      `*session*${userEmail}*`,
+      'nextauth.*',
+      'next-auth.*',
+      `*${sessionUserId}*token*`,
+      `*${cleanUserId}*token*`,
+      `*token*${sessionUserId}*`,
+      `*token*${cleanUserId}*`,
+      `*${userEmail}*token*`,
+      `*token*${userEmail}*`
+    ]
+    
+    let totalSessionKeysDeleted = 0
+    for (const pattern of sessionPatterns) {
+      const sessionKeys = await redis.keys(pattern)
+      if (sessionKeys.length > 0) {
+        console.log(`🗑️ Deleting ${sessionKeys.length} additional session keys for pattern: ${pattern}`)
+        await redis.del(...sessionKeys)
+        totalSessionKeysDeleted += sessionKeys.length
+      }
+    }
+
+    // Also try to clean up any remaining NextAuth specific keys
+    const nextAuthKeys = await redis.keys('*nextauth*')
+    const nextAuthKeysToDelete = nextAuthKeys.filter(key => 
+      key.includes(sessionUserId) || 
+      key.includes(cleanUserId) || 
+      (userEmail && key.includes(userEmail))
+    )
+    
+    if (nextAuthKeysToDelete.length > 0) {
+      console.log(`🔐 Deleting ${nextAuthKeysToDelete.length} NextAuth keys`)
+      await redis.del(...nextAuthKeysToDelete)
+      totalSessionKeysDeleted += nextAuthKeysToDelete.length
+    }
+
     console.log(`✅ Account successfully deleted for user ${sessionUserId}`)
     console.log(`📊 Total keys found: ${uniqueKeysToDelete.length}`)
     console.log(`📊 Total keys actually deleted: ${totalDeleted}`)
+    console.log(`📊 Additional session keys deleted: ${totalSessionKeysDeleted}`)
 
     return NextResponse.json({ 
       message: "Account deleted successfully",
       keysFound: uniqueKeysToDelete.length,
       keysDeleted: totalDeleted,
-      userKey: userKey
+      sessionKeysDeleted: totalSessionKeysDeleted,
+      userKey: userKey,
+      sessionCleared: true
     }, { status: 200 })
 
   } catch (error) {
