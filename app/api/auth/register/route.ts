@@ -70,6 +70,7 @@ export async function POST(req: Request) {
       fullName: userData.fullName,
       email: userData.email,
       phone: userData.phone,
+      whatsappNumber: userData.phone, // Auto-fill WhatsApp with phone number from registration
       password: hashedPassword,
       gender: userData.gender,
       age: userData.age,

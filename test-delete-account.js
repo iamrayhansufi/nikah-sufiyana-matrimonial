@@ -5,7 +5,7 @@ const testDeleteAccountAPI = async () => {
     
     // First test with GET to see if route is accessible
     console.log('1. Testing route accessibility with GET...');
-    const getResponse = await fetch('http://localhost:3000/api/settings/delete-account');
+    const getResponse = await fetch('http://localhost:3003/api/settings/delete-account');
     console.log('GET Status:', getResponse.status);
     
     if (getResponse.ok) {
@@ -18,14 +18,14 @@ const testDeleteAccountAPI = async () => {
     
     // Test with OPTIONS method
     console.log('\n2. Testing with OPTIONS method...');
-    const optionsResponse = await fetch('http://localhost:3000/api/settings/delete-account', {
+    const optionsResponse = await fetch('http://localhost:3003/api/settings/delete-account', {
       method: 'OPTIONS'
     });
     console.log('OPTIONS Status:', optionsResponse.status);
     
     // Test with DELETE method (this will fail due to auth, but should not be 404)
     console.log('\n3. Testing with DELETE method...');
-    const deleteResponse = await fetch('http://localhost:3000/api/settings/delete-account', {
+    const deleteResponse = await fetch('http://localhost:3003/api/settings/delete-account', {
       method: 'DELETE'
     });
     console.log('DELETE Status:', deleteResponse.status);

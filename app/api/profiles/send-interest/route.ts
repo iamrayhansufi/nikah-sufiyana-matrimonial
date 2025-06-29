@@ -145,7 +145,9 @@ export async function POST(request: NextRequest) {
         error: "Target user not found",
         details: `Profile ID ${profileId} does not match any user in the system`
       }, { status: 404 })
-    }    // Check if sender has basic required profile information
+    }
+
+    // Check if sender has basic required profile information
     const requiredFields = ['fullName', 'age', 'gender'];
     const missingFields = requiredFields.filter(field => !senderUser[field]);
     
@@ -159,39 +161,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         error: "Please complete your profile before sending interest. Missing: " + missingFields.join(', ')
       }, { status: 403 })
-    }    // Check for existing interest
-    const interestKeys = await redis.keys(`interest:*`)
-    let existingInterest = false
-    
-    console.log(`🔍 Checking ${interestKeys.length} existing interests for duplicates`);
-    
-    for (const key of interestKeys) {
-      const interest = await redis.hgetall(key) as RedisInterest
-      console.log('🔍 Checking interest:', {
-        key,
-        senderId: interest?.senderId,
-        receiverId: interest?.receiverId,
-        status: interest?.status,
-        matches: interest?.senderId === senderUser.id && 
-                interest?.receiverId === targetUser.id &&
-                interest?.status !== 'declined'
-      });
-      
-      if (interest && 
-          interest.senderId === senderUser.id && 
-          interest.receiverId === targetUser.id &&
-          interest.status !== 'declined') {
-        existingInterest = true
-        console.log('❌ Existing interest found:', {
-          interestId: interest.id,
-          status: interest.status,
-          createdAt: interest.createdAt
-        })
-        break
-      }
     }
-    
-    if (existingInterest) {
+
+    // More efficient check for existing interest using a Redis Set
+    const interestSetKey = 'interests:sent';
+    const interestPair = `${senderUser.id}:${targetUser.id}`;
+
+    console.log(`🔍 Checking for existing interest with key: ${interestSetKey} and pair: ${interestPair}`);
+
+    const isMember = await redis.sismember(interestSetKey, interestPair);
+
+    if (isMember) {
+      console.log('❌ Existing interest found (using Set)');
       return NextResponse.json({ 
         error: "You have already sent interest to this profile" 
       }, { status: 400 })
@@ -213,29 +194,35 @@ export async function POST(request: NextRequest) {
 
     await redis.hmset(interestId, interestData)
 
+    // Add to the unique interest set for efficient checking
+    await redis.sadd(interestSetKey, interestPair);
+
     // Add interest to lists for both users    
     await redis.lpush(`sent_interests:${senderUser.id}`, interestId)
     await redis.lpush(`received_interests:${targetUser.id}`, interestId)
     
     console.log('✅ Interest created successfully:', interestId)
     
-    // Check for mutual interest (if target user also sent interest to sender)
-    let isMutual = false
-    for (const key of interestKeys) {
-      const mutualInterest = await redis.hgetall(key) as RedisInterest
-      if (mutualInterest && 
-          mutualInterest.senderId === targetUser.id && 
-          mutualInterest.receiverId === senderUser.id &&
-          mutualInterest.status === 'pending') {
-        isMutual = true
-        console.log('🎉 Mutual interest detected!')
-        
-        // Update both interests to accepted status
-        await redis.hset(interestId, { status: 'accepted' })
-        await redis.hset(key, { status: 'accepted' })
-        
-        break
-      }
+    // Check for mutual interest using a more efficient method
+    const mutualInterestCheckKey = `mutual_check:${targetUser.id}:${senderUser.id}`;
+    const mutualInterestId = await redis.get(mutualInterestCheckKey);
+    let isMutual = false;
+
+    if (mutualInterestId && typeof mutualInterestId === 'string') {
+      console.log('🎉 Mutual interest detected!', { mutualInterestId });
+      isMutual = true;
+
+      // Update both interests to accepted status using the correct hset syntax
+      await redis.hset(interestId, { status: 'accepted', updatedAt: new Date().toISOString() });
+      await redis.hset(mutualInterestId, { status: 'accepted', updatedAt: new Date().toISOString() });
+
+      // Clean up the check key
+      await redis.del(mutualInterestCheckKey);
+    } else {
+      // No mutual interest yet, so store this interest for a future mutual check
+      const newMutualCheckKey = `mutual_check:${senderUser.id}:${targetUser.id}`;
+      // Set with an expiration to prevent stale keys, e.g., 30 days
+      await redis.set(newMutualCheckKey, interestId, { ex: 2592000 }); 
     }
     
     console.log('📧 Sending notification and email...')

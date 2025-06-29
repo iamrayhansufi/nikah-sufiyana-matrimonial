@@ -16,7 +16,8 @@ const updateProfileSchema = z.object({
   // Basic Info
   fullName: z.string().min(2).optional(),
   email: z.string().email().optional(),
-  phone: z.string().min(10).optional(),
+  whatsappNumber: z.string().min(10).optional(),
+  countryCode: z.string().optional(),
   age: z.number().min(18).optional(),
   gender: z.string().optional(),
   height: z.string().optional(),

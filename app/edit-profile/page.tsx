@@ -31,7 +31,8 @@ import {
   Image,
   X,
   Plus,
-  CheckCircle
+  CheckCircle,
+  Circle
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
@@ -42,7 +43,6 @@ interface BasicProfileForm {
   age: string;
   gender: string;
   email: string;
-  phone: string;
   countryCode: string;
   whatsappNumber: string;
   location: string;
@@ -165,8 +165,10 @@ const FormField = ({ label, filled, children }: FormFieldProps) => {
     <div className="space-y-2 relative">
       <div className="flex justify-between items-center">
         <Label>{label}</Label>
-        {filled && (
+        {filled ? (
           <CheckCircle className="h-4 w-4 text-green-500" />
+        ) : (
+          <Circle className="h-4 w-4 text-orange-400" />
         )}
       </div>
       {children}
@@ -190,7 +192,6 @@ export default function EditProfilePage() {
     age: "",
     gender: "",
     email: "",
-    phone: "",
     countryCode: "+91",
     whatsappNumber: "",
     location: "",
@@ -306,7 +307,6 @@ export default function EditProfilePage() {
             age: data.age ? String(data.age) : "",
             gender: data.gender || "",
             email: data.email || "",
-            phone: data.phone || data.mobileNumber || "",
             countryCode: data.countryCode || "+91",
             whatsappNumber: data.whatsappNumber || data.phone || data.mobileNumber || "",
             location: data.location || "",
@@ -787,7 +787,6 @@ export default function EditProfilePage() {
         age: data.age ? String(data.age) : "",
         gender: data.gender || "",
         email: data.email || "",
-        phone: data.phone || data.mobileNumber || "",
         countryCode: data.countryCode || "+91",
         whatsappNumber: data.whatsappNumber || data.phone || data.mobileNumber || "",
         location: data.location || "",
@@ -1559,8 +1558,8 @@ export default function EditProfilePage() {
                       />
                     </FormField>
 
-                    {/* 4. Phone Number */}
-                    <FormField label="Phone Number" filled={!!basicForm.phone}>
+                    {/* 4. WhatsApp Number */}
+                    <FormField label="WhatsApp Number (Optional)" filled={!!basicForm.whatsappNumber}>
                       <div className="flex gap-2">
                         <Select 
                           value={basicForm.countryCode} 
@@ -1578,32 +1577,20 @@ export default function EditProfilePage() {
                           </SelectContent>
                         </Select>
                         <Input 
-                          id="phone"
+                          id="whatsappNumber"
                           type="tel"
-                          value={basicForm.phone}
-                          onChange={(e) => handleBasicChange('phone', e.target.value.replace(/\D/g, ''))}
+                          value={basicForm.whatsappNumber}
+                          onChange={(e) => handleBasicChange('whatsappNumber', e.target.value.replace(/\D/g, ''))}
                           placeholder="9012345678"
-                          className={`flex-1 ${basicForm.phone ? "border-green-200 focus:border-green-300" : ""}`}
+                          className={`flex-1 ${basicForm.whatsappNumber ? "border-green-200 focus:border-green-300" : ""}`}
                         />
                       </div>
-                    </FormField>
-
-                    {/* 5. WhatsApp Number */}
-                    <FormField label="WhatsApp Number (Optional)" filled={!!basicForm.whatsappNumber}>
-                      <Input 
-                        id="whatsappNumber"
-                        type="tel"
-                        value={basicForm.whatsappNumber}
-                        onChange={(e) => handleBasicChange('whatsappNumber', e.target.value.replace(/\D/g, ''))}
-                        placeholder="Same as phone or different"
-                        className={basicForm.whatsappNumber ? "border-green-200 focus:border-green-300" : ""}
-                      />
                       <p className="text-sm text-muted-foreground mt-1">
-                        Leave empty to use same as phone number
+                        This will be auto-filled from your registration data if available
                       </p>
                     </FormField>
                     
-                    {/* 6. Age */}
+                    {/* 5. Age */}
                     <FormField label="Age" filled={!!basicForm.age}>
                       <Input 
                         id="age"
@@ -1617,7 +1604,7 @@ export default function EditProfilePage() {
                       />
                     </FormField>
                     
-                    {/* 7. Height */}
+                    {/* 6. Height */}
                     <FormField label="Height" filled={!!basicForm.height}>
                       <Input 
                         id="height"
@@ -1628,7 +1615,7 @@ export default function EditProfilePage() {
                       />
                     </FormField>
                     
-                    {/* 8. Complexion */}
+                    {/* 7. Complexion */}
                     <FormField label="Complexion" filled={!!basicForm.complexion}>
                       <Select 
                         value={basicForm.complexion} 
@@ -1647,7 +1634,7 @@ export default function EditProfilePage() {
                         </SelectContent>                      </Select>
                     </FormField>
                     
-                    {/* 9. Marriage Timeline */}
+                    {/* 8. Marriage Timeline */}
                     <FormField label="How soon are you planning to marry?" filled={!!basicForm.marriageTimeline}>
                       <Select 
                         value={basicForm.marriageTimeline} 
