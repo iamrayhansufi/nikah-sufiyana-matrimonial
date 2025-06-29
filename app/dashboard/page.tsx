@@ -104,6 +104,29 @@ export default function DashboardPage() {
   const [recentInterests, setRecentInterests] = useState<DashboardInterest[]>([])
   const [receivedInterests, setReceivedInterests] = useState<DashboardInterest[]>([])
   const [shortlistedProfiles, setShortlistedProfiles] = useState<DashboardShortlist[]>([])
+  const [activeTab, setActiveTab] = useState("interests")
+  
+  // Check for tab parameter in URL
+  useEffect(() => {
+    // Get the tab from URL query parameters
+    const params = new URLSearchParams(window.location.search)
+    const tabParam = params.get('tab')
+    
+    // Map URL parameter to actual tab values
+    const tabMapping: Record<string, string> = {
+      'interests': 'interests',
+      'shortlist': 'shortlisted',
+      'received_interests': 'received_interests',
+      'privacy': 'privacy',
+      'payments': 'payments'
+    }
+    
+    // Set active tab if a valid tab is provided
+    if (tabParam && tabParam in tabMapping) {
+      setActiveTab(tabMapping[tabParam])
+      console.log('Setting active tab from URL parameter:', tabParam, '→', tabMapping[tabParam])
+    }
+  }, [])
   
   // Helper function to format time ago
   const formatTimeAgo = (dateStr: string) => {
@@ -715,7 +738,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Main Content Tabs */}
-          <Tabs defaultValue="interests" className="space-y-6">            <TabsList className="grid w-full grid-cols-5">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="interests">My Interests</TabsTrigger>
               <TabsTrigger value="shortlisted">Shortlisted</TabsTrigger>
               <TabsTrigger value="received_interests">Interests Received</TabsTrigger>

@@ -609,8 +609,8 @@ export default function ProfilePage({
   }
   // Handle accept/decline interest request
   const handleRespondToInterest = async (action: 'accept' | 'decline', duration?: string) => {
-    if (!incomingInterestRequest) return
-
+    if (!incomingInterestRequest) return;
+    
     try {
       const response = await fetch('/api/profiles/respond-interest', {
         method: 'POST',
@@ -618,50 +618,60 @@ export default function ProfilePage({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          interestId: incomingInterestRequest.id,
-          action,
+          interestId: parseInt(incomingInterestRequest.id),
+          action: action,
           photoAccessDuration: duration || '1week'
         })
-      })
-
+      });
+      
       if (!response.ok) {
-        throw new Error('Failed to respond to interest')
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to ${action} interest`);
       }
-
-      const result = await response.json()
-
+      
+      // Update UI state
+      setIncomingInterestRequest(null);
+      
       if (action === 'accept') {
-        setInterestMutual(true)
-        setShouldBlurPhoto(false)
+        // If accepted, they can now see this user's photos
+        setShouldBlurPhoto(false);
         toast({
           title: "Interest Accepted! 🎉",
-          description: `You've accepted their interest. They can view your photos for ${duration || '1 week'}.`,
+          description: `${formatToTitleCase(profile.name)} can now view your photos for ${duration === 'permanent' ? 'permanently' : getDurationText(duration || '1week')}.`,
           variant: "default"
-        })
+        });
       } else {
         toast({
           title: "Interest Declined",
-          description: "You've declined their interest request.",
+          description: `You have declined ${formatToTitleCase(profile.name)}'s interest.`,
           variant: "default"
-        })
+        });
       }
-
-      // Remove the incoming request
-      setIncomingInterestRequest(null)
       
-      // Refresh notifications and photo access
-      refreshNotifications()
-      await checkPhotoAccess()
-
+      // Refresh notifications
+      refreshNotifications();
+      
     } catch (error) {
-      console.error("Failed to respond to interest:", error)
+      console.error(`Failed to ${action} interest:`, error);
       toast({
-        title: "Failed to Respond",
-        description: "There was a problem responding to the interest request.",
+        title: `Failed to ${action} interest`,
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive"
-      })
+      });
     }
   }
+
+  // Helper function to convert duration codes to human-readable text
+  const getDurationText = (duration: string): string => {
+    switch (duration) {
+      case '1day': return '1 day';
+      case '2days': return '2 days';
+      case '1week': return '1 week';
+      case '1month': return '1 month';
+      case 'permanent': return 'permanently';
+      default: return '1 week';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-royal-gradient">

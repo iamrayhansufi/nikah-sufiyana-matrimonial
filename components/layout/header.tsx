@@ -81,7 +81,8 @@ export function Header() {
         id: notification.id,
         type: notification.type,
         link: notification.link,
-        message: notification.message
+        message: notification.message,
+        metadata: notification.metadata
       });
       
       // Mark the notification as read using the hook
@@ -93,9 +94,21 @@ export function Header() {
       // Navigate to the relevant page if there's a link
       if (notification.link) {
         console.log('Navigating to:', notification.link);
-          // Use a small delay to ensure the popover closes first
+        // Use a small delay to ensure the popover closes first
         setTimeout(() => {
           router.push(notification.link!);
+        }, 100);
+      } else if (notification.type === 'interest') {
+        // For interest notifications, redirect to the dashboard to show pending interests
+        console.log('Interest notification, redirecting to dashboard');
+        setTimeout(() => {
+          router.push('/dashboard?tab=interests');
+        }, 100);
+      } else if (notification.metadata && notification.metadata.fromUserId) {
+        // If there's a fromUserId in metadata, redirect to that profile
+        console.log('Redirecting to profile:', notification.metadata.fromUserId);
+        setTimeout(() => {
+          router.push(`/profile/${notification.metadata!.fromUserId}`);
         }, 100);
       } else {
         console.log('No link found in notification');

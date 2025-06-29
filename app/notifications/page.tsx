@@ -54,7 +54,8 @@ export default function NotificationsPage() {
         type: notification.type,
         link: notification.link,
         message: notification.message,
-        data: notification.data
+        data: notification.data,
+        metadata: notification.metadata
       });
       
       if (!notification.read) {
@@ -66,6 +67,14 @@ export default function NotificationsPage() {
       if (notification.link) {
         console.log('🔗 Navigating to:', notification.link);
         router.push(notification.link);
+      } else if (notification.type === 'interest') {
+        // For interest notifications, redirect to the dashboard with interests tab selected
+        console.log('🔗 Interest notification, redirecting to dashboard interests tab');
+        router.push('/dashboard?tab=interests');
+      } else if (notification.metadata?.fromUserId) {
+        // If there's a fromUserId in metadata, redirect to that profile
+        console.log('🔗 Redirecting to sender profile:', notification.metadata.fromUserId);
+        router.push(`/profile/${notification.metadata.fromUserId}`);
       } else {
         console.log('⚠️ No link found in notification, generating fallback based on type');
         
@@ -73,7 +82,8 @@ export default function NotificationsPage() {
         let fallbackLink = '/dashboard';
         switch (notification.type) {
           case 'interest_received':
-            fallbackLink = '/interests';
+          case 'interest':
+            fallbackLink = '/dashboard?tab=interests';
             break;
           case 'interest_accepted':
           case 'interest_declined':
@@ -81,6 +91,8 @@ export default function NotificationsPage() {
               const data = JSON.parse(notification.data || '{}');
               if (data.responderId) {
                 fallbackLink = `/profile/${data.responderId}`;
+              } else if (data.fromUserId) {
+                fallbackLink = `/profile/${data.fromUserId}`;
               }
             } catch (e) {
               console.log('Could not parse notification data for fallback link');
