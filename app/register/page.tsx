@@ -1750,16 +1750,18 @@ export default function RegisterPage() {
                       <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
                         <div className="space-y-4">
                           {formData.profilePhotoPreview ? (
-                            <div className="relative w-32 h-32 mx-auto">
-                              <img
-                                src={formData.profilePhotoPreview}
-                                alt="Profile preview"
-                                className="w-full h-full object-cover rounded-full"
-                              />
+                            <div className="relative max-w-xs mx-auto">
+                              <div className="relative overflow-hidden rounded-lg border-2 border-primary/20">
+                                <img
+                                  src={formData.profilePhotoPreview}
+                                  alt="Profile preview"
+                                  className="w-full h-auto object-contain max-h-64"
+                                />
+                              </div>
                               <Button
                                 variant="destructive"
                                 size="icon"
-                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg"
                                 onClick={() => {
                                   if (formData.profilePhotoPreview) {
                                     URL.revokeObjectURL(formData.profilePhotoPreview);
