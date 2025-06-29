@@ -87,18 +87,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         error: "Sender user not found" 
       }, { status: 404 })
-    }    // Get the target user (receiver)
-    let targetUser = await redis.hgetall(targetProfileId) as RedisUser
+    }
+
+    // Get the target user (receiver) - Try multiple lookup strategies
+    let targetUser = null as RedisUser | null
+    let finalTargetProfileId = ''
     
-    // If not found with user: prefix, try without it
-    if (!targetUser || !targetUser.id) {
-      const cleanProfileId = profileId.replace('user:', '');
-      targetUser = await redis.hgetall(`user:${cleanProfileId}`) as RedisUser
-      targetProfileId = `user:${cleanProfileId}`;
+    // Strategy 1: Try with user: prefix
+    console.log('🔍 Strategy 1: Trying with user: prefix')
+    targetUser = await redis.hgetall(targetProfileId) as RedisUser
+    
+    if (targetUser && targetUser.id) {
+      finalTargetProfileId = targetProfileId
+      console.log('✅ Found with Strategy 1')
+    } else {
+      // Strategy 2: Search through all users to find matching ID
+      console.log('🔍 Strategy 2: Searching through all users for matching ID')
+      
+      for (const key of userKeys) {
+        const user = await redis.hgetall(key) as RedisUser
+        if (user && user.id) {
+          // Check if the user ID (with or without prefix) matches our target
+          const cleanUserId = user.id.replace('user:', '')
+          const cleanProfileId = profileId.replace('user:', '')
+          
+          if (cleanUserId === cleanProfileId || user.id === profileId || key.replace('user:', '') === cleanProfileId) {
+            targetUser = user
+            finalTargetProfileId = key
+            console.log('✅ Found with Strategy 2:', key)
+            break
+          }
+        }
+      }
     }
     
-    console.log('🎯 Target user lookup:', {
-      targetProfileId,
+    console.log('🎯 Target user lookup result:', {
+      finalTargetProfileId,
       originalId: profileId,
       found: !!targetUser,
       id: targetUser?.id,
@@ -108,9 +132,18 @@ export async function POST(request: NextRequest) {
     })
     
     if (!targetUser || !targetUser.id) {
-      console.log('❌ Target user not found for ID:', targetProfileId)
+      console.log('❌ Target user not found after all strategies for ID:', profileId)
+      
+      // List available user IDs for debugging
+      console.log('🔍 Available user keys for debugging:')
+      for (const key of userKeys.slice(0, 5)) {
+        const user = await redis.hgetall(key) as RedisUser
+        console.log(`  - Key: ${key}, User ID: ${user?.id}, Name: ${user?.fullName}`)
+      }
+      
       return NextResponse.json({ 
-        error: "Target user not found" 
+        error: "Target user not found",
+        details: `Profile ID ${profileId} does not match any user in the system`
       }, { status: 404 })
     }    // Check if sender has basic required profile information
     const requiredFields = ['fullName', 'age', 'gender'];

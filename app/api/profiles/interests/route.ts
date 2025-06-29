@@ -43,7 +43,28 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type') // 'sent', 'received', or null (all)
     const profileId = searchParams.get('profileId') // specific profile interests
     
-    console.log('📝 Query params:', { type, profileId, currentUserId })
+    console.log('📝 Query params:', { type, profileId, currentUserId, userEmail: session.user.email })
+    
+    // Also try to find the user's full Redis ID
+    let currentUserRedisId = currentUserId
+    if (!currentUserRedisId.startsWith('user:')) {
+      // Try to find the actual Redis user ID
+      const userKeys = await redis.keys("user:*")
+      for (const key of userKeys) {
+        const user = await redis.hgetall(key) as RedisUser
+        if (user && user.email === session.user.email) {
+          currentUserRedisId = user.id || key
+          console.log('🔍 Found current user Redis ID:', currentUserRedisId)
+          break
+        }
+      }
+    }
+    
+    console.log('👤 User ID mapping:', {
+      sessionUserId: currentUserId,
+      redisUserId: currentUserRedisId,
+      userEmail: session.user.email
+    })
     
     // Get all interests from Redis
     const interestKeys = await redis.keys("interest:*")
@@ -78,15 +99,21 @@ export async function GET(request: NextRequest) {
     
     // Filter based on type
     if (type === 'sent') {
-      filteredInterests = allInterests.filter(i => i.senderId === currentUserId)
+      filteredInterests = allInterests.filter(i => 
+        i.senderId === currentUserId || i.senderId === currentUserRedisId
+      )
       console.log(`📤 Filtered sent interests: ${filteredInterests.length}`)
     } else if (type === 'received') {
-      filteredInterests = allInterests.filter(i => i.receiverId === currentUserId)
+      filteredInterests = allInterests.filter(i => 
+        i.receiverId === currentUserId || i.receiverId === currentUserRedisId
+      )
       console.log(`📥 Filtered received interests: ${filteredInterests.length}`)
+      console.log('🔍 Sample interest receiver IDs:', filteredInterests.slice(0, 3).map(i => i.receiverId))
     } else {
       // Return all interests for the current user
       filteredInterests = allInterests.filter(i => 
-        i.senderId === currentUserId || i.receiverId === currentUserId
+        i.senderId === currentUserId || i.receiverId === currentUserId ||
+        i.senderId === currentUserRedisId || i.receiverId === currentUserRedisId
       )
       console.log(`📊 Filtered all interests: ${filteredInterests.length}`)
     }
